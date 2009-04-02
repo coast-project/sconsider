@@ -101,7 +101,6 @@ for lib in externalLibraries.keys():
 ########################################
 # Set up COAST-ROOT if it was specified #
 ########################################
-AddOption('--with-COAST-ROOT', dest = 'COAST-ROOT', nargs=1, type='string', action='store', metavar='DIR', help='location of COAST_ROOT type directory layout for external libraries')
 if baseEnv.GetOption('COAST-ROOT'):
     for lib in externalLibraries.keys():
         for path in ['include-path', 'lib-path', 'bin-path']:
