@@ -1,4 +1,4 @@
-import os,platform,SCons,glob,re,atexit,sys,traceback,commands
+import os,platform,SCons,glob,re,atexit,sys,traceback,commands,pdb
 
 from SCons.Script import *
 
@@ -11,7 +11,7 @@ SCons.Script.EnsurePythonVersion(2,4)
 
 baseEnv=Environment()
 
-#baseEnv.Tool('generateScript')
+baseEnv.Tool('generateScript')
 baseEnv.Alias("NoTarget")
 #baseEnv.SourceCode(".", None)
 
@@ -50,10 +50,35 @@ print "object base output dir [",pbasepath,"]"
 #print "platform.proc:",platform.processor()
 #print "platform.system:",platform.system()
 
+AddOption('--rm', dest='rm', action='store_true', help='Enable output helpful for RM output parsing')
 AddOption('--supersede', dest='supersede', action='store', nargs=1, type='string', default='.', metavar='DIR', help='Directory containing packages superseding installed ones. Relative paths not supported!')
 override = baseEnv.GetOption('supersede')
 
-VariantDir(objdir,pbasepath,duplicate=0)
+print 'variant object dir [%s]' % objdir
+baseEnv['SCB_VARIANT_DIR'] = objdir
+
+## borrowed from SconsBuilder.py (nic-nac)
+def mkdir(newdir):
+  """works the way a good mkdir should :)
+      - already exists, silently complete
+      - regular file in the way, raise an exception
+      - parent directory(ies) does not exist, make them as well
+  """
+  if os.path.isdir(newdir):
+    pass
+  elif os.path.isfile(newdir):
+    raise OSError("a file with the same name as the desired " \
+                    "dir, '%s', already exists." % newdir)
+  else:
+    head, tail = os.path.split(newdir)
+    if head and not os.path.isdir(head):
+      mkdir(head)
+    if tail:
+      os.mkdir(newdir)
+
+sconscriptfile = os.path.join(os.path.abspath(objdir), '.sconsign')
+Mkdir(os.path.dirname(sconscriptfile))
+SConsignFile(sconscriptfile)
 
 #########################
 #  Project Environment  #
@@ -69,12 +94,14 @@ baseEnv.Append(TOOLDIR       = Dir(override).Dir('sconsTools'))
 baseEnv.Append(TESTDIR       = baseEnv['BINDIR'])
 baseEnv.Append(TESTSCRIPTDIR = baseEnv['SCRIPTDIR'])
 
-Export("baseEnv")
+Export('baseEnv')
 
 #########################
 #  External Libraries   #
 #########################
-SConscript('externals.scons')
+globalexternalsfilename = 'externals.scons'
+filename = os.path.join(GetOption('site_dir'), globalexternalsfilename)
+SConscript(filename)
 
 def listFiles(files, **kw):
     allFiles = []

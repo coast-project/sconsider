@@ -1,5 +1,5 @@
 import os,platform
-
+## Add items in library list to env var LIBS
 def generate(env, **kw):
 #    if kw.get('package', '') != '':
 #        env.AppendUnique(LIBPATH = ['#'+os.path.join(kw.get('package'),'build',platform.system())])

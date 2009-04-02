@@ -1,6 +1,23 @@
 import os, pprint
 import SCons.Node.FS
 
+## * Install various specified objects (includes, libraries, etc.) and
+##   xxLib.py
+## * Add to the list of default targets and to definition of 'all'
+## * Generate wrappers for programs
+## Recognized keywords are
+##        package - string
+##        libraries - list of library nodes
+##        testApps  - list of program nodes
+##        binaries  - list of program nodes
+##        includes - list of file paths
+##        data     - list of file paths
+##        xml      - list of file paths
+##        pfiles
+##        python
+##        wrapper_env
+##
+
 def generate(env, **kw):
     if kw.get('package', '') != '':
         if os.path.exists(os.path.join(str(env.Dir('.').srcnode()),kw.get('package')+"Lib.py")):
@@ -86,8 +103,7 @@ def generate(env, **kw):
             # user has passed in a list of (exename, envdict) tuples
             # to be registered in the construction environment and eventually
             # emitted into the wrapper scripts
-            print 'registerObjects: registering env dicts for %s' % list(x[0] for x in kw.get('wrapper_env'))
             env.Append( WRAPPER_ENV = kw.get('wrapper_env') )
-                                        
+
 def exists(env):
     return 1;

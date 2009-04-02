@@ -51,21 +51,21 @@ def generateWSHScript(scriptFile, env, wrapper):
         scriptFile.write('INST_DIR = Left(INST_DIR,InStrRev(INST_DIR,"\\")-1)\n')
         scriptFile.write('INST_DIR = Left(INST_DIR,InStrRev(INST_DIR,"\\")-1)\n')
         scriptFile.write('env("INST_DIR")=INST_DIR\n')
-    scriptFile.write('GLAST_EXT = env.item("GLAST_EXT")\n')
-    scriptFile.write('If GLAST_EXT = "" Then\n')
+    scriptFile.write('COAST_ROOT = env.item("COAST_ROOT")\n')
+    scriptFile.write('If COAST_ROOT = "" Then\n')
     scriptFile.write('  WScript.Echo("What is the location of the External libraries?")\n')
-    scriptFile.write('  WScript.Echo("If you set %GLAST_EXT% to this location this script will no longer ask")\n')
-    scriptFile.write('  GLAST_EXT = WScript.StdIn.ReadLine()\n')
-    scriptFile.write('  env("GLAST_EXT")=GLAST_EXT\n')
+    scriptFile.write('  WScript.Echo("If you set %COAST_ROOT% to this location this script will no longer ask")\n')
+    scriptFile.write('  COAST_ROOT = WScript.StdIn.ReadLine()\n')
+    scriptFile.write('  env("COAST_ROOT")=COAST_ROOT\n')
     scriptFile.write('End If\n')
     scriptFile.write('env("PATH") = env.Item("PATH") & ";" & INST_DIR & "\\' + str(env['LIBDIR'])+'"\n')
-    scriptFile.write('If GLAST_EXT = "" or INST_DIR = "" Then\n')
-    scriptFile.write('  WScript.Echo("GLAST_EXT not set or unable to determine installation directory")\n')
+    scriptFile.write('If COAST_ROOT = "" or INST_DIR = "" Then\n')
+    scriptFile.write('  WScript.Echo("COAST_ROOT not set or unable to determine installation directory")\n')
     scriptFile.write('  WScript.Quit(1)\n')
     scriptFile.write('End If\n')
     scriptFile.write('env("PATH") = env.Item("PATH") ')
     for lib in env['WRAPPERLIBS']:
-        lib = lib.replace("$GLAST_EXT", "GLAST_EXT & \"") + "\""
+        lib = lib.replace("$COAST_ROOT", "COAST_ROOT & \"") + "\""
         scriptFile.write('& ";" & '+lib)
     scriptFile.write('\n')
     scriptFile.write('set filesystemObject = CreateObject("Scripting.FileSystemObject")\n')
@@ -99,8 +99,8 @@ def generateWSHScript(scriptFile, env, wrapper):
     scriptFile.write('  arguments = arguments & WScript.Arguments.Item(i) & " "\n')
     scriptFile.write('Next\n')
     if env.has_key('ROOTSYS'):
-        rootsys = env['ROOTSYS'].replace("$GLAST_EXT", "")
-        scriptFile.write('env("ROOTSYS") = env("GLAST_EXT") & "'+rootsys+'"\n')
+        rootsys = env['ROOTSYS'].replace("$COAST_ROOT", "")
+        scriptFile.write('env("ROOTSYS") = env("COAST_ROOT") & "'+rootsys+'"\n')
     scriptFile.write('env("PYTHONPATH") = INST_DIR & "\\python" & env("PYTHONPATH")\n')
     return
 
