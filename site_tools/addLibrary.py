@@ -10,7 +10,7 @@ def generate(env, **kw):
                     env['LIBS'].remove(lib)
                 env['LIBS'].append(lib)
         else:
-            env.Append(LIBS = [kw.get('library')])
+            env.Append(LIBS = kw.get('library'))
 
 def exists(env):
     return 1
