@@ -25,14 +25,12 @@ def generate(env, **kw):
             env.Default(tools)
             env.Alias('all', tools)
         if kw.get('libraries', '') != '':
-#            libraries = env.Install(env['INST_LIBDIR'], kw.get('libraries'))
             libraries = env.Install(env['LIBDIR'], kw.get('libraries'))
             env.Alias(kw.get('package'), libraries)
             env.Default(libraries)
             env.Alias('libraries', libraries)
             env.Alias('all', libraries)
         if kw.get('binaries', '') != '':
-#            binaries = env.Install(env['INST_BINDIR'], kw.get('binaries'))
             binaries = env.Install(env['BINDIR'], kw.get('binaries'))
             wrappers = env.GenerateWrapperScript(binaries)
             env.Depends(wrappers, binaries)
@@ -50,7 +48,6 @@ def generate(env, **kw):
                     splitFile = parts[0]
                     installPath = os.path.normpath(os.path.join(parts[1], installPath))
                 installPath = os.path.dirname(installPath)
-#                includes = env.Install(env['INST_INCDIR'].Dir(kw.get('package')).Dir(installPath), header)
                 includes = env.Install(env['INCDIR'].Dir(kw.get('package')).Dir(installPath), header)
                 env.Alias(kw.get('package'), includes)
                 env.Default(includes)
