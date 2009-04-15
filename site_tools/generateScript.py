@@ -9,8 +9,9 @@ def generateShellScript(scriptFile, env, wrapper):
         scriptFile.write('export INST_DIR=`dirname $0`\n')
         scriptFile.write('export INST_DIR=`cd $INST_DIR/../../; pwd`\n')
     scriptFile.write('export LD_LIBRARY_PATH=$INST_DIR/'+str(env['LIBDIR']))
-    for lib in env['WRAPPERLIBS']:
-        scriptFile.write(':'+lib)
+    if env.has_key('WRAPPERLIBS'):
+        for lib in env['WRAPPERLIBS']:
+            scriptFile.write(':'+lib)
     scriptFile.write(':$LD_LIBRARY_PATH\n')
     scriptFile.write('export PATH=$INST_DIR/'+str(env['SCRIPTDIR'])+':$PATH\n')
     scriptFile.write('if [ ! -w $HOME/pfiles/. ]; then\n')
@@ -64,9 +65,10 @@ def generateWSHScript(scriptFile, env, wrapper):
     scriptFile.write('  WScript.Quit(1)\n')
     scriptFile.write('End If\n')
     scriptFile.write('env("PATH") = env.Item("PATH") ')
-    for lib in env['WRAPPERLIBS']:
-        lib = lib.replace("$COAST_ROOT", "COAST_ROOT & \"") + "\""
-        scriptFile.write('& ";" & '+lib)
+    if env.has_key('WRAPPERLIBS'):
+        for lib in env['WRAPPERLIBS']:
+            lib = lib.replace("$COAST_ROOT", "COAST_ROOT & \"") + "\""
+            scriptFile.write('& ";" & '+lib)
     scriptFile.write('\n')
     scriptFile.write('set filesystemObject = CreateObject("Scripting.FileSystemObject")\n')
     scriptFile.write('If filesystemObject.FolderExists(env.item("HOMEDRIVE") & env.item("HOMEPATH") & "\\pfiles") Then\n')
@@ -109,7 +111,7 @@ def generatePosixScript(target, source, env):
         scriptFile = open(str(env['SCRIPTDIR'].File('_setup')), 'w')
         generateShellScript(scriptFile, env, 0)
         scriptFile.close()
-        
+
     for executable in source:
         scriptFile = open(str(env['SCRIPTDIR'].File(os.path.basename(str(executable)))), 'w')
         generateShellScript(scriptFile, env, 1)
@@ -137,7 +139,7 @@ def generateScriptEmitter(target, source, env):
 def generate(env):
     if env['PLATFORM'] != 'win32':
         GenerateScriptAction = SCons.Action.Action(generatePosixScript, "Creating wrapper script for '$TARGET'")
-        GenerateScriptBuilder = SCons.Builder.Builder(action = [GenerateScriptAction, SCons.Defaults.Chmod('$TARGET', 0755)], 
+        GenerateScriptBuilder = SCons.Builder.Builder(action = [GenerateScriptAction, SCons.Defaults.Chmod('$TARGET', 0755)],
                                                       emitter = generateScriptEmitter,
                                                       single_source = 1)
     else:
