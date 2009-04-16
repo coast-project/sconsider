@@ -45,7 +45,7 @@ import os
 import sys
 import re
 import glob
-import fnmatch
+import fnmatch,pdb
 from fnmatch import fnmatch
 
 import SCons
@@ -123,10 +123,10 @@ def _generate (env):
     """Generate the basic eol_scons customizations for the given
     environment, especially applying the scons built-in default tool
     and the eol_scons global tools."""
-
     GlobalOptions().Update(env)
+    global debug
     if env.has_key('eolsconsdebug') and env['eolsconsdebug']:
-        eol_scons.debug = True
+        debug = True
     name = env.Dir('.').get_path(env.Dir('#'))
     Debug("Generating eol defaults for Environment(%s)" % name)
 
@@ -189,9 +189,12 @@ def _Require(env, tools):
     if not isinstance(tools,type([])):
         tools = [ tools ]
     for t in tools:
-        tool = env.Tool(t)
-        if tool:
-            applied.append( tool )
+        try:
+            tool = env.Tool(t)
+            if tool:
+                applied.append( tool )
+        except:
+            print("failed adding tool %s") % t
     return applied
 
 

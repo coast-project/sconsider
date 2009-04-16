@@ -118,20 +118,6 @@ for lib in externalLibraries.keys():
     if 'bin-path' in externalLibraries[lib] and externalLibraries[lib]['bin-path'].find('$') == -1:
         baseEnv.AppendUnique(PATH = [externalLibraries[lib]['bin-path']])
 
-###############################################
-# Print out External Library Summary if in RM #
-###############################################
-if baseEnv.GetOption('rm'):
-    print "scons: printing external libraries"
-    for lib in externalLibraries.keys():
-        if 'ld-path' in externalLibraries[lib] and 'version' in externalLibraries[lib]:
-            if 'lib-path' in externalLibraries[lib]:
-                externalLibraries[lib]['ld-path'] = externalLibraries[lib]['ld-path'].replace('$LIB-PATH', externalLibraries[lib]['lib-path'])
-            if 'bin-path' in externalLibraries[lib]:
-                externalLibraries[lib]['ld-path'] = externalLibraries[lib]['ld-path'].replace('$BIN-PATH', externalLibraries[lib]['bin-path'])
-            print lib+' '+externalLibraries[lib]['version']+' '+externalLibraries[lib]['ld-path']
-    print "scons: done printing external libraries"
-
 ###########################################################
 # Register various compile options for external libraries #
 ###########################################################

@@ -20,10 +20,6 @@ import SCons.Node.FS
 
 def generate(env, **kw):
     if kw.get('package', '') != '':
-        if os.path.exists(os.path.join(str(env.Dir('.').srcnode()),kw.get('package')+"Lib.py")):
-            tools = env.Install(env['TOOLDIR'], os.path.join(str(env.Dir('.').srcnode()),kw.get('package')+"Lib.py"))
-            env.Default(tools)
-            env.Alias('all', tools)
         if kw.get('libraries', '') != '':
             libraries = env.Install(env['LIBDIR'], kw.get('libraries'))
             env.Alias(kw.get('package'), libraries)
@@ -32,6 +28,7 @@ def generate(env, **kw):
             env.Alias('all', libraries)
         if kw.get('binaries', '') != '':
             binaries = env.Install(env['BINDIR'], kw.get('binaries'))
+            env.Tool('generateScript')
             wrappers = env.GenerateWrapperScript(binaries)
             env.Depends(wrappers, binaries)
             env.Alias(kw.get('package'), wrappers)
@@ -54,6 +51,7 @@ def generate(env, **kw):
                 env.Alias('all', includes)
         if kw.get('testApps', '') != '':
             testApps = env.Install(env['TESTDIR'], kw.get('testApps'))
+            env.Tool('generateScript')
             wrappers = env.GenerateWrapperScript(testApps)
             env.Depends(wrappers, testApps)
             env.Alias(kw.get('package'), wrappers)

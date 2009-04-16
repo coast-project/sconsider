@@ -1,3 +1,4 @@
+#import eol_scons
 import os,platform,SCons,glob,re,atexit,sys,traceback,commands,pdb
 
 from SCons.Script import *
@@ -9,18 +10,13 @@ SCons.Script.EnsureSConsVersion(1,0,0)
 # but it was build and tested against Python 2.4
 SCons.Script.EnsurePythonVersion(2,4)
 
-baseEnv=Environment()
-
-baseEnv.Tool('generateScript')
-baseEnv.Alias("NoTarget")
-# do not try to fetch sources from a SCM repository if not there
-baseEnv.SourceCode(".", None)
-
 variant = "Unknown"
-if baseEnv['PLATFORM'] == "posix":
+myplatf = str(SCons.Platform.Platform())
+
+if myplatf == "posix":
     #variant = platform.dist()[0]+platform.dist()[1]+"-"+platform.machine()+"-"+platform.architecture()[0]
     variant = platform.system()+"_"+platform.libc_ver()[0]+"-"+platform.libc_ver()[1]+"_"+platform.machine()+"-"+platform.architecture()[0]
-if baseEnv['PLATFORM'] == "darwin":
+if myplatf == "darwin":
     version = commands.getoutput("sw_vers -productVersion")
     cpu = commands.getoutput("arch")
     if version.startswith("10.5"):
@@ -32,7 +28,7 @@ if baseEnv['PLATFORM'] == "darwin":
         variant+="64bit"
     else:
         variant+="32bit"
-if baseEnv['PLATFORM'] == "win32":
+if myplatf == "win32":
     variant = platform.release()+"-"+"i386"+"-"+platform.architecture()[0]
 
 print "compilation variant [",variant,"]"
@@ -46,14 +42,23 @@ print "compilation variant [",variant,"]"
 #print "platform.proc:",platform.processor()
 #print "platform.system:",platform.system()
 
-AddOption('--with-COAST-ROOT', dest = 'COAST-ROOT', action='store', nargs=1, type='string', default='#', metavar='DIR', help='location of COAST_ROOT directory, default is ['+Dir('#').abspath+']')
-AddOption('--rm', dest='rm', action='store_true', help='Enable output helpful for RM output parsing')
-AddOption('--supersede', dest='supersede', action='store', nargs=1, type='string', default='#', metavar='DIR', help='Directory containing packages superseding installed ones. Relative paths not supported!')
+AddOption('--baseoutdir', dest='baseoutdir', action='store', nargs=1, type='string', default='#', metavar='DIR', help='Directory containing packages superseding installed ones. Relative paths not supported!')
 AddOption('--exclude', dest='exclude', action='append', nargs=1, type='string', metavar='DIR', help='Directory containing a SConscript file that should be ignored.')
-AddOption('--user-release', dest='userRelease', nargs=1, type='string', action='store', metavar='FILE', help='Creates a compressed user release and stores it in FILE')
+AddOption('--usetool', dest='usetools', action='append', nargs=1, type='string', default=[], metavar='VAR', help='tools to use when constructing default environment')
 
-override = Dir(baseEnv.GetOption('supersede'))
-print 'override dir [%s]' % override.path
+globaltools = Split("""default coast_options""")
+usetools = GetOption('usetools') + globaltools
+print 'tools to use %s' % Flatten(usetools)
+
+baseoutdir = Dir(GetOption('baseoutdir'))
+print 'base output dir [%s]' % baseoutdir.abspath
+
+baseEnv=Environment(tools = usetools)
+
+baseEnv.Alias("NoTarget")
+# do not try to fetch sources from a SCM repository if not there
+baseEnv.SourceCode(".", None)
+
 SConsignFile(os.path.join(GetLaunchDir(),'.sconsign.'+variant))
 
 Export('baseEnv')
@@ -61,54 +66,24 @@ Export('baseEnv')
 #########################
 #  Project Environment  #
 #########################
-baseEnv.Append(LIBDIR        = Dir(override).Dir('lib').Dir(variant))
-baseEnv.Append(BINDIR        = Dir(override).Dir('bin').Dir(variant))
-baseEnv.Append(SCRIPTDIR     = Dir(override).Dir('scripts').Dir(variant))
-baseEnv.Append(INCDIR        = Dir(override).Dir('include'))
-baseEnv.Append(PFILESDIR     = Dir(override).Dir('syspfiles'))
-baseEnv.Append(DATADIR       = Dir(override).Dir('data'))
-baseEnv.Append(XMLDIR        = Dir(override).Dir('xml'))
-baseEnv.Append(TOOLDIR       = Dir(override).Dir('sconsTools'))
+baseEnv.Append(LIBDIR        = Dir(baseoutdir).Dir('lib').Dir(variant))
+baseEnv.Append(BINDIR        = Dir(baseoutdir).Dir('bin').Dir(variant))
+baseEnv.Append(SCRIPTDIR     = Dir(baseoutdir).Dir('scripts').Dir(variant))
+baseEnv.Append(INCDIR        = Dir(baseoutdir).Dir('include'))
+baseEnv.Append(PFILESDIR     = Dir(baseoutdir).Dir('syspfiles'))
+baseEnv.Append(DATADIR       = Dir(baseoutdir).Dir('data'))
+baseEnv.Append(XMLDIR        = Dir(baseoutdir).Dir('xml'))
 baseEnv.Append(TESTDIR       = baseEnv['BINDIR'])
 baseEnv.Append(TESTSCRIPTDIR = baseEnv['SCRIPTDIR'])
-baseEnv.Append(PYTHONDIR     = Dir(override).Dir('python'))
-baseEnv['CONFIGURELOG']      = str(Dir(override).File("config.log"))
-baseEnv['CONFIGUREDIR']      = str(Dir(override).Dir(".sconf_temp"))
+#baseEnv.Append(TESTDIR       = Dir(baseoutdir).Dir('tests').Dir(variant))
+#baseEnv.Append(TESTSCRIPTDIR = baseEnv['TESTDIR'])
+baseEnv.Append(PYTHONDIR     = Dir(baseoutdir).Dir('python'))
+baseEnv['CONFIGURELOG']      = str(Dir(baseoutdir).File("config.log"))
+baseEnv['CONFIGUREDIR']      = str(Dir(baseoutdir).Dir(".sconf_temp"))
 #baseEnv.AppendUnique(CPPPATH = ['.'])
 #baseEnv.AppendUnique(CPPPATH = ['src'])
 baseEnv.AppendUnique(CPPPATH = [baseEnv['INCDIR']])
 baseEnv.AppendUnique(LIBPATH = [baseEnv['LIBDIR']])
-
-##################
-# Create release #
-##################
-if baseEnv.GetOption('userRelease'):
-    if baseEnv['PLATFORM'] != 'win32':
-        baseEnv['TARFLAGS']+=' -z'
-        baseEnv.Default(baseEnv.Tar(baseEnv.GetOption('userRelease'), baseEnv['LIBDIR']))
-        baseEnv.Tar(baseEnv.GetOption('userRelease'), baseEnv['BINDIR'])
-        baseEnv.Tar(baseEnv.GetOption('userRelease'), baseEnv['SCRIPTDIR'])
-        baseEnv.Tar(baseEnv.GetOption('userRelease'), baseEnv['INCDIR'])
-        baseEnv.Tar(baseEnv.GetOption('userRelease'), baseEnv['PFILESDIR'])
-        baseEnv.Tar(baseEnv.GetOption('userRelease'), baseEnv['DATADIR'])
-        baseEnv.Tar(baseEnv.GetOption('userRelease'), baseEnv['XMLDIR'])
-        baseEnv.Tar(baseEnv.GetOption('userRelease'), baseEnv['TOOLDIR'])
-        baseEnv.Tar(baseEnv.GetOption('userRelease'), baseEnv['TESTDIR'])
-        baseEnv.Tar(baseEnv.GetOption('userRelease'), baseEnv['TESTSCRIPTDIR'])
-        baseEnv.Tar(baseEnv.GetOption('userRelease'), baseEnv['PYTHONDIR'])
-    else:
-        baseEnv.Default(baseEnv.Zip(baseEnv.GetOption('userRelease'), baseEnv['LIBDIR']))
-        baseEnv.Zip(baseEnv.GetOption('userRelease'), baseEnv['BINDIR'])
-        baseEnv.Zip(baseEnv.GetOption('userRelease'), baseEnv['SCRIPTDIR'])
-        baseEnv.Zip(baseEnv.GetOption('userRelease'), baseEnv['INCDIR'])
-        baseEnv.Zip(baseEnv.GetOption('userRelease'), baseEnv['PFILESDIR'])
-        baseEnv.Zip(baseEnv.GetOption('userRelease'), baseEnv['DATADIR'])
-        baseEnv.Zip(baseEnv.GetOption('userRelease'), baseEnv['XMLDIR'])
-        baseEnv.Zip(baseEnv.GetOption('userRelease'), baseEnv['TOOLDIR'])
-        baseEnv.Zip(baseEnv.GetOption('userRelease'), baseEnv['TESTDIR'])
-        baseEnv.Zip(baseEnv.GetOption('userRelease'), baseEnv['TESTSCRIPTDIR'])
-        baseEnv.Zip(baseEnv.GetOption('userRelease'), baseEnv['PYTHONDIR'])
-    Return()
 
 #########################
 #  External Libraries   #
@@ -116,11 +91,6 @@ if baseEnv.GetOption('userRelease'):
 globalexternalsfilename = 'externals.scons'
 filename = os.path.join('#', 'site_scons', globalexternalsfilename)
 SConscript(filename)
-
-############################
-# Package Specific Options #
-############################
-#SConscript('package.scons')
 
 def listFiles(files, **kw):
     allFiles = []
@@ -137,7 +107,7 @@ def listFiles(files, **kw):
 Export('listFiles')
 
 if not baseEnv.GetOption('help'):
-    directories = [override.path]
+    directories = [baseoutdir.path]
     packages = []
     # Add packages to package list and add packages to tool path if they have one
     while len(directories)>0:
@@ -171,9 +141,6 @@ if not baseEnv.GetOption('help'):
                         SCons.Tool.DefaultToolpath.append(os.path.abspath(fullpath))
                         print 'appended toolpath  [%s]' % os.path.abspath(fullpath)
 
-    if not override == '.':
-        SCons.Tool.DefaultToolpath.append(os.path.abspath(str(Dir('.').Dir('sconsTools'))))
-
     Export('packages')
 
     for pkg in packages:
@@ -181,7 +148,7 @@ if not baseEnv.GetOption('help'):
             print 'executing SConscript for package [%s]' % pkg
             baseEnv.SConscript(os.path.join(pkg,"SConscript"), build_dir = os.path.join(pkg, 'build', variant), duplicate = 0)
         except Exception, inst:
-            print "scons: Skipped "+pkg.lstrip(override+os.sep)+" because of exceptions: "+str(inst)
+            print "scons: Skipped "+pkg.lstrip(baseoutdir.path+os.sep)+" because of exceptions: "+str(inst)
             traceback.print_tb(sys.exc_info()[2])
     if baseEnv.GetOption('clean'):
         baseEnv.Default('test')
