@@ -59,7 +59,8 @@ baseEnv.Alias("NoTarget")
 # do not try to fetch sources from a SCM repository if not there
 baseEnv.SourceCode(".", None)
 
-SConsignFile(os.path.join(GetLaunchDir(),'.sconsign.'+variant))
+ssfile=os.path.join(Dir('#').path,'.sconsign.'+variant)
+SConsignFile(ssfile)
 
 Export('baseEnv')
 
@@ -88,7 +89,7 @@ baseEnv.AppendUnique(LIBPATH = [baseEnv['LIBDIR']])
 #########################
 #  External Libraries   #
 #########################
-globalexternalsfilename = 'externals.scons'
+globalexternalsfilename = 'externals.scons.py'
 filename = os.path.join('#', 'site_scons', globalexternalsfilename)
 SConscript(filename)
 
@@ -107,7 +108,7 @@ def listFiles(files, **kw):
 Export('listFiles')
 
 if True: #not baseEnv.GetOption('help'):
-    directories = [baseoutdir.path]
+    directories = [Dir('#').path]
     packages = []
     # Add packages to package list and add packages to tool path if they have one
     while len(directories)>0:
@@ -146,12 +147,14 @@ if True: #not baseEnv.GetOption('help'):
     for pkg in packages:
         try:
             print 'executing SConscript for package [%s]' % pkg
-            baseEnv.SConscript(os.path.join(pkg,"SConscript"), build_dir = os.path.join(pkg, 'build', variant), duplicate = 0)
+            baseEnv.SConscript(os.path.join(pkg,"SConscript"), build_dir = os.path.join(baseoutdir.path, pkg, 'build', variant), duplicate = 0)
         except Exception, inst:
             print "scons: Skipped "+pkg.lstrip(baseoutdir.path+os.sep)+" because of exceptions: "+str(inst)
             traceback.print_tb(sys.exc_info()[2])
     if baseEnv.GetOption('clean'):
         baseEnv.Default('test')
+
+print "BUILD_TARGETS is ", map(str, BUILD_TARGETS)
 
 def print_build_failures():
     from SCons.Script import GetBuildFailures
