@@ -2,8 +2,13 @@ import os,platform,pdb,traceback
 import SCons
 from SCons.Script import AddOption
 
+added = None
+
 def generate(env, **kw):
-    AddOption('--user-release', dest='userRelease', nargs=1, type='string', action='store', metavar='FILE', help='Creates a compressed user release and stores it in FILE')
+    global added
+    if not added:
+        added = 1
+        AddOption('--user-release', dest='userRelease', nargs=1, type='string', action='store', metavar='FILE', help='Creates a compressed user release and stores it in FILE')
     ##################
     # Create release #
     ##################

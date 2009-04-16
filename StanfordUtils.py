@@ -106,7 +106,7 @@ def listFiles(files, **kw):
 
 Export('listFiles')
 
-if not baseEnv.GetOption('help'):
+if True: #not baseEnv.GetOption('help'):
     directories = [baseoutdir.path]
     packages = []
     # Add packages to package list and add packages to tool path if they have one
