@@ -50,14 +50,17 @@ AddOption('--baseoutdir', dest='baseoutdir', action='store', nargs=1, type='stri
 AddOption('--exclude', dest='exclude', action='append', nargs=1, type='string', metavar='DIR', help='Directory containing a SConscript file that should be ignored.')
 AddOption('--usetool', dest='usetools', action='append', nargs=1, type='string', default=[], metavar='VAR', help='tools to use when constructing default environment')
 
-globaltools = Split("""default coast_options""")
-usetools = GetOption('usetools') + globaltools
+globaltools = Split("""coast_options""")
+#globaltools = Split("""default coast_options""")
+usetools = globaltools + GetOption('usetools')
 print 'tools to use %s' % Flatten(usetools)
 
 baseoutdir = Dir(GetOption('baseoutdir'))
 print 'base output dir [%s]' % baseoutdir.abspath
 
-baseEnv=Environment(tools = usetools)
+dEnv=DefaultEnvironment()
+dEnv.PrependENVPath('PATH', '/opt/brz/gcc/bin')
+baseEnv=dEnv.Clone(tools=usetools)
 
 baseEnv.Alias("NoTarget")
 # do not try to fetch sources from a SCM repository if not there
