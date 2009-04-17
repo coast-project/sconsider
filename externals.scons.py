@@ -29,6 +29,9 @@ externalLibraries = {
 if baseEnv['PLATFORM'] == "win32":
     pass
 
+if baseEnv['PLATFORM'] == "cygwin":
+    pass
+
 if baseEnv['PLATFORM'] == 'sunos':
     pass
 

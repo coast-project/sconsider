@@ -14,8 +14,9 @@ variant = "Unknown"
 myplatf = str(SCons.Platform.Platform())
 
 if myplatf == "posix":
-    #variant = platform.dist()[0]+platform.dist()[1]+"-"+platform.machine()+"-"+platform.architecture()[0]
-    variant = platform.system()+"_"+platform.libc_ver()[0]+"-"+platform.libc_ver()[1]+"_"+platform.machine()+"-"+platform.architecture()[0]
+    variant = platform.system()+"_"+platform.libc_ver()[0]+"_"+platform.libc_ver()[1]+"-"+platform.machine()+"-"+platform.architecture()[0]
+if myplatf == "sunos":
+    variant = platform.system()+"_"+platform.release()+"-"+platform.processor()+"-"+platform.architecture()[0]
 if myplatf == "darwin":
     version = commands.getoutput("sw_vers -productVersion")
     cpu = commands.getoutput("arch")
@@ -28,19 +29,22 @@ if myplatf == "darwin":
         variant+="64bit"
     else:
         variant+="32bit"
+if myplatf == "cygwin":
+    variant = platform.system()+"-"+platform.machine()+"-"+platform.architecture()[0]
 if myplatf == "win32":
-    variant = platform.release()+"-"+"i386"+"-"+platform.architecture()[0]
+    variant = platform.release()+"-"+platform.machine()+"-"+platform.architecture()[0]
 
 print "compilation variant [",variant,"]"
 
-#print "platform.dist:",platform.dist()
-#print "platform.arch:",platform.architecture()
-#print "platform.machine:",platform.machine()
-#print "platform.libc:",platform.libc_ver()
-#print "platform.release:",platform.release()
-#print "platform.version:",platform.version()
-#print "platform.proc:",platform.processor()
-#print "platform.system:",platform.system()
+if False:
+    print "platform.dist:",platform.dist()
+    print "platform.arch:",platform.architecture()
+    print "platform.machine:",platform.machine()
+    print "platform.libc:",platform.libc_ver()
+    print "platform.release:",platform.release()
+    print "platform.version:",platform.version()
+    print "platform.proc:",platform.processor()
+    print "platform.system:",platform.system()
 
 AddOption('--baseoutdir', dest='baseoutdir', action='store', nargs=1, type='string', default='#', metavar='DIR', help='Directory containing packages superseding installed ones. Relative paths not supported!')
 AddOption('--exclude', dest='exclude', action='append', nargs=1, type='string', metavar='DIR', help='Directory containing a SConscript file that should be ignored.')
