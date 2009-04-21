@@ -49,17 +49,25 @@ if False:
 AddOption('--baseoutdir', dest='baseoutdir', action='store', nargs=1, type='string', default='#', metavar='DIR', help='Directory containing packages superseding installed ones. Relative paths not supported!')
 AddOption('--exclude', dest='exclude', action='append', nargs=1, type='string', metavar='DIR', help='Directory containing a SConscript file that should be ignored.')
 AddOption('--usetool', dest='usetools', action='append', nargs=1, type='string', default=[], metavar='VAR', help='tools to use when constructing default environment')
-
-globaltools = Split("""coast_options""")
-#globaltools = Split("""default coast_options""")
-usetools = globaltools + GetOption('usetools')
-print 'tools to use %s' % Flatten(usetools)
+AddOption('--appendPath', dest='appendPath', action='append', nargs=1, type='string', metavar='DIR', help='Directory to append to PATH environment variable.')
+AddOption('--prependPath', dest='prependPath', action='append', nargs=1, type='string', metavar='DIR', help='Directory to prepend to PATH environment variable.')
 
 baseoutdir = Dir(GetOption('baseoutdir'))
 print 'base output dir [%s]' % baseoutdir.abspath
 
 dEnv=DefaultEnvironment()
-dEnv.PrependENVPath('PATH', '/opt/brz/gcc/bin')
+if GetOption('prependPath'):
+    dEnv.PrependENVPath('PATH', GetOption('prependPath'))
+    print 'prepended path is [%s]' % dEnv['ENV']['PATH']
+if GetOption('appendPath'):
+    dEnv.AppendENVPath('PATH', GetOption('appendPath'))
+    print 'appended path is [%s]' % dEnv['ENV']['PATH']
+
+globaltools = Split("""setupBuildTools coast_options""")
+#globaltools = Split("""default coast_options""")
+usetools = globaltools + GetOption('usetools')
+print 'tools to use %s' % Flatten(usetools)
+
 baseEnv=dEnv.Clone(tools=usetools)
 
 baseEnv.Alias("NoTarget")
