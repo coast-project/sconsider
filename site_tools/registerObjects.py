@@ -1,4 +1,4 @@
-import os, pprint
+import os, pprint, pdb
 import SCons.Node.FS
 
 ## * Install various specified objects (includes, libraries, etc.) and
@@ -36,6 +36,7 @@ def generate(env, **kw):
             env.Alias('binaries', wrappers)
             env.Alias('all', wrappers)
         if kw.get('includes', '') != '':
+#            myIncludeSet = set()
             for header in kw.get('includes'):
                 header = env.File(str(header))
                 splitFile = str(env.Dir('.').srcnode().rel_path(header.srcnode()))
@@ -44,11 +45,13 @@ def generate(env, **kw):
                     parts = os.path.split(splitFile)
                     splitFile = parts[0]
                     installPath = os.path.normpath(os.path.join(parts[1], installPath))
-                installPath = os.path.dirname(installPath)
-                includes = env.Install(env['INCDIR'].Dir(kw.get('package')).Dir(installPath), header)
+                installPath = env['INCDIR'].Dir(kw.get('package')).Dir(os.path.dirname(installPath))
+#                myIncludeSet.add(installPath)
+                includes = env.Install(installPath, header)
                 env.Alias(kw.get('package'), includes)
                 env.Default(includes)
                 env.Alias('all', includes)
+#            env['_INCDIRS_'] = myIncludeSet
         if kw.get('testApps', '') != '':
             testApps = env.Install(env['TESTDIR'], kw.get('testApps'))
             env.Tool('generateScript')
@@ -60,7 +63,7 @@ def generate(env, **kw):
             env.Clean('test', wrappers)
         if kw.get('pfiles', '') != '':
             pfiles = env.Install(env['PFILESDIR'], kw.get('pfiles'))
-            env.AppendUnique(PFILES = pfiles)
+            env.AppendUnique(PFILES=pfiles)
             env.Alias(kw.get('package'), pfiles)
             env.Default(pfiles)
             env.Alias('all', pfiles)
@@ -101,7 +104,7 @@ def generate(env, **kw):
             # user has passed in a list of (exename, envdict) tuples
             # to be registered in the construction environment and eventually
             # emitted into the wrapper scripts
-            env.Append( WRAPPER_ENV = kw.get('wrapper_env') )
+            env.Append(WRAPPER_ENV=kw.get('wrapper_env'))
 
 def exists(env):
     return 1;
