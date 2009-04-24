@@ -14,6 +14,7 @@ def generate(env, **kw):
         bitchoices = ["32", "64"]
         bitdefault = '32'
         AddOption('--archbits', dest='archbits', action='store', nargs=1, type='choice', choices=bitchoices, default=bitdefault, metavar='OPTIONS', help='Select target bit width (if compiler supports it), ' + str(bitchoices) + ', default=' + bitdefault)
+        AddOption('--no-stdiostream', dest='no-stdiostream', action='store_true', help='Disable use of std libraries iostream headers')
     platf = env['PLATFORM']
     whichgcc = GetOption('whichgcc')
     if whichgcc:
@@ -43,6 +44,8 @@ def generate(env, **kw):
     env.AppendUnique(SHCCFLAGS=bitwoption + bitwidth)
     env.AppendUnique(LINKFLAGS=bitwoption + bitwidth)
 
+    if not GetOption('no-stdiostream'):
+        env.AppendUnique(CPPDEFINES=['ONLY_STD_IOSTREAM'])
     # if we use sun-CC, we need to specify some stl compliancy options...
     # important switch to enable up to date c++ features, especially template specific things
     ##--- c++ specific flags, templates, iostream, etc
