@@ -31,6 +31,18 @@ def generate(env, **kw):
         compver = '(' + env['CXXVERSION'] + ')'
     print 'using CXX compiler and version:', env['CXX'], compver
 
+    # common flags which influence compilation
+    env.AppendUnique(CPPDEFINES=['_POSIX_PTHREAD_SEMANTICS'])
+    if str(platf) == 'sunos' and not whichgcc:
+        env.AppendUnique(CCFLAGS='-mt')
+        env.AppendUnique(SHCCFLAGS='-mt')
+        env.AppendUnique(LINKFLAGS='-mt')
+    else:
+        env.AppendUnique(CPPDEFINES=['_REENTRANT'])
+    # this lib is needed when using sun-CC or gcc on sunos systems
+    if str(platf) == "sunos":
+        env.AppendUnique(LIBS=['posix4'])
+
     # select target architecture bits
     bitwidth = GetOption('archbits')
     bitwoption = '-m'
