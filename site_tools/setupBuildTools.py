@@ -11,9 +11,9 @@ def generate(env, **kw):
     if not added:
         added = 1
         AddOption('--with-g++', dest='whichgcc', action='store', nargs=1, type='string', default=None, metavar='PATH', help='fully qualified path and name to gnu c++ compiler')
-        bitchoices=["32", "64"]
-        bitdefault='32'
-        AddOption('--archbits', dest='archbits', action='store', nargs=1, type='choice', choices=bitchoices, default=bitdefault, metavar='OPTIONS', help='Select target bit width (if compiler supports it), '+str(bitchoices)+', default='+bitdefault)
+        bitchoices = ["32", "64"]
+        bitdefault = '32'
+        AddOption('--archbits', dest='archbits', action='store', nargs=1, type='choice', choices=bitchoices, default=bitdefault, metavar='OPTIONS', help='Select target bit width (if compiler supports it), ' + str(bitchoices) + ', default=' + bitdefault)
     platf = env['PLATFORM']
     whichgcc = GetOption('whichgcc')
     if whichgcc:
@@ -31,17 +31,30 @@ def generate(env, **kw):
     print 'using CXX compiler and version:', env['CXX'], compver
 
     # select target architecture bits
-    bitwidth=GetOption('archbits')
-    bitwoption='-m'
+    bitwidth = GetOption('archbits')
+    bitwoption = '-m'
     if str(platf) == 'sunos' and not whichgcc:
         # sun-CC compiler is to use
-        bitwoption='-xtarget=native'
+        bitwoption = '-xtarget=native'
         if bitwidth == '32':
             # when compiling 32bit, -xtarget=native is all we need, otherwise native64 must be specified
-            bitwidth=''
-    env.AppendUnique(CCFLAGS=bitwoption+bitwidth)
-    env.AppendUnique(SHCCFLAGS=bitwoption+bitwidth)
-    env.AppendUnique(LINKFLAGS=bitwoption+bitwidth)
+            bitwidth = ''
+    env.AppendUnique(CCFLAGS=bitwoption + bitwidth)
+    env.AppendUnique(SHCCFLAGS=bitwoption + bitwidth)
+    env.AppendUnique(LINKFLAGS=bitwoption + bitwidth)
+
+    # if we use sun-CC, we need to specify some stl compliancy options...
+    # important switch to enable up to date c++ features, especially template specific things
+    ##--- c++ specific flags, templates, iostream, etc
+    if str(platf) == 'sunos' and not whichgcc:
+        env.AppendUnique(CCFLAGS='-library=stlport4')
+        env.AppendUnique(SHCCFLAGS='-library=stlport4')
+        env.AppendUnique(LINKFLAGS='-library=stlport4')
+        if not GetOption('no-stdiostream'):
+            ## iostream library means "classic", but we want to use the std
+            env.AppendUnique(CCFLAGS='-library=no%iostream')
+            env.AppendUnique(SHCCFLAGS='-library=no%iostream')
+            env.AppendUnique(LINKFLAGS='-library=no%iostream')
 
 def exists(env):
     return 1
