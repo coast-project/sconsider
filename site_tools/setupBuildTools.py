@@ -37,6 +37,8 @@ def generate(env, **kw):
         env.AppendUnique(CCFLAGS='-mt')
         env.AppendUnique(SHCCFLAGS='-mt')
         env.AppendUnique(LINKFLAGS='-mt')
+        # do not use rpath
+        env.AppendUnique(LINKFLAGS='-norunpath')
     else:
         env.AppendUnique(CPPDEFINES=['_REENTRANT'])
     # this lib is needed when using sun-CC or gcc on sunos systems
