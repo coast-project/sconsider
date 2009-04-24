@@ -1,6 +1,6 @@
 import os, platform, pdb, traceback
 import SCons
-from SCons.Script import AddOption, Dir, GetOption
+from SCons.Script import AddOption, Dir, GetOption, Flatten
 
 added = None
 
