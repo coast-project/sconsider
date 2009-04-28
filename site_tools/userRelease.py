@@ -23,7 +23,7 @@ def generate(env, **kw):
             env.Tar(env.GetOption('userRelease'), env['DATADIR'])
             env.Tar(env.GetOption('userRelease'), env['XMLDIR'])
             env.Tar(env.GetOption('userRelease'), env['TESTDIR'])
-            env.Tar(env.GetOption('userRelease'), env['TESTSCRIPTDIR'])
+#            env.Tar(env.GetOption('userRelease'), env['TESTSCRIPTDIR'])
             env.Tar(env.GetOption('userRelease'), env['PYTHONDIR'])
         else:
             env.Default(env.Zip(env.GetOption('userRelease'), env['LIBDIR']))
@@ -34,7 +34,7 @@ def generate(env, **kw):
             env.Zip(env.GetOption('userRelease'), env['DATADIR'])
             env.Zip(env.GetOption('userRelease'), env['XMLDIR'])
             env.Zip(env.GetOption('userRelease'), env['TESTDIR'])
-            env.Zip(env.GetOption('userRelease'), env['TESTSCRIPTDIR'])
+#            env.Zip(env.GetOption('userRelease'), env['TESTSCRIPTDIR'])
             env.Zip(env.GetOption('userRelease'), env['PYTHONDIR'])
         Return()
 

@@ -80,24 +80,26 @@ Export('baseEnv')
 #########################
 #  Project Environment  #
 #########################
-baseEnv.Append(LIBDIR=Dir(baseoutdir).Dir('lib').Dir(variant))
-baseEnv.Append(BINDIR=Dir(baseoutdir).Dir('bin').Dir(variant))
-baseEnv.Append(SCRIPTDIR=Dir(baseoutdir).Dir('scripts').Dir(variant))
-baseEnv.Append(INCDIR=Dir(baseoutdir).Dir('include'))
-baseEnv.Append(PFILESDIR=Dir(baseoutdir).Dir('syspfiles'))
-baseEnv.Append(DATADIR=Dir(baseoutdir).Dir('data'))
-baseEnv.Append(XMLDIR=Dir(baseoutdir).Dir('xml'))
+baseEnv.Append(BASEOUTDIR=baseoutdir)
+baseEnv.Append(VARIANTDIR=variant)
+baseEnv.Append(LIBDIR=os.path.join('lib', variant))
+baseEnv.Append(BINDIR=os.path.join('bin', variant))
+baseEnv.Append(SCRIPTDIR=os.path.join('scripts', variant))
+baseEnv.Append(INCDIR='include')
 baseEnv.Append(TESTDIR=baseEnv['BINDIR'])
-baseEnv.Append(TESTSCRIPTDIR=baseEnv['SCRIPTDIR'])
-#baseEnv.Append(TESTDIR       = Dir(baseoutdir).Dir('tests').Dir(variant))
-#baseEnv.Append(TESTSCRIPTDIR = baseEnv['TESTDIR'])
+#baseEnv.Append(TESTSCRIPTDIR=baseEnv['SCRIPTDIR'])
+
+baseEnv.Append(PFILESDIR=Dir('syspfiles'))
+baseEnv.Append(CONFIGDIR=Dir('config'))
+baseEnv.Append(DATADIR=Dir('data'))
+baseEnv.Append(XMLDIR=Dir('xml'))
 baseEnv.Append(PYTHONDIR=Dir(baseoutdir).Dir('python'))
 baseEnv['CONFIGURELOG'] = str(Dir(baseoutdir).File("config.log"))
 baseEnv['CONFIGUREDIR'] = str(Dir(baseoutdir).Dir(".sconf_temp"))
 #baseEnv.AppendUnique(CPPPATH = ['.'])
 #baseEnv.AppendUnique(CPPPATH = ['src'])
 #baseEnv.AppendUnique(CPPPATH = [baseEnv['INCDIR']])
-baseEnv.AppendUnique(LIBPATH=[baseEnv['LIBDIR']])
+baseEnv.AppendUnique(LIBPATH=[baseoutdir.Dir(baseEnv['LIBDIR'])])
 
 #########################
 #  External Libraries   #

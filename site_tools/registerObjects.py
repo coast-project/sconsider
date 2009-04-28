@@ -18,86 +18,81 @@ import SCons.Node.FS
 ##        wrapper_env
 ##
 
+def copyFileNodes(env, nodename, baseoutdir, destdir, **kw):
+    nodes = kw.get(nodename)
+    for file in nodes:
+        file = env.File(str(file))
+        splitFile = str(env.Dir('.').srcnode().rel_path(file.srcnode()))
+        installPath = ''
+        while os.path.split(splitFile)[0] != '':
+            parts = os.path.split(splitFile)
+            splitFile = parts[0]
+            installPath = os.path.normpath(os.path.join(parts[1], installPath))
+        installPath = os.path.dirname(installPath)
+        if nodename == 'includes':
+            installTarget = env.Install(baseoutdir.Dir(os.path.join(env[destdir], kw.get('package'))).Dir(installPath), file)
+        elif nodename == 'config':
+            installTarget = env.Install(baseoutdir.Dir(os.path.join(kw.get('package'), splitFile)).Dir(installPath), file)
+        else:
+            installTarget = env.Install(baseoutdir.Dir(os.path.join(kw.get('package'), env[destdir])).Dir(installPath), file)
+        env.Alias(kw.get('package'), installTarget)
+        env.Default(installTarget)
+        env.Alias('all', installTarget)
+    return 0
+
 def generate(env, **kw):
-    if kw.get('package', '') != '':
+    pkgname = kw.get('package', '')
+    if pkgname != '':
+        env['PackageName'] = pkgname
+        baseoutdir = env['BASEOUTDIR']
+        basereldir = ''
+        if kw.get('testApps', '') != '':
+            basereldir = 'tests'
+        if kw.get('binaries', '') != '':
+            basereldir = 'apps'
+        env['TargetType'] = basereldir
+        baseoutdir = baseoutdir.Dir(basereldir)
         if kw.get('libraries', '') != '':
-            libraries = env.Install(env['LIBDIR'], kw.get('libraries'))
-            env.Alias(kw.get('package'), libraries)
+            libraries = env.Install(baseoutdir.Dir(env['LIBDIR']), kw.get('libraries'))
+            env.Alias(pkgname, libraries)
             env.Default(libraries)
             env.Alias('libraries', libraries)
             env.Alias('all', libraries)
+        if kw.get('config', '') != '':
+            copyFileNodes(env, 'config', baseoutdir, 'CONFIGDIR', **kw)
+        if kw.get('data', '') != '':
+            copyFileNodes(env, 'data', baseoutdir, 'DATADIR', **kw)
+        if kw.get('xml', '') != '':
+            copyFileNodes(env, 'xml', baseoutdir, 'XMLDIR', **kw)
+        if kw.get('includes', '') != '':
+            copyFileNodes(env, 'includes', baseoutdir, 'INCDIR', **kw)
         if kw.get('binaries', '') != '':
-            binaries = env.Install(env['BINDIR'], kw.get('binaries'))
+            binaries = env.Install(baseoutdir.Dir(pkgname).Dir(env['BINDIR']), kw.get('binaries'))
             env.Tool('generateScript')
             wrappers = env.GenerateWrapperScript(binaries)
             env.Depends(wrappers, binaries)
-            env.Alias(kw.get('package'), wrappers)
+            env.Alias(pkgname, wrappers)
             env.Default(wrappers)
             env.Alias('binaries', wrappers)
             env.Alias('all', wrappers)
-        if kw.get('includes', '') != '':
-#            myIncludeSet = set()
-            for header in kw.get('includes'):
-                header = env.File(str(header))
-                splitFile = str(env.Dir('.').srcnode().rel_path(header.srcnode()))
-                installPath = ''
-                while os.path.split(splitFile)[0] != '':
-                    parts = os.path.split(splitFile)
-                    splitFile = parts[0]
-                    installPath = os.path.normpath(os.path.join(parts[1], installPath))
-                installPath = env['INCDIR'].Dir(kw.get('package')).Dir(os.path.dirname(installPath))
-#                myIncludeSet.add(installPath)
-                includes = env.Install(installPath, header)
-                env.Alias(kw.get('package'), includes)
-                env.Default(includes)
-                env.Alias('all', includes)
-#            env['_INCDIRS_'] = myIncludeSet
         if kw.get('testApps', '') != '':
-            testApps = env.Install(env['TESTDIR'], kw.get('testApps'))
+            testApps = env.Install(baseoutdir.Dir(pkgname).Dir(env['TESTDIR']), kw.get('testApps'))
             env.Tool('generateScript')
             wrappers = env.GenerateWrapperScript(testApps)
             env.Depends(wrappers, testApps)
-            env.Alias(kw.get('package'), wrappers)
+            env.Alias(pkgname, wrappers)
             env.Alias('test', wrappers)
             env.Alias('all', wrappers)
             env.Clean('test', wrappers)
         if kw.get('pfiles', '') != '':
             pfiles = env.Install(env['PFILESDIR'], kw.get('pfiles'))
             env.AppendUnique(PFILES=pfiles)
-            env.Alias(kw.get('package'), pfiles)
+            env.Alias(pkgname, pfiles)
             env.Default(pfiles)
             env.Alias('all', pfiles)
-        if kw.get('data', '') != '':
-            for file in kw.get('data'):
-                file = env.File(str(file))
-                splitFile = str(env.Dir('.').srcnode().rel_path(file.srcnode()))
-                installPath = ''
-                while os.path.split(splitFile)[0] != '':
-                    parts = os.path.split(splitFile)
-                    splitFile = parts[0]
-                    installPath = os.path.normpath(os.path.join(parts[1], installPath))
-                installPath = os.path.dirname(installPath)
-                data = env.Install(env['DATADIR'].Dir(kw.get('package')).Dir(installPath), file)
-                env.Alias(kw.get('package'), data)
-                env.Default(data)
-                env.Alias('all', data)
-        if kw.get('xml', '') != '':
-            for file in kw.get('xml'):
-                file = env.File(str(file))
-                splitFile = str(env.Dir('.').srcnode().rel_path(file.srcnode()))
-                installPath = ''
-                while os.path.split(splitFile)[0] != '':
-                    parts = os.path.split(splitFile)
-                    splitFile = parts[0]
-                    installPath = os.path.normpath(os.path.join(parts[1], installPath))
-                installPath = os.path.dirname(installPath)
-                xml = env.Install(env['XMLDIR'].Dir(kw.get('package')).Dir(installPath), file)
-                env.Alias(kw.get('package'), xml)
-                env.Default(xml)
-                env.Alias('all', xml)
         if kw.get('python', '') != '':
             python = env.Install(env['PYTHONDIR'], kw.get('python'))
-            env.Alias(kw.get('package'), python)
+            env.Alias(pkgname, python)
             env.Default(python)
             env.Alias('all', python)
         if 'wrapper_env' in kw:
