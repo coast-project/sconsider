@@ -26,6 +26,7 @@ def generate(env, **kw):
             platf = None
     for t in SCons.Tool.tool_list(platf, env):
         SCons.Tool.Tool(t)(env)
+    platf = env['PLATFORM']
     compver = ''
     if env.has_key('CXXVERSION'):
         compver = '(' + env['CXXVERSION'] + ')'
