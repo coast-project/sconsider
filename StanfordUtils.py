@@ -27,20 +27,20 @@ AddOption('--appendPath', dest='appendPath', action='append', nargs=1, type='str
 AddOption('--prependPath', dest='prependPath', action='append', nargs=1, type='string', metavar='DIR', help='Directory to prepend to PATH environment variable.')
 
 baseoutdir = Dir(GetOption('baseoutdir'))
-print 'base output dir [{0}]'.format(baseoutdir.abspath)
+print 'base output dir [%s]' % baseoutdir.abspath
 
 dEnv = DefaultEnvironment()
 if GetOption('prependPath'):
     dEnv.PrependENVPath('PATH', GetOption('prependPath'))
-    print 'prepended path is [{0}]'.format(dEnv['ENV']['PATH'])
+    print 'prepended path is [%s]' % dEnv['ENV']['PATH']
 if GetOption('appendPath'):
     dEnv.AppendENVPath('PATH', GetOption('appendPath'))
-    print 'appended path is [{0}]'.format(dEnv['ENV']['PATH'])
+    print 'appended path is [%s]' % dEnv['ENV']['PATH']
 
-globaltools = ["setupBuildTools", "coast_options"]
+globaltools = Split("""setupBuildTools coast_options""")
 #globaltools = Split("""default coast_options""")
 usetools = globaltools + GetOption('usetools')
-print 'tools to use [{0}]'.format(", ".join(usetools))
+print 'tools to use %s' % Flatten(usetools)
 
 baseEnv = dEnv.Clone(tools=usetools)
 
@@ -53,7 +53,7 @@ myplatf = str(SCons.Platform.Platform())
 targetbits = GetOption('archbits')
 
 if myplatf == "posix":
-    variant = platform.system() + "_" + "{p[0]}_{p[1]}".format(p=platform.libc_ver()) + "-" + platform.machine()
+    variant = platform.system() + "_" + platform.libc_ver()[0] + "_" + platform.libc_ver()[1] + "-" + platform.machine()
 elif myplatf == "sunos":
     variant = platform.system() + "_" + platform.release() + "-" + platform.processor()
 elif myplatf == "darwin":
@@ -138,16 +138,16 @@ if True: #not baseEnv.GetOption('help'):
                     directories.append(fullpath)
                     if os.path.isfile(os.path.join(fullpath, "SConscript")):
                         packages.append(fullpath)
-                        print 'appended sconspath [{0}]'.format(fullpath)
+                        print 'appended sconspath [%s]' % fullpath
                     if os.path.isfile(os.path.join(fullpath, package + 'Lib.py')):
                         SCons.Tool.DefaultToolpath.append(os.path.abspath(fullpath))
-                        print 'appended toolpath  [{0}]'.format(os.path.abspath(fullpath))
+                        print 'appended toolpath  [%s]' % os.path.abspath(fullpath)
 
     Export('packages')
 
     for pkg in packages:
         try:
-            print 'executing SConscript for package [{0}]'.format(pkg)
+            print 'executing SConscript for package [%s]' % pkg
             baseEnv.SConscript(os.path.join(pkg, "SConscript"), build_dir=os.path.join(baseoutdir.path, pkg, 'build', variant), duplicate=0)
         except Exception, inst:
             print "scons: Skipped " + pkg.lstrip(baseoutdir.path + os.sep) + " because of exceptions: " + str(inst)
