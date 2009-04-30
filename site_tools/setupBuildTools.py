@@ -42,7 +42,6 @@ def generate(env, **kw):
     env.Append(LINKFLAGS=['-z', 'now'])
     if str(platf) == 'sunos' and not whichgcc:
         env.AppendUnique(CCFLAGS='-mt')
-        env.AppendUnique(SHCCFLAGS='-mt')
         env.AppendUnique(LINKFLAGS='-mt')
         # do not use rpath
         env.AppendUnique(LINKFLAGS='-norunpath')
@@ -65,7 +64,6 @@ def generate(env, **kw):
             # when compiling 32bit, -xtarget=native is all we need, otherwise native64 must be specified
             bitwidth = ''
     env.AppendUnique(CCFLAGS=bitwoption + bitwidth)
-    env.AppendUnique(SHCCFLAGS=bitwoption + bitwidth)
     env.AppendUnique(LINKFLAGS=bitwoption + bitwidth)
 
     if not GetOption('no-stdiostream'):
@@ -75,12 +73,10 @@ def generate(env, **kw):
     ##--- c++ specific flags, templates, iostream, etc
     if str(platf) == 'sunos' and not whichgcc:
         env.AppendUnique(CCFLAGS='-library=stlport4')
-        env.AppendUnique(SHCCFLAGS='-library=stlport4')
         env.AppendUnique(LINKFLAGS='-library=stlport4')
         if not GetOption('no-stdiostream'):
             ## iostream library means "classic", but we want to use the std
             env.AppendUnique(CCFLAGS='-library=no%iostream')
-            env.AppendUnique(SHCCFLAGS='-library=no%iostream')
             env.AppendUnique(LINKFLAGS='-library=no%iostream')
 
 def exists(env):
