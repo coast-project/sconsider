@@ -33,6 +33,10 @@ def generate(env, **kw):
 
     # common flags which influence compilation
     env.AppendUnique(CPPDEFINES=['_POSIX_PTHREAD_SEMANTICS'])
+
+    # tell linker to only succeed when all external references can be resolved
+#    env.AppendUnique(LINKFLAGS='-z defs')
+#    env.AppendUnique(LINKFLAGS='-z now')
     if str(platf) == 'sunos' and not whichgcc:
         env.AppendUnique(CCFLAGS='-mt')
         env.AppendUnique(SHCCFLAGS='-mt')
@@ -41,9 +45,12 @@ def generate(env, **kw):
         env.AppendUnique(LINKFLAGS='-norunpath')
     else:
         env.AppendUnique(CPPDEFINES=['_REENTRANT'])
+        env.AppendUnique(LINKFLAGS='--no-undefined')
+
+    env.AppendUnique(LIBS=['m', 'dl', 'nsl', 'c'])
     # this lib is needed when using sun-CC or gcc on sunos systems
     if str(platf) == "sunos":
-        env.AppendUnique(LIBS=['posix4'])
+        env.AppendUnique(LIBS=['socket', 'resolv', 'aio', 'posix4'])
 
     # select target architecture bits
     bitwidth = GetOption('archbits')
