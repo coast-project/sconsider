@@ -36,8 +36,10 @@ def generate(env, **kw):
     env.AppendUnique(CPPDEFINES=['_POSIX_PTHREAD_SEMANTICS'])
 
     # tell linker to only succeed when all external references can be resolved
-#    env.AppendUnique(LINKFLAGS='-z defs')
-#    env.AppendUnique(LINKFLAGS='-z now')
+    ##FIXME: attention the following is a workaround
+    ##  because LINKFLAGS='-z defs' would lead to a string'ified "-z defs" in the linker command line
+    env.Append(LINKFLAGS=['-z', 'defs'])
+    env.Append(LINKFLAGS=['-z', 'now'])
     if str(platf) == 'sunos' and not whichgcc:
         env.AppendUnique(CCFLAGS='-mt')
         env.AppendUnique(SHCCFLAGS='-mt')
