@@ -1,5 +1,5 @@
 #import eol_scons
-import os, platform, SCons, glob, re, atexit, sys, traceback, commands, pdb
+import os, platform, SCons, glob, re, atexit, sys, traceback, commands, pdb, dircache
 
 from SCons.Script import *
 
@@ -108,14 +108,12 @@ globalexternalsfilename = 'externals.scons.py'
 filename = os.path.join('#', 'site_scons', globalexternalsfilename)
 SConscript(filename)
 
-if True: #not baseEnv.GetOption('help'):
-    directories = [Dir('#').path]
+def StanfordFindPackages(directories, direxcludes=[]):
     packages = []
     # Add packages to package list and add packages to tool path if they have one
     while len(directories) > 0:
         directory = directories.pop(0)
-        listed = os.listdir(directory)
-        listed.sort()
+        listed = dircache.listdir(directory)
         pruned = []
         # Remove excluded directories
         if not baseEnv.GetOption('exclude') == None:
@@ -132,17 +130,42 @@ if True: #not baseEnv.GetOption('help'):
         # Check if they contain SConscript and tools
         for name in pruned:
             package = re.compile('-.*$').sub('', name)
-            if not name in ['build', 'CVS', 'src', 'cmt', 'mgr', 'data', 'xml', 'pfiles', 'doc', 'bin', 'lib']:
+            if not name in direxcludes:
                 fullpath = os.path.join(directory, name)
                 if os.path.isdir(fullpath):
                     directories.append(fullpath)
                     if os.path.isfile(os.path.join(fullpath, "SConscript")):
                         packages.append(fullpath)
                         print 'appended sconspath [%s]' % fullpath
-                    if os.path.isfile(os.path.join(fullpath, package + 'Lib.py')):
+                    if os.path.isfile(os.path.join(fullpath, package + 'Lib.py')) or os.path.isfile(os.path.join(fullpath, package.lower() + 'Lib.py')):
                         SCons.Tool.DefaultToolpath.append(os.path.abspath(fullpath))
                         print 'appended toolpath  [%s]' % os.path.abspath(fullpath)
+    return packages
 
+def CoastFindPackages(directory, direxcludes=[]):
+    packages = []
+    reLib = re.compile('^.*Lib.py$')
+    reSconscript = re.compile('^SConscript$')
+    for dirpath, dirnames, filenames in os.walk(directory):
+        dirnames[:] = [d for d in dirnames if not d in direxcludes]
+        for name in filenames:
+            if reLib.match(name):
+                thePath=os.path.abspath(dirpath)
+                SCons.Tool.DefaultToolpath.append(thePath)
+                print 'appended toolpath  [%s]' % thePath
+            elif reSconscript.match(name):
+                thePath=dirpath
+                packages.append(thePath)
+                print 'appended sconspath [%s]' % thePath
+    return packages
+
+if True: #not baseEnv.GetOption('help'):
+    directories = [Dir('#').path]
+    direxcludes = ['build', 'CVS', 'src', 'data', 'xml', 'doc', 'bin', 'lib', '.git', '.gitmodules', 'config']
+    if not baseEnv.GetOption('exclude') == None:
+        direxcludes.extend(baseEnv.GetOption('exclude'))
+    packages = CoastFindPackages(Dir('#').path, direxcludes)
+#    packages = StanfordFindPackages(directories, direxcludes)
     Export('packages')
 
     for pkg in packages:
