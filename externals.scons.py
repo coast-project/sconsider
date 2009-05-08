@@ -15,6 +15,16 @@ externalLibraries = {
                   #'cppdefines' : ['someflag=somevalue']
                   },
 
+#    'openssl'     : {'version' : '0.9.7',
+#                  'includes' : ['openssl/ssl.h'],
+#                  'lib-path' : [os.path.join('$COAST_ROOT', 'libssl/$VARIANT'), os.path.join('$COAST_ROOT', 'libcrypto/$VARIANT')],
+#                  'ld-path' : '$LIB-PATH',
+#                  'libraries' : {'opensslLibs'  : ['ssl.so.$VERSION', 'libcrypto.so.$VERSION']},
+#                  'lib-alias' : {'ssl' : ['lib$NAME.so.$VERSION'], 'crypto' : ['lib$NAME.so.$VERSION']},
+#                  'include-path' : os.path.join('$COAST_ROOT', '3rdparty/openssl/include')
+#                  #'cppdefines' : ['someflag=somevalue']
+#                  },
+
     'boost'     : {'version' : '1.34.1',
                   'includes' : ['boost/bind.hpp'],
                   'libraries' : {'boostLibs'  : []},
@@ -29,13 +39,15 @@ externalLibraries = {
 if baseEnv['PLATFORM'] == "win32":
     pass
 
-if baseEnv['PLATFORM'] == "cygwin":
+elif baseEnv['PLATFORM'] == "cygwin":
     pass
 
-if baseEnv['PLATFORM'] == 'sunos':
+elif baseEnv['PLATFORM'] == 'sunos':
     pass
 
-if baseEnv['PLATFORM'] == 'darwin':
+elif baseEnv['PLATFORM'] == 'darwin':
+    pass
+else:
     pass
 
 ############################################################################
@@ -49,7 +61,7 @@ for lib in externalLibraries.keys():
     for path in ['include-path', 'lib-path', 'bin-path']:
         if path in externalLibraries[lib]:
           try:
-            externalLibraries[lib][path] = externalLibraries[lib][path].replace('$COMPILER', compiler)
+            externalLibraries[lib][path] = externalLibraries[lib][path].replace('$VARIANT', baseEnv['VARIANTDIR'])
             externalLibraries[lib][path] = externalLibraries[lib][path].replace('$VERSION', externalLibraries[lib]['version'])
             externalLibraries[lib][path] = externalLibraries[lib][path].replace('$NAME', lib)
           except:
