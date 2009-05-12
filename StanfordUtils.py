@@ -101,13 +101,6 @@ baseEnv['CONFIGUREDIR'] = str(Dir(baseoutdir).Dir(".sconf_temp"))
 #baseEnv.AppendUnique(CPPPATH = [baseEnv['INCDIR']])
 baseEnv.AppendUnique(LIBPATH=[baseoutdir.Dir(baseEnv['LIBDIR'])])
 
-#########################
-#  External Libraries   #
-#########################
-globalexternalsfilename = 'externals.scons.py'
-filename = os.path.join('#', 'site_scons', globalexternalsfilename)
-SConscript(filename)
-
 def CoastFindPackages(directory, direxcludes=[]):
     packages = []
     reLib = re.compile('^.*Lib.py$')
