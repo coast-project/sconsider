@@ -18,10 +18,17 @@ import SCons.Node.FS
 ##        wrapper_env
 ##
 
-def copyFileNodes(env, nodename, baseoutdir, destdir, **kw):
+def copyFileNodes(env, nodename, baseoutdir, destdir, useFirstSegment=False, **kw):
     nodes = kw.get(nodename)
+    instTargs = []
+    baseOutPath = SCons.Script.Dir('')
+    if nodename == 'includes':
+        baseOutPath = baseoutdir.Dir(os.path.join(env[destdir], kw.get('package')))
+    elif nodename == 'config':
+        baseOutPath = baseoutdir.Dir(kw.get('package'))
+    else:
+        baseOutPath = baseoutdir.Dir(os.path.join(kw.get('package'), env[destdir]))
     for file in nodes:
-        file = env.File(str(file))
         splitFile = str(env.Dir('.').srcnode().rel_path(file.srcnode()))
         installPath = ''
         while os.path.split(splitFile)[0] != '':
@@ -29,18 +36,15 @@ def copyFileNodes(env, nodename, baseoutdir, destdir, **kw):
             splitFile = parts[0]
             installPath = os.path.normpath(os.path.join(parts[1], installPath))
         installPath = os.path.dirname(installPath)
-        if nodename == 'includes':
-            installTarget = env.Install(baseoutdir.Dir(os.path.join(env[destdir], kw.get('package'))).Dir(installPath), file)
-        elif nodename == 'config':
-            installTarget = env.Install(baseoutdir.Dir(os.path.join(kw.get('package'), splitFile)).Dir(installPath), file)
-        else:
-            installTarget = env.Install(baseoutdir.Dir(os.path.join(kw.get('package'), env[destdir])).Dir(installPath), file)
-        env.Alias(kw.get('package'), installTarget)
-        env.Default(installTarget)
-        env.Alias('all', installTarget)
+        if useFirstSegment:
+            installPath = os.path.join(splitFile, installPath)
+        instTargs.extend(env.Install(baseOutPath.Dir(installPath), file))
+    env.Alias(kw.get('package'), instTargs)
+    env.Default(instTargs)
+    env.Alias('all', instTargs)
     return 0
 
-def generate(env, **kw):
+def generate(env, useFirstSegment=False, **kw):
     pkgname = kw.get('package', '')
     if pkgname != '':
         env['PackageName'] = pkgname
@@ -59,13 +63,13 @@ def generate(env, **kw):
             env.Alias('libraries', libraries)
             env.Alias('all', libraries)
         if kw.get('config', '') != '':
-            copyFileNodes(env, 'config', baseoutdir, 'CONFIGDIR', **kw)
+            copyFileNodes(env, 'config', baseoutdir, 'CONFIGDIR', useFirstSegment=True, **kw)
         if kw.get('data', '') != '':
-            copyFileNodes(env, 'data', baseoutdir, 'DATADIR', **kw)
+            copyFileNodes(env, 'data', baseoutdir, 'DATADIR', useFirstSegment, **kw)
         if kw.get('xml', '') != '':
-            copyFileNodes(env, 'xml', baseoutdir, 'XMLDIR', **kw)
+            copyFileNodes(env, 'xml', baseoutdir, 'XMLDIR', useFirstSegment, **kw)
         if kw.get('includes', '') != '':
-            copyFileNodes(env, 'includes', baseoutdir, 'INCDIR', **kw)
+            copyFileNodes(env, 'includes', baseoutdir, 'INCDIR', useFirstSegment, **kw)
         if kw.get('binaries', '') != '':
             binaries = env.Install(baseoutdir.Dir(pkgname).Dir(env['BINDIR']), kw.get('binaries'))
             env.Tool('generateScript')

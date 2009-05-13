@@ -1,6 +1,6 @@
 import os,SCons,glob,pdb
 
-from SCons.Script import Glob
+from SCons.Script import Glob, Dir
 
 def listFiles(files, **kw):
     allFiles = []
@@ -13,3 +13,13 @@ def listFiles(files, **kw):
             if os.path.isfile(globFile.srcnode().abspath):
                 allFiles.append(globFile)
     return allFiles
+
+def findFiles(directories, filespecs, direxcludes=[]):
+    files = []
+    for directory in directories:
+        for dirpath, dirnames, filenames in os.walk(directory):
+            curDir=Dir('.').Dir(dirpath)
+            dirnames[:] = [d for d in dirnames if not d in direxcludes]
+            addfiles = [curDir.File(f).srcnode() for f in filenames if os.path.splitext(f)[1] in filespecs]
+            files.extend(addfiles)
+    return files
