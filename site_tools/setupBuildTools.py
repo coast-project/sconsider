@@ -38,8 +38,9 @@ def generate(env, **kw):
     # tell linker to only succeed when all external references can be resolved
     ##FIXME: attention the following is a workaround
     ##  because LINKFLAGS='-z defs' would lead to a string'ified "-z defs" in the linker command line
-    env.Append(LINKFLAGS=['-z', 'defs'])
-    env.Append(LINKFLAGS=['-z', 'now'])
+    env.Append(LINKFLAGS=['$_NONLAZYLINKFLAGS'])
+    env['_NONLAZYLINKFLAGS'] = '-z defs -z now '
+
     if str(platf) == 'sunos' and not whichgcc:
         env.AppendUnique(CCFLAGS='-mt')
         env.AppendUnique(LINKFLAGS='-mt')
@@ -47,7 +48,7 @@ def generate(env, **kw):
         env.AppendUnique(LINKFLAGS='-norunpath')
     else:
         env.AppendUnique(CPPDEFINES=['_REENTRANT'])
-        env.AppendUnique(LINKFLAGS='--no-undefined')
+        env['_NONLAZYLINKFLAGS'] += '--no-undefined '
 
     env.AppendUnique(LIBS=['m', 'dl', 'nsl', 'c'])
     # this lib is needed when using sun-CC or gcc on sunos systems
