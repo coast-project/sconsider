@@ -31,13 +31,15 @@ def copyFileNodes(env, nodename, baseoutdir, destdir, useFirstSegment=False, **k
     for file in nodes:
         splitFile = str(env.Dir('.').srcnode().rel_path(file.srcnode()))
         installPath = ''
-        while os.path.split(splitFile)[0] != '':
-            parts = os.path.split(splitFile)
-            splitFile = parts[0]
-            installPath = os.path.normpath(os.path.join(parts[1], installPath))
+        head,tail = os.path.split(splitFile)
+        hasPath = False
+        while head != '':
+            installPath = os.path.normpath(os.path.join(tail, installPath))
+            head,tail = os.path.split(head)
+            hasPath = True
+        if useFirstSegment and hasPath:
+            installPath = os.path.join(tail, installPath)
         installPath = os.path.dirname(installPath)
-        if useFirstSegment:
-            installPath = os.path.join(splitFile, installPath)
         instTargs.extend(env.Install(baseOutPath.Dir(installPath), file))
     env.Alias(kw.get('package'), instTargs)
     env.Default(instTargs)
