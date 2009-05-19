@@ -119,7 +119,7 @@ def CoastFindPackages(directory, direxcludes=[]):
     return packages
 
 if True: #not baseEnv.GetOption('help'):
-    direxcludes = ['build', 'CVS', 'src', 'data', 'xml', 'doc', 'bin', 'lib', '.git', '.gitmodules', 'config']
+    direxcludes = ['build', 'CVS', 'data', 'xml', 'doc', 'bin', 'lib', '.git', '.gitmodules', 'config']
     if not baseEnv.GetOption('exclude') == None:
         direxcludes.extend(baseEnv.GetOption('exclude'))
     packages = CoastFindPackages(Dir('#').path, direxcludes)
