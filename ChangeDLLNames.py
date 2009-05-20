@@ -21,7 +21,7 @@ libdict = {'renderers':'CoastRenderers',
            'workerpoolmanagermodule':'CoastWorkerPoolManager'}
 for dirpath, dirnames, filenames in os.walk('.'):
     dirnames[:] = [d for d in dirnames if not d in excludelist]
-    reDLL = re.compile(r"[\s\S]+/DLL\s*{([^}]+)}[\s\S]+", re.M)
+    reDLL = re.compile(r"^[\s]*/DLL\s*{([^}]+)}[\s]*$", re.M)
     reAny = re.compile('^.*.any$')
     for name in filenames:
         if reAny.match(name):
@@ -31,9 +31,8 @@ for dirpath, dirnames, filenames in os.walk('.'):
                 if fo:
                     fstr = fo.read()
                     fo.close()
-                    mo = reDLL.match(fstr)
+                    mo = reDLL.search(fstr)
                     if mo:
-                        print "file:", fname
                         outstr = mo.string[:mo.start(1)]
                         strGroup = mo.group(1)
                         strout = ''
@@ -58,6 +57,7 @@ for dirpath, dirnames, filenames in os.walk('.'):
                             outstr += strGroup
                         outstr += mo.string[mo.end(1):]
                         if fstr != outstr:
+                            print "matches in file:", fname
                             try:
                                 of = open(fname, 'w+')
                                 of.write(outstr)
