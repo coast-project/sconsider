@@ -1,4 +1,5 @@
 import os, pprint, pdb
+import SCons.Util
 import SCons.Node.FS
 
 ## * Install various specified objects (includes, libraries, etc.) and
@@ -52,18 +53,22 @@ def generate(env, useFirstSegment=False, **kw):
         env['PackageName'] = pkgname
         baseoutdir = env['BASEOUTDIR']
         basereldir = ''
-        if kw.get('testApps', '') != '':
-            basereldir = 'tests'
-        if kw.get('binaries', '') != '':
-            basereldir = 'apps'
-        env['TargetType'] = basereldir
         baseoutdir = baseoutdir.Dir(basereldir)
+
         if kw.get('libraries', '') != '':
             libraries = env.Install(baseoutdir.Dir(env['LIBDIR']), kw.get('libraries'))
             env.Alias(pkgname, libraries)
             env.Default(libraries)
             env.Alias('libraries', libraries)
             env.Alias('all', libraries)
+
+        if kw.get('testApps', '') != '':
+            basereldir = 'tests'
+        elif kw.get('binaries', '') != '':
+            basereldir = 'apps'
+        env['TargetType'] = basereldir
+        baseoutdir = baseoutdir.Dir(basereldir)
+
         if kw.get('config', '') != '':
             copyFileNodes(env, 'config', baseoutdir, 'CONFIGDIR', useFirstSegment=True, **kw)
         if kw.get('data', '') != '':
@@ -76,31 +81,31 @@ def generate(env, useFirstSegment=False, **kw):
             binaries = env.Install(baseoutdir.Dir(pkgname).Dir(env['BINDIR']), kw.get('binaries'))
             env.Tool('generateScript')
             wrappers = env.GenerateWrapperScript(binaries)
-            env.Depends(wrappers, binaries)
             env.Alias(pkgname, wrappers)
             env.Default(wrappers)
             env.Alias('binaries', wrappers)
             env.Alias('all', wrappers)
         if kw.get('testApps', '') != '':
-            testApps = env.Install(baseoutdir.Dir(pkgname).Dir(env['TESTDIR']), kw.get('testApps'))
+            pkgTarget = kw.get('testApps')
+            testApps = env.InstallAs(baseoutdir.Dir(pkgname).Dir(env['TESTDIR']).File(pkgname), pkgTarget)
             env.Tool('generateScript')
             wrappers = env.GenerateWrapperScript(testApps)
-            env.Depends(wrappers, testApps)
             env.Alias(pkgname, wrappers)
             env.Alias('test', wrappers)
             env.Alias('all', wrappers)
             env.Clean('test', wrappers)
-        if kw.get('pfiles', '') != '':
-            pfiles = env.Install(env['PFILESDIR'], kw.get('pfiles'))
-            env.AppendUnique(PFILES=pfiles)
-            env.Alias(pkgname, pfiles)
-            env.Default(pfiles)
-            env.Alias('all', pfiles)
         if kw.get('python', '') != '':
             python = env.Install(env['PYTHONDIR'], kw.get('python'))
             env.Alias(pkgname, python)
             env.Default(python)
             env.Alias('all', python)
+        if kw.get('requiresLibs', '') != '':
+            pkgTarget = env.Alias(pkgname)[0]
+            reqdTargets = kw.get('requiresLibs')
+            if not SCons.Util.is_List(reqdTargets):
+                reqdTargets = [reqdTargets]
+            for targ in reqdTargets:
+                env.Requires(pkgTarget, env.Alias(targ)[0])
         if 'wrapper_env' in kw:
             # user has passed in a list of (exename, envdict) tuples
             # to be registered in the construction environment and eventually

@@ -100,33 +100,27 @@ def generateShellScript(scriptFile, env, wrapper):
     scriptFile.write('cd ' + getTargetPath('$INST_DIR', '', env) + '\n')
 
 def generatePosixScript(target, source, env):
-#    if not os.path.exists(str(env['SCRIPTDIR'].File('_setup'))):
-#        scriptFile = open(str(env['SCRIPTDIR'].File('_setup')), 'w')
-#        generateShellScript(scriptFile, env, 0)
-#        scriptFile.close()
-    for executable in source:
-        scriptname = str(env['BASEOUTDIR'].Dir(env['SCRIPTDIR']).File(os.path.splitext(os.path.basename(str(executable)))[0]))
-        scriptFile = open(scriptname, 'w')
+    for t,s in zip(target,source):
+        scriptFile = open(str(t), 'w')
         generateShellScript(scriptFile, env, 1)
-        scriptFile.write(os.path.join('$INST_DIR', str(executable)) + ' "$@"\n')
+        scriptFile.write(os.path.join('$INST_DIR', str(s)) + ' "$@"\n')
         scriptFile.close()
     return 0
 
 def generateWindowsScript(target, source, env):
-#    if not os.path.exists(str(env['SCRIPTDIR'].File('_setup.vbs'))):
-#        scriptFile = open(str(env['SCRIPTDIR'].File('_setup.vbs')), 'w')
-#        generateWSHScript(scriptFile, env, 0)
-#        scriptFile.close()
-    for executable in source:
-        scriptFile = open(str(env['BASEOUTDIR'].Dir(env['SCRIPTDIR']).File(os.path.splitext(os.path.basename(str(executable)))[0] + ".vbs")), 'w')
+    for t,s in zip(target,source):
+        scriptFile = open(str(t), 'w')
         generateWSHScript(scriptFile, env, 1)
-        scriptFile.write('shell.Run "cmd.exe /k """ & INST_DIR & "\\' + str(executable) + '"" " & arguments, 1, true')
+        scriptFile.write('shell.Run "cmd.exe /k """ & INST_DIR & "\\' + str(s) + '"" " & arguments, 1, true')
         scriptFile.close()
 
 def generateScriptEmitter(target, source, env):
     target = []
     for src in source:
-        target.append(env['BASEOUTDIR'].Dir(env['SCRIPTDIR']).File(os.path.basename(src.abspath)))
+        if env['PLATFORM'] != 'win32':
+            target.append(env['BASEOUTDIR'].Dir(env['SCRIPTDIR']).File(os.path.basename(src.abspath)))
+        else:
+            target.append(env['BASEOUTDIR'].Dir(env['SCRIPTDIR']).File(os.path.splitext(os.path.basename(src.abspath))[0] + ".vbs"))
     return (target, source)
 
 def generate(env):
