@@ -114,7 +114,7 @@ def CoastFindPackagesDict(directory, direxcludes=[]):
                 if not packages.has_key(pkgname):
                     packages[pkgname] = {}
                 thePath = os.path.abspath(dirpath)
-                SCons.Tool.DefaultToolpath.append(thePath)
+                sys.path.append(thePath)
                 packages[pkgname]['libfile'] = Dir(thePath).File(name)
                 print 'appended toolpath  [%s]' % thePath
                 thePath = Dir(dirpath).File('SConscript')
@@ -158,7 +158,9 @@ programLookup = ProgramLookup(baseEnv, packages, baseoutdir, variant)
 
 def DependsOn(env, targetname, **kw):
     programLookup.lookup(targetname)
-    env.Tool(targetname + 'Lib', **kw)
+    modname = targetname + 'Lib'
+    sys.modules[modname] = __import__(modname)
+    return sys.modules[modname].generate(env, **kw)
 
 baseEnv.lookup_list.append(programLookup.lookup)
 
