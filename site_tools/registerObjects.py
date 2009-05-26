@@ -14,7 +14,6 @@ import SCons.Node.FS
 ##        includes - list of file paths
 ##        data     - list of file paths
 ##        xml      - list of file paths
-##        pfiles
 ##        python
 ##        wrapper_env
 ##

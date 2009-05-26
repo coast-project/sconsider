@@ -39,15 +39,10 @@ if GetOption('appendPath'):
     print 'appended path is [%s]' % dEnv['ENV']['PATH']
 
 globaltools = Split("""setupBuildTools coast_options""")
-#globaltools = Split("""default coast_options""")
 usetools = globaltools + GetOption('usetools')
 print 'tools to use %s' % Flatten(usetools)
 
 baseEnv = dEnv.Clone(tools=usetools)
-
-baseEnv.Alias("NoTarget")
-# do not try to fetch sources from a SCM repository if not there
-baseEnv.SourceCode(".", None)
 
 variant = "Unknown"
 myplatf = str(SCons.Platform.Platform())
@@ -76,8 +71,6 @@ print "compilation variant [", variant, "]"
 ssfile = os.path.join(Dir('#').path, '.sconsign.' + variant)
 SConsignFile(ssfile)
 
-Export('baseEnv')
-
 #########################
 #  Project Environment  #
 #########################
@@ -90,16 +83,12 @@ baseEnv.Append(INCDIR='include')
 baseEnv.Append(TESTDIR=baseEnv['BINDIR'])
 #baseEnv.Append(TESTSCRIPTDIR=baseEnv['SCRIPTDIR'])
 
-baseEnv.Append(PFILESDIR=Dir('syspfiles'))
 baseEnv.Append(CONFIGDIR=Dir('config'))
 baseEnv.Append(DATADIR=Dir('data'))
 baseEnv.Append(XMLDIR=Dir('xml'))
 baseEnv.Append(PYTHONDIR=Dir(baseoutdir).Dir('python'))
 baseEnv['CONFIGURELOG'] = str(Dir(baseoutdir).File("config.log"))
 baseEnv['CONFIGUREDIR'] = str(Dir(baseoutdir).Dir(".sconf_temp"))
-#baseEnv.AppendUnique(CPPPATH = ['.'])
-#baseEnv.AppendUnique(CPPPATH = ['src'])
-#baseEnv.AppendUnique(CPPPATH = [baseEnv['INCDIR']])
 baseEnv.AppendUnique(LIBPATH=[baseoutdir.Dir(baseEnv['LIBDIR'])])
 
 def CoastFindPackagesDict(directory, direxcludes=[]):
@@ -164,8 +153,6 @@ def DependsOn(env, targetname, **kw):
 
 baseEnv.lookup_list.append(programLookup.lookup)
 
-print "BUILD_TARGETS is ", map(str, BUILD_TARGETS)
-
 failedTargets = True
 for tname in BUILD_TARGETS:
     print 'trying to find target [%s]' % tname
@@ -181,6 +168,8 @@ if failedTargets:
     print 'loading all SConscript files to find target'
     for tname in packages:
         programLookup.lookup(tname)
+
+print "BUILD_TARGETS is ", map(str, BUILD_TARGETS)
 
 def print_build_failures():
     from SCons.Script import GetBuildFailures
