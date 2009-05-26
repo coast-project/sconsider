@@ -1,7 +1,8 @@
-#import eol_scons
 import os, platform, SCons, glob, re, atexit, sys, traceback, commands, pdb, dircache
+import SomeUtils
 
-from SCons.Script import *
+from SCons.Script import AddOption, GetOption, Dir, DefaultEnvironment, Split, Flatten, SConsignFile, Export, BUILD_TARGETS
+from SomeUtils import *
 
 # SconsBuilder may work with earlier version,
 # but it was build and tested against SCons 1.0.0
@@ -101,41 +102,83 @@ baseEnv['CONFIGUREDIR'] = str(Dir(baseoutdir).Dir(".sconf_temp"))
 #baseEnv.AppendUnique(CPPPATH = [baseEnv['INCDIR']])
 baseEnv.AppendUnique(LIBPATH=[baseoutdir.Dir(baseEnv['LIBDIR'])])
 
-def CoastFindPackages(directory, direxcludes=[]):
-    packages = []
-    reLib = re.compile('^.*Lib.py$')
-    reSconscript = re.compile('^SConscript$')
+def CoastFindPackagesDict(directory, direxcludes=[]):
+    packages = {}
+    reLib = re.compile('^(.*)Lib.py$')
     for dirpath, dirnames, filenames in os.walk(directory):
         dirnames[:] = [d for d in dirnames if not d in direxcludes]
         for name in filenames:
-            if reLib.match(name):
+            rmatch = reLib.match(name)
+            if rmatch:
+                pkgname = rmatch.group(1)
+                if not packages.has_key(pkgname):
+                    packages[pkgname] = {}
                 thePath = os.path.abspath(dirpath)
                 SCons.Tool.DefaultToolpath.append(thePath)
+                packages[pkgname]['libfile'] = Dir(thePath).File(name)
                 print 'appended toolpath  [%s]' % thePath
-            elif reSconscript.match(name):
-                thePath = dirpath
-                packages.append(thePath)
-                print 'appended sconspath [%s]' % thePath
+                thePath = Dir(dirpath).File('SConscript')
+                if os.path.isfile(thePath.abspath):
+                    packages[pkgname]['scriptfile'] = thePath
+                    print 'appended sconspath [%s]' % thePath
     return packages
 
-if True: #not baseEnv.GetOption('help'):
-    direxcludes = ['build', 'CVS', 'data', 'xml', 'doc', 'bin', 'lib', '.git', '.gitmodules', 'config']
-    if not baseEnv.GetOption('exclude') == None:
-        direxcludes.extend(baseEnv.GetOption('exclude'))
-    packages = CoastFindPackages(Dir('#').path, direxcludes)
-    Export('packages')
+def CloneBaseEnv():
+    return baseEnv.Clone()
 
-    for pkg in packages:
-        try:
-            print 'executing SConscript for package [%s]' % pkg
-            baseEnv.SConscript(os.path.join(pkg, "SConscript"), build_dir=os.path.join(baseoutdir.path, pkg, 'build', variant), duplicate=0)
-        except Exception, inst:
-            print "scons: Skipped " + pkg.lstrip(baseoutdir.path + os.sep) + " because of exceptions: " + str(inst)
-            traceback.print_tb(sys.exc_info()[2])
-    if baseEnv.GetOption('clean'):
-        baseEnv.Default('test')
+class ProgramLookup:
+    def __init__(self, env, packages, baseoutdir, variant):
+        self.env = env
+        self.packages = packages
+        self.baseoutdir = baseoutdir.abspath
+        self.variant = variant
+
+    def hasTarget(self, name):
+        return self.packages.has_key(name)
+
+    def lookup(self, name, **kw):
+#        print 'looking up [%s]' % name
+        if self.hasTarget(name):
+            if not self.packages[name].has_key('loaded'):
+                self.packages[name]['loaded'] = True
+                if self.packages[name].has_key('scriptfile'):
+                    scfile = self.packages[name]['scriptfile']
+                    pkg = os.path.dirname(scfile.path)
+                    builddir = os.path.join(self.baseoutdir, pkg, 'build', self.variant)
+                    print 'executing SConscript for package [%s]' % name
+                    self.env.SConscript(scfile, build_dir=builddir, duplicate=0)
+
+        return None
+
+direxcludes = ['build', 'CVS', 'data', 'xml', 'doc', 'bin', 'lib', '.git', '.gitmodules', 'config']
+if not baseEnv.GetOption('exclude') == None:
+    direxcludes.extend(baseEnv.GetOption('exclude'))
+packages = CoastFindPackagesDict(Dir('#').path, direxcludes)
+programLookup = ProgramLookup(baseEnv, packages, baseoutdir, variant)
+
+def DependsOn(env, targetname, **kw):
+    programLookup.lookup(targetname)
+    env.Tool(targetname + 'Lib', **kw)
+
+baseEnv.lookup_list.append(programLookup.lookup)
 
 print "BUILD_TARGETS is ", map(str, BUILD_TARGETS)
+
+failedTargets = True
+for tname in BUILD_TARGETS:
+    print 'trying to find target [%s]' % tname
+    if programLookup.hasTarget(tname):
+        programLookup.lookup(tname)
+        failedTargets = False
+    else:
+        print 'target [%s] not found, aborting' % tname
+        failedTargets = True
+        break
+
+if failedTargets:
+    print 'loading all SConscript files to find target'
+    for tname in packages:
+        programLookup.lookup(tname)
 
 def print_build_failures():
     from SCons.Script import GetBuildFailures

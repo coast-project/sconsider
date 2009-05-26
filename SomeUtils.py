@@ -1,6 +1,6 @@
 import os,SCons,glob,pdb
 
-from SCons.Script import Glob, Dir
+from SCons.Script import Glob, Dir, Import
 
 def FileNodeComparer(left, right):
     """Default implementation for sorting File nodes according to their lexicographical order"""
@@ -13,7 +13,7 @@ def listFiles(files, **kw):
         newFiles = []
         for globFile in globFiles:
             if 'recursive' in kw and kw.get('recursive') and os.path.isdir(globFile.srcnode().abspath) and os.path.basename(globFile.srcnode().abspath) != 'CVS':
-                allFiles+=listFiles([str(Dir('.').srcnode().rel_path(globFile.srcnode()))+"/*"], recursive = True)
+                allFiles+=StanfordUtils.listFiles([str(Dir('.').srcnode().rel_path(globFile.srcnode()))+"/*"], recursive = True)
             if os.path.isfile(globFile.srcnode().abspath):
                 allFiles.append(globFile)
     allFiles.sort(cmp=FileNodeComparer)
