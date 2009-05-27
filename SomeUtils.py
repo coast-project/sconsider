@@ -1,4 +1,4 @@
-import os,SCons,glob,pdb
+import os,SCons,glob,pdb,string
 
 from SCons.Script import Glob, Dir, Import
 
@@ -29,3 +29,14 @@ def findFiles(directories, filespecs, direxcludes=[]):
             files.extend(addfiles)
     files.sort(cmp=FileNodeComparer)
     return files
+
+def getPackageName(name):
+    return string.replace(name, 'Lib', '')
+
+def setIncludePath(env, pkgname, includedir, internal=True):
+    if internal:
+        installPath = Dir(includedir)
+    else:
+        installPath = env['BASEOUTDIR'].Dir(os.path.join(env['INCDIR'], pkgname)).Dir(includedir)
+
+    env.AppendUnique(CPPPATH=[installPath])

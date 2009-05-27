@@ -151,6 +151,10 @@ def DependsOn(env, targetname, **kw):
     sys.modules[modname] = __import__(modname)
     return sys.modules[modname].generate(env, **kw)
 
+def setModuleDependencies(env, modules, **kw):
+    for mod in modules:
+        DependsOn(env, mod, **kw)
+
 baseEnv.lookup_list.append(programLookup.lookup)
 
 failedTargets = True

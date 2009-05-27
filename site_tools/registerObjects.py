@@ -54,8 +54,9 @@ def generate(env, useFirstSegment=False, **kw):
         basereldir = ''
         baseoutdir = baseoutdir.Dir(basereldir)
 
-        if kw.get('libraries', '') != '':
-            libraries = env.Install(baseoutdir.Dir(env['LIBDIR']), kw.get('libraries'))
+        if kw.get('libraries', [None])[0]:
+            libs = kw.get('libraries')
+            libraries = env.Install(baseoutdir.Dir(env['LIBDIR']), libs)
             env.Alias(pkgname, libraries)
             env.Default(libraries)
             env.Alias('libraries', libraries)
