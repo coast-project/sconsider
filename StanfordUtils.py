@@ -153,21 +153,21 @@ def DependsOn(env, targetname, **kw):
     if modDict.get('generate', None):
         return sys.modules[modname].generate(env, **kw)
 
-    buildDict = modDict.get('buildSettings', None)
-    if not buildDict:
-        print 'Warning: buildSettings dictionary for module %s not defined!' % modname
+    buildSettings = modDict.get('buildSettings', None)
+    if not buildSettings:
+        print 'Warning: buildSettings dictionary inr module %s not defined!' % modname
         return None
-    return ExternalDependencies(env, targetname, buildDict, target=modDict.get('target', None), **kw)
+    return ExternalDependencies(env, targetname, buildSettings.get(targetname, {}), target=modDict.get('target', None), **kw)
 
 def setModuleDependencies(env, modules, **kw):
     for mod in modules:
         DependsOn(env, mod, **kw)
 
-def ExternalDependencies(env, pkgname, buildDict, target=None, **kw):
-    libDepends= buildDict.get('libDepends', [])
-    includeBasedir= buildDict.get('includeBasedir', '')
-    includeSubdir= buildDict.get('includeSubdir', '')
-    appendUnique= buildDict.get('appendUnique', {})
+def ExternalDependencies(env, pkgname, buildSettings, target=None, **kw):
+    libDepends= buildSettings.get('libDepends', [])
+    includeBasedir= buildSettings.get('includeBasedir', '')
+    includeSubdir= buildSettings.get('includeSubdir', '')
+    appendUnique= buildSettings.get('appendUnique', {})
 
     # this libraries dependencies
     setModuleDependencies(env, libDepends)
@@ -186,6 +186,38 @@ def ExternalDependencies(env, pkgname, buildDict, target=None, **kw):
     setIncludePath(env, pkgname, includeSubdir, basedir=includeBasedir, internal=False)
 
     return target
+
+def createTargetEnv(pkgname, buildSettings, envVars={}):
+    # create environment for target
+    targetEnv = CloneBaseEnv()
+
+    # update environment by adding dependencies to used modules
+    setModuleDependencies(targetEnv, buildSettings.get('libDepends', []))
+
+    # win32 specific define to export all symbols when creating a DLL
+    newVars = buildSettings.get('appendUnique',EnvVarDict()) + EnvVarDict(envVars)
+    targetEnv.AppendUnique(**newVars)
+
+    # maybe we need to add this libraries local include path when building it (if different from .)
+    setIncludePath(targetEnv, pkgname, buildSettings.get('includeSubdir',''))
+
+    return targetEnv
+
+def createProgram(pkgname, buildSettings, envVars={}):
+    bSet = buildSettings.get(pkgname, {})
+    targetEnv = createTargetEnv(pkgname, bSet, envVars)
+    # specify this modules target
+    target = targetEnv.Program(pkgname, bSet.get('sourceFiles',''))
+
+    return (targetEnv, target)
+
+def createSharedLibrary(pkgname, buildSettings, envVars={}):
+    bSet = buildSettings.get(pkgname, {})
+    targetEnv = createTargetEnv(pkgname, bSet, envVars)
+    # specify this modules target
+    target = targetEnv.SharedLibrary(pkgname, bSet.get('sourceFiles',''))
+
+    return (targetEnv, target)
 
 baseEnv.lookup_list.append(programLookup.lookup)
 
