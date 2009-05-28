@@ -149,11 +149,42 @@ def DependsOn(env, targetname, **kw):
     programLookup.lookup(targetname)
     modname = targetname + 'Lib'
     sys.modules[modname] = __import__(modname)
-    return sys.modules[modname].generate(env, **kw)
+    modDict = sys.modules[modname].__dict__
+    if modDict.get('generate', None):
+        return sys.modules[modname].generate(env, **kw)
+
+    buildDict = modDict.get('buildSettings', None)
+    if not buildDict:
+        print 'Warning: buildSettings dictionary for module %s not defined!' % modname
+        return None
+    return ExternalDependencies(env, targetname, buildDict, target=modDict.get('target', None), **kw)
 
 def setModuleDependencies(env, modules, **kw):
     for mod in modules:
         DependsOn(env, mod, **kw)
+
+def ExternalDependencies(env, pkgname, buildDict, target=None, **kw):
+    libDepends= buildDict.get('libDepends', [])
+    includeSubdir= buildDict.get('includeSubdir', '')
+    appendUnique= buildDict.get('appendUnique', {})
+
+    # this libraries dependencies
+    setModuleDependencies(env, libDepends)
+
+    try:
+        strTargetType = target[0].builder.get_name(target[0].env)
+        if strTargetType.find('Library'):
+            env.Tool('addLibrary', library=[pkgname])
+    except:
+        pass
+
+    # flags / settings used by this library and users of it
+    env.AppendUnique(**appendUnique)
+
+    # specify public headers here
+    setIncludePath(env, pkgname, includeSubdir, internal=False)
+
+    return target
 
 baseEnv.lookup_list.append(programLookup.lookup)
 
