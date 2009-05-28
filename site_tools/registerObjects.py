@@ -86,14 +86,24 @@ def generate(env, useFirstSegment=False, **kw):
             env.Alias('binaries', wrappers)
             env.Alias('all', wrappers)
         if kw.get('testApps', '') != '':
-            pkgTarget = kw.get('testApps')
-            testApps = env.InstallAs(baseoutdir.Dir(pkgname).Dir(env['TESTDIR']).File(pkgname), pkgTarget)
             env.Tool('generateScript')
-            wrappers = env.GenerateWrapperScript(testApps)
-            env.Alias(pkgname, wrappers)
-            env.Alias('test', wrappers)
-            env.Alias('all', wrappers)
-            env.Clean('test', wrappers)
+            pkgTarget = kw.get('testApps')
+            if kw.get('useTargetNames', False):
+                for t in pkgTarget:
+                    tname = str(t[0])
+                    app = env.InstallAs(baseoutdir.Dir(pkgname).Dir(env['TESTDIR']).File(tname), t)
+                    wrappers = env.GenerateWrapperScript(app)
+                    env.Alias(pkgname, wrappers)
+                    env.Alias('test', wrappers)
+                    env.Alias('all', wrappers)
+                    env.Clean('test', wrappers)
+            else:
+                testApps = env.InstallAs(baseoutdir.Dir(pkgname).Dir(env['TESTDIR']).File(pkgname), pkgTarget)
+                wrappers = env.GenerateWrapperScript(testApps)
+                env.Alias(pkgname, wrappers)
+                env.Alias('test', wrappers)
+                env.Alias('all', wrappers)
+                env.Clean('test', wrappers)
         if kw.get('python', '') != '':
             python = env.Install(env['PYTHONDIR'], kw.get('python'))
             env.Alias(pkgname, python)
