@@ -1,6 +1,6 @@
 """SCons.Tool.gnulink"""
 
-import sys,pdb, os
+import sys, pdb, os
 import SCons.Util
 import SCons.Tool
 import SomeUtils
@@ -16,7 +16,7 @@ def FileNodeComparer(left, right):
     # l < r, -1
     # l == r, 0
     # l > r, 1
-    if lbasename.startswith('config_'): return -1
+    if lbasename.startswith('config_'): return - 1
     elif rbasename.startswith('config_'): return 1
     return cmp(nleft, nright)
 
@@ -26,7 +26,7 @@ def generate(env):
     """Add Builders and construction variables for gnu compilers to an Environment."""
     defaulttoolpath = SCons.Tool.DefaultToolpath
     SCons.Tool.DefaultToolpath = []
-    # load default sunlink tool and extend afterwards
+    # load default link tool and extend afterwards
     env.Tool('gnulink')
     SCons.Tool.DefaultToolpath = defaulttoolpath
 

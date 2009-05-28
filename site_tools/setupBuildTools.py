@@ -46,11 +46,17 @@ def generate(env, **kw):
         env.AppendUnique(LINKFLAGS='-mt')
         # do not use rpath
         env.AppendUnique(LINKFLAGS='-norunpath')
+    elif str(platf) == "cygwin":
+        env.AppendUnique(CPPDEFINES=['_REENTRANT'])
+        env['_NONLAZYLINKFLAGS'] = ''
     else:
         env.AppendUnique(CPPDEFINES=['_REENTRANT'])
         env['_NONLAZYLINKFLAGS'] += '--no-undefined '
 
-    env.AppendUnique(LIBS=['m', 'dl', 'nsl', 'c'])
+    env.AppendUnique(LIBS=['m', 'dl', 'c'])
+    if not str(platf) == "cygwin":
+        env.AppendUnique(LIBS=['nsl'])
+
     # this lib is needed when using sun-CC or gcc on sunos systems
     if str(platf) == "sunos":
         env.AppendUnique(LIBS=['socket', 'resolv', 'aio', 'posix4'])
@@ -64,6 +70,7 @@ def generate(env, **kw):
         if bitwidth == '32':
             # when compiling 32bit, -xtarget=native is all we need, otherwise native64 must be specified
             bitwidth = ''
+
     env.AppendUnique(CCFLAGS=bitwoption + bitwidth)
     env.AppendUnique(LINKFLAGS=bitwoption + bitwidth)
 
