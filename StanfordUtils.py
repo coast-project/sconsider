@@ -207,7 +207,10 @@ def createProgram(pkgname, buildSettings, envVars={}):
     bSet = buildSettings.get(pkgname, {})
     targetEnv = createTargetEnv(pkgname, bSet, envVars)
     # specify this modules target
-    target = targetEnv.Program(pkgname, bSet.get('sourceFiles',''))
+    sources = bSet.get('sourceFiles',None)
+    target = None
+    if sources:
+        target = targetEnv.Program(pkgname, sources)
 
     return (targetEnv, target)
 
@@ -215,7 +218,10 @@ def createSharedLibrary(pkgname, buildSettings, envVars={}):
     bSet = buildSettings.get(pkgname, {})
     targetEnv = createTargetEnv(pkgname, bSet, envVars)
     # specify this modules target
-    target = targetEnv.SharedLibrary(pkgname, bSet.get('sourceFiles',''))
+    sources = bSet.get('sourceFiles',None)
+    target = None
+    if sources:
+        target = targetEnv.SharedLibrary(pkgname, sources)
 
     return (targetEnv, target)
 
