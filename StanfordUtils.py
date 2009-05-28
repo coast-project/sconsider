@@ -165,6 +165,7 @@ def setModuleDependencies(env, modules, **kw):
 
 def ExternalDependencies(env, pkgname, buildDict, target=None, **kw):
     libDepends= buildDict.get('libDepends', [])
+    includeBasedir= buildDict.get('includeBasedir', '')
     includeSubdir= buildDict.get('includeSubdir', '')
     appendUnique= buildDict.get('appendUnique', {})
 
@@ -182,7 +183,7 @@ def ExternalDependencies(env, pkgname, buildDict, target=None, **kw):
     env.AppendUnique(**appendUnique)
 
     # specify public headers here
-    setIncludePath(env, pkgname, includeSubdir, internal=False)
+    setIncludePath(env, pkgname, includeSubdir, basedir=includeBasedir, internal=False)
 
     return target
 

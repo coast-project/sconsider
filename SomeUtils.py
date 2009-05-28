@@ -33,15 +33,20 @@ def findFiles(directories, filespecs, direxcludes=[]):
 def getPackageName(name):
     return string.replace(name, 'Lib', '')
 
-def setIncludePath(env, pkgname, includedir, internal=True):
+def getModuleDirName(name):
+    return os.path.dirname(name)
+
+def setIncludePath(env, pkgname, includedir, basedir='', internal=True):
     if internal:
         installPath = Dir(includedir)
     else:
-        installPath = env['BASEOUTDIR'].Dir(os.path.join(env['INCDIR'], pkgname)).Dir(includedir)
+        if not basedir:
+            basedir = env['BASEOUTDIR'].Dir(os.path.join(env['INCDIR'], pkgname))
+        installPath = Dir(basedir).Dir(includedir)
 
     env.AppendUnique(CPPPATH=[installPath])
 
-class EnvVarDict( dict ):
+class EnvVarDict(dict):
     def __init__(self, _dict=None, uniqueValues=True, **kw):
         self.uniqueValues = uniqueValues
         if not _dict:
@@ -85,12 +90,6 @@ class EnvVarDict( dict ):
     def update(self, _dict):
         for (key, val) in _dict.items():
             self.__setitem__(key, val)
-
-#    def __str__(self):
-#        return str(dict.items(self))
-
-#    def __repr__(self):
-#        return '<EnvVarDict:' + repr(dict.items(self)) + '>'
 
 #def TestFunc():
 #    pdb.set_trace()
