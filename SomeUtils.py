@@ -101,3 +101,20 @@ class EnvVarDict(dict):
 #    print _envFlags
 #
 #TestFunc()
+
+def copyFileNodes(env, nodes, baseoutdir, useFirstSegment=False):
+    instTargs = []
+    for file in nodes:
+        splitFile = str(env.Dir('.').srcnode().rel_path(file.srcnode()))
+        installPath = ''
+        head,tail = os.path.split(splitFile)
+        hasPath = False
+        while head != '':
+            installPath = os.path.normpath(os.path.join(tail, installPath))
+            head,tail = os.path.split(head)
+            hasPath = True
+        if useFirstSegment and hasPath:
+            installPath = os.path.join(tail, installPath)
+        installPath = os.path.dirname(installPath)
+        instTargs.extend(env.Install(baseoutdir.Dir(installPath), file))
+    return instTargs

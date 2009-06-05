@@ -30,6 +30,150 @@ AddOption('--prependPath', dest='prependPath', action='append', nargs=1, type='s
 baseoutdir = Dir(GetOption('baseoutdir'))
 print 'base output dir [%s]' % baseoutdir.abspath
 
+def requireTargets(env, target, requiredTargets, **kw):
+    if not SCons.Util.is_List(requiredTargets):
+        requiredTargets = [requiredTargets]
+    for targ in requiredTargets:
+        env.Requires(target, env.Alias(targ)[0])
+
+def copyConfigFiles(env, pkgname, baseoutdir, buildSettings):
+    if buildSettings.has_key('configFiles'):
+        cfiles = buildSettings.get('configFiles')
+        instTargets = copyFileNodes(env, cfiles, baseoutdir.Dir(pkgname), useFirstSegment=True)
+        if instTargets:
+            env.Alias(pkgname, instTargets)
+            env.Alias('all', instTargets)
+
+def copyConfigFilesTarget(env, pkgname, baseoutdir, buildSettings, target):
+    if buildSettings.has_key('configFiles'):
+        cfiles = buildSettings.get('configFiles')
+        instTargets = copyFileNodes(env, cfiles, baseoutdir.Dir(pkgname), useFirstSegment=True)
+        if instTargets:
+            env.Requires(target, instTargets)
+
+def programTest(env, name, sources, pkgname, buildSettings, **kw):
+    plaintarget = env.Program(name, sources)
+
+    baseoutdir = env['BASEOUTDIR']
+    basereldir = 'tests'
+    baseoutdir = baseoutdir.Dir(basereldir)
+    instApps = env.InstallAs(baseoutdir.Dir(pkgname).Dir(env['TESTDIR']).File(name), plaintarget)
+
+    env.Tool('generateScript')
+    env['PackageName'] = pkgname
+    env['TargetType'] = basereldir
+    wrappers = env.GenerateWrapperScript(instApps)
+
+    env.Alias(pkgname, wrappers)
+    env.Alias('all', wrappers)
+    env.Alias('test', wrappers)
+    env.Clean('test', wrappers)
+
+    copyConfigFiles(env, pkgname, baseoutdir, buildSettings)
+
+    return (plaintarget, wrappers)
+
+def programApp(env, name, sources, pkgname, buildSettings, **kw):
+    plaintarget = env.Program(name, sources)
+
+    baseoutdir = env['BASEOUTDIR']
+    basereldir = 'apps'
+    baseoutdir = baseoutdir.Dir(basereldir)
+    instApps = env.InstallAs(baseoutdir.Dir(pkgname).Dir(env['BINDIR']).File(name), plaintarget)
+
+    env.Tool('generateScript')
+    env['PackageName'] = pkgname
+    env['TargetType'] = basereldir
+    wrappers = env.GenerateWrapperScript(instApps)
+
+    env.Alias(pkgname, wrappers)
+    env.Alias('all', wrappers)
+    env.Alias('binaries', wrappers)
+
+    copyConfigFiles(env, pkgname, baseoutdir, buildSettings)
+
+    return (plaintarget, wrappers)
+
+def appTest(env, name, sources, pkgname, buildSettings, **kw):
+    fulltargetname = buildSettings.get('usedTarget', None)
+    plaintarget = None
+    if fulltargetname:
+        packagename, targetname = splitTargetname(fulltargetname)
+        theModule = loadPackage(packagename)
+        if not targetname:
+            targetname = buildSettings.keys()[0]
+        plaintarget = programLookup.getPackageTarget(packagename, targetname)['plaintarget']
+
+    baseoutdir = env['BASEOUTDIR']
+    basereldir = 'tests'
+    baseoutdir = baseoutdir.Dir(basereldir)
+    instApps = env.InstallAs(baseoutdir.Dir(pkgname).Dir(env['TESTDIR']).File(name), plaintarget)
+
+    if buildSettings.has_key('requires'):
+        requireTargets(env, instApps, buildSettings.get('requires', []))
+
+    env.Tool('generateScript')
+    env['PackageName'] = pkgname
+    env['TargetType'] = basereldir
+    wrappers = env.GenerateWrapperScript(instApps)
+
+    copyConfigFilesTarget(env, pkgname, baseoutdir, buildSettings, wrappers)
+
+    env.Alias(pkgname, wrappers)
+    env.Alias('all', wrappers)
+    env.Alias('test', wrappers)
+    env.Clean('test', wrappers)
+
+    return (plaintarget, wrappers)
+
+def includeOnly(env, name, sources, pkgname, buildSettings, **kw):
+    baseoutdir = env['BASEOUTDIR']
+    target = None
+    if buildSettings.has_key('public'):
+        ifiles = buildSettings['public'].get('includes', [])
+        instTargets = copyFileNodes(env, ifiles, baseoutdir.Dir(os.path.join(env['INCDIR'], pkgname)))
+        if instTargets:
+            target = env.Alias(pkgname + '.' + name, instTargets)
+            env.Alias(pkgname, target)
+            env.Alias('all', target)
+    if buildSettings.has_key('libDepends') and target:
+        requireTargets(env, target, buildSettings.get('libDepends', []))
+    return (target, target)
+
+def includeOnlyTarget(env, name, sources, pkgname, buildSettings, target, **kw):
+    baseoutdir = env['BASEOUTDIR']
+    if buildSettings.has_key('public'):
+        ifiles = buildSettings['public'].get('includes', [])
+        instTargets = copyFileNodes(env, ifiles, baseoutdir.Dir(os.path.join(env['INCDIR'], pkgname)))
+        if instTargets:
+            env.Requires(target, instTargets)
+    return None
+
+def sharedLibrary(env, name, sources, pkgname, buildSettings, **kw):
+    if buildSettings.get('lazylinking', False):
+        env['_NONLAZYLINKFLAGS'] = ''
+
+    plaintarget = env.SharedLibrary(name, sources)
+
+    baseoutdir = env['BASEOUTDIR']
+    instTarg = env.Install(baseoutdir.Dir(env['LIBDIR']), plaintarget)
+    env.Alias(pkgname, instTarg)
+    env.Alias('all', instTarg)
+
+    includeOnlyTarget(env, name, sources, pkgname, buildSettings, instTarg, **kw)
+
+    return (plaintarget, instTarg)
+
+def EnvExtensions(baseenv):
+    baseenv.RequireTargets = requireTargets
+    baseenv.AppTest = appTest
+    baseenv.ProgramTest = programTest
+    baseenv.ProgramApp = programApp
+    baseenv.LibraryShared = sharedLibrary
+    baseenv.IncludeOnly = includeOnly
+
+EnvExtensions(SCons.Environment.Environment)
+
 dEnv = DefaultEnvironment()
 if GetOption('prependPath'):
     dEnv.PrependENVPath('PATH', GetOption('prependPath'))
@@ -103,17 +247,25 @@ def CoastFindPackagesDict(directory, direxcludes=[]):
                 if not packages.has_key(pkgname):
                     packages[pkgname] = {}
                 thePath = os.path.abspath(dirpath)
+                ## append path to module path, otherwise we can not import someLib[.py]
                 sys.path.append(thePath)
-                packages[pkgname]['libfile'] = Dir(thePath).File(name)
+                packages[pkgname]['packagepath'] = Dir(thePath)
                 print 'appended toolpath  [%s]' % thePath
-                thePath = Dir(dirpath).File('SConscript')
-                if os.path.isfile(thePath.abspath):
-                    packages[pkgname]['scriptfile'] = thePath
-                    print 'appended sconspath [%s]' % thePath
+                if not os.path.isfile(Dir(dirpath).File('SConscript').abspath):
+                    print 'warning: SConscript not found in [%s]' % thePath
     return packages
 
 def CloneBaseEnv():
     return baseEnv.Clone()
+
+def splitTargetname(fulltargetname):
+    # split fulltargetname into module and target
+    parts = fulltargetname.split('.')
+    pkgname = parts[0]
+    targetname = None
+    if len(parts) > 1:
+        targetname = parts[1]
+    return (pkgname, targetname)
 
 class ProgramLookup:
     def __init__(self, env, packages, baseoutdir, variant):
@@ -122,22 +274,51 @@ class ProgramLookup:
         self.baseoutdir = baseoutdir.abspath
         self.variant = variant
 
-    def hasTarget(self, name):
-        return self.packages.has_key(name)
+    def setPackageTarget(self, packagename, targetname, plaintarget, target):
+        if not self.packages.has_key(packagename):
+            print 'tried to register target [%s] for non existent package [%s]' % (targetname, packagename)
+            return
+        theTargets = self.packages[packagename].setdefault('targets', {})
+        if plaintarget and SCons.Util.is_List(plaintarget):
+            plaintarget = plaintarget[0]
+        if target and SCons.Util.is_List(target):
+            target = target[0]
+        if not target:
+            target = plaintarget
+        theTargets[targetname] = {'plaintarget':plaintarget, 'target':target}
 
-    def lookup(self, name, **kw):
-#        print 'looking up [%s]' % name
-        if self.hasTarget(name):
-            if not self.packages[name].has_key('loaded'):
-                self.packages[name]['loaded'] = True
-                if self.packages[name].has_key('scriptfile'):
-                    scfile = self.packages[name]['scriptfile']
-                    pkg = os.path.dirname(scfile.path)
-                    builddir = os.path.join(self.baseoutdir, pkg, 'build', self.variant)
-                    print 'executing SConscript for package [%s]' % name
-                    self.env.SConscript(scfile, build_dir=builddir, duplicate=0)
+    def getPackageTarget(self, packagename, targetname):
+        if not self.packages.has_key(packagename):
+            print 'tried to access target [%s] of non existent package [%s]' % (targetname, packagename)
+            return
+        theTargets = self.packages[packagename].setdefault('targets', {})
+        if not theTargets.has_key(targetname):
+            pass
+        return theTargets.get(targetname, {'plaintarget':None, 'target':None})
 
+    def hasPackage(self, packagename):
+        """check if packagename is found in list of packages
+        this solely relies on directories and <packagename>Lib.py files found"""
+        return self.packages.has_key(packagename)
+
+    def lookup(self, fulltargetname, **kw):
+        packagename, targetname = splitTargetname(fulltargetname)
+#        print 'looking up [%s]' % packagename
+        if self.hasPackage(packagename):
+            if not self.packages[packagename].has_key('loaded'):
+                self.packages[packagename]['loaded'] = True
+                if self.packages[packagename].has_key('packagepath'):
+                    path = self.packages[packagename]['packagepath']
+                    relpath = path.path
+                    scfile = os.path.join(path.abspath, 'SConscript')
+                    if os.path.isfile(scfile):
+                        builddir = os.path.join(self.baseoutdir, relpath, 'build', self.variant)
+                        print 'executing SConscript for package [%s]' % packagename
+                        self.env.SConscript(scfile, build_dir=builddir, duplicate=0)
+            if targetname:
+                return self.getPackageTarget(packagename, targetname)['target']
         return None
+
 
 direxcludes = ['build', 'CVS', 'data', 'xml', 'doc', 'bin', 'lib', '.git', '.gitmodules', 'config']
 if not baseEnv.GetOption('exclude') == None:
@@ -145,96 +326,137 @@ if not baseEnv.GetOption('exclude') == None:
 packages = CoastFindPackagesDict(Dir('#').path, direxcludes)
 programLookup = ProgramLookup(baseEnv, packages, baseoutdir, variant)
 
-def DependsOn(env, targetname, **kw):
-    programLookup.lookup(targetname)
-    modname = targetname + 'Lib'
-    sys.modules[modname] = __import__(modname)
-    modDict = sys.modules[modname].__dict__
+def loadPackage(packagename):
+    programLookup.lookup(packagename)
+    modname = packagename + 'Lib'
+    theModule = __import__(modname)
+    sys.modules[modname] = theModule
+    return theModule
+
+def DependsOn(env, fulltargetname, **kw):
+    packagename, targetname = splitTargetname(fulltargetname)
+    theModule = loadPackage(packagename)
+    modDict = theModule.__dict__
+    ## support for old style module handling
     if modDict.get('generate', None):
-        return sys.modules[modname].generate(env, **kw)
+        return theModule.generate(env, **kw)
 
     buildSettings = modDict.get('buildSettings', None)
     if not buildSettings:
-        print 'Warning: buildSettings dictionary inr module %s not defined!' % modname
+        print 'Warning: buildSettings dictionary in module %s not defined!' % packagename
         return None
-    return ExternalDependencies(env, targetname, buildSettings.get(targetname, {}), target=modDict.get('target', None), **kw)
+    # get default target name if not set already
+    if not targetname:
+        targetname = buildSettings.keys()[0]
+    targets = programLookup.getPackageTarget(packagename, targetname)
+    ExternalDependencies(env, packagename, buildSettings.get(targetname, {}), plaintarget=targets['plaintarget'], **kw)
+    return targets['target']
 
 def setModuleDependencies(env, modules, **kw):
     for mod in modules:
         DependsOn(env, mod, **kw)
 
-def ExternalDependencies(env, pkgname, buildSettings, target=None, **kw):
-    libDepends= buildSettings.get('libDepends', [])
-    includeBasedir= buildSettings.get('includeBasedir', '')
-    includeSubdir= buildSettings.get('includeSubdir', '')
-    appendUnique= buildSettings.get('appendUnique', {})
+def ExternalDependencies(env, packagename, buildSettings, plaintarget=None, **kw):
+    libDepends = buildSettings.get('libDepends', [])
+    includeBasedir = buildSettings.get('includeBasedir', '')
+    includeSubdir = buildSettings.get('includeSubdir', '')
+    if buildSettings.has_key('public'):
+        appendUnique = buildSettings['public'].get('appendUnique', {})
+        # flags / settings used by this library and users of it
+        env.AppendUnique(**appendUnique)
 
     # this libraries dependencies
     setModuleDependencies(env, libDepends)
 
-    try:
-        strTargetType = target[0].builder.get_name(target[0].env)
-        if strTargetType.find('Library'):
-            env.Tool('addLibrary', library=[pkgname])
-    except:
-        pass
-
-    # flags / settings used by this library and users of it
-    env.AppendUnique(**appendUnique)
+    if plaintarget:
+        strTargetType = plaintarget.builder.get_name(plaintarget.env)
+        if strTargetType.find('Library') != - 1:
+            tName = plaintarget.name
+            env.AppendUnique(LIBS=[tName])
 
     # specify public headers here
-    setIncludePath(env, pkgname, includeSubdir, basedir=includeBasedir, internal=False)
+    setIncludePath(env, packagename, includeSubdir, basedir=includeBasedir, internal=False)
 
-    return target
+class TargetMaker:
+    def __init__(self, packagename, tlist, programLookup):
+        self.packagename = packagename
+        self.targetlist = tlist.copy()
+        self.programLookup = programLookup
 
-def createTargetEnv(pkgname, buildSettings, envVars={}):
-    # create environment for target
-    targetEnv = CloneBaseEnv()
+    def createTargets(self):
+        while self.targetlist:
+            self.recurseCreate(self.targetlist.keys()[0])
 
-    # update environment by adding dependencies to used modules
-    setModuleDependencies(targetEnv, buildSettings.get('libDepends', []))
+    def recurseCreate(self, targetname):
+        if self.targetlist:
+            if targetname:
+                k = targetname
+                v = self.targetlist.pop(k)
+            else:
+                k, v = self.targetlist.popitem()
+            depList = [item for item in v.get('requires', []) + v.get('libDepends', []) if item.startswith(self.packagename + '.')]
+            for ftn in depList:
+                pkgname, tname = splitTargetname(ftn)
+                if self.targetlist.has_key(tname):
+                    self.recurseCreate(tname)
+            self.doCreateTarget(self.packagename, k, v)
 
-    # win32 specific define to export all symbols when creating a DLL
-    newVars = buildSettings.get('appendUnique',EnvVarDict()) + EnvVarDict(envVars)
-    targetEnv.AppendUnique(**newVars)
+    def doCreateTarget(self, pkgname, name, targetBuildSettings):
+        plaintarget = None
+        target = None
+        if targetBuildSettings.has_key('targetType'):
+            envVars = targetBuildSettings.get('appendUnique', {})
+            targetEnv = self.createTargetEnv(name, targetBuildSettings, envVars)
+            func = getattr(targetEnv, targetBuildSettings.get('targetType', ''), None)
+            if func:
+                kw = {}
+                kw['pkgname'] = pkgname
+                kw['buildSettings'] = targetBuildSettings
+                sources = targetBuildSettings.get('sourceFiles', [])
+                targets = apply(func, [name, sources], kw)
+                import types
+                if isinstance(targets, types.TupleType):
+                    plaintarget, target = targets
+                else:
+                    plaintarget = target = targets
 
-    # maybe we need to add this libraries local include path when building it (if different from .)
-    setIncludePath(targetEnv, pkgname, buildSettings.get('includeSubdir',''))
+        self.programLookup.setPackageTarget(pkgname, name, plaintarget, target)
 
-    return targetEnv
+    def createTargetEnv(self, targetname, targetBuildSettings, envVars={}):
+        libDepends = targetBuildSettings.get('libDepends', [])
+        includeSubdir = targetBuildSettings.get('includeSubdir', '')
+        # create environment for target
+        targetEnv = CloneBaseEnv()
 
-def createProgram(pkgname, buildSettings, envVars={}):
-    bSet = buildSettings.get(pkgname, {})
-    targetEnv = createTargetEnv(pkgname, bSet, envVars)
-    # specify this modules target
-    sources = bSet.get('sourceFiles',None)
-    target = None
-    if sources:
-        target = targetEnv.Program(pkgname, sources)
+        # update environment by adding dependencies to used modules
+        setModuleDependencies(targetEnv, libDepends)
 
-    return (targetEnv, target)
+        # win32 specific define to export all symbols when creating a DLL
+        newVars = targetBuildSettings.get('public', EnvVarDict())
+        if newVars:
+            newVars = newVars.get('appendUnique', EnvVarDict())
+        newVars += EnvVarDict(envVars)
+        targetEnv.AppendUnique(**newVars)
 
-def createSharedLibrary(pkgname, buildSettings, envVars={}):
-    bSet = buildSettings.get(pkgname, {})
-    targetEnv = createTargetEnv(pkgname, bSet, envVars)
-    # specify this modules target
-    sources = bSet.get('sourceFiles',None)
-    target = None
-    if sources:
-        target = targetEnv.SharedLibrary(pkgname, sources)
+        # maybe we need to add this libraries local include path when building it (if different from .)
+        setIncludePath(targetEnv, targetname, includeSubdir)
 
-    return (targetEnv, target)
+        return targetEnv
+
+def createTargets(packagename, buildSettings):
+    TargetMaker(packagename, buildSettings, programLookup).createTargets()
 
 baseEnv.lookup_list.append(programLookup.lookup)
 
 failedTargets = True
-for tname in BUILD_TARGETS:
-    print 'trying to find target [%s]' % tname
-    if programLookup.hasTarget(tname):
-        programLookup.lookup(tname)
+for ftname in BUILD_TARGETS:
+    packagename, target = splitTargetname(ftname)
+    print 'trying to find target [%s]' % ftname
+    if programLookup.hasPackage(packagename):
+        programLookup.lookup(ftname)
         failedTargets = False
     else:
-        print 'target [%s] not found, aborting' % tname
+        print 'package [%s] not found, aborting' % packagename
         failedTargets = True
         break
 
