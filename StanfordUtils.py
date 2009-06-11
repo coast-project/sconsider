@@ -395,9 +395,6 @@ def ExternalDependencies(env, packagename, buildSettings, plaintarget=None, **kw
             strTargetType = plaintarget.builder.get_name(plaintarget.env)
             if strTargetType.find('Library') != - 1:
                 tName = plaintarget.name
-                if tName == 'libfreeradius-client.a':
-                    env.AppendUnique(LIBPATH=[Dir(os.path.split(plaintarget.abspath)[0])])
-                    pdb.set_trace()
                 env.AppendUnique(LIBS=[tName])
         except:
             pass
