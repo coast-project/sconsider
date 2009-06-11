@@ -24,17 +24,20 @@ def findLibraryDirectory(env, basedir, libname):
     if env['PLATFORM'] == "cygwin":
         variantdir = 'Win_i386'
     elif env['PLATFORM'] == 'sunos':
-        variantdir = 'SunOS_5.8'
+        osver = tuple([int(x) for x in platform.release().split('.')])
+        dirRE = platform.system() + osStringSep + '([0-9](\.[0-9])*)'
+        # re for architecture (i686, sparc, amd,...) - bitwidth (32,64)
+        dirRE += osStringSep + '?(.*)'
     else:
-        osver = tuple(platform.libc_ver(executable='/lib/libc.so.6')[1].split('.'))
-        dirRE = 'Linux' + osStringSep + 'glibc' + osStringSep + '([0-9](\.[0-9])*)'
+        osver = tuple([int(x) for x in platform.libc_ver(executable='/lib/libc.so.6')[1].split('.')])
+        dirRE = platform.system() + osStringSep + 'glibc' + osStringSep + '([0-9](\.[0-9])*)'
         # re for architecture (i686, sparc, amd,...) - bitwidth (32,64)
         dirRE += osStringSep + '?(.*)'
     reDirname = re.compile(dirRE)
     reBits = re.compile('.*(32|64)')
     files = []
     for dirpath, dirnames, filenames in os.walk(basedir):
-        dirnames[:] = [dir for dir in dirnames if not dir == 'build']
+        dirnames[:] = [dir for dir in dirnames if not dir in ['build','.git','.svn','CVS']]
         dirMatch = reDirname.match(os.path.split(dirpath)[1])
         if dirMatch:
             for name in filenames:
@@ -44,7 +47,7 @@ def findLibraryDirectory(env, basedir, libname):
                     reM = reBits.match(dirMatch.group(3))
                     if reM:
                         bits = reM.group(1)
-                    files.append({'osver':tuple(dirMatch.group(1).split('.')),
+                    files.append({'osver':tuple([int(x) for x in dirMatch.group(1).split('.')]),
                                   'bits':bits,
                                   'file':libMatch.group(0),
                                   'path':dirpath,
