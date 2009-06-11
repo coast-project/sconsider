@@ -63,6 +63,7 @@ def generate(env, **kw):
 
     # select target architecture bits
     bitwidth = GetOption('archbits')
+    env['ARCHBITS'] = bitwidth
     bitwoption = '-m'
     if str(platf) == 'sunos' and not whichgcc:
         # sun-CC compiler is to use

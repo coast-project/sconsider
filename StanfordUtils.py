@@ -9,7 +9,7 @@ from SomeUtils import *
 SCons.Script.EnsureSConsVersion(1, 0, 0)
 # SconsBuilder may work with earlier version,
 # but it was build and tested against Python 2.4
-SCons.Script.EnsurePythonVersion(2, 4)
+SCons.Script.EnsurePythonVersion(2, 5)
 
 if False:
     print "platform.dist:", platform.dist()
@@ -39,7 +39,7 @@ def requireTargets(env, target, requiredTargets, **kw):
 def copyConfigFiles(env, pkgname, baseoutdir, buildSettings):
     if buildSettings.has_key('configFiles'):
         cfiles = buildSettings.get('configFiles')
-        instTargets = copyFileNodes(env, cfiles, baseoutdir.Dir(pkgname), useFirstSegment=True)
+        instTargets = copyFileNodes(env, cfiles, baseoutdir.Dir(pkgname))
         if instTargets:
             env.Alias(pkgname, instTargets)
             env.Alias('all', instTargets)
@@ -47,7 +47,7 @@ def copyConfigFiles(env, pkgname, baseoutdir, buildSettings):
 def copyConfigFilesTarget(env, pkgname, baseoutdir, buildSettings, target):
     if buildSettings.has_key('configFiles'):
         cfiles = buildSettings.get('configFiles')
-        instTargets = copyFileNodes(env, cfiles, baseoutdir.Dir(pkgname), useFirstSegment=True)
+        instTargets = copyFileNodes(env, cfiles, baseoutdir.Dir(pkgname))
         if instTargets:
             env.Requires(target, instTargets)
 
@@ -130,14 +130,16 @@ def includeOnly(env, name, sources, pkgname, buildSettings, **kw):
     baseoutdir = env['BASEOUTDIR']
     target = None
     if buildSettings.has_key('public'):
-        ifiles = buildSettings['public'].get('includes', [])
-        instTargets = copyFileNodes(env, ifiles, baseoutdir.Dir(os.path.join(env['INCDIR'], pkgname)))
-        if instTargets:
-            target = env.Alias(pkgname + '.' + name, instTargets)
-            env.Alias(pkgname, target)
-            env.Alias('all', target)
-    if buildSettings.has_key('libDepends') and target:
-        requireTargets(env, target, buildSettings.get('libDepends', []))
+        instTargets = None
+        if buildSettings['public'].has_key('includes') and buildSettings['public'].get('copyIncludes', True):
+            ifiles = buildSettings['public'].get('includes', [])
+            instTargets = copyFileNodes(env, ifiles, baseoutdir.Dir(os.path.join(env['INCDIR'], pkgname)))
+        target = env.Alias(pkgname + '.' + name, instTargets)
+        env.Alias(pkgname, target)
+        env.Alias('all', target)
+    reqTargets = buildSettings.get('linkDependencies', []) + buildSettings.get('requires', [])
+    if target and reqTargets:
+        requireTargets(env, target, reqTargets)
     return (target, target)
 
 def includeOnlyTarget(env, name, sources, pkgname, buildSettings, target, **kw):
@@ -164,12 +166,16 @@ def sharedLibrary(env, name, sources, pkgname, buildSettings, **kw):
 
     return (plaintarget, instTarg)
 
+def precompiledLibrary(env, name, sources, pkgname, buildSettings, **kw):
+    ss
+
 def EnvExtensions(baseenv):
     baseenv.RequireTargets = requireTargets
     baseenv.AppTest = appTest
     baseenv.ProgramTest = programTest
     baseenv.ProgramApp = programApp
     baseenv.LibraryShared = sharedLibrary
+    baseenv.LibraryPrecompiled = precompiledLibrary
     baseenv.IncludeOnly = includeOnly
 
 EnvExtensions(SCons.Environment.Environment)
@@ -182,7 +188,7 @@ if GetOption('appendPath'):
     dEnv.AppendENVPath('PATH', GetOption('appendPath'))
     print 'appended path is [%s]' % dEnv['ENV']['PATH']
 
-globaltools = Split("""setupBuildTools coast_options""")
+globaltools = Split("""setupBuildTools coast_options precompiledLibraryInstallBuilder""")
 usetools = globaltools + GetOption('usetools')
 print 'tools to use %s' % Flatten(usetools)
 
@@ -193,7 +199,8 @@ myplatf = str(SCons.Platform.Platform())
 targetbits = GetOption('archbits')
 
 if myplatf == "posix":
-    variant = platform.system() + "_" + platform.libc_ver()[0] + "_" + platform.libc_ver()[1] + "-" + platform.machine()
+    libcver = platform.libc_ver(executable='/lib/libc.so.6')
+    variant = platform.system() + "_" + libcver[0] + "_" + libcver[1] + "-" + platform.machine()
 elif myplatf == "sunos":
     variant = platform.system() + "_" + platform.release() + "-" + platform.processor()
 elif myplatf == "darwin":
@@ -238,7 +245,15 @@ baseEnv.AppendUnique(LIBPATH=[baseoutdir.Dir(baseEnv['LIBDIR'])])
 def CoastFindPackagesDict(directory, direxcludes=[]):
     packages = {}
     reLib = re.compile('^(.*)Lib.py$')
-    for dirpath, dirnames, filenames in os.walk(directory):
+    followln = {}
+    try:
+        v_major, v_minor, v_micro, release, serial = sys.version_info
+        python_ver = (v_major, v_minor)
+    except AttributeError:
+        python_ver = self._get_major_minor_revision(sys.version)[:2]
+    if python_ver >= (2, 6):
+        followln = { 'followlinks' : True }
+    for dirpath, dirnames, filenames in os.walk(directory, followln):
         dirnames[:] = [d for d in dirnames if not d in direxcludes]
         for name in filenames:
             rmatch = reLib.match(name)
@@ -301,6 +316,9 @@ class ProgramLookup:
         this solely relies on directories and <packagename>Lib.py files found"""
         return self.packages.has_key(packagename)
 
+    def getPackageDir(self, packagename):
+        return self.packages[packagename].get('packagepath', '')
+
     def lookup(self, fulltargetname, **kw):
         packagename, targetname = splitTargetname(fulltargetname)
 #        print 'looking up [%s]' % packagename
@@ -347,7 +365,7 @@ def DependsOn(env, fulltargetname, **kw):
         return None
     # get default target name if not set already
     if not targetname:
-        targetname = buildSettings.keys()[0]
+        targetname = packagename
     targets = programLookup.getPackageTarget(packagename, targetname)
     ExternalDependencies(env, packagename, buildSettings.get(targetname, {}), plaintarget=targets['plaintarget'], **kw)
     return targets['target']
@@ -357,25 +375,36 @@ def setModuleDependencies(env, modules, **kw):
         DependsOn(env, mod, **kw)
 
 def ExternalDependencies(env, packagename, buildSettings, plaintarget=None, **kw):
-    libDepends = buildSettings.get('libDepends', [])
-    includeBasedir = buildSettings.get('includeBasedir', '')
-    includeSubdir = buildSettings.get('includeSubdir', '')
+    linkDependencies = buildSettings.get('linkDependencies', [])
+    includeBasedir = env['BASEOUTDIR'].Dir(os.path.join(env['INCDIR'], packagename))
+    includeSubdir = ''
     if buildSettings.has_key('public'):
         appendUnique = buildSettings['public'].get('appendUnique', {})
         # flags / settings used by this library and users of it
         env.AppendUnique(**appendUnique)
+        includeSubdir = buildSettings['public'].get('includeSubdir', '')
+        if not buildSettings['public'].get('copyIncludes', True):
+            includeBasedir = programLookup.getPackageDir(packagename)
 
     # this libraries dependencies
-    setModuleDependencies(env, libDepends)
+    setModuleDependencies(env, linkDependencies)
 
     if plaintarget:
-        strTargetType = plaintarget.builder.get_name(plaintarget.env)
-        if strTargetType.find('Library') != - 1:
-            tName = plaintarget.name
-            env.AppendUnique(LIBS=[tName])
+        # try block needed to block Alias only targets without concrete builder
+        try:
+            strTargetType = plaintarget.builder.get_name(plaintarget.env)
+            if strTargetType.find('Library') != - 1:
+                tName = plaintarget.name
+                if tName == 'libfreeradius-client.a':
+                    env.AppendUnique(LIBPATH=[Dir(os.path.split(plaintarget.abspath)[0])])
+                    pdb.set_trace()
+                env.AppendUnique(LIBS=[tName])
+        except:
+            pass
 
     # specify public headers here
-    setIncludePath(env, packagename, includeSubdir, basedir=includeBasedir, internal=False)
+    installPath = Dir(includeBasedir).Dir(includeSubdir)
+    env.AppendUnique(CPPPATH=[installPath])
 
 class TargetMaker:
     def __init__(self, packagename, tlist, programLookup):
@@ -394,10 +423,10 @@ class TargetMaker:
                 v = self.targetlist.pop(k)
             else:
                 k, v = self.targetlist.popitem()
-            depList = [item for item in v.get('requires', []) + v.get('libDepends', []) if item.startswith(self.packagename + '.')]
+            depList = [item for item in v.get('requires', []) + v.get('linkDependencies', []) if item.startswith(self.packagename + '.')]
             for ftn in depList:
                 pkgname, tname = splitTargetname(ftn)
-                if self.targetlist.has_key(tname):
+                if self.packagename == pkgname and self.targetlist.has_key(tname):
                     self.recurseCreate(tname)
             self.doCreateTarget(self.packagename, k, v)
 
@@ -423,13 +452,13 @@ class TargetMaker:
         self.programLookup.setPackageTarget(pkgname, name, plaintarget, target)
 
     def createTargetEnv(self, targetname, targetBuildSettings, envVars={}):
-        libDepends = targetBuildSettings.get('libDepends', [])
+        linkDependencies = targetBuildSettings.get('linkDependencies', [])
         includeSubdir = targetBuildSettings.get('includeSubdir', '')
         # create environment for target
         targetEnv = CloneBaseEnv()
 
         # update environment by adding dependencies to used modules
-        setModuleDependencies(targetEnv, libDepends)
+        setModuleDependencies(targetEnv, linkDependencies)
 
         # win32 specific define to export all symbols when creating a DLL
         newVars = targetBuildSettings.get('public', EnvVarDict())
@@ -439,7 +468,7 @@ class TargetMaker:
         targetEnv.AppendUnique(**newVars)
 
         # maybe we need to add this libraries local include path when building it (if different from .)
-        setIncludePath(targetEnv, targetname, includeSubdir)
+        targetEnv.AppendUnique(CPPPATH=[Dir(includeSubdir)])
 
         return targetEnv
 

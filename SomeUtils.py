@@ -19,13 +19,15 @@ def listFiles(files, **kw):
     allFiles.sort(cmp=FileNodeComparer)
     return allFiles
 
-def findFiles(directories, filespecs, direxcludes=[]):
+def findFiles(directories, extensions, direxcludes=[]):
     files = []
+#    pdb.set_trace()
     for directory in directories:
+        directory = Dir(directory).srcnode().abspath
         for dirpath, dirnames, filenames in os.walk(directory):
-            curDir = Dir('.').Dir(dirpath)
+            curDir = Dir(dirpath)
             dirnames[:] = [d for d in dirnames if not d in direxcludes]
-            addfiles = [curDir.File(f).srcnode() for f in filenames if os.path.splitext(f)[1] in filespecs]
+            addfiles = [curDir.File(f).srcnode() for f in filenames if os.path.splitext(f)[1] in extensions]
             files.extend(addfiles)
     files.sort(cmp=FileNodeComparer)
     return files
@@ -35,16 +37,6 @@ def getPackageName(name):
 
 def getModuleDirName(name):
     return os.path.dirname(name)
-
-def setIncludePath(env, pkgname, includedir, basedir='', internal=True):
-    if internal:
-        installPath = Dir(includedir)
-    else:
-        if not basedir:
-            basedir = env['BASEOUTDIR'].Dir(os.path.join(env['INCDIR'], pkgname))
-        installPath = Dir(basedir).Dir(includedir)
-
-    env.AppendUnique(CPPPATH=[installPath])
 
 class EnvVarDict(dict):
     def __init__(self, _dict=None, uniqueValues=True, **kw):
@@ -102,7 +94,7 @@ class EnvVarDict(dict):
 #
 #TestFunc()
 
-def copyFileNodes(env, nodes, baseoutdir, useFirstSegment=False):
+def copyFileNodes(env, nodes, baseoutdir, useFirstSegment=True):
     instTargs = []
     for file in nodes:
         splitFile = str(env.Dir('.').srcnode().rel_path(file.srcnode()))

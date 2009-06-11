@@ -189,8 +189,45 @@ def ChangePackageName():
                 except IOError:
                     pass
 
-ChangeToDependsOn()
-ChangeBaseEnvClone()
-RemoveEnvDump()
-ChangeListFiles()
+def ChangePackageName():
+    for dirpath, dirnames, filenames in os.walk('.'):
+        dirnames[:] = [d for d in dirnames if not d in excludelist]
+        for name in filenames:
+            if re.compile('^.*Lib\.py$').match(name):
+                fname = os.path.join(dirpath, name)
+                try:
+                    fo = open(fname)
+                    if fo:
+                        fstr = fo.read()
+                        fo.close()
+                        strout = ''
+                        lastiter = None
+                        for it in re.finditer(r"(libDepends)", fstr, re.M):
+                            if lastiter:
+                                strout += it.string[lastiter.end(0):it.start(0)]
+                            else:
+                                strout += it.string[:it.start(0)]
+                            g = it.groups()
+                            envName = g[0]
+                            strout += "linkDependencies"
+                            lastiter = it
+                        if lastiter:
+                            outstr = strout
+                            outstr += lastiter.string[lastiter.end(0):]
+                            if fstr != outstr:
+                                print "matches in file:", fname
+                                try:
+                                    of = open(fname, 'w+')
+                                    of.write(outstr)
+                                    of.close()
+                                except:
+                                    pass
+                except IOError:
+                    pass
+
 ChangePackageName()
+#ChangeToDependsOn()
+#ChangeBaseEnvClone()
+#RemoveEnvDump()
+#ChangeListFiles()
+#ChangePackageName()
