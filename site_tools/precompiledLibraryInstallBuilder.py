@@ -37,7 +37,7 @@ def findLibraryDirectory(env, basedir, libname):
     reBits = re.compile('.*(32|64)')
     files = []
     for dirpath, dirnames, filenames in os.walk(basedir):
-        dirnames[:] = [dir for dir in dirnames if not dir in ['build','.git','.svn','CVS']]
+        dirnames[:] = [dir for dir in dirnames if not dir in ['build', '.git', '.svn', 'CVS']]
         dirMatch = reDirname.match(os.path.split(dirpath)[1])
         if dirMatch:
             for name in filenames:
@@ -61,7 +61,7 @@ def findLibraryDirectory(env, basedir, libname):
     bitwidth = env.get('ARCHBITS', '32')
     # filter out wrong bit sizes
     files = [entry for entry in files if entry['bits'] == bitwidth]
-    
+
     # check for best matching osver entry, downgrade if non exact match
     files.sort(cmp=lambda l, r: cmp(l['osver'], r['osver']), reverse=True)
     osvermatch = None
@@ -71,15 +71,15 @@ def findLibraryDirectory(env, basedir, libname):
             break
     files = [entry for entry in files if entry['osver'] == osvermatch]
     preferStaticLib = env.get('buildSettings', {}).get('preferStaticLib', False)
-    
+
     staticLibs = [entry for entry in files if entry['suffix'] == env.subst(env['LIBSUFFIX']) ]
     sharedLibs = [entry for entry in files if entry['suffix'] == env.subst(env['SHLIBSUFFIX']) ]
-    
+
     libVersion = env.get('buildSettings', {}).get('libVersion', '')
     # FIXME: libVersion on win
     if libVersion:
         sharedLibs = [entry for entry in sharedLibs if entry['libVersion'] == libVersion]
-    
+
     if preferStaticLib:
         allLibs = staticLibs + sharedLibs
     else:
