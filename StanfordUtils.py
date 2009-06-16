@@ -59,6 +59,9 @@ def programTest(env, name, sources, pkgname, buildSettings, **kw):
     baseoutdir = baseoutdir.Dir(basereldir)
     instApps = env.InstallAs(baseoutdir.Dir(pkgname).Dir(env['TESTDIR']).File(name), plaintarget)
 
+    if buildSettings.has_key('requires'):
+        requireTargets(env, instApps, buildSettings.get('requires', []))
+
     env.Tool('generateScript')
     env['PackageName'] = pkgname
     env['TargetType'] = basereldir
@@ -80,6 +83,9 @@ def programApp(env, name, sources, pkgname, buildSettings, **kw):
     basereldir = 'apps'
     baseoutdir = baseoutdir.Dir(basereldir)
     instApps = env.InstallAs(baseoutdir.Dir(pkgname).Dir(env['BINDIR']).File(name), plaintarget)
+
+    if buildSettings.has_key('requires'):
+        requireTargets(env, instApps, buildSettings.get('requires', []))
 
     env.Tool('generateScript')
     env['PackageName'] = pkgname
@@ -217,6 +223,10 @@ elif myplatf == "win32":
     variant = platform.release() + "-" + platform.machine()
 
 variant += "-" + targetbits
+
+if GetOption('Trace'):
+    variant += '_trace'
+
 print "compilation variant [", variant, "]"
 
 ssfile = os.path.join(Dir('#').path, '.sconsign.' + variant)

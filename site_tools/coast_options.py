@@ -8,10 +8,12 @@ def generate(env, **kw):
     global added
     if not added:
         added = 1
-        AddOption('--with-COAST-ROOT', dest='COAST-ROOT', action='store', nargs=1, type='string', default='#', metavar='DIR', help='location of COAST_ROOT directory, default is [' + Dir('#').abspath + ']')
+        AddOption('--enable-Trace', dest='Trace', action='store_true', help='enable webdisplay tracing (StartTrace, Trace,...), see Dbg.h for details')
     env.AppendUnique(CPPDEFINES=['_LARGEFILE64_SOURCE'])
     #FIXME: how shall we handle debug/opt-wddbg/opt compilations?
     env.AppendUnique(CPPDEFINES=['WD_OPT'])
+    if GetOption('Trace'):
+        env.AppendUnique(CPPDEFINES=['DEBUG'])
 
 def exists(env):
     return true
