@@ -89,7 +89,7 @@ def findLibraryDirectory(env, basedir, libname):
         entry = allLibs[0]
         return (entry['path'], entry['file'], entry['linkfile'], (entry['suffix'] == env.subst(env['LIBSUFFIX'])))
 
-    print 'library [%s] not available for this platform [%s] and bitwidth[%d]' % (libname, env['PLATFORM'], bitwidth)
+    print 'library [%s] not available for this platform [%s] and bitwidth[%s]' % (libname, env['PLATFORM'], bitwidth)
     return (None, None)
 
 def precompLibNamesEmitter(target, source, env):
