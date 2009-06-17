@@ -165,6 +165,10 @@ def sharedLibrary(env, name, sources, pkgname, buildSettings, **kw):
 
     baseoutdir = env['BASEOUTDIR']
     instTarg = env.Install(baseoutdir.Dir(env['LIBDIR']), plaintarget)
+
+    if buildSettings.has_key('requires'):
+        requireTargets(env, instTarg, buildSettings.get('requires', []))
+
     env.Alias(pkgname, instTarg)
     env.Alias('all', instTarg)
 
