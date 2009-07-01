@@ -434,7 +434,7 @@ class TargetMaker:
                 v = self.targetlist.pop(k)
             else:
                 k, v = self.targetlist.popitem()
-            depList = [item for item in v.get('requires', []) + v.get('linkDependencies', []) if item.startswith(self.packagename + '.')]
+            depList = [item for item in v.get('requires', []) + v.get('linkDependencies', []) + [v.get('usedTarget', '')] if item.startswith(self.packagename + '.')]
             for ftn in depList:
                 pkgname, tname = splitTargetname(ftn)
                 if self.packagename == pkgname and self.targetlist.has_key(tname):

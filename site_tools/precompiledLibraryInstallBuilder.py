@@ -2,19 +2,17 @@ import os, pdb, re, platform, shutil, stat
 import SCons.Action
 import SCons.Builder
 
-def findLibraryDirectory(env, basedir, libname):
+def findPlatformTargets(env, basedir, targetname, prefixes=[], suffixes=[]):
     variantdir = ''
-    # LIBPREFIXES = [ LIBPREFIX, SHLIBPREFIX ]
-    # LIBSUFFIXES = [ LIBSUFFIX, SHLIBSUFFIX ]
     libRE = ''
-    for pre in env['LIBPREFIXES']:
+    for pre in prefixes:
         if libRE:
             libRE += '|'
         libRE += re.escape(env.subst(pre))
-    libRE = '(' + libRE + ')' + libname
+    libRE = '(' + libRE + ')' + targetname
     libRE += '[^.]*'
     libSFX = ''
-    for suf in env['LIBSUFFIXES']:
+    for suf in suffixes:
         if libSFX:
             libSFX += '|'
         libSFX += re.escape(env.subst(suf))
@@ -70,6 +68,13 @@ def findLibraryDirectory(env, basedir, libname):
             osvermatch = entry['osver']
             break
     files = [entry for entry in files if entry['osver'] == osvermatch]
+    return files
+    
+def findLibrary(env, basedir, libname):
+    # LIBPREFIXES = [ LIBPREFIX, SHLIBPREFIX ]
+    # LIBSUFFIXES = [ LIBSUFFIX, SHLIBSUFFIX ]
+    files = findPlatformTargets(env, basedir, libname, env['LIBPREFIXES'], env['LIBSUFFIXES'])
+    
     preferStaticLib = env.get('buildSettings', {}).get('preferStaticLib', False)
 
     staticLibs = [entry for entry in files if entry['suffix'] == env.subst(env['LIBSUFFIX']) ]
@@ -89,15 +94,39 @@ def findLibraryDirectory(env, basedir, libname):
         entry = allLibs[0]
         return (entry['path'], entry['file'], entry['linkfile'], (entry['suffix'] == env.subst(env['LIBSUFFIX'])))
 
-    print 'library [%s] not available for this platform [%s] and bitwidth[%s]' % (libname, env['PLATFORM'], bitwidth)
+    print 'library [%s] not available for this platform [%s] and bitwidth[%s]' % (libname, env['PLATFORM'], env.get('ARCHBITS', '32'))
     return (None, None)
+
+def findBinary(env, basedir, binaryname):
+    files = findPlatformTargets(env, basedir, binaryname, [env['PROGPREFIX']], [env['PROGSUFFIX']])
+    
+    if files:
+        entry = files[0]
+        return (entry['path'], entry['file'], entry['linkfile'])
+    
+    print 'binary [%s] not available for this platform [%s] and bitwidth[%s]' % (binaryname, env['PLATFORM'], env.get('ARCHBITS', '32'))
+    return (None, None)
+
+def precompBinNamesEmitter(target, source, env):
+    target = []
+    newsource = []
+    for src in source:
+        path, binaryname = os.path.split(src.srcnode().abspath)
+        srcpath, srcfile, linkfile = findBinary(env, path, binaryname)
+        if srcfile:
+            if srcfile != linkfile:
+                newsource.append(SCons.Script.File(os.path.join(srcpath, srcfile)))
+                target.append(env['BASEOUTDIR'].Dir(env['BINDIR']).File(linkfile))
+            newsource.append(SCons.Script.File(os.path.join(srcpath, srcfile)))
+            target.append(env['BASEOUTDIR'].Dir(env['BINDIR']).File(srcfile))
+    return (target, newsource)
 
 def precompLibNamesEmitter(target, source, env):
     target = []
     newsource = []
     for src in source:
         path, libname = os.path.split(src.srcnode().abspath)
-        srcpath, srcfile, linkfile, isStaticLib = findLibraryDirectory(env, path, libname)
+        srcpath, srcfile, linkfile, isStaticLib = findLibrary(env, path, libname)
         if srcfile:
             if not isStaticLib:
                 if srcfile != linkfile:
@@ -145,6 +174,13 @@ def generate(env):
                                                   single_source=False)
 
     env.Append(BUILDERS={ 'PrecompiledLibraryInstallBuilder' : PrecompLibBuilder })
+    
+    PrecompBinAction = SCons.Action.Action(installFunc, "Installing precompiled binary '$SOURCE' as '$TARGET'")
+    PrecompBinBuilder = SCons.Builder.Builder(action=[PrecompBinAction],
+                                                  emitter=precompBinNamesEmitter,
+                                                  single_source=False)
+
+    env.Append(BUILDERS={ 'PrecompiledBinaryInstallBuilder' : PrecompBinBuilder })
 
 def exists(env):
     return 1;
