@@ -418,10 +418,12 @@ def ExternalDependencies(env, packagename, buildSettings, plaintarget=None, **kw
     env.AppendUnique(CPPPATH=[installPath])
 
 class TargetMaker:
-    def __init__(self, packagename, tlist, programLookup):
+    def __init__(self, packagename, tlist, programLookup, collectVars=['CPPPATH']):
         self.packagename = packagename
         self.targetlist = tlist.copy()
         self.programLookup = programLookup
+        self.varEnv = CloneBaseEnv()
+        self.collectVars = collectVars
 
     def createTargets(self):
         while self.targetlist:
@@ -459,6 +461,11 @@ class TargetMaker:
                     plaintarget, target = targets
                 else:
                     plaintarget = target = targets
+            for vName in self.collectVars:
+                varValues = [ x.srcnode().abspath for x in targetEnv.get(vName, [])]
+#                varValues.extend([ x.abspath for x in targetEnv.get(vName, [])])
+                vDict = dict ({ vName : varValues })
+                self.varEnv.AppendUnique(**vDict)
 
         self.programLookup.setPackageTarget(pkgname, name, plaintarget, target)
 
@@ -483,8 +490,32 @@ class TargetMaker:
 
         return targetEnv
 
+    def getEnvVarValue(self, envvarname):
+        return self.varEnv.get(envvarname, [])
+
 def createTargets(packagename, buildSettings):
-    TargetMaker(packagename, buildSettings, programLookup).createTargets()
+    tmk = TargetMaker(packagename, buildSettings, programLookup)
+    tmk.createTargets()
+    fname = os.path.join(Dir('.').srcnode().abspath, '.scb')
+    fstr = ""
+    try:
+        if os.path.isfile(fname):
+            of = open(fname, 'r')
+        fstr = of.read()
+        of.close()
+    except:
+        pass
+    pathstring = ""
+    for x in tmk.getEnvVarValue('CPPPATH'):
+        if not re.compile('CPPPATH.*' + x).search(fstr):
+            pathstring += "CPPPATH appendunique " + x + "\n"
+    if pathstring:
+        try:
+            of = open(fname, 'a+')
+            of.write(pathstring)
+            of.close()
+        except:
+            pass
 
 baseEnv.lookup_list.append(programLookup.lookup)
 

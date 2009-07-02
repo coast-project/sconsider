@@ -97,13 +97,18 @@ class EnvVarDict(dict):
 def copyFileNodes(env, nodes, baseoutdir, useFirstSegment=True):
     instTargs = []
     for file in nodes:
-        splitFile = str(env.Dir('.').srcnode().rel_path(file.srcnode()))
+        srcnode = file
+        try:
+            srcnode = file.srcnode()
+        except:
+            pass
+        splitFile = str(env.Dir('.').srcnode().rel_path(srcnode))
         installPath = ''
-        head,tail = os.path.split(splitFile)
+        head, tail = os.path.split(splitFile)
         hasPath = False
         while head != '':
             installPath = os.path.normpath(os.path.join(tail, installPath))
-            head,tail = os.path.split(head)
+            head, tail = os.path.split(head)
             hasPath = True
         if useFirstSegment and hasPath:
             installPath = os.path.join(tail, installPath)
