@@ -67,14 +67,20 @@ def programTest(env, name, sources, pkgname, buildSettings, **kw):
     env['TargetType'] = basereldir
     wrappers = env.GenerateWrapperScript(instApps)
 
-    env.Alias(pkgname, wrappers)
-    env.Alias('all', wrappers)
-    env.Alias('test', wrappers)
-    env.Clean('test', wrappers)
-
     copyConfigFiles(env, pkgname, baseoutdir, buildSettings)
 
-    return (plaintarget, wrappers)
+    runner = env.TestBuilder(baseoutdir.Dir(pkgname).Dir(env['TESTDIR']).File(name+'.passed'), wrappers, buildSettings, '-all')
+    if runner:
+        target = runner
+    else:
+        target = wrappers
+    
+    env.Alias(pkgname, target)
+    env.Alias('all', target)
+    env.Alias('test', target)
+    env.Clean('test', target)
+
+    return (plaintarget, target)
 
 def programApp(env, name, sources, pkgname, buildSettings, **kw):
     plaintarget = env.Program(name, sources)
@@ -198,7 +204,7 @@ if GetOption('appendPath'):
     dEnv.AppendENVPath('PATH', GetOption('appendPath'))
     print 'appended path is [%s]' % dEnv['ENV']['PATH']
 
-globaltools = Split("""setupBuildTools coast_options precompiledLibraryInstallBuilder""")
+globaltools = Split("""setupBuildTools coast_options precompiledLibraryInstallBuilder RunBuilder""")
 usetools = globaltools + GetOption('usetools')
 print 'tools to use %s' % Flatten(usetools)
 
@@ -522,7 +528,7 @@ baseEnv.lookup_list.append(programLookup.lookup)
 
 failedTargets = True
 for ftname in BUILD_TARGETS:
-    packagename, target = splitTargetname(ftname)
+    packagename, targetname = splitTargetname(ftname)
     print 'trying to find target [%s]' % ftname
     if programLookup.hasPackage(packagename):
         programLookup.lookup(ftname)
