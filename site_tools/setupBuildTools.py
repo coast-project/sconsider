@@ -24,9 +24,16 @@ def generate(env, **kw):
         # -> see SCons.Tool.__init__.py tool_list method for explanation
         if str(platf) == 'sunos':
             platf = None
+
+    # if we are within cygwin and want to build a win32 target
+    if "mingw" in GetOption('usetools'):
+        platf="win32"
+
+    # tool initialization, previously done in <scons>/Tool/default.py
     for t in SCons.Tool.tool_list(platf, env):
         SCons.Tool.Tool(t)(env)
     platf = env['PLATFORM']
+
     compver = ''
     if env.has_key('CXXVERSION'):
         compver = '(' + env['CXXVERSION'] + ')'
@@ -49,6 +56,7 @@ def generate(env, **kw):
     elif str(platf) == "cygwin":
         env.AppendUnique(CPPDEFINES=['_REENTRANT'])
         env['_NONLAZYLINKFLAGS'] = ''
+    elif str(platf) == "win32":
         env.AppendUnique(CPPDEFINES=['WIN32', '_WIN32_WINNT=0x400'])
 #        env.AppendUnique(CPPDEFINES=['_MSC_VER=$MSVC_VER'])
     else:
