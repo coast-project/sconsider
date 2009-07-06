@@ -20,7 +20,13 @@ def findPlatformTargets(env, basedir, targetname, prefixes=[], suffixes=[]):
     reLibname = re.compile(libRE)
     osStringSep = '[_-]'
     if env['PLATFORM'] == "cygwin":
+        pdb.set_trace()
         variantdir = 'Win_i386'
+        osver = tuple([int(x) for x in platform.system().split('-')[1].split('.')])
+#        dirRE = platform.system() + osStringSep + '([0-9](\.[0-9])*)'
+        dirRE = 'Win' + osStringSep + 'i386'
+        # re for architecture (i686, sparc, amd,...) - bitwidth (32,64)
+        dirRE += osStringSep + '?(.*)'
     elif env['PLATFORM'] == 'sunos':
         osver = tuple([int(x) for x in platform.release().split('.')])
         dirRE = platform.system() + osStringSep + '([0-9](\.[0-9])*)'

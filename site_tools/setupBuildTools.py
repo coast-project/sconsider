@@ -49,6 +49,8 @@ def generate(env, **kw):
     elif str(platf) == "cygwin":
         env.AppendUnique(CPPDEFINES=['_REENTRANT'])
         env['_NONLAZYLINKFLAGS'] = ''
+        env.AppendUnique(CPPDEFINES=['WIN32', '_WIN32_WINNT=0x400'])
+#        env.AppendUnique(CPPDEFINES=['_MSC_VER=$MSVC_VER'])
     else:
         env.AppendUnique(CPPDEFINES=['_REENTRANT'])
         env['_NONLAZYLINKFLAGS'] += '--no-undefined '
