@@ -18,6 +18,10 @@ def doTest(target, source, env):
         open(target[0].abspath, 'w').write("PASSED\n")
     return res
 
+def doRun(target, source, env):
+    res = run(source[0].abspath + ' ' + env.get('runParams', ''))
+    return res
+
 def getRunParams(buildSettings, defaultRunParams):
     runConfig = buildSettings.get('runConfig', {})
     if GetOption('runParams'):
@@ -26,25 +30,20 @@ def getRunParams(buildSettings, defaultRunParams):
         runParams = runConfig.get('runParams', defaultRunParams)
     return runParams
 
-def createTestTarget(env, target, source, buildSettings, defaultRunParams=''):
+def createTarget(env, builder, target, source, buildSettings, defaultRunParams):
     if not GetOption('run'):
         return False
 
     if SCons.Util.is_List(source):
         source = source[0]
-    
-    runner = env.__TestBuilder(target, source, runParams=getRunParams(buildSettings, defaultRunParams))
-    return runner
+        
+    return builder(target, source, runParams=getRunParams(buildSettings, defaultRunParams))    
+
+def createTestTarget(env, target, source, buildSettings, defaultRunParams=''):
+    return createTarget(env, env.__TestBuilder, target, source, buildSettings, defaultRunParams)
 
 def createRunTarget(env, source, buildSettings, defaultRunParams=''):
-    if not GetOption('run'):
-        return False
-
-    if SCons.Util.is_List(target):
-        target = target[0]
-
-    runner = env.Command('dummyfile', source, source.abspath + ' ' + getRunParams(buildSettings, defaultRunParams))
-    return runner
+    return createTarget(env, env.__RunBuilder, 'dummyfile', source, buildSettings, defaultRunParams)
 
 def generate(env):
     AddOption('--run', dest='run', action='store_true', default=False, help='Should we run the target')
@@ -53,8 +52,13 @@ def generate(env):
     TestAction = SCons.Action.Action(doTest, "Running Test")
     TestBuilder = SCons.Builder.Builder(action=[TestAction],
                                               single_source=True)
+    
+    RunAction = SCons.Action.Action(doRun, "Running Executable")
+    RunBuilder = SCons.Builder.Builder(action=[RunAction],
+                                              single_source=True)
 
     env.Append(BUILDERS={ '__TestBuilder' : TestBuilder })
+    env.Append(BUILDERS={ '__RunBuilder' : TestBuilder })
     env.AddMethod(createTestTarget, "TestBuilder")
     env.AddMethod(createRunTarget, "RunBuilder")
 
