@@ -506,8 +506,9 @@ def createTargets(packagename, buildSettings):
     except:
         pass
     pathstring = ""
-    for x in tmk.getEnvVarValue('CPPPATH'):
-        if not re.compile('CPPPATH.*' + x).search(fstr):
+    inclLists = tmk.getEnvVarValue('SYSINCLUDES') + tmk.getEnvVarValue('CPPPATH')
+    for x in inclLists:
+        if not re.compile('CPPPATH.*' + re.escape(x)).search(fstr):
             pathstring += "CPPPATH appendunique " + x + "\n"
     if pathstring:
         try:
