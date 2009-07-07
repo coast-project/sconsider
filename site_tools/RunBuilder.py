@@ -1,3 +1,4 @@
+from __future__ import with_statement
 import os, pdb, subprocess
 from SCons.Script import AddOption, GetOption
 import SCons.Action
@@ -32,7 +33,7 @@ def createTarget(env, builder, target, source, buildSettings, defaultRunParams):
         target = [target]
     if not SCons.Util.is_List(source):
         source = [source]
-        
+
     return builder(target, source, runParams=getRunParams(buildSettings, defaultRunParams))
 
 def createTestTarget(env, target, source, buildSettings, defaultRunParams='-all'):
@@ -42,15 +43,15 @@ def createTestTarget(env, target, source, buildSettings, defaultRunParams='-all'
     handed over by using --runparams="..." or by setting buildSettings['runConfig']['runParams'].
     The Fields 'setUp' and 'tearDown' in 'runConfig' accept a string (executed as shell command),
     a Python function (with arguments 'target', 'source', 'env') or any SCons.Action."""
-    
+
     if not GetOption('run'):
         return source
-    
+
     runner = createTarget(env, env.__TestBuilder, target, source, buildSettings, defaultRunParams)
     runConfig = buildSettings.get('runConfig', {})
     setUp = runConfig.get('setUp', '')
     tearDown = runConfig.get('tearDown', '')
-    
+
     if setUp:
         env.AddPreAction(runner, setUp)
     if tearDown:
@@ -61,20 +62,20 @@ def createTestTarget(env, target, source, buildSettings, defaultRunParams='-all'
 def createRunTarget(env, source, buildSettings, defaultRunParams=''):
     """Creates a target which runs a target given in parameter 'source'. Command line parameters could be
     handed over by using --runparams="..." or by setting buildSettings['runConfig']['runParams']."""
-    
+
     if not GetOption('run'):
         return source
-    
+
     return createTarget(env, env.__RunBuilder, 'dummyfile', source, buildSettings, defaultRunParams)
 
 def generate(env):
     AddOption('--run', dest='run', action='store_true', default=False, help='Should we run the target')
     AddOption('--runparams', dest='runParams', action='append', type='string', default=[], help='The parameters to hand over')
-    
+
     TestAction = SCons.Action.Action(doTest, "Running Test '$SOURCE'")
     TestBuilder = SCons.Builder.Builder(action=[TestAction],
                                               single_source=True)
-    
+
     RunAction = SCons.Action.Action(doRun, "Running Executable '$SOURCE'")
     RunBuilder = SCons.Builder.Builder(action=[RunAction],
                                               single_source=True)

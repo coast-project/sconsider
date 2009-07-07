@@ -1,3 +1,4 @@
+from __future__ import with_statement
 import os, platform, SCons, glob, re, atexit, sys, traceback, commands, pdb, dircache
 import SomeUtils
 
@@ -5,10 +6,10 @@ from SCons.Script import AddOption, GetOption, Dir, DefaultEnvironment, Split, F
 from SomeUtils import *
 
 # SconsBuilder may work with earlier version,
-# but it was build and tested against SCons 1.0.0
-SCons.Script.EnsureSConsVersion(1, 0, 0)
+# but it was build and tested against SCons 1.2.0
+SCons.Script.EnsureSConsVersion(1, 2, 0)
 # SconsBuilder may work with earlier version,
-# but it was build and tested against Python 2.4
+# but it was build and tested against Python 2.5
 SCons.Script.EnsurePythonVersion(2, 5)
 
 if False:
@@ -70,7 +71,7 @@ def programTest(env, name, sources, pkgname, buildSettings, **kw):
     copyConfigFiles(env, pkgname, baseoutdir, buildSettings)
 
     target = env.TestBuilder(baseoutdir.Dir(pkgname).Dir(env['TESTDIR']).File(name+'.passed'), wrappers, buildSettings)
-    
+
     env.Alias(pkgname, target)
     env.Alias('all', target)
     env.Alias('test', target)
@@ -500,25 +501,25 @@ def createTargets(packagename, buildSettings):
     tmk.createTargets()
     fname = os.path.join(Dir('.').srcnode().abspath, '.scb')
     fstr = ""
-    try:
-        if os.path.isfile(fname):
-            of = open(fname, 'r')
-        fstr = of.read()
-        of.close()
-    except:
-        pass
+    if os.path.isfile(fname):
+        with open(fname, 'r') as of:
+            fstr = of.read()
     pathstring = ""
-    inclLists = tmk.getEnvVarValue('SYSINCLUDES') + tmk.getEnvVarValue('CPPPATH')
+    sysIncls = []
+    cppIncls = []
+    inclLists = []
+    sysIncls.extend(tmk.getEnvVarValue('SYSINCLUDES'))
+    sysIncls.sort()
+    cppIncls.extend(tmk.getEnvVarValue('CPPPATH'))
+    cppIncls.sort()
+    inclLists.extend(sysIncls)
+    inclLists.extend(cppIncls)
     for x in inclLists:
         if not re.compile('CPPPATH.*' + re.escape(x)).search(fstr):
             pathstring += "CPPPATH appendunique " + x + "\n"
     if pathstring:
-        try:
-            of = open(fname, 'a+')
+        with open(fname, 'a+') as of:
             of.write(pathstring)
-            of.close()
-        except:
-            pass
 
 baseEnv.lookup_list.append(programLookup.lookup)
 

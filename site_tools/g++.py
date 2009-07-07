@@ -26,17 +26,19 @@ def generate(env):
 
     if env['CXX']:
         tFile = os.path.join(SCons.Script.Dir('.').abspath, '.x1y2')
+        outFile = os.path.join(SCons.Script.Dir('.').abspath, '.gugus')
         try:
             outf = open(tFile,'w')
             outf.write('#include <cstdlib>\nint main(){}')
             outf.close()
         except: pass
-        pipe = SCons.Action._subproc(env, [env['CXX'], '-v', '-xc++', tFile],
+        pipe = SCons.Action._subproc(env, [env['CXX'], '-v', '-xc++', tFile, '-o', outFile],
                                      stdin = 'devnull',
                                      stderr = subprocess.PIPE,
                                      stdout = subprocess.PIPE)
         pRet = pipe.wait()
         os.remove(tFile)
+        os.remove(outFile)
         if pRet != 0:
             print "pipe error:",pRet
             return
