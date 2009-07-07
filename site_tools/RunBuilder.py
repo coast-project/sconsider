@@ -32,9 +32,6 @@ def createTarget(env, builder, target, source, buildSettings, defaultRunParams):
         target = [target]
     if not SCons.Util.is_List(source):
         source = [source]
-
-    if not GetOption('run'):
-        return source
         
     return builder(target, source, runParams=getRunParams(buildSettings, defaultRunParams))
 
@@ -45,6 +42,10 @@ def createTestTarget(env, target, source, buildSettings, defaultRunParams='-all'
     handed over by using --runparams="..." or by setting buildSettings['runConfig']['runParams'].
     The Fields 'setUp' and 'tearDown' in 'runConfig' accept a string (executed as shell command),
     a Python function (with arguments 'target', 'source', 'env') or any SCons.Action."""
+    
+    if not GetOption('run'):
+        return source
+    
     runner = createTarget(env, env.__TestBuilder, target, source, buildSettings, defaultRunParams)
     runConfig = buildSettings.get('runConfig', {})
     setUp = runConfig.get('setUp', '')
@@ -60,6 +61,10 @@ def createTestTarget(env, target, source, buildSettings, defaultRunParams='-all'
 def createRunTarget(env, source, buildSettings, defaultRunParams=''):
     """Creates a target which runs a target given in parameter 'source'. Command line parameters could be
     handed over by using --runparams="..." or by setting buildSettings['runConfig']['runParams']."""
+    
+    if not GetOption('run'):
+        return source
+    
     return createTarget(env, env.__RunBuilder, 'dummyfile', source, buildSettings, defaultRunParams)
 
 def generate(env):
