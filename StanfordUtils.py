@@ -69,11 +69,7 @@ def programTest(env, name, sources, pkgname, buildSettings, **kw):
 
     copyConfigFiles(env, pkgname, baseoutdir, buildSettings)
 
-    runner = env.TestBuilder(baseoutdir.Dir(pkgname).Dir(env['TESTDIR']).File(name+'.passed'), wrappers, buildSettings, '-all')
-    if runner:
-        target = runner
-    else:
-        target = wrappers
+    target = env.TestBuilder(baseoutdir.Dir(pkgname).Dir(env['TESTDIR']).File(name+'.passed'), wrappers, buildSettings)
     
     env.Alias(pkgname, target)
     env.Alias('all', target)

@@ -1,21 +1,18 @@
-import os, pdb
+import os, pdb, subprocess
 from SCons.Script import AddOption, GetOption
 import SCons.Action
 import SCons.Builder
 
-def run(cmd):
+def run(cmd, **kw):
     """Run a Unix command and return the exit code."""
-    res = os.system(cmd)
-    if (os.WIFEXITED(res)):
-        code = os.WEXITSTATUS(res)
-        return code
-    # Assumes that if a process doesn't call exit, it was successful
-    return 0
+    args = cmd.split(' ')
+    return subprocess.call(args, **kw)
 
 def doTest(target, source, env):
     res = run(source[0].abspath + ' ' + env.get('runParams', ''))
     if res == 0:
-        open(target[0].abspath, 'w').write("PASSED\n")
+        with open(target[0].abspath, 'w') as file:
+            file.write("PASSED\n")
     return res
 
 def doRun(target, source, env):
@@ -31,29 +28,49 @@ def getRunParams(buildSettings, defaultRunParams):
     return runParams
 
 def createTarget(env, builder, target, source, buildSettings, defaultRunParams):
+    if not SCons.Util.is_List(target):
+        target = [target]
+    if not SCons.Util.is_List(source):
+        source = [source]
+
     if not GetOption('run'):
-        return False
-
-    if SCons.Util.is_List(source):
-        source = source[0]
+        return source
         
-    return builder(target, source, runParams=getRunParams(buildSettings, defaultRunParams))    
+    return builder(target, source, runParams=getRunParams(buildSettings, defaultRunParams))
 
-def createTestTarget(env, target, source, buildSettings, defaultRunParams=''):
-    return createTarget(env, env.__TestBuilder, target, source, buildSettings, defaultRunParams)
+def createTestTarget(env, target, source, buildSettings, defaultRunParams='-all'):
+    """Creates a target which runs a target given in parameter 'source'. If ran successfully a
+    file is generated (name given in parameter 'target') which indicates that this runner-target
+    doesn't need to be executed unless the dependencies changed. Command line parameters could be
+    handed over by using --runparams="..." or by setting buildSettings['runConfig']['runParams'].
+    The Fields 'setUp' and 'tearDown' in 'runConfig' accept a string (executed as shell command),
+    a Python function (with arguments 'target', 'source', 'env') or any SCons.Action."""
+    runner = createTarget(env, env.__TestBuilder, target, source, buildSettings, defaultRunParams)
+    runConfig = buildSettings.get('runConfig', {})
+    setUp = runConfig.get('setUp', '')
+    tearDown = runConfig.get('tearDown', '')
+    
+    if setUp:
+        env.AddPreAction(runner, setUp)
+    if tearDown:
+        env.AddPostAction(runner, tearDown)
+
+    return runner
 
 def createRunTarget(env, source, buildSettings, defaultRunParams=''):
+    """Creates a target which runs a target given in parameter 'source'. Command line parameters could be
+    handed over by using --runparams="..." or by setting buildSettings['runConfig']['runParams']."""
     return createTarget(env, env.__RunBuilder, 'dummyfile', source, buildSettings, defaultRunParams)
 
 def generate(env):
     AddOption('--run', dest='run', action='store_true', default=False, help='Should we run the target')
     AddOption('--runparams', dest='runParams', action='append', type='string', default=[], help='The parameters to hand over')
     
-    TestAction = SCons.Action.Action(doTest, "Running Test")
+    TestAction = SCons.Action.Action(doTest, "Running Test '$SOURCE'")
     TestBuilder = SCons.Builder.Builder(action=[TestAction],
                                               single_source=True)
     
-    RunAction = SCons.Action.Action(doRun, "Running Executable")
+    RunAction = SCons.Action.Action(doRun, "Running Executable '$SOURCE'")
     RunBuilder = SCons.Builder.Builder(action=[RunAction],
                                               single_source=True)
 
