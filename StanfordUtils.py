@@ -119,18 +119,21 @@ def appTest(env, name, sources, pkgname, buildSettings, **kw):
     env.Alias(pkgname, wrappers)
     env.Alias('all', wrappers)
     env.Alias('test', wrappers)
-#    env.Clean('test', wrappers)
 
     return (plaintarget, wrappers)
 
-def includeOnly(env, name, sources, pkgname, buildSettings, **kw):
+def checkCopyIncludes(env, pkgname, buildSettings):
+    instTargets = None
     baseoutdir = env['BASEOUTDIR']
+    if buildSettings.has_key('public'):
+        ifiles = buildSettings['public'].get('includes', [])
+        instTargets = copyFileNodes(env, ifiles, baseoutdir.Dir(os.path.join(env['INCDIR'], pkgname)))
+    return instTargets
+
+def includeOnly(env, name, sources, pkgname, buildSettings, **kw):
     target = None
     if buildSettings.has_key('public'):
-        instTargets = None
-        if buildSettings['public'].has_key('includes') and buildSettings['public'].get('copyIncludes', True):
-            ifiles = buildSettings['public'].get('includes', [])
-            instTargets = copyFileNodes(env, ifiles, baseoutdir.Dir(os.path.join(env['INCDIR'], pkgname)))
+        instTargets = checkCopyIncludes(env, pkgname, buildSettings)
         target = env.Alias(pkgname + '.' + name, instTargets)
         env.Alias(pkgname, target)
         env.Alias('all', target)
@@ -138,15 +141,6 @@ def includeOnly(env, name, sources, pkgname, buildSettings, **kw):
     if target and reqTargets:
         requireTargets(env, target, reqTargets)
     return (target, target)
-
-def includeOnlyTarget(env, name, sources, pkgname, buildSettings, target, **kw):
-    baseoutdir = env['BASEOUTDIR']
-    if buildSettings.has_key('public'):
-        ifiles = buildSettings['public'].get('includes', [])
-        instTargets = copyFileNodes(env, ifiles, baseoutdir.Dir(os.path.join(env['INCDIR'], pkgname)))
-        if instTargets:
-            env.Requires(target, instTargets)
-    return None
 
 def sharedLibrary(env, name, sources, pkgname, buildSettings, **kw):
     if buildSettings.get('lazylinking', False):
@@ -163,7 +157,9 @@ def sharedLibrary(env, name, sources, pkgname, buildSettings, **kw):
     env.Alias(pkgname, instTarg)
     env.Alias('all', instTarg)
 
-    includeOnlyTarget(env, name, sources, pkgname, buildSettings, instTarg, **kw)
+    instTargets = checkCopyIncludes(env, pkgname, buildSettings)
+    if instTargets:
+        env.Requires(instTarg, instTargets)
 
     return (plaintarget, instTarg)
 
