@@ -37,20 +37,12 @@ def requireTargets(env, target, requiredTargets, **kw):
     for targ in requiredTargets:
         env.Requires(target, env.Alias(targ)[0])
 
-def copyConfigFiles(env, pkgname, destdir, buildSettings):
+def copyConfigFilesTarget(env, destdir, buildSettings, target):
     if buildSettings.has_key('configFiles'):
         cfiles = buildSettings.get('configFiles')
         instTargets = copyFileNodes(env, cfiles, destdir)
         if instTargets:
-            env.Alias(pkgname, instTargets)
-            env.Alias('all', instTargets)
-
-def copyConfigFilesTarget(env, pkgname, destdir, buildSettings, target):
-    if buildSettings.has_key('configFiles'):
-        cfiles = buildSettings.get('configFiles')
-        instTargets = copyFileNodes(env, cfiles, destdir)
-        if instTargets:
-            env.Requires(target, instTargets)
+            env.Depends(target, instTargets)
 
 def changed_timestamp_or_content(dependency, target, prev_ni):
     return dependency.changed_content(target, prev_ni) or dependency.changed_timestamp_newer(target, prev_ni)
@@ -68,11 +60,11 @@ def programApp(env, name, sources, pkgname, buildSettings, **kw):
     env.Tool('generateScript')
     wrappers = env.GenerateWrapperScript(instApps)
 
+    copyConfigFilesTarget(env, baseoutdir.Dir(env['RELTARGETDIR']), buildSettings, wrappers)
+
     env.Alias(pkgname, wrappers)
     env.Alias('all', wrappers)
     env.Alias('binaries', wrappers)
-
-    copyConfigFiles(env, pkgname, baseoutdir.Dir(env['RELTARGETDIR']), buildSettings)
 
     return (plaintarget, wrappers)
 
@@ -90,7 +82,7 @@ def programTest(env, name, sources, pkgname, buildSettings, **kw):
     env.Tool('generateScript')
     wrappers = env.GenerateWrapperScript(instApps)
 
-    copyConfigFiles(env, pkgname, baseoutdir.Dir(env['RELTARGETDIR']), buildSettings)
+    copyConfigFilesTarget(env, baseoutdir.Dir(env['RELTARGETDIR']), buildSettings, wrappers)
 
     target = env.TestBuilder(wrappers, buildSettings)
 
@@ -122,7 +114,7 @@ def appTest(env, name, sources, pkgname, buildSettings, **kw):
     env.Tool('generateScript')
     wrappers = env.GenerateWrapperScript(instApps)
 
-    copyConfigFilesTarget(env, pkgname, baseoutdir.Dir(env['RELTARGETDIR']), buildSettings, wrappers)
+    copyConfigFilesTarget(env, baseoutdir.Dir(env['RELTARGETDIR']), buildSettings, wrappers)
 
     env.Alias(pkgname, wrappers)
     env.Alias('all', wrappers)
