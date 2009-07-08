@@ -37,40 +37,62 @@ def requireTargets(env, target, requiredTargets, **kw):
     for targ in requiredTargets:
         env.Requires(target, env.Alias(targ)[0])
 
-def copyConfigFiles(env, pkgname, baseoutdir, buildSettings):
+def copyConfigFiles(env, pkgname, destdir, buildSettings):
     if buildSettings.has_key('configFiles'):
         cfiles = buildSettings.get('configFiles')
-        instTargets = copyFileNodes(env, cfiles, baseoutdir.Dir(pkgname))
+        instTargets = copyFileNodes(env, cfiles, destdir)
         if instTargets:
             env.Alias(pkgname, instTargets)
             env.Alias('all', instTargets)
 
-def copyConfigFilesTarget(env, pkgname, baseoutdir, buildSettings, target):
+def copyConfigFilesTarget(env, pkgname, destdir, buildSettings, target):
     if buildSettings.has_key('configFiles'):
         cfiles = buildSettings.get('configFiles')
-        instTargets = copyFileNodes(env, cfiles, baseoutdir.Dir(pkgname))
+        instTargets = copyFileNodes(env, cfiles, destdir)
         if instTargets:
             env.Requires(target, instTargets)
 
-def programTest(env, name, sources, pkgname, buildSettings, **kw):
+def changed_timestamp_or_content(dependency, target, prev_ni):
+    return dependency.changed_content(target, prev_ni) or dependency.changed_timestamp_newer(target, prev_ni)
+
+def programApp(env, name, sources, pkgname, buildSettings, **kw):
     plaintarget = env.Program(name, sources)
 
     baseoutdir = env['BASEOUTDIR']
-    basereldir = 'tests'
-    baseoutdir = baseoutdir.Dir(basereldir)
-    instApps = env.InstallAs(baseoutdir.Dir(pkgname).Dir(env['TESTDIR']).File(name), plaintarget)
+    env['RELTARGETDIR'] = os.path.join('apps', pkgname)
+    instApps = env.InstallAs(baseoutdir.Dir(env['RELTARGETDIR']).Dir(env['BINDIR']).Dir(env['VARIANTDIR']).File(name), plaintarget)
 
     if buildSettings.has_key('requires'):
         requireTargets(env, instApps, buildSettings.get('requires', []))
 
     env.Tool('generateScript')
-    env['PackageName'] = pkgname
-    env['TargetType'] = basereldir
     wrappers = env.GenerateWrapperScript(instApps)
 
-    copyConfigFiles(env, pkgname, baseoutdir, buildSettings)
+    env.Alias(pkgname, wrappers)
+    env.Alias('all', wrappers)
+    env.Alias('binaries', wrappers)
 
-    target = env.TestBuilder(baseoutdir.Dir(pkgname).Dir(env['TESTDIR']).File(name+'.passed'), wrappers, buildSettings)
+    copyConfigFiles(env, pkgname, baseoutdir.Dir(env['RELTARGETDIR']), buildSettings)
+
+    return (plaintarget, wrappers)
+
+def programTest(env, name, sources, pkgname, buildSettings, **kw):
+    env.Decider(changed_timestamp_or_content)
+    plaintarget = env.Program(name, sources)
+
+    baseoutdir = env['BASEOUTDIR']
+    env['RELTARGETDIR'] = os.path.join('tests', pkgname)
+    instApps = env.InstallAs(baseoutdir.Dir(env['RELTARGETDIR']).Dir(env['BINDIR']).Dir(env['VARIANTDIR']).File(name), plaintarget)
+
+    if buildSettings.has_key('requires'):
+        requireTargets(env, instApps, buildSettings.get('requires', []))
+
+    env.Tool('generateScript')
+    wrappers = env.GenerateWrapperScript(instApps)
+
+    copyConfigFiles(env, pkgname, baseoutdir.Dir(env['RELTARGETDIR']), buildSettings)
+
+    target = env.TestBuilder(wrappers, buildSettings)
 
     env.Alias(pkgname, target)
     env.Alias('all', target)
@@ -79,31 +101,8 @@ def programTest(env, name, sources, pkgname, buildSettings, **kw):
 
     return (plaintarget, target)
 
-def programApp(env, name, sources, pkgname, buildSettings, **kw):
-    plaintarget = env.Program(name, sources)
-
-    baseoutdir = env['BASEOUTDIR']
-    basereldir = 'apps'
-    baseoutdir = baseoutdir.Dir(basereldir)
-    instApps = env.InstallAs(baseoutdir.Dir(pkgname).Dir(env['BINDIR']).File(name), plaintarget)
-
-    if buildSettings.has_key('requires'):
-        requireTargets(env, instApps, buildSettings.get('requires', []))
-
-    env.Tool('generateScript')
-    env['PackageName'] = pkgname
-    env['TargetType'] = basereldir
-    wrappers = env.GenerateWrapperScript(instApps)
-
-    env.Alias(pkgname, wrappers)
-    env.Alias('all', wrappers)
-    env.Alias('binaries', wrappers)
-
-    copyConfigFiles(env, pkgname, baseoutdir, buildSettings)
-
-    return (plaintarget, wrappers)
-
 def appTest(env, name, sources, pkgname, buildSettings, **kw):
+    env.Decider(changed_timestamp_or_content)
     fulltargetname = buildSettings.get('usedTarget', None)
     plaintarget = None
     if fulltargetname:
@@ -114,24 +113,21 @@ def appTest(env, name, sources, pkgname, buildSettings, **kw):
         plaintarget = programLookup.getPackageTarget(packagename, targetname)['plaintarget']
 
     baseoutdir = env['BASEOUTDIR']
-    basereldir = 'tests'
-    baseoutdir = baseoutdir.Dir(basereldir)
-    instApps = env.InstallAs(baseoutdir.Dir(pkgname).Dir(env['TESTDIR']).File(name), plaintarget)
+    env['RELTARGETDIR'] = os.path.join('tests', pkgname)
+    instApps = env.InstallAs(baseoutdir.Dir(env['RELTARGETDIR']).Dir(env['BINDIR']).Dir(env['VARIANTDIR']).File(name), plaintarget)
 
     if buildSettings.has_key('requires'):
         requireTargets(env, instApps, buildSettings.get('requires', []))
 
     env.Tool('generateScript')
-    env['PackageName'] = pkgname
-    env['TargetType'] = basereldir
     wrappers = env.GenerateWrapperScript(instApps)
 
-    copyConfigFilesTarget(env, pkgname, baseoutdir, buildSettings, wrappers)
+    copyConfigFilesTarget(env, pkgname, baseoutdir.Dir(env['RELTARGETDIR']), buildSettings, wrappers)
 
     env.Alias(pkgname, wrappers)
     env.Alias('all', wrappers)
     env.Alias('test', wrappers)
-    env.Clean('test', wrappers)
+#    env.Clean('test', wrappers)
 
     return (plaintarget, wrappers)
 
@@ -167,7 +163,7 @@ def sharedLibrary(env, name, sources, pkgname, buildSettings, **kw):
     plaintarget = env.SharedLibrary(name, sources)
 
     baseoutdir = env['BASEOUTDIR']
-    instTarg = env.Install(baseoutdir.Dir(env['LIBDIR']), plaintarget)
+    instTarg = env.Install(baseoutdir.Dir(env['LIBDIR']).Dir(env['VARIANTDIR']), plaintarget)
 
     if buildSettings.has_key('requires'):
         requireTargets(env, instTarg, buildSettings.get('requires', []))
@@ -179,16 +175,12 @@ def sharedLibrary(env, name, sources, pkgname, buildSettings, **kw):
 
     return (plaintarget, instTarg)
 
-def precompiledLibrary(env, name, sources, pkgname, buildSettings, **kw):
-    ss
-
 def EnvExtensions(baseenv):
     baseenv.RequireTargets = requireTargets
     baseenv.AppTest = appTest
     baseenv.ProgramTest = programTest
     baseenv.ProgramApp = programApp
     baseenv.LibraryShared = sharedLibrary
-    baseenv.LibraryPrecompiled = precompiledLibrary
     baseenv.IncludeOnly = includeOnly
 
 EnvExtensions(SCons.Environment.Environment)
@@ -244,20 +236,26 @@ SConsignFile(ssfile)
 #########################
 baseEnv.Append(BASEOUTDIR=baseoutdir)
 baseEnv.Append(VARIANTDIR=variant)
-baseEnv.Append(LIBDIR=os.path.join('lib', variant))
-baseEnv.Append(BINDIR=os.path.join('bin', variant))
-baseEnv.Append(SCRIPTDIR=os.path.join('scripts', variant))
-baseEnv.Append(INCDIR='include')
-baseEnv.Append(TESTDIR=baseEnv['BINDIR'])
-#baseEnv.Append(TESTSCRIPTDIR=baseEnv['SCRIPTDIR'])
 
-baseEnv.Append(CONFIGDIR=Dir('config'))
+baseEnv.Append(INCDIR='include')
+baseEnv.Append(LOGDIR='log')
+baseEnv.Append(BINDIR='bin')
+baseEnv.Append(LIBDIR='lib')
+baseEnv.Append(SCRIPTDIR='scripts')
+baseEnv.Append(CONFIGDIR='config')
+baseEnv.Append(BUILDDIR='.build')
+
+# directory relative to BASEOUTDIR where we are going to install target specific files
+#  mainly used to rebase/group test or app specific target files
+baseEnv.Append(RELTARGETDIR='')
+
+
 baseEnv.Append(DATADIR=Dir('data'))
 baseEnv.Append(XMLDIR=Dir('xml'))
 baseEnv.Append(PYTHONDIR=Dir(baseoutdir).Dir('python'))
 baseEnv['CONFIGURELOG'] = str(Dir(baseoutdir).File("config.log"))
 baseEnv['CONFIGUREDIR'] = str(Dir(baseoutdir).Dir(".sconf_temp"))
-baseEnv.AppendUnique(LIBPATH=[baseoutdir.Dir(baseEnv['LIBDIR'])])
+baseEnv.AppendUnique(LIBPATH=[baseoutdir.Dir(baseEnv['LIBDIR']).Dir(baseEnv['VARIANTDIR'])])
 
 def CoastFindPackagesDict(directory, direxcludes=[]):
     packages = {}
@@ -347,17 +345,18 @@ class ProgramLookup:
                     relpath = path.path
                     scfile = os.path.join(path.abspath, 'SConscript')
                     if os.path.isfile(scfile):
-                        builddir = os.path.join(self.baseoutdir, relpath, 'build', self.variant)
+                        builddir = os.path.join(self.baseoutdir, relpath, self.env['BUILDDIR'], self.variant)
                         print 'executing SConscript for package [%s]' % packagename
                         self.env.SConscript(scfile, build_dir=builddir, duplicate=0)
             if targetname:
                 return self.getPackageTarget(packagename, targetname)['target']
         return None
 
-
-direxcludes = ['build', 'CVS', 'data', 'xml', 'doc', 'bin', 'lib', '.git', '.gitmodules', 'config']
+direxcludes = [baseEnv['BUILDDIR'], 'CVS', '.git', '.gitmodules', 'doc']
 if not baseEnv.GetOption('exclude') == None:
     direxcludes.extend(baseEnv.GetOption('exclude'))
+for varname in ['BINDIR', 'LIBDIR', 'LOGDIR', 'CONFIGDIR']:
+    direxcludes.extend(baseEnv[varname])
 packages = CoastFindPackagesDict(Dir('#').path, direxcludes)
 programLookup = ProgramLookup(baseEnv, packages, baseoutdir, variant)
 
@@ -410,7 +409,7 @@ def ExternalDependencies(env, packagename, buildSettings, plaintarget=None, **kw
         # try block needed to block Alias only targets without concrete builder
         try:
             strTargetType = plaintarget.builder.get_name(plaintarget.env)
-            if strTargetType.find('Library') != - 1:
+            if strTargetType.find('Library') != -1:
                 tName = plaintarget.name
                 env.AppendUnique(LIBS=[tName])
         except:

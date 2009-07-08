@@ -41,7 +41,7 @@ def findPlatformTargets(env, basedir, targetname, prefixes=[], suffixes=[]):
     reBits = re.compile('.*(32|64)')
     files = []
     for dirpath, dirnames, filenames in os.walk(basedir):
-        dirnames[:] = [dir for dir in dirnames if not dir in ['build', '.git', '.svn', 'CVS']]
+        dirnames[:] = [dir for dir in dirnames if not dir in [env['BUILDDIR'], '.git', '.svn', 'CVS']]
         dirMatch = reDirname.match(os.path.split(dirpath)[1])
         if dirMatch:
             for name in filenames:
@@ -75,12 +75,12 @@ def findPlatformTargets(env, basedir, targetname, prefixes=[], suffixes=[]):
             break
     files = [entry for entry in files if entry['osver'] == osvermatch]
     return files
-    
+
 def findLibrary(env, basedir, libname):
     # LIBPREFIXES = [ LIBPREFIX, SHLIBPREFIX ]
     # LIBSUFFIXES = [ LIBSUFFIX, SHLIBSUFFIX ]
     files = findPlatformTargets(env, basedir, libname, env['LIBPREFIXES'], env['LIBSUFFIXES'])
-    
+
     preferStaticLib = env.get('buildSettings', {}).get('preferStaticLib', False)
 
     staticLibs = [entry for entry in files if entry['suffix'] == env.subst(env['LIBSUFFIX']) ]
@@ -105,11 +105,11 @@ def findLibrary(env, basedir, libname):
 
 def findBinary(env, basedir, binaryname):
     files = findPlatformTargets(env, basedir, binaryname, [env['PROGPREFIX']], [env['PROGSUFFIX']])
-    
+
     if files:
         entry = files[0]
         return (entry['path'], entry['file'], entry['linkfile'])
-    
+
     print 'binary [%s] not available for this platform [%s] and bitwidth[%s]' % (binaryname, env['PLATFORM'], env.get('ARCHBITS', '32'))
     return (None, None)
 
@@ -122,9 +122,9 @@ def precompBinNamesEmitter(target, source, env):
         if srcfile:
             if srcfile != linkfile:
                 newsource.append(SCons.Script.File(os.path.join(srcpath, srcfile)))
-                target.append(env['BASEOUTDIR'].Dir(env['BINDIR']).File(linkfile))
+                target.append(env['BASEOUTDIR'].Dir(env['BINDIR']).Dir(env['VARIANTDIR']).File(linkfile))
             newsource.append(SCons.Script.File(os.path.join(srcpath, srcfile)))
-            target.append(env['BASEOUTDIR'].Dir(env['BINDIR']).File(srcfile))
+            target.append(env['BASEOUTDIR'].Dir(env['BINDIR']).Dir(env['VARIANTDIR']).File(srcfile))
     return (target, newsource)
 
 def precompLibNamesEmitter(target, source, env):
@@ -137,9 +137,9 @@ def precompLibNamesEmitter(target, source, env):
             if not isStaticLib:
                 if srcfile != linkfile:
                     newsource.append(SCons.Script.File(os.path.join(srcpath, srcfile)))
-                    target.append(env['BASEOUTDIR'].Dir(env['LIBDIR']).File(linkfile))
+                    target.append(env['BASEOUTDIR'].Dir(env['LIBDIR']).Dir(env['VARIANTDIR']).File(linkfile))
                 newsource.append(SCons.Script.File(os.path.join(srcpath, srcfile)))
-                target.append(env['BASEOUTDIR'].Dir(env['LIBDIR']).File(srcfile))
+                target.append(env['BASEOUTDIR'].Dir(env['LIBDIR']).Dir(env['VARIANTDIR']).File(srcfile))
             else:
                 newsource.append(SCons.Script.File(os.path.join(srcpath, srcfile)))
                 target.append(SCons.Script.Dir('.').File(srcfile))
@@ -180,7 +180,7 @@ def generate(env):
                                                   single_source=False)
 
     env.Append(BUILDERS={ 'PrecompiledLibraryInstallBuilder' : PrecompLibBuilder })
-    
+
     PrecompBinAction = SCons.Action.Action(installFunc, "Installing precompiled binary '$SOURCE' as '$TARGET'")
     PrecompBinBuilder = SCons.Builder.Builder(action=[PrecompBinAction],
                                                   emitter=precompBinNamesEmitter,

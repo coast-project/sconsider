@@ -36,7 +36,7 @@ def createTarget(env, builder, target, source, buildSettings, defaultRunParams):
 
     return builder(target, source, runParams=getRunParams(buildSettings, defaultRunParams))
 
-def createTestTarget(env, target, source, buildSettings, defaultRunParams='-all'):
+def createTestTarget(env, source, buildSettings, defaultRunParams='-all'):
     """Creates a target which runs a target given in parameter 'source'. If ran successfully a
     file is generated (name given in parameter 'target') which indicates that this runner-target
     doesn't need to be executed unless the dependencies changed. Command line parameters could be
@@ -47,7 +47,7 @@ def createTestTarget(env, target, source, buildSettings, defaultRunParams='-all'
     if not GetOption('run'):
         return source
 
-    runner = createTarget(env, env.__TestBuilder, target, source, buildSettings, defaultRunParams)
+    runner = createTarget(env, env.__TestBuilder, [], source, buildSettings, defaultRunParams)
     runConfig = buildSettings.get('runConfig', {})
     setUp = runConfig.get('setUp', '')
     tearDown = runConfig.get('tearDown', '')
@@ -68,13 +68,21 @@ def createRunTarget(env, source, buildSettings, defaultRunParams=''):
 
     return createTarget(env, env.__RunBuilder, 'dummyfile', source, buildSettings, defaultRunParams)
 
+def passedFileEmitter(target, source, env):
+    target = []
+    for src in source:
+        path, scriptname = os.path.split(src.abspath)
+        target.append(env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['LOGDIR']).Dir(env['VARIANTDIR']).File(scriptname+'.passed'))
+    return (target, source)
+
 def generate(env):
     AddOption('--run', dest='run', action='store_true', default=False, help='Should we run the target')
     AddOption('--runparams', dest='runParams', action='append', type='string', default=[], help='The parameters to hand over')
 
     TestAction = SCons.Action.Action(doTest, "Running Test '$SOURCE'")
     TestBuilder = SCons.Builder.Builder(action=[TestAction],
-                                              single_source=True)
+                                        emitter=passedFileEmitter,
+                                        single_source=True)
 
     RunAction = SCons.Action.Action(doRun, "Running Executable '$SOURCE'")
     RunBuilder = SCons.Builder.Builder(action=[RunAction],
