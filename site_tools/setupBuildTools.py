@@ -68,8 +68,12 @@ def generate(env, **kw):
         env.AppendUnique(LIBS=['nsl'])
 
     # this lib is needed when using sun-CC or gcc on sunos systems
+    if str(platf) == "sunos" or str(platf) == "posix":
+        env.AppendUnique(LIBS=['aio'])
+
+    # this lib is needed when using sun-CC or gcc on sunos systems
     if str(platf) == "sunos":
-        env.AppendUnique(LIBS=['socket', 'resolv', 'aio', 'posix4'])
+        env.AppendUnique(LIBS=['socket', 'resolv', 'posix4'])
 
     # select target architecture bits
     bitwidth = GetOption('archbits')
