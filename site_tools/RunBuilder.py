@@ -77,6 +77,7 @@ def passedFileEmitter(target, source, env):
 
 def generate(env):
     AddOption('--run', dest='run', action='store_true', default=False, help='Should we run the target')
+    AddOption('--gdb', dest='gdb', action='store_true', default=False, help='Should we run the target within gdb control')
     AddOption('--runparams', dest='runParams', action='append', type='string', default=[], help='The parameters to hand over')
 
     TestAction = SCons.Action.Action(doTest, "Running Test '$SOURCE'")
