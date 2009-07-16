@@ -80,7 +80,7 @@ def programTest(env, name, sources, pkgname, buildSettings, **kw):
         requireTargets(env, instApps, buildSettings.get('requires', []))
 
     env.Tool('generateScript')
-    wrappers = env.GenerateWrapperScript(instApps)
+    wrappers = env.GenerateWrapperScript(instApps, GetOption('gdb'))
 
     copyConfigFilesTarget(env, baseoutdir.Dir(env['RELTARGETDIR']), buildSettings, wrappers)
 

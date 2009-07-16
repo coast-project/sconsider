@@ -1,5 +1,5 @@
 from __future__ import with_statement
-import os, pdb, subprocess
+import os, pdb, subprocess, optparse
 from SCons.Script import AddOption, GetOption
 import SCons.Action
 import SCons.Builder
@@ -80,10 +80,12 @@ def emitPassedFile(target, source, env):
     return (target, source)
 
 def generate(env):
-    AddOption('--run', dest='run', action='store_true', default=False, help='Should we run the target')
-    AddOption('--run-force', dest='run-force', action='store_true', default=False, help='Should we run the target and ignore .passed files')
-    AddOption('--gdb', dest='gdb', action='store_true', default=False, help='Should we run the target within gdb control')
-    AddOption('--runparams', dest='runParams', action='append', type='string', default=[], help='The parameters to hand over')
+    try:
+        AddOption('--run', dest='run', action='store_true', default=False, help='Should we run the target')
+        AddOption('--run-force', dest='run-force', action='store_true', default=False, help='Should we run the target and ignore .passed files')
+        AddOption('--runparams', dest='runParams', action='append', type='string', default=[], help='The parameters to hand over')
+    except optparse.OptionConflictError:
+        pass
 
     TestAction = SCons.Action.Action(doTest, "Running Test '$SOURCE'")
     TestBuilder = SCons.Builder.Builder(action=[TestAction],

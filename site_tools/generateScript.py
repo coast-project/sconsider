@@ -1,6 +1,7 @@
-import os, pdb
+import os, pdb, optparse
 import SCons.Action
 import SCons.Builder
+from SCons.Script import AddOption, GetOption
 
 def getTargetPath(prefix, suffix, env):
     return os.path.join(prefix, env.get('RELTARGETDIR', ''), suffix)
@@ -98,7 +99,7 @@ def generatePosixScript(target, source, env):
     for t, s in zip(target, source):
         scriptFile = open(str(t), 'w')
         generateShellScript(scriptFile, env, 1)
-        if env.GetOption('gdb'):
+        if env["CreateGDBScript"]:
             scriptFile.write('WDS_BIN=' + os.path.join('$INST_DIR', str(s)) + '\n')
             scriptFile.write("""
 
@@ -123,14 +124,24 @@ def generateWindowsScript(target, source, env):
 
 def generateScriptEmitter(target, source, env):
     target = []
+    gdbsuffix = ('', '_gdb')[env["CreateGDBScript"]!=False]
     for src in source:
         if env['PLATFORM'] != 'win32':
-            target.append(env['BASEOUTDIR'].Dir(env['SCRIPTDIR']).Dir(env['VARIANTDIR']).File(os.path.basename(src.abspath)))
+            target.append(env['BASEOUTDIR'].Dir(env['SCRIPTDIR']).Dir(env['VARIANTDIR']).File(os.path.basename(src.abspath + gdbsuffix)))
         else:
-            target.append(env['BASEOUTDIR'].Dir(env['SCRIPTDIR']).Dir(env['VARIANTDIR']).File(os.path.splitext(os.path.basename(src.abspath))[0] + ".vbs"))
+            target.append(env['BASEOUTDIR'].Dir(env['SCRIPTDIR']).Dir(env['VARIANTDIR']).File(os.path.splitext(os.path.basename(src.abspath + gdbsuffix))[0] + ".vbs"))
     return (target, source)
 
+def generateWrapperScript(env, target, gdb=False):
+    env["CreateGDBScript"] = gdb
+    return env.__GenerateWrapperScript(target)
+
 def generate(env):
+    try:
+        AddOption('--gdb', dest='gdb', action='store_true', default=False, help='Should we run the target within gdb control')
+    except optparse.OptionConflictError:
+        pass
+
     if env['PLATFORM'] != 'win32':
         GenerateScriptAction = SCons.Action.Action(generatePosixScript, "Creating wrapper script for '$TARGET'")
         GenerateScriptBuilder = SCons.Builder.Builder(action=[GenerateScriptAction, SCons.Defaults.Chmod('$TARGET', 0755)],
@@ -140,7 +151,8 @@ def generate(env):
         GenerateScriptAction = SCons.Action.Action(generateWindowsScript, "Creating wrapper script fpr '$TARGET'")
         GenerateScriptBuilder = SCons.Builder.Builder(action=[GenerateScriptAction], emitter=generateScriptEmitter, single_source=1)
 
-    env.Append(BUILDERS={ 'GenerateWrapperScript' : GenerateScriptBuilder })
+    env.Append(BUILDERS={ '__GenerateWrapperScript' : GenerateScriptBuilder })
+    env.AddMethod(generateWrapperScript, "GenerateWrapperScript")
 
 def exists(env):
     return 1;
