@@ -44,10 +44,14 @@ def createTestTarget(env, source, buildSettings, defaultRunParams='-all'):
     The Fields 'setUp' and 'tearDown' in 'runConfig' accept a string (executed as shell command),
     a Python function (with arguments 'target', 'source', 'env') or any SCons.Action."""
 
-    if not GetOption('run'):
+    if not GetOption('run') and not GetOption('run-force'):
         return source
-
-    runner = createTarget(env, env.__TestBuilder, [], source, buildSettings, defaultRunParams)
+    
+    if GetOption('run-force'):
+        runner = createRunTarget(env, source, buildSettings, defaultRunParams)
+    else:
+        runner = createTarget(env, env.__TestBuilder, [], source, buildSettings, defaultRunParams)
+        
     runConfig = buildSettings.get('runConfig', {})
     setUp = runConfig.get('setUp', '')
     tearDown = runConfig.get('tearDown', '')
@@ -63,12 +67,12 @@ def createRunTarget(env, source, buildSettings, defaultRunParams=''):
     """Creates a target which runs a target given in parameter 'source'. Command line parameters could be
     handed over by using --runparams="..." or by setting buildSettings['runConfig']['runParams']."""
 
-    if not GetOption('run'):
+    if not GetOption('run') and not GetOption('run-force'):
         return source
 
     return createTarget(env, env.__RunBuilder, 'dummyfile', source, buildSettings, defaultRunParams)
 
-def passedFileEmitter(target, source, env):
+def emitPassedFile(target, source, env):
     target = []
     for src in source:
         path, scriptname = os.path.split(src.abspath)
@@ -77,12 +81,13 @@ def passedFileEmitter(target, source, env):
 
 def generate(env):
     AddOption('--run', dest='run', action='store_true', default=False, help='Should we run the target')
+    AddOption('--run-force', dest='run-force', action='store_true', default=False, help='Should we run the target and ignore .passed files')
     AddOption('--gdb', dest='gdb', action='store_true', default=False, help='Should we run the target within gdb control')
     AddOption('--runparams', dest='runParams', action='append', type='string', default=[], help='The parameters to hand over')
 
     TestAction = SCons.Action.Action(doTest, "Running Test '$SOURCE'")
     TestBuilder = SCons.Builder.Builder(action=[TestAction],
-                                        emitter=passedFileEmitter,
+                                        emitter=emitPassedFile,
                                         single_source=True)
 
     RunAction = SCons.Action.Action(doRun, "Running Executable '$SOURCE'")
@@ -90,7 +95,7 @@ def generate(env):
                                               single_source=True)
 
     env.Append(BUILDERS={ '__TestBuilder' : TestBuilder })
-    env.Append(BUILDERS={ '__RunBuilder' : TestBuilder })
+    env.Append(BUILDERS={ '__RunBuilder' : RunBuilder })
     env.AddMethod(createTestTarget, "TestBuilder")
     env.AddMethod(createRunTarget, "RunBuilder")
 
