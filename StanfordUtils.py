@@ -31,19 +31,6 @@ AddOption('--prependPath', dest='prependPath', action='append', nargs=1, type='s
 baseoutdir = Dir(GetOption('baseoutdir'))
 print 'base output dir [%s]' % baseoutdir.abspath
 
-def requireTargets(env, target, requiredTargets, **kw):
-    if not SCons.Util.is_List(requiredTargets):
-        requiredTargets = [requiredTargets]
-    for targ in requiredTargets:
-        env.Requires(target, env.Alias(targ)[0])
-
-def copyConfigFilesTarget(env, destdir, buildSettings, target):
-    if buildSettings.has_key('configFiles'):
-        cfiles = buildSettings.get('configFiles')
-        instTargets = copyFileNodes(env, cfiles, destdir)
-        if instTargets:
-            env.Depends(target, instTargets)
-
 def changed_timestamp_or_content(dependency, target, prev_ni):
     return dependency.changed_content(target, prev_ni) or dependency.changed_timestamp_newer(target, prev_ni)
 
@@ -54,16 +41,9 @@ def programApp(env, name, sources, pkgname, buildSettings, **kw):
     env['RELTARGETDIR'] = os.path.join('apps', pkgname)
     instApps = env.InstallAs(baseoutdir.Dir(env['RELTARGETDIR']).Dir(env['BINDIR']).Dir(env['VARIANTDIR']).File(name), plaintarget)
 
-    if buildSettings.has_key('requires'):
-        requireTargets(env, instApps, buildSettings.get('requires', []))
-
     env.Tool('generateScript')
-    wrappers = env.GenerateWrapperScript(instApps)
+    wrappers = env.GenerateWrapperScript(instApps, GetOption('gdb'))
 
-    copyConfigFilesTarget(env, baseoutdir.Dir(env['RELTARGETDIR']), buildSettings, wrappers)
-
-    env.Alias(pkgname, wrappers)
-    env.Alias('all', wrappers)
     env.Alias('binaries', wrappers)
 
     return (plaintarget, wrappers)
@@ -76,20 +56,12 @@ def programTest(env, name, sources, pkgname, buildSettings, **kw):
     env['RELTARGETDIR'] = os.path.join('tests', pkgname)
     instApps = env.InstallAs(baseoutdir.Dir(env['RELTARGETDIR']).Dir(env['BINDIR']).Dir(env['VARIANTDIR']).File(name), plaintarget)
 
-    if buildSettings.has_key('requires'):
-        requireTargets(env, instApps, buildSettings.get('requires', []))
-
     env.Tool('generateScript')
     wrappers = env.GenerateWrapperScript(instApps, GetOption('gdb'))
 
-    copyConfigFilesTarget(env, baseoutdir.Dir(env['RELTARGETDIR']), buildSettings, wrappers)
-
     target = env.TestBuilder(wrappers, buildSettings)
 
-    env.Alias(pkgname, target)
-    env.Alias('all', target)
     env.Alias('test', target)
-    env.Clean('test', target)
 
     return (plaintarget, target)
 
@@ -100,46 +72,27 @@ def appTest(env, name, sources, pkgname, buildSettings, **kw):
     if fulltargetname:
         packagename, targetname = splitTargetname(fulltargetname)
         theModule = loadPackage(packagename)
+        # get default target name if not set already
         if not targetname:
-            targetname = buildSettings.keys()[0]
+            targetname = packagename
         plaintarget = programLookup.getPackageTarget(packagename, targetname)['plaintarget']
 
     baseoutdir = env['BASEOUTDIR']
     env['RELTARGETDIR'] = os.path.join('tests', pkgname)
     instApps = env.InstallAs(baseoutdir.Dir(env['RELTARGETDIR']).Dir(env['BINDIR']).Dir(env['VARIANTDIR']).File(name), plaintarget)
 
-    if buildSettings.has_key('requires'):
-        requireTargets(env, instApps, buildSettings.get('requires', []))
-
     env.Tool('generateScript')
-    wrappers = env.GenerateWrapperScript(instApps)
+    wrappers = env.GenerateWrapperScript(instApps, GetOption('gdb'))
 
-    copyConfigFilesTarget(env, baseoutdir.Dir(env['RELTARGETDIR']), buildSettings, wrappers)
-
-    env.Alias(pkgname, wrappers)
-    env.Alias('all', wrappers)
     env.Alias('test', wrappers)
 
     return (plaintarget, wrappers)
 
-def checkCopyIncludes(env, pkgname, buildSettings):
-    instTargets = None
-    baseoutdir = env['BASEOUTDIR']
-    if buildSettings.has_key('public'):
-        ifiles = buildSettings['public'].get('includes', [])
-        instTargets = copyFileNodes(env, ifiles, baseoutdir.Dir(os.path.join(env['INCDIR'], pkgname)))
-    return instTargets
-
 def includeOnly(env, name, sources, pkgname, buildSettings, **kw):
     target = None
     if buildSettings.has_key('public'):
-        instTargets = checkCopyIncludes(env, pkgname, buildSettings)
-        target = env.Alias(pkgname + '.' + name, instTargets)
-        env.Alias(pkgname, target)
-        env.Alias('all', target)
-    reqTargets = buildSettings.get('linkDependencies', []) + buildSettings.get('requires', [])
-    if target and reqTargets:
-        requireTargets(env, target, reqTargets)
+        target = env.Alias(pkgname + '.' + name)
+    
     return (target, target)
 
 def sharedLibrary(env, name, sources, pkgname, buildSettings, **kw):
@@ -151,20 +104,9 @@ def sharedLibrary(env, name, sources, pkgname, buildSettings, **kw):
     baseoutdir = env['BASEOUTDIR']
     instTarg = env.Install(baseoutdir.Dir(env['LIBDIR']).Dir(env['VARIANTDIR']), plaintarget)
 
-    if buildSettings.has_key('requires'):
-        requireTargets(env, instTarg, buildSettings.get('requires', []))
-
-    env.Alias(pkgname, instTarg)
-    env.Alias('all', instTarg)
-
-    instTargets = checkCopyIncludes(env, pkgname, buildSettings)
-    if instTargets:
-        env.Requires(instTarg, instTargets)
-
     return (plaintarget, instTarg)
 
 def EnvExtensions(baseenv):
-    baseenv.RequireTargets = requireTargets
     baseenv.AppTest = appTest
     baseenv.ProgramTest = programTest
     baseenv.ProgramApp = programApp
@@ -310,8 +252,6 @@ class ProgramLookup:
             print 'tried to access target [%s] of non existent package [%s]' % (targetname, packagename)
             return
         theTargets = self.packages[packagename].setdefault('targets', {})
-        if not theTargets.has_key(targetname):
-            pass
         return theTargets.get(targetname, {'plaintarget':None, 'target':None})
 
     def hasPackage(self, packagename):
@@ -321,6 +261,14 @@ class ProgramLookup:
 
     def getPackageDir(self, packagename):
         return self.packages[packagename].get('packagepath', '')
+
+    def getPackageTargetNames(self, packagename):
+        return self.packages[packagename].get('targets', []).keys()
+
+    def getBuildSettings(self, packagename):
+        theModule = loadPackage(packagename)
+        modDict = theModule.__dict__
+        return modDict.get('buildSettings', {})
 
     def lookup(self, fulltargetname, **kw):
         packagename, targetname = splitTargetname(fulltargetname)
@@ -355,40 +303,40 @@ def loadPackage(packagename):
     sys.modules[modname] = theModule
     return theModule
 
-def DependsOn(env, fulltargetname, **kw):
-    packagename, targetname = splitTargetname(fulltargetname)
-    theModule = loadPackage(packagename)
-    modDict = theModule.__dict__
-    ## support for old style module handling
-    if modDict.get('generate', None):
-        return theModule.generate(env, **kw)
-
-    buildSettings = modDict.get('buildSettings', None)
-    if not buildSettings:
-        print 'Warning: buildSettings dictionary in module %s not defined!' % packagename
-        return None
-    # get default target name if not set already
-    if not targetname:
-        targetname = packagename
-    targets = programLookup.getPackageTarget(packagename, targetname)
-    ExternalDependencies(env, packagename, buildSettings.get(targetname, {}), plaintarget=targets['plaintarget'], **kw)
-    return targets['target']
-
 def setModuleDependencies(env, modules, **kw):
-    for mod in modules:
-        DependsOn(env, mod, **kw)
+    for fulltargetname in modules:
+        packagename, targetname = splitTargetname(fulltargetname)
+        theModule = loadPackage(packagename)
+        modDict = theModule.__dict__
+        ## support for old style module handling
+        if modDict.get('generate', None):
+            return theModule.generate(env, **kw)
+    
+        buildSettings = modDict.get('buildSettings', None)
+        if not buildSettings:
+            print 'Warning: buildSettings dictionary in module %s not defined!' % packagename
+            return None
+        # get default target name if not set already
+        if not targetname:
+            targetname = packagename
+        targets = programLookup.getPackageTarget(packagename, targetname)
+        ExternalDependencies(env, packagename, buildSettings.get(targetname, {}), plaintarget=targets['plaintarget'], **kw)
 
 def ExternalDependencies(env, packagename, buildSettings, plaintarget=None, **kw):
     linkDependencies = buildSettings.get('linkDependencies', [])
-    includeBasedir = env['BASEOUTDIR'].Dir(os.path.join(env['INCDIR'], packagename))
-    includeSubdir = ''
     if buildSettings.has_key('public'):
         appendUnique = buildSettings['public'].get('appendUnique', {})
         # flags / settings used by this library and users of it
         env.AppendUnique(**appendUnique)
+
+        includeBasedir = env['BASEOUTDIR'].Dir(os.path.join(env['INCDIR'], packagename))
         includeSubdir = buildSettings['public'].get('includeSubdir', '')
         if not buildSettings['public'].get('copyIncludes', True):
             includeBasedir = programLookup.getPackageDir(packagename)
+
+        # specify public headers here
+        installPath = Dir(includeBasedir).Dir(includeSubdir)
+        env.AppendUnique(CPPPATH=[installPath])
 
     # this libraries dependencies
     setModuleDependencies(env, linkDependencies)
@@ -402,10 +350,6 @@ def ExternalDependencies(env, packagename, buildSettings, plaintarget=None, **kw
                 env.AppendUnique(LIBS=[tName])
         except:
             pass
-
-    # specify public headers here
-    installPath = Dir(includeBasedir).Dir(includeSubdir)
-    env.AppendUnique(CPPPATH=[installPath])
 
 class TargetMaker:
     def __init__(self, packagename, tlist, programLookup, collectVars=['CPPPATH']):
@@ -433,6 +377,26 @@ class TargetMaker:
                     self.recurseCreate(tname)
             self.doCreateTarget(self.packagename, k, v)
 
+    def checkCopyIncludes(self, env, pkgname, buildSettings):
+        instTargets = None
+        if buildSettings.has_key('public'):
+            ifiles = buildSettings['public'].get('includes', [])
+            instTargets = copyFileNodes(env, ifiles, env['BASEOUTDIR'].Dir(os.path.join(env['INCDIR'], pkgname)))
+        return instTargets
+
+    def requireTargets(self, env, target, requiredTargets, **kw):
+        if not SCons.Util.is_List(requiredTargets):
+            requiredTargets = [requiredTargets]
+        for targ in requiredTargets:
+            env.Depends(target, env.Alias(targ)[0])
+
+    def copyConfigFilesTarget(self, env, destdir, buildSettings, target):
+        if buildSettings.has_key('configFiles'):
+            cfiles = buildSettings.get('configFiles')
+            instTargets = copyFileNodes(env, cfiles, destdir)
+            if instTargets:
+                env.Depends(target, instTargets)
+
     def doCreateTarget(self, pkgname, name, targetBuildSettings):
         plaintarget = None
         target = None
@@ -451,6 +415,18 @@ class TargetMaker:
                     plaintarget, target = targets
                 else:
                     plaintarget = target = targets
+                    
+            reqTargets = targetBuildSettings.get('linkDependencies', []) + targetBuildSettings.get('requires', [])
+            self.requireTargets(targetEnv, target, reqTargets)
+            
+            instTargets = self.checkCopyIncludes(targetEnv, pkgname, targetBuildSettings)
+            targetEnv.Depends(target, instTargets)
+
+            self.copyConfigFilesTarget(targetEnv, targetEnv['BASEOUTDIR'].Dir(targetEnv['RELTARGETDIR']), targetBuildSettings, target)
+                        
+            targetEnv.Alias(pkgname, target)
+            targetEnv.Alias('all', target)
+            
             for vName in self.collectVars:
                 varValues = [ x.srcnode().abspath for x in targetEnv.get(vName, [])]
 #                varValues.extend([ x.abspath for x in targetEnv.get(vName, [])])
@@ -476,7 +452,7 @@ class TargetMaker:
         targetEnv.AppendUnique(**newVars)
 
         # maybe we need to add this libraries local include path when building it (if different from .)
-        targetEnv.AppendUnique(CPPPATH=[Dir(includeSubdir)])
+        targetEnv.AppendUnique(CPPPATH=[Dir(includeSubdir).srcnode()])
 
         return targetEnv
 
