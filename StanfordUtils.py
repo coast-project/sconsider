@@ -350,12 +350,10 @@ def ExternalDependencies(env, packagename, buildSettings, plaintarget=None, **kw
             pass
 
 class TargetMaker:
-    def __init__(self, packagename, tlist, programLookup, collectVars=['CPPPATH']):
+    def __init__(self, packagename, tlist, programLookup):
         self.packagename = packagename
         self.targetlist = tlist.copy()
         self.programLookup = programLookup
-        self.varEnv = CloneBaseEnv()
-        self.collectVars = collectVars
 
     def createTargets(self):
         while self.targetlist:
@@ -424,12 +422,6 @@ class TargetMaker:
                         
             targetEnv.Alias(pkgname, target)
             targetEnv.Alias('all', target)
-            
-            for vName in self.collectVars:
-                varValues = [ x.srcnode().abspath for x in targetEnv.get(vName, [])]
-#                varValues.extend([ x.abspath for x in targetEnv.get(vName, [])])
-                vDict = dict ({ vName : varValues })
-                self.varEnv.AppendUnique(**vDict)
 
         self.programLookup.setPackageTarget(pkgname, name, plaintarget, target)
 
@@ -455,27 +447,31 @@ class TargetMaker:
 
         return targetEnv
 
-    def getEnvVarValue(self, envvarname):
-        return self.varEnv.get(envvarname, [])
-
 def createTargets(packagename, buildSettings):
     tmk = TargetMaker(packagename, buildSettings, programLookup)
     tmk.createTargets()
+    
+    includeDirs = set()
+    sysIncludes = set()
+    for targetname, settings in buildSettings.items():
+        target = programLookup.getPackageTarget(packagename, targetname)["plaintarget"]
+        if target and target.has_builder():
+            for incpath in target.env["CPPPATH"]:
+                includeDirs.add(incpath.srcnode().abspath)
+            for incpath in target.env["SYSINCLUDES"]:
+                sysIncludes.add(Dir(incpath).srcnode().abspath)
+            
+    inclLists = []
+    inclLists.extend(sorted(includeDirs))
+    inclLists.extend(sorted(sysIncludes))
+    
     fname = os.path.join(Dir('.').srcnode().abspath, '.scb')
     fstr = ""
     if os.path.isfile(fname):
         with open(fname, 'r') as of:
             fstr = of.read()
+
     pathstring = ""
-    sysIncls = []
-    cppIncls = []
-    inclLists = []
-    sysIncls.extend(tmk.getEnvVarValue('SYSINCLUDES'))
-    sysIncls.sort()
-    cppIncls.extend(tmk.getEnvVarValue('CPPPATH'))
-    cppIncls.sort()
-    inclLists.extend(sysIncls)
-    inclLists.extend(cppIncls)
     for x in inclLists:
         if not re.compile('CPPPATH.*' + re.escape(x)).search(fstr):
             pathstring += "CPPPATH appendunique " + x + "\n"
