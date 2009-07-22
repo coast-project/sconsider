@@ -329,7 +329,7 @@ def ExternalDependencies(env, packagename, buildSettings, plaintarget=None, **kw
 
         includeBasedir = env['BASEOUTDIR'].Dir(os.path.join(env['INCDIR'], packagename))
         includeSubdir = buildSettings['public'].get('includeSubdir', '')
-        if not buildSettings['public'].get('copyIncludes', True):
+        if not buildSettings['public'].get('includes', []):
             includeBasedir = programLookup.getPackageDir(packagename)
 
         # specify public headers here
@@ -434,12 +434,16 @@ class TargetMaker:
         self.programLookup.setPackageTarget(pkgname, name, plaintarget, target)
 
     def createTargetEnv(self, targetname, targetBuildSettings, envVars={}):
-        linkDependencies = targetBuildSettings.get('linkDependencies', [])
-        includeSubdir = targetBuildSettings.get('includeSubdir', '')
         # create environment for target
         targetEnv = CloneBaseEnv()
 
+        # maybe we need to add this libraries local include path when building it (if different from .)
+        includeSubdir = targetBuildSettings.get('includeSubdir', '')
+        includePublicSubdir = targetBuildSettings.get('public', {}).get('includeSubdir', '')
+        targetEnv.AppendUnique(CPPPATH=[Dir(includeSubdir).srcnode(), Dir(includePublicSubdir).srcnode()])
+
         # update environment by adding dependencies to used modules
+        linkDependencies = targetBuildSettings.get('linkDependencies', [])
         setModuleDependencies(targetEnv, linkDependencies)
 
         # win32 specific define to export all symbols when creating a DLL
@@ -448,9 +452,6 @@ class TargetMaker:
             newVars = newVars.get('appendUnique', EnvVarDict())
         newVars += EnvVarDict(envVars)
         targetEnv.AppendUnique(**newVars)
-
-        # maybe we need to add this libraries local include path when building it (if different from .)
-        targetEnv.AppendUnique(CPPPATH=[Dir(includeSubdir).srcnode()])
 
         return targetEnv
 
