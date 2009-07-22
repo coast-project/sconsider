@@ -106,16 +106,14 @@ def sharedLibrary(env, name, sources, pkgname, buildSettings, **kw):
 
     return (plaintarget, instTarg)
 
-def EnvExtensions(baseenv):
-    baseenv.AppTest = appTest
-    baseenv.ProgramTest = programTest
-    baseenv.ProgramApp = programApp
-    baseenv.LibraryShared = sharedLibrary
-    baseenv.IncludeOnly = includeOnly
-
-EnvExtensions(SCons.Environment.Environment)
-
 dEnv = DefaultEnvironment()
+
+dEnv.AddMethod(appTest, "AppTest")
+dEnv.AddMethod(programTest, "ProgramTest")
+dEnv.AddMethod(programApp, "ProgramApp")
+dEnv.AddMethod(sharedLibrary, "LibraryShared")
+dEnv.AddMethod(includeOnly, "IncludeOnly")
+
 if GetOption('prependPath'):
     dEnv.PrependENVPath('PATH', GetOption('prependPath'))
     print 'prepended path is [%s]' % dEnv['ENV']['PATH']
