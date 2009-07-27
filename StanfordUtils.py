@@ -171,6 +171,7 @@ baseEnv.Append(BINDIR='bin')
 baseEnv.Append(LIBDIR='lib')
 baseEnv.Append(SCRIPTDIR='scripts')
 baseEnv.Append(CONFIGDIR='config')
+baseEnv.Append(DOCDIR='doc')
 baseEnv.Append(BUILDDIR='.build')
 
 # directory relative to BASEOUTDIR where we are going to install target specific files
@@ -450,6 +451,15 @@ class TargetMaker:
 def createTargets(packagename, buildSettings):
     tmk = TargetMaker(packagename, buildSettings, programLookup)
     tmk.createTargets()
+    
+    if packagename in ["CoastFoundation", "CoastMTFoundation"]:
+        doxyEnv = CloneBaseEnv()
+        doxyEnv.Tool("DoxygenBuilder")
+        doxyTarget = doxyEnv.Doxygen(programLookup, packagename)
+        doxyAlias = doxyEnv.Alias("doxygen", doxyTarget)
+        doxyEnv.Alias("all", doxyTarget)
+        doxyEnv.Depends(packagename, doxyAlias)
+        # or attach doxygen-Alias to the build target/package
     
     includeDirs = set()
     sysIncludes = set()
