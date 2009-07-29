@@ -121,7 +121,7 @@ if GetOption('appendPath'):
     dEnv.AppendENVPath('PATH', GetOption('appendPath'))
     print 'appended path is [%s]' % dEnv['ENV']['PATH']
 
-globaltools = Split("""setupBuildTools coast_options precompiledLibraryInstallBuilder RunBuilder""")
+globaltools = Split("""setupBuildTools coast_options precompiledLibraryInstallBuilder RunBuilder DoxygenBuilder""")
 usetools = globaltools + GetOption('usetools')
 print 'tools to use %s' % Flatten(usetools)
 
@@ -452,14 +452,15 @@ def createTargets(packagename, buildSettings):
     tmk = TargetMaker(packagename, buildSettings, programLookup)
     tmk.createTargets()
     
-    if packagename in ["CoastFoundation", "CoastMTFoundation"]:
-        doxyEnv = CloneBaseEnv()
-        doxyEnv.Tool("DoxygenBuilder")
-        doxyTarget = doxyEnv.Doxygen(programLookup, packagename)
-        doxyAlias = doxyEnv.Alias("doxygen", doxyTarget)
-        doxyEnv.Alias("all", doxyTarget)
-        doxyEnv.Depends(packagename, doxyAlias)
+    #if packagename in ["CoastFoundation", "CoastMTFoundation"]:
+    doxyEnv = CloneBaseEnv()
+    doxyTarget = doxyEnv.Doxygen(programLookup, packagename)
+    #doxyAlias = doxyEnv.Alias("doxygen", doxyTarget)
+    doxyEnv.Alias("all", doxyTarget)
+    doxyEnv.Alias(packagename, doxyTarget)
+
         # or attach doxygen-Alias to the build target/package
+        #FIXME: the package alias target is rebuilt if the documentation is rebuilt 
     
     includeDirs = set()
     sysIncludes = set()
