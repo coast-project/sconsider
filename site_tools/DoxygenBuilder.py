@@ -4,7 +4,7 @@ import SCons.Action, SCons.Builder
 from SCons.Script import AddOption, GetOption
 import StanfordUtils
 
-def __getDependencies(registry, packagename, fnobj):
+def __getDependencies(registry, packagename, fnobj, recursive=False):
     depPackages = {}
     
     buildSettings = registry.getBuildSettings(packagename)
@@ -17,11 +17,13 @@ def __getDependencies(registry, packagename, fnobj):
         for ftn in deps:
             depPkgname, depTname = StanfordUtils.splitTargetname(ftn)
             if not depPkgname == packagename:
+                if recursive:
+                    depPackages.update(__getDependencies(registry, depPkgname, fnobj, recursive))
                 file = fnobj(depPkgname)
                 if file:
                     depPackages[depPkgname] = file
     
-    return list(depPackages.values())
+    return depPackages
 
 doxyfiles = {}
 def registerPackageDoxyfile(packagename, doxyfile):
@@ -30,8 +32,8 @@ def registerPackageDoxyfile(packagename, doxyfile):
 def getPackageDoxyfile(packagename):
     return doxyfiles.get(packagename, '')
 
-def getDoxyfileDependencies(registry, packagename):
-    return __getDependencies(registry, packagename, getPackageDoxyfile)
+def getDoxyfileDependencies(registry, packagename, recursive=False):
+    return __getDependencies(registry, packagename, getPackageDoxyfile, recursive).values()
 
 tagfiles = {}
 def registerPackageTagfile(packagename, tagfile):
@@ -40,8 +42,8 @@ def registerPackageTagfile(packagename, tagfile):
 def getPackageTagfile(packagename):
     return tagfiles.get(packagename, '')
 
-def getTagfileDependencies(registry, packagename):
-    return __getDependencies(registry, packagename, getPackageTagfile)
+def getTagfileDependencies(registry, packagename, recursive=False):
+    return __getDependencies(registry, packagename, getPackageTagfile, recursive).values()
 
 doxyfiledata = {}
 def getDoxyfileData(doxyfile, env):
@@ -346,17 +348,15 @@ def createDoxygenTarget(env, registry, packagename):
         return None
     
     defaults = getDoxyDefaults(env, registry, packagename)
-    doxyfileDependencies = getDoxyfileDependencies(registry, packagename)
-    
     doxyfileTarget = env.DoxyFileBuilder(target=registry.getPackageDir(packagename).File('Doxyfile'),
                                          source=getSourceFiles(registry, packagename),
                                          inputDirs=getInputDirs(registry, packagename),
-                                         dependencies=doxyfileDependencies,
+                                         dependencies=getDoxyfileDependencies(registry, packagename, recursive=True),
                                          doxyDefaults=defaults)
     env.Precious(doxyfileTarget)
     env.NoClean(doxyfileTarget)
     registerPackageDoxyfile(packagename, doxyfileTarget[0])
-    env.Depends(doxyfileTarget[0], doxyfileDependencies)
+    env.Depends(doxyfileTarget[0], getDoxyfileDependencies(registry, packagename))
     
     doxyTarget = env.DoxygenBuilder(source=doxyfileTarget,
                                     doxyDefaults=defaults,

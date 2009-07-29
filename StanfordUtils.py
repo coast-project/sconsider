@@ -452,15 +452,11 @@ def createTargets(packagename, buildSettings):
     tmk = TargetMaker(packagename, buildSettings, programLookup)
     tmk.createTargets()
     
-    #if packagename in ["CoastFoundation", "CoastMTFoundation"]:
     doxyEnv = CloneBaseEnv()
     doxyTarget = doxyEnv.Doxygen(programLookup, packagename)
-    #doxyAlias = doxyEnv.Alias("doxygen", doxyTarget)
     doxyEnv.Alias("all", doxyTarget)
     doxyEnv.Alias(packagename, doxyTarget)
-
-        # or attach doxygen-Alias to the build target/package
-        #FIXME: the package alias target is rebuilt if the documentation is rebuilt 
+    #FIXME: the package alias target is rebuilt if the documentation is rebuilt 
     
     includeDirs = set()
     sysIncludes = set()
