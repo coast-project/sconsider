@@ -115,3 +115,8 @@ def copyFileNodes(env, nodes, baseoutdir, useFirstSegment=True):
         installPath = os.path.dirname(installPath)
         instTargs.extend(env.Install(baseoutdir.Dir(installPath), file))
     return instTargs
+
+def getPyFilename(filename):
+    if (filename.endswith(".pyc") or filename.endswith(".pyo")):
+        filename = filename[:-1]
+    return filename

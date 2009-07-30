@@ -2,7 +2,7 @@ from __future__ import with_statement
 import os, pdb, subprocess, optparse
 import SCons.Action, SCons.Builder
 from SCons.Script import AddOption, GetOption
-import StanfordUtils
+import StanfordUtils, SomeUtils
 
 def __getDependencies(registry, packagename, fnobj, recursive=False):
     depPackages = {}
@@ -392,6 +392,8 @@ def createDoxygenTarget(env, registry, packagename):
         registerPackageTagfile(packagename, doxyTarget[0])
         env.Depends(doxyTarget[0], getTagfileDependencies(registry, packagename))
 
+    env.Depends(doxyfileTarget, SomeUtils.getPyFilename(__file__))
+    env.Depends(doxyTarget, SomeUtils.getPyFilename(__file__))
     return doxyTarget
 
 class DoxygenToolException(Exception):
