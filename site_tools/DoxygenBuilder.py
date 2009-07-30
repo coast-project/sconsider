@@ -334,7 +334,10 @@ def emitDoxygen(target, source, env):
             path = os.path.realpath(os.path.join(doxyfilepath, path))
         target.append(env.File(path))
 
-    #FIXME: really needed?
+    outputpath = data.get("OUTPUT_DIRECTORY", '')
+    if not os.path.isabs(outputpath):
+        outputpath = os.path.realpath(os.path.join(doxyfilepath, outputpath))
+
     for format in ["HTML", "LATEX", "RTF", "MAN", "XML"]:
         generate = data.get("GENERATE_" + format, "NO").upper()
         destination = data.get(format + "_OUTPUT", format.lower())
@@ -342,11 +345,13 @@ def emitDoxygen(target, source, env):
         if generate == "YES" and destination:
             path = destination
             if not os.path.isabs(path):
-                path = os.path.join(data.get("OUTPUT_DIRECTORY", ''), path)
-                if not os.path.isabs(path):
-                    path = os.path.realpath(os.path.join(doxyfilepath, path))
+                path = os.path.realpath(os.path.join(outputpath, path))
             target.append(env.Dir(path))
-
+    
+    env.Clean(target, outputpath)
+    for t in target:
+        env.Clean(target, t)
+    
     return target, source
 
 def getDoxyDefaults(env, registry, packagename):
