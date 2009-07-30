@@ -4,6 +4,27 @@ import SCons.Action, SCons.Builder
 from SCons.Script import AddOption, GetOption
 import StanfordUtils, SomeUtils
 
+# monkey patch os.path to include relpath if python version is < 2.6
+if not hasattr(os.path, "relpath"):
+    def relpath(path, start):
+        """Return a relative version of a path"""
+
+        if not path:
+            raise ValueError, 'no path specified'
+
+        if path == start:
+            return '.'
+
+        start_list = (os.path.abspath(start)).split(os.sep)
+        path_list = (os.path.abspath(path)).split(os.sep)
+
+        # Work out how much of the filepath is shared by start and path.
+        i = len(os.path.commonprefix([start_list, path_list]))
+
+        rel_list = [os.pardir] * (len(start_list)-i) + path_list[i:]
+        return os.path.join(*rel_list)
+    os.path.relpath = relpath
+
 def __getDependencies(registry, packagename, fnobj, recursive=False):
     depPackages = {}
     
