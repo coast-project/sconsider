@@ -47,6 +47,9 @@ def getTagfileDependencies(registry, packagename, recursive=False):
 
 doxyfiledata = {}
 def getDoxyfileData(doxyfile, env):
+    """
+    Caches parsed Doxyfile content.
+    """
     doxyfilepath = doxyfile.get_abspath()
     if not os.path.isfile(doxyfilepath):
         return {}
@@ -155,6 +158,9 @@ def parseDoxyfile(file_node, env):
    return data
 
 def getInputDirs(registry, packagename):
+    """
+    Gets the input directories using this package's build settings.
+    """
     doxyfilepath = registry.getPackageDir(packagename).get_abspath()
     
     buildSettings = registry.getBuildSettings(packagename)
@@ -182,6 +188,9 @@ def getInputDirs(registry, packagename):
     return sourceDirs
 
 def getSourceFiles(registry, packagename):
+    """
+    Gets the source files using this package's build settings.
+    """
     sources = []
     buildSettings = registry.getBuildSettings(packagename)
     for targetname, settings in buildSettings.items():
@@ -192,6 +201,14 @@ def getSourceFiles(registry, packagename):
     return sources
 
 def getTagfileDependencyLines(target, ownData, dependencies, env):
+    """
+    Returns the tagfile lines in Doxyfile format.
+    target is the current Doxyfile.
+    ownData is the parsed content of the current Doxyfile.
+    dependencies are the Doxyfiles on which the current Doxyfile depends.
+    env is the current Environment.
+    Parses the dependencies, gets their tagfile and determines the path relative to the current Doxyfile.
+    """
     deps = []
     
     ownPath = ownData.get("HTML_OUTPUT", 'html')
@@ -224,7 +241,7 @@ def buildDoxyfile(target, source, env):
     """
     Creates the Doxyfile.
     The first (and only) target should be the Doxyfile.
-    Sourcefiles are just used for dependency tracking.
+    Sourcefiles are used for dependency tracking only.
     """
     if not os.path.isfile(target[0].get_abspath()):
         proc = subprocess.Popen(["doxygen", "-s", "-g", target[0].get_abspath()], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -266,7 +283,7 @@ def buildDoxyfile(target, source, env):
 def callDoxygen(target, source, env):   
     """
     Creates the output directory (doxygen can't do that recursively) and calls doxygen.
-    The first (and only) source should be the Doxyfile.
+    The first source must be the Doxyfile, the other sources are used for dependency tracking only.
     """
     data = getDoxyfileData(source[0], env)
     doxyfilepath = source[0].get_dir().get_abspath()
@@ -299,8 +316,9 @@ def callDoxygen(target, source, env):
 
 def emitDoxygen(target, source, env):
     """
-    Adds the tagfile and the output directories as the doxygen targets. The first (and
-    only) source should be the Doxyfile. The target array will be overwritten.
+    Adds the tagfile and the output directories as the doxygen targets.
+    The first source must be the Doxyfile, the other sources are used for dependency tracking only.
+    The target array will be overwritten.
     """
     data = env.get("doxyDefaults", {})
     if os.path.isfile(source[0].get_abspath()):
@@ -332,6 +350,10 @@ def emitDoxygen(target, source, env):
     return target, source
 
 def getDoxyDefaults(env, registry, packagename):
+    """
+    Determines the default Doxyfile settings for a package.
+    Used if the Doxyfile is not yet existing.
+    """
     outputpath = os.path.relpath(env['BASEOUTDIR'].Dir(env['DOCDIR']).Dir(packagename).get_abspath(),
                                                 registry.getPackageDir(packagename).get_abspath())
     return {
@@ -344,12 +366,15 @@ def getDoxyDefaults(env, registry, packagename):
             }
 
 def createDoxygenTarget(env, registry, packagename):
+    """
+    Wrapper for creating a doxygen target for a package.
+    """
     if not GetOption('doxygen'):
         return None
     
     defaults = getDoxyDefaults(env, registry, packagename)
-    doxyfileTarget = env.DoxyFileBuilder(target=registry.getPackageDir(packagename).File('Doxyfile'),
-                                         source=getSourceFiles(registry, packagename),
+    doxyfileTarget = env.DoxyfileBuilder(target=registry.getPackageDir(packagename).File('Doxyfile'),
+                                         source=registry.getPackageFile(packagename),
                                          inputDirs=getInputDirs(registry, packagename),
                                          dependencies=getDoxyfileDependencies(registry, packagename, recursive=True),
                                          doxyDefaults=defaults)
@@ -358,7 +383,9 @@ def createDoxygenTarget(env, registry, packagename):
     registerPackageDoxyfile(packagename, doxyfileTarget[0])
     env.Depends(doxyfileTarget[0], getDoxyfileDependencies(registry, packagename))
     
-    doxyTarget = env.DoxygenBuilder(source=doxyfileTarget,
+    doxySources = doxyfileTarget[:]
+    doxySources.extend(getSourceFiles(registry, packagename))
+    doxyTarget = env.DoxygenBuilder(source=doxySources,
                                     doxyDefaults=defaults,
                                     logname='doxygen_' + packagename)
     if doxyTarget and isinstance(doxyTarget[0], SCons.Node.FS.File):
@@ -374,6 +401,9 @@ class DoxygenToolException(Exception):
         return repr(self.value)
 
 def generate(env):
+    """
+    Add the options, builders and wrappers to the current Environment.
+    """
     try:
         AddOption('--doxygen', dest='doxygen', action='store_true', default=False, help='Create documentation')
     except optparse.OptionConflictError:
@@ -386,11 +416,11 @@ def generate(env):
     doxygenAction = SCons.Action.Action(callDoxygen, "Creating documentation using '$SOURCE'")
     doxygenBuilder = SCons.Builder.Builder(action=doxygenAction,
                                            emitter=emitDoxygen,
-                                           single_source=True)
+                                           source_scanner=SCons.Scanner.C.CScanner()) # adds headers as dependencies)
 
     env.Append(BUILDERS={ 'DoxygenBuilder' : doxygenBuilder })
-    env.Append(BUILDERS={ 'DoxyFileBuilder' : doxyfileBuilder })
-    env.AddMethod(createDoxygenTarget, "Doxygen")
+    env.Append(BUILDERS={ 'DoxyfileBuilder' : doxyfileBuilder })
+    env.AddMethod(createDoxygenTarget, "PackageDoxygen")
 
 def exists(env):
    """

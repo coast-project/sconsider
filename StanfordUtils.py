@@ -209,6 +209,7 @@ def CoastFindPackagesDict(directory, direxcludes=[]):
                 ## append path to module path, otherwise we can not import someLib[.py]
                 sys.path.append(thePath)
                 packages[pkgname]['packagepath'] = Dir(thePath)
+                packages[pkgname]['packagefile'] = Dir(thePath).File(name)
                 print 'appended toolpath  [%s]' % thePath
                 if not os.path.isfile(Dir(dirpath).File('SConscript').abspath):
                     print 'warning: SConscript not found in [%s]' % thePath
@@ -260,6 +261,9 @@ class ProgramLookup:
 
     def getPackageDir(self, packagename):
         return self.packages[packagename].get('packagepath', '')
+    
+    def getPackageFile(self, packagename):
+        return self.packages[packagename].get('packagefile', '')
 
     def getPackageTargetNames(self, packagename):
         return self.packages[packagename].get('targets', []).keys()
@@ -453,10 +457,13 @@ def createTargets(packagename, buildSettings):
     tmk.createTargets()
     
     doxyEnv = CloneBaseEnv()
-    doxyTarget = doxyEnv.Doxygen(programLookup, packagename)
+    doxyTarget = doxyEnv.PackageDoxygen(programLookup, packagename)
     doxyEnv.Alias("all", doxyTarget)
     doxyEnv.Alias(packagename, doxyTarget)
-    #FIXME: the package alias target is rebuilt if the documentation is rebuilt 
+    # FIXME: requireTargets adds targets and packages aliases as dependencies to a target. This causes
+    # a rebuild of the target after changes to a package alias target. And because the doxygen target is
+    # added to the package alias, we are implicitly inducing this rebuilds when switching
+    # the --doxygen option on and off.
     
     includeDirs = set()
     sysIncludes = set()
