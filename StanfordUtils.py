@@ -121,7 +121,7 @@ if GetOption('appendPath'):
     dEnv.AppendENVPath('PATH', GetOption('appendPath'))
     print 'appended path is [%s]' % dEnv['ENV']['PATH']
 
-globaltools = Split("""setupBuildTools coast_options precompiledLibraryInstallBuilder RunBuilder""")
+globaltools = Split("""setupBuildTools coast_options precompiledLibraryInstallBuilder RunBuilder DoxygenBuilder""")
 usetools = globaltools + GetOption('usetools')
 print 'tools to use %s' % Flatten(usetools)
 
@@ -171,6 +171,7 @@ baseEnv.Append(BINDIR='bin')
 baseEnv.Append(LIBDIR='lib')
 baseEnv.Append(SCRIPTDIR='scripts')
 baseEnv.Append(CONFIGDIR='config')
+baseEnv.Append(DOCDIR='doc')
 baseEnv.Append(BUILDDIR='.build')
 
 # directory relative to BASEOUTDIR where we are going to install target specific files
@@ -208,6 +209,7 @@ def CoastFindPackagesDict(directory, direxcludes=[]):
                 ## append path to module path, otherwise we can not import someLib[.py]
                 sys.path.append(thePath)
                 packages[pkgname]['packagepath'] = Dir(thePath)
+                packages[pkgname]['packagefile'] = Dir(thePath).File(name)
                 print 'appended toolpath  [%s]' % thePath
                 if not os.path.isfile(Dir(dirpath).File('SConscript').abspath):
                     print 'warning: SConscript not found in [%s]' % thePath
@@ -259,6 +261,9 @@ class ProgramLookup:
 
     def getPackageDir(self, packagename):
         return self.packages[packagename].get('packagepath', '')
+    
+    def getPackageFile(self, packagename):
+        return self.packages[packagename].get('packagefile', '')
 
     def getPackageTargetNames(self, packagename):
         return self.packages[packagename].get('targets', []).keys()
@@ -350,12 +355,10 @@ def ExternalDependencies(env, packagename, buildSettings, plaintarget=None, **kw
             pass
 
 class TargetMaker:
-    def __init__(self, packagename, tlist, programLookup, collectVars=['CPPPATH']):
+    def __init__(self, packagename, tlist, programLookup):
         self.packagename = packagename
         self.targetlist = tlist.copy()
         self.programLookup = programLookup
-        self.varEnv = CloneBaseEnv()
-        self.collectVars = collectVars
 
     def createTargets(self):
         while self.targetlist:
@@ -424,12 +427,6 @@ class TargetMaker:
                         
             targetEnv.Alias(pkgname, target)
             targetEnv.Alias('all', target)
-            
-            for vName in self.collectVars:
-                varValues = [ x.srcnode().abspath for x in targetEnv.get(vName, [])]
-#                varValues.extend([ x.abspath for x in targetEnv.get(vName, [])])
-                vDict = dict ({ vName : varValues })
-                self.varEnv.AppendUnique(**vDict)
 
         self.programLookup.setPackageTarget(pkgname, name, plaintarget, target)
 
@@ -455,27 +452,40 @@ class TargetMaker:
 
         return targetEnv
 
-    def getEnvVarValue(self, envvarname):
-        return self.varEnv.get(envvarname, [])
-
 def createTargets(packagename, buildSettings):
     tmk = TargetMaker(packagename, buildSettings, programLookup)
     tmk.createTargets()
+    
+    doxyEnv = CloneBaseEnv()
+    doxyTarget = doxyEnv.PackageDoxygen(programLookup, packagename)
+    doxyEnv.Alias("all", doxyTarget)
+    doxyEnv.Alias(packagename, doxyTarget)
+    # FIXME: requireTargets adds targets and packages aliases as dependencies to a target. This causes
+    # a rebuild of the target after changes to a package alias target. And because the doxygen target is
+    # added to the package alias, we are implicitly inducing this rebuilds when switching
+    # the --doxygen option on and off.
+    
+    includeDirs = set()
+    sysIncludes = set()
+    for targetname, settings in buildSettings.items():
+        target = programLookup.getPackageTarget(packagename, targetname)["plaintarget"]
+        if target and target.has_builder():
+            for incpath in target.env["CPPPATH"]:
+                includeDirs.add(incpath.srcnode().abspath)
+            for incpath in target.env["SYSINCLUDES"]:
+                sysIncludes.add(Dir(incpath).srcnode().abspath)
+            
+    inclLists = []
+    inclLists.extend(sorted(includeDirs))
+    inclLists.extend(sorted(sysIncludes))
+    
     fname = os.path.join(Dir('.').srcnode().abspath, '.scb')
     fstr = ""
     if os.path.isfile(fname):
         with open(fname, 'r') as of:
             fstr = of.read()
+
     pathstring = ""
-    sysIncls = []
-    cppIncls = []
-    inclLists = []
-    sysIncls.extend(tmk.getEnvVarValue('SYSINCLUDES'))
-    sysIncls.sort()
-    cppIncls.extend(tmk.getEnvVarValue('CPPPATH'))
-    cppIncls.sort()
-    inclLists.extend(sysIncls)
-    inclLists.extend(cppIncls)
     for x in inclLists:
         if not re.compile('CPPPATH.*' + re.escape(x)).search(fstr):
             pathstring += "CPPPATH appendunique " + x + "\n"
