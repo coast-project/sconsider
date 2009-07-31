@@ -46,25 +46,22 @@ def __getDependencies(registry, packagename, fnobj, recursive=False):
     
     return depPackages
 
+def getPackageDependencies(registry, packagename, recursive=False):
+    return __getDependencies(registry, packagename, lambda pkg: pkg, recursive).values()
+
 doxyfiles = {}
 def registerPackageDoxyfile(packagename, doxyfile):
     doxyfiles[packagename] = doxyfile
-    
-def getPackageDoxyfile(packagename):
-    return doxyfiles.get(packagename, '')
 
 def getDoxyfileDependencies(registry, packagename, recursive=False):
-    return __getDependencies(registry, packagename, getPackageDoxyfile, recursive).values()
+    return __getDependencies(registry, packagename, lambda pkg: doxyfiles.get(pkg, ''), recursive).values()
 
 tagfiles = {}
 def registerPackageTagfile(packagename, tagfile):
     tagfiles[packagename] = tagfile
-    
-def getPackageTagfile(packagename):
-    return tagfiles.get(packagename, '')
 
 def getTagfileDependencies(registry, packagename, recursive=False):
-    return __getDependencies(registry, packagename, getPackageTagfile, recursive).values()
+    return __getDependencies(registry, packagename, lambda pkg: tagfiles.get(pkg, ''), recursive).values()
 
 doxyfiledata = {}
 def getDoxyfileData(doxyfile, env):
