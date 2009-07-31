@@ -6,7 +6,7 @@ import StanfordUtils, SomeUtils
 
 # monkey patch os.path to include relpath if python version is < 2.6
 if not hasattr(os.path, "relpath"):
-    def relpath(path, start):
+    def relpath_posix(path, start):
         """Return a relative version of a path"""
 
         if not path:
@@ -23,7 +23,42 @@ if not hasattr(os.path, "relpath"):
 
         rel_list = [os.pardir] * (len(start_list)-i) + path_list[i:]
         return os.path.join(*rel_list)
-    os.path.relpath = relpath
+
+    def relpath_nt(path, start):
+        """Return a relative version of a path"""
+
+        if not path:
+            raise ValueError("no path specified")
+
+        if path == start:
+            return '.'
+
+        start_list = os.path.abspath(start).split(os.sep)
+        path_list = os.path.abspath(path).split(os.sep)
+        if start_list[0].lower() != path_list[0].lower():
+            unc_path, rest = os.path.splitunc(path)
+            unc_start, rest = os.path.splitunc(start)
+            if bool(unc_path) ^ bool(unc_start):
+                raise ValueError("Cannot mix UNC and non-UNC paths (%s and %s)" % (path, start))
+            else:
+                raise ValueError("path is on drive %s, start on drive %s" % (path_list[0], start_list[0]))
+
+        # Work out how much of the filepath is shared by start and path.
+        for i in range(min(len(start_list), len(path_list))):
+            if start_list[i].lower() != path_list[i].lower():
+                break
+            else:
+                i += 1
+
+        rel_list = [os.pardir] * (len(start_list)-i) + path_list[i:]
+        if not rel_list:
+            return curdir
+        return join(*rel_list)
+
+    if os.name == 'posix':
+        os.path.relpath = relpath_posix
+    elif os.name == 'nt':
+        os.path.relpath = relpath_nt
 
 def __getDependencies(registry, packagename, fnobj, recursive=False):
     depPackages = {}
