@@ -90,8 +90,8 @@ def appTest(env, name, sources, pkgname, buildSettings, **kw):
 
 def includeOnly(env, name, sources, pkgname, buildSettings, **kw):
     target = None
-    if buildSettings.has_key('public'):
-        target = env.Alias(pkgname + '.' + name)
+    #if buildSettings.has_key('public'):
+        #target = env.Alias(pkgname + '.' + name)
     
     return (target, target)
 
@@ -416,7 +416,12 @@ class TargetMaker:
                     plaintarget, target = targets
                 else:
                     plaintarget = target = targets
-                    
+
+            if plaintarget:
+                targetEnv.Depends(plaintarget, self.programLookup.getPackageFile(pkgname))
+            else:
+                plaintarget = target = targetEnv.Alias(pkgname+'.'+name, self.programLookup.getPackageFile(pkgname))                
+
             reqTargets = targetBuildSettings.get('linkDependencies', []) + targetBuildSettings.get('requires', [])
             self.requireTargets(targetEnv, target, reqTargets)
             
