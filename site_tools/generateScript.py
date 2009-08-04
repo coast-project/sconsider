@@ -63,9 +63,9 @@ export LD_LIBRARY_PATH PATH
 #
 generateGdbCommandFile()
 {
-    local outputfile=${1};
-    local locsrvopts=${2};
-    local locRunAsServer=${3:-1};
+    outputfile=${1};
+    locsrvopts=${2};
+    locRunAsServer=${3:-1};
     # <<-EOF ignore tabs, nice for formatting heredocs
 cat > ${outputfile} <<-EOF
     handle SIGSTOP nostop nopass
@@ -107,7 +107,7 @@ def generatePosixScript(target, source, env):
             scriptFile.write('WDS_BIN=' + os.path.join('$INST_DIR', str(s)) + '\n')
             scriptFile.write("""
 
-cfg_gdbcommands="/tmp/$(basename $0)_$$";
+cfg_gdbcommands="/tmp/`basename $0`_$$";
 generateGdbCommandFile ${cfg_gdbcommands} "$@" 0
 echo "Generated gdb command file:"
 #cat ${cfg_gdbcommands}
