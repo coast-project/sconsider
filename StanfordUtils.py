@@ -46,7 +46,9 @@ def programApp(env, name, sources, pkgname, buildSettings, **kw):
 
     env.Alias('binaries', wrappers)
 
-    return (plaintarget, wrappers)
+    target = env.RunBuilder(wrappers, buildSettings)
+
+    return (plaintarget, target)
 
 def programTest(env, name, sources, pkgname, buildSettings, **kw):
     env.Decider(changed_timestamp_or_content)
@@ -84,16 +86,11 @@ def appTest(env, name, sources, pkgname, buildSettings, **kw):
     env.Tool('generateScript')
     wrappers = env.GenerateWrapperScript(instApps, GetOption('gdb'))
 
-    env.Alias('test', wrappers)
+    target = env.TestBuilder(wrappers, buildSettings)
 
-    return (plaintarget, wrappers)
+    env.Alias('test', target)
 
-def includeOnly(env, name, sources, pkgname, buildSettings, **kw):
-    target = None
-    #if buildSettings.has_key('public'):
-        #target = env.Alias(pkgname + '.' + name)
-    
-    return (target, target)
+    return (plaintarget, target)
 
 def sharedLibrary(env, name, sources, pkgname, buildSettings, **kw):
     if buildSettings.get('lazylinking', False):
@@ -112,7 +109,6 @@ dEnv.AddMethod(appTest, "AppTest")
 dEnv.AddMethod(programTest, "ProgramTest")
 dEnv.AddMethod(programApp, "ProgramApp")
 dEnv.AddMethod(sharedLibrary, "LibraryShared")
-dEnv.AddMethod(includeOnly, "IncludeOnly")
 
 if GetOption('prependPath'):
     dEnv.PrependENVPath('PATH', GetOption('prependPath'))
@@ -420,6 +416,8 @@ class TargetMaker:
             if plaintarget:
                 targetEnv.Depends(plaintarget, self.programLookup.getPackageFile(pkgname))
             else:
+                # actually includeOnlyTarget is obsolete,
+                # but we still need a (dummy) targetType in build settings to get in here! 
                 plaintarget = target = targetEnv.Alias(pkgname+'.'+name, self.programLookup.getPackageFile(pkgname))                
 
             reqTargets = targetBuildSettings.get('linkDependencies', []) + targetBuildSettings.get('requires', [])
@@ -463,12 +461,8 @@ def createTargets(packagename, buildSettings):
     
     doxyEnv = CloneBaseEnv()
     doxyTarget = doxyEnv.PackageDoxygen(programLookup, packagename)
-    doxyEnv.Alias("all", doxyTarget)
-    doxyEnv.Alias(packagename, doxyTarget)
-    # FIXME: requireTargets adds targets and packages aliases as dependencies to a target. This causes
-    # a rebuild of the target after changes to a package alias target. And because the doxygen target is
-    # added to the package alias, we are implicitly inducing this rebuilds when switching
-    # the --doxygen option on and off.
+    doxyEnv.Alias("doxygen", doxyTarget)
+    # trigger for building doxygen is adding "doxygen" to BUILD_TARGETS (see below)
     
     includeDirs = set()
     sysIncludes = set()
@@ -516,6 +510,9 @@ if failedTargets:
     print 'loading all SConscript files to find target'
     for tname in packages:
         programLookup.lookup(tname)
+
+if GetOption("doxygen"):
+    BUILD_TARGETS.append("doxygen")
 
 print "BUILD_TARGETS is ", map(str, BUILD_TARGETS)
 
