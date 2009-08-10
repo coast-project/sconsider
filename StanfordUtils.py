@@ -464,6 +464,9 @@ def createTargets(packagename, buildSettings):
     doxyEnv.Alias("doxygen", doxyTarget)
     # trigger for building doxygen is adding "doxygen" to BUILD_TARGETS (see below)
     
+    writeSCB(packagename, buildSettings)
+
+def writeSCB(packagename, buildSettings):
     includeDirs = set()
     sysIncludes = set()
     for targetname, settings in buildSettings.items():

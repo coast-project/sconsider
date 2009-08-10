@@ -103,7 +103,7 @@ def generatePosixScript(target, source, env):
     for t, s in zip(target, source):
         scriptFile = open(str(t), 'w')
         generateShellScript(scriptFile, env, 1)
-        if env["CreateGDBScript"]:
+        if env["createGDBscript"]:
             scriptFile.write('WDS_BIN=' + os.path.join('$INST_DIR', str(s)) + '\n')
             scriptFile.write("""
 
@@ -128,7 +128,7 @@ def generateWindowsScript(target, source, env):
 
 def generateScriptEmitter(target, source, env):
     target = []
-    gdbsuffix = ('', '_gdb')[env["CreateGDBScript"] != False]
+    gdbsuffix = ('', '_gdb')[env["createGDBscript"] != False]
     for src in source:
         if env['PLATFORM'] != 'win32':
             target.append(env['BASEOUTDIR'].Dir(env['SCRIPTDIR']).Dir(env['VARIANTDIR']).File(os.path.basename(src.abspath + gdbsuffix)))
@@ -137,8 +137,7 @@ def generateScriptEmitter(target, source, env):
     return (target, source)
 
 def generateWrapperScript(env, target, gdb=False):
-    env["CreateGDBScript"] = gdb
-    return env.Depends(env.__GenerateWrapperScript(target), env.File(os.path.splitext(__file__)[0] + '.py'))
+    return env.Depends(env.__GenerateWrapperScript(target, createGDBscript=gdb), env.File(os.path.splitext(__file__)[0] + '.py'))
 
 def generate(env):
     try:
