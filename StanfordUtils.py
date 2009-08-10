@@ -425,6 +425,7 @@ class TargetMaker:
             
             instTargets = self.checkCopyIncludes(targetEnv, pkgname, targetBuildSettings)
             targetEnv.Depends(target, instTargets)
+            targetEnv.Alias('includes', instTargets)
 
             self.copyConfigFilesTarget(targetEnv, targetEnv['BASEOUTDIR'].Dir(targetEnv['RELTARGETDIR']), targetBuildSettings, target)
                         
