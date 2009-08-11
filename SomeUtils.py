@@ -94,19 +94,36 @@ class EnvVarDict(dict):
 #
 #TestFunc()
 
-def copyFileNodes(env, nodes, destdir):
-    srcdir = env.Dir('.').srcnode()
+def copyFileNodes(env, nodes, destDir, baseDir=None, stripRelDirs=[], mode=None):
+    if not baseDir:
+        baseDir = env.Dir('.')
+    if hasattr(baseDir, 'srcnode'):
+        baseDir = baseDir.srcnode()
+    
+    if not SCons.Util.is_List(stripRelDirs):
+        stripRelDirs = [stripRelDirs]
+    
     instTargs = []
     for node in nodes:
         file = node
-        try:
+        if hasattr(node, 'srcnode'):
             file = node.srcnode()
-        except:
-            pass
-        installRelPath = srcdir.rel_path(file.get_dir())
-        instTarg = env.Install(destdir.Dir(installRelPath), file)
-        env.Clean(instTarg, destdir)
+        
+        installRelPath = baseDir.rel_path(file.get_dir())
+        
+        if stripRelDirs and baseDir.get_abspath() != file.get_dir().get_abspath():
+            relPathParts = installRelPath.split(os.sep)
+            delprefix = []
+            for stripRelDir in stripRelDirs:
+                delprefix = os.path.commonprefix([stripRelDir.split(os.sep), relPathParts])
+            installRelPath = os.sep.join(relPathParts[len(delprefix):])
+        
+        instTarg = env.Install(destDir.Dir(installRelPath), file)
+        env.Clean(instTarg, destDir)
+        if mode:
+            env.AddPostAction(instTarg, SCons.Defaults.Chmod(str(instTarg[0]), mode))
         instTargs.extend(instTarg)
+        
     return instTargs
 
 def getPyFilename(filename):

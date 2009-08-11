@@ -50,7 +50,7 @@ def createTestTarget(env, source, buildSettings, defaultRunParams='-all'):
     if GetOption('run-force'):
         runner = createRunTarget(env, source, buildSettings, defaultRunParams)
     else:
-        runner = createTarget(env, env.__TestBuilder, [], source, buildSettings, defaultRunParams)
+        runner = createTarget(env, env.TestBuilder, [], source, buildSettings, defaultRunParams)
         
     runConfig = buildSettings.get('runConfig', {})
     setUp = runConfig.get('setUp', '')
@@ -70,7 +70,7 @@ def createRunTarget(env, source, buildSettings, defaultRunParams=''):
     if not GetOption('run') and not GetOption('run-force'):
         return source
 
-    return createTarget(env, env.__RunBuilder, 'dummyfile', source, buildSettings, defaultRunParams)
+    return createTarget(env, env.RunBuilder, 'dummyfile', source, buildSettings, defaultRunParams)
 
 def emitPassedFile(target, source, env):
     target = []
@@ -96,10 +96,10 @@ def generate(env):
     RunBuilder = SCons.Builder.Builder(action=[RunAction],
                                               single_source=True)
 
-    env.Append(BUILDERS={ '__TestBuilder' : TestBuilder })
-    env.Append(BUILDERS={ '__RunBuilder' : RunBuilder })
-    env.AddMethod(createTestTarget, "TestBuilder")
-    env.AddMethod(createRunTarget, "RunBuilder")
+    env.Append(BUILDERS={ 'TestBuilder' : TestBuilder })
+    env.Append(BUILDERS={ 'RunBuilder' : RunBuilder })
+    env.AddMethod(createTestTarget, "TestTarget")
+    env.AddMethod(createRunTarget, "RunTarget")
 
 def exists(env):
     return 1;

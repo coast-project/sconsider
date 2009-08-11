@@ -1,5 +1,5 @@
 from __future__ import with_statement
-import os, platform, SCons, glob, re, atexit, sys, traceback, commands, pdb, dircache
+import os, platform, SCons, glob, re, atexit, sys, traceback, commands, pdb, dircache, stat
 import SomeUtils
 
 from SCons.Script import AddOption, GetOption, Dir, DefaultEnvironment, Split, Flatten, SConsignFile, Export, BUILD_TARGETS
@@ -46,7 +46,7 @@ def programApp(env, name, sources, pkgname, buildSettings, **kw):
 
     env.Alias('binaries', wrappers)
 
-    target = env.RunBuilder(wrappers, buildSettings)
+    target = env.RunTarget(wrappers, buildSettings)
 
     return (plaintarget, target)
 
@@ -61,7 +61,7 @@ def programTest(env, name, sources, pkgname, buildSettings, **kw):
     env.Tool('generateScript')
     wrappers = env.GenerateWrapperScript(instApps, GetOption('gdb'))
 
-    target = env.TestBuilder(wrappers, buildSettings)
+    target = env.TestTarget(wrappers, buildSettings)
 
     env.Alias('test', target)
 
@@ -86,7 +86,7 @@ def appTest(env, name, sources, pkgname, buildSettings, **kw):
     env.Tool('generateScript')
     wrappers = env.GenerateWrapperScript(instApps, GetOption('gdb'))
 
-    target = env.TestBuilder(wrappers, buildSettings)
+    target = env.TestTarget(wrappers, buildSettings)
 
     env.Alias('test', target)
 
@@ -117,7 +117,8 @@ if GetOption('appendPath'):
     dEnv.AppendENVPath('PATH', GetOption('appendPath'))
     print 'appended path is [%s]' % dEnv['ENV']['PATH']
 
-globaltools = Split("""setupBuildTools coast_options precompiledLibraryInstallBuilder RunBuilder DoxygenBuilder""")
+globaltools = ["setupBuildTools", "coast_options",
+               "precompiledLibraryInstallBuilder", "RunBuilder", "DoxygenBuilder"]
 usetools = globaltools + GetOption('usetools')
 print 'tools to use %s' % Flatten(usetools)
 
@@ -328,14 +329,12 @@ def ExternalDependencies(env, packagename, buildSettings, plaintarget=None, **kw
         # flags / settings used by this library and users of it
         env.AppendUnique(**appendUnique)
 
-        includeBasedir = env['BASEOUTDIR'].Dir(os.path.join(env['INCDIR'], packagename))
-        includeSubdir = buildSettings['public'].get('includeSubdir', '')
+        includeDir = env['BASEOUTDIR'].Dir(os.path.join(env['INCDIR'], packagename))
         if not buildSettings['public'].get('includes', []):
-            includeBasedir = programLookup.getPackageDir(packagename)
+            packageDir = programLookup.getPackageDir(packagename)
+            includeDir = packageDir.Dir(buildSettings['public'].get('includeSubdir', ''))
 
-        # specify public headers here
-        installPath = Dir(includeBasedir).Dir(includeSubdir)
-        env.AppendUnique(CPPPATH=[installPath])
+        env.AppendUnique(CPPPATH=[includeDir])
 
     # this libraries dependencies
     setModuleDependencies(env, linkDependencies)
@@ -374,11 +373,23 @@ class TargetMaker:
                     self.recurseCreate(tname)
             self.doCreateTarget(self.packagename, k, v)
 
-    def checkCopyIncludes(self, env, pkgname, buildSettings):
-        instTargets = None
+    def copyIncludeFiles(self, env, pkgname, buildSettings):
+        instTargets = []
         if buildSettings.has_key('public'):
             ifiles = buildSettings['public'].get('includes', [])
-            instTargets = copyFileNodes(env, ifiles, env['BASEOUTDIR'].Dir(os.path.join(env['INCDIR'], pkgname)))
+            destdir = env['BASEOUTDIR'].Dir(os.path.join(env['INCDIR'], pkgname))
+            pkgdir = self.programLookup.getPackageDir(pkgname)
+            includeSubdir = buildSettings['public'].get('includeSubdir', '')
+            mode = stat.S_IREAD | stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
+            instTargets = copyFileNodes(env, ifiles, destdir, baseDir=pkgdir, stripRelDirs=includeSubdir, mode=mode)                
+        return instTargets
+
+    def copyConfigFiles(self, env, destdir, buildSettings, target):
+        instTargets = []
+        if buildSettings.has_key('configFiles'):
+            cfiles = buildSettings.get('configFiles')
+            mode = stat.S_IREAD | stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
+            instTargets = copyFileNodes(env, cfiles, destdir, mode=mode)
         return instTargets
 
     def requireTargets(self, env, target, requiredTargets, **kw):
@@ -386,13 +397,6 @@ class TargetMaker:
             requiredTargets = [requiredTargets]
         for targ in requiredTargets:
             env.Depends(target, env.Alias(targ)[0])
-
-    def copyConfigFilesTarget(self, env, destdir, buildSettings, target):
-        if buildSettings.has_key('configFiles'):
-            cfiles = buildSettings.get('configFiles')
-            instTargets = copyFileNodes(env, cfiles, destdir)
-            if instTargets:
-                env.Depends(target, instTargets)
 
     def doCreateTarget(self, pkgname, name, targetBuildSettings):
         plaintarget = None
@@ -423,11 +427,12 @@ class TargetMaker:
             reqTargets = targetBuildSettings.get('linkDependencies', []) + targetBuildSettings.get('requires', [])
             self.requireTargets(targetEnv, target, reqTargets)
             
-            instTargets = self.checkCopyIncludes(targetEnv, pkgname, targetBuildSettings)
-            targetEnv.Depends(target, instTargets)
-            targetEnv.Alias('includes', instTargets)
+            includeTargets = self.copyIncludeFiles(targetEnv, pkgname, targetBuildSettings)
+            targetEnv.Depends(target, includeTargets)
+            targetEnv.Alias('includes', includeTargets)
 
-            self.copyConfigFilesTarget(targetEnv, targetEnv['BASEOUTDIR'].Dir(targetEnv['RELTARGETDIR']), targetBuildSettings, target)
+            configTargets = self.copyConfigFiles(targetEnv, targetEnv['BASEOUTDIR'].Dir(targetEnv['RELTARGETDIR']), targetBuildSettings, target)
+            targetEnv.Depends(target, configTargets)
                         
             targetEnv.Alias(pkgname, target)
             targetEnv.Alias('all', target)

@@ -2,6 +2,7 @@ import os, pdb, optparse
 import SCons.Action
 import SCons.Builder
 from SCons.Script import AddOption, GetOption
+import SomeUtils
 
 def getTargetPath(prefix, suffix, env):
     return os.path.join(prefix, env.get('RELTARGETDIR', ''), suffix)
@@ -137,7 +138,7 @@ def generateScriptEmitter(target, source, env):
     return (target, source)
 
 def generateWrapperScript(env, target, gdb=False):
-    return env.Depends(env.__GenerateWrapperScript(target, createGDBscript=gdb), env.File(os.path.splitext(__file__)[0] + '.py'))
+    return env.Depends(env.GenerateScriptBuilder(target, createGDBscript=gdb), SomeUtils.getPyFilename(__file__))
 
 def generate(env):
     try:
@@ -154,7 +155,7 @@ def generate(env):
         GenerateScriptAction = SCons.Action.Action(generateWindowsScript, "Creating wrapper script fpr '$TARGET'")
         GenerateScriptBuilder = SCons.Builder.Builder(action=[GenerateScriptAction], emitter=generateScriptEmitter, single_source=1)
 
-    env.Append(BUILDERS={ '__GenerateWrapperScript' : GenerateScriptBuilder })
+    env.Append(BUILDERS={ 'GenerateScriptBuilder' : GenerateScriptBuilder })
     env.AddMethod(generateWrapperScript, "GenerateWrapperScript")
 
 def exists(env):
