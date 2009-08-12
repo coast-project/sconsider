@@ -1,8 +1,8 @@
 from __future__ import with_statement
-import os, platform, SCons, glob, re, atexit, sys, traceback, commands, pdb, dircache, stat
+import os, platform, SCons, glob, re, atexit, sys, traceback, commands, pdb, dircache, stat, types
 import SomeUtils
 
-from SCons.Script import AddOption, GetOption, Dir, DefaultEnvironment, Split, Flatten, SConsignFile, Export, BUILD_TARGETS
+from SCons.Script import AddOption, GetOption, Dir, DefaultEnvironment, Split, Flatten, SConsignFile
 from SomeUtils import *
 
 # SconsBuilder may work with earlier version,
@@ -34,11 +34,11 @@ print 'base output dir [%s]' % baseoutdir.abspath
 def changed_timestamp_or_content(dependency, target, prev_ni):
     return dependency.changed_content(target, prev_ni) or dependency.changed_timestamp_newer(target, prev_ni)
 
-def programApp(env, name, sources, pkgname, buildSettings, **kw):
+def programApp(env, name, sources, packagename, buildSettings, **kw):
     plaintarget = env.Program(name, sources)
 
     baseoutdir = env['BASEOUTDIR']
-    env['RELTARGETDIR'] = os.path.join('apps', pkgname)
+    env['RELTARGETDIR'] = os.path.join('apps', packagename)
     instApps = env.InstallAs(baseoutdir.Dir(env['RELTARGETDIR']).Dir(env['BINDIR']).Dir(env['VARIANTDIR']).File(name), plaintarget)
 
     env.Tool('generateScript')
@@ -46,53 +46,49 @@ def programApp(env, name, sources, pkgname, buildSettings, **kw):
 
     env.Alias('binaries', wrappers)
 
-    target = env.RunTarget(wrappers, buildSettings)
+    target = env.RunTarget(wrappers, packagename, targetname, buildSettings)
 
-    return (plaintarget, target)
+    return (plaintarget, wrappers)
 
-def programTest(env, name, sources, pkgname, buildSettings, **kw):
+def programTest(env, name, sources, packagename, targetname, buildSettings, **kw):
     env.Decider(changed_timestamp_or_content)
     plaintarget = env.Program(name, sources)
 
     baseoutdir = env['BASEOUTDIR']
-    env['RELTARGETDIR'] = os.path.join('tests', pkgname)
+    env['RELTARGETDIR'] = os.path.join('tests', packagename)
     instApps = env.InstallAs(baseoutdir.Dir(env['RELTARGETDIR']).Dir(env['BINDIR']).Dir(env['VARIANTDIR']).File(name), plaintarget)
 
     env.Tool('generateScript')
     wrappers = env.GenerateWrapperScript(instApps, GetOption('gdb'))
 
-    target = env.TestTarget(wrappers, buildSettings)
+    target = env.TestTarget(wrappers, packagename, targetname, buildSettings)
 
-    env.Alias('test', target)
+    return (plaintarget, wrappers)
 
-    return (plaintarget, target)
-
-def appTest(env, name, sources, pkgname, buildSettings, **kw):
+def appTest(env, name, sources, packagename, targetname, buildSettings, **kw):
     env.Decider(changed_timestamp_or_content)
-    fulltargetname = buildSettings.get('usedTarget', None)
+    usedFullTargetname = buildSettings.get('usedTarget', None)
     plaintarget = None
-    if fulltargetname:
-        packagename, targetname = splitTargetname(fulltargetname)
-        theModule = loadPackage(packagename)
+    if usedFullTargetname:
+        usedPackagename, usedTargetname = splitTargetname(usedFullTargetname)
+        loadPackage(usedPackagename)
         # get default target name if not set already
-        if not targetname:
-            targetname = packagename
-        plaintarget = programLookup.getPackageTarget(packagename, targetname)['plaintarget']
+        if not usedTargetname:
+            usedTargetname = usedPackagename
+        plaintarget = programLookup.getPackageTarget(usedPackagename, usedTargetname)['plaintarget']
 
     baseoutdir = env['BASEOUTDIR']
-    env['RELTARGETDIR'] = os.path.join('tests', pkgname)
+    env['RELTARGETDIR'] = os.path.join('tests', packagename)
     instApps = env.InstallAs(baseoutdir.Dir(env['RELTARGETDIR']).Dir(env['BINDIR']).Dir(env['VARIANTDIR']).File(name), plaintarget)
 
     env.Tool('generateScript')
     wrappers = env.GenerateWrapperScript(instApps, GetOption('gdb'))
 
-    target = env.TestTarget(wrappers, buildSettings)
+    target = env.TestTarget(wrappers, packagename, targetname, buildSettings)
 
-    env.Alias('test', target)
+    return (plaintarget, wrappers)
 
-    return (plaintarget, target)
-
-def sharedLibrary(env, name, sources, pkgname, buildSettings, **kw):
+def sharedLibrary(env, name, sources, packagename, targetname, buildSettings, **kw):
     if buildSettings.get('lazylinking', False):
         env['_NONLAZYLINKFLAGS'] = ''
 
@@ -183,7 +179,7 @@ baseEnv['CONFIGURELOG'] = str(Dir(baseoutdir).File("config.log"))
 baseEnv['CONFIGUREDIR'] = str(Dir(baseoutdir).Dir(".sconf_temp"))
 baseEnv.AppendUnique(LIBPATH=[baseoutdir.Dir(baseEnv['LIBDIR']).Dir(baseEnv['VARIANTDIR'])])
 
-def CoastFindPackagesDict(directory, direxcludes=[]):
+def findPackages(directory, direxcludes=[]):
     packages = {}
     reLib = re.compile('^(.*)Lib.py$')
     followln = {}
@@ -212,7 +208,7 @@ def CoastFindPackagesDict(directory, direxcludes=[]):
                     print 'warning: SConscript not found in [%s]' % thePath
     return packages
 
-def CloneBaseEnv():
+def cloneBaseEnv():
     return baseEnv.Clone()
 
 def splitTargetname(fulltargetname):
@@ -293,7 +289,7 @@ if not baseEnv.GetOption('exclude') == None:
     direxcludes.extend(baseEnv.GetOption('exclude'))
 for varname in ['BINDIR', 'LIBDIR', 'LOGDIR', 'CONFIGDIR']:
     direxcludes.extend(baseEnv[varname])
-packages = CoastFindPackagesDict(Dir('#').path, direxcludes)
+packages = findPackages(Dir('#').path, direxcludes)
 programLookup = ProgramLookup(baseEnv, packages, baseoutdir, variant)
 
 def loadPackage(packagename):
@@ -302,52 +298,6 @@ def loadPackage(packagename):
     theModule = __import__(modname)
     sys.modules[modname] = theModule
     return theModule
-
-def setModuleDependencies(env, modules, **kw):
-    for fulltargetname in modules:
-        packagename, targetname = splitTargetname(fulltargetname)
-        theModule = loadPackage(packagename)
-        modDict = theModule.__dict__
-        ## support for old style module handling
-        if modDict.get('generate', None):
-            return theModule.generate(env, **kw)
-    
-        buildSettings = modDict.get('buildSettings', None)
-        if not buildSettings:
-            print 'Warning: buildSettings dictionary in module %s not defined!' % packagename
-            return None
-        # get default target name if not set already
-        if not targetname:
-            targetname = packagename
-        targets = programLookup.getPackageTarget(packagename, targetname)
-        ExternalDependencies(env, packagename, buildSettings.get(targetname, {}), plaintarget=targets['plaintarget'], **kw)
-
-def ExternalDependencies(env, packagename, buildSettings, plaintarget=None, **kw):
-    linkDependencies = buildSettings.get('linkDependencies', [])
-    if buildSettings.has_key('public'):
-        appendUnique = buildSettings['public'].get('appendUnique', {})
-        # flags / settings used by this library and users of it
-        env.AppendUnique(**appendUnique)
-
-        includeDir = env['BASEOUTDIR'].Dir(os.path.join(env['INCDIR'], packagename))
-        if not buildSettings['public'].get('includes', []):
-            packageDir = programLookup.getPackageDir(packagename)
-            includeDir = packageDir.Dir(buildSettings['public'].get('includeSubdir', ''))
-
-        env.AppendUnique(CPPPATH=[includeDir])
-
-    # this libraries dependencies
-    setModuleDependencies(env, linkDependencies)
-
-    if plaintarget:
-        # try block needed to block Alias only targets without concrete builder
-        try:
-            strTargetType = plaintarget.builder.get_name(plaintarget.env)
-            if strTargetType.find('Library') != -1:
-                tName = plaintarget.name
-                env.AppendUnique(LIBS=[tName])
-        except:
-            pass
 
 class TargetMaker:
     def __init__(self, packagename, tlist, programLookup):
@@ -407,11 +357,11 @@ class TargetMaker:
             func = getattr(targetEnv, targetBuildSettings.get('targetType', ''), None)
             if func:
                 kw = {}
-                kw['pkgname'] = pkgname
+                kw['packagename'] = pkgname
+                kw['targetname'] = name
                 kw['buildSettings'] = targetBuildSettings
                 sources = targetBuildSettings.get('sourceFiles', [])
                 targets = apply(func, [name, sources], kw)
-                import types
                 if isinstance(targets, types.TupleType):
                     plaintarget, target = targets
                 else:
@@ -420,9 +370,9 @@ class TargetMaker:
             if plaintarget:
                 targetEnv.Depends(plaintarget, self.programLookup.getPackageFile(pkgname))
             else:
-                # actually includeOnlyTarget is obsolete,
-                # but we still need a (dummy) targetType in build settings to get in here! 
-                plaintarget = target = targetEnv.Alias(pkgname+'.'+name, self.programLookup.getPackageFile(pkgname))                
+                # Actually includeOnlyTarget is obsolete, but we still need a (dummy) targetType in build settings to get in here!
+                # The following is a workaround, otherwise an alias won't get built in newer SCons versions (because it has depends but no sources)
+                plaintarget = target = targetEnv.Alias(pkgname+'.'+name, self.programLookup.getPackageFile(pkgname))
 
             reqTargets = targetBuildSettings.get('linkDependencies', []) + targetBuildSettings.get('requires', [])
             self.requireTargets(targetEnv, target, reqTargets)
@@ -441,16 +391,18 @@ class TargetMaker:
 
     def createTargetEnv(self, targetname, targetBuildSettings, envVars={}):
         # create environment for target
-        targetEnv = CloneBaseEnv()
+        targetEnv = cloneBaseEnv()
 
         # maybe we need to add this libraries local include path when building it (if different from .)
-        includeSubdir = targetBuildSettings.get('includeSubdir', '')
-        includePublicSubdir = targetBuildSettings.get('public', {}).get('includeSubdir', '')
-        targetEnv.AppendUnique(CPPPATH=[Dir(includeSubdir).srcnode(), Dir(includePublicSubdir).srcnode()])
+        includeSubdir = Dir(targetBuildSettings.get('includeSubdir', '')).srcnode()
+        includePublicSubdir = Dir(targetBuildSettings.get('public', {}).get('includeSubdir', '')).srcnode()
+        targetEnv.AppendUnique(CPPPATH=[includeSubdir, includePublicSubdir])
+        # just for info (p.e. scb-files)
+        targetEnv.AppendUnique(CPPPATH_ORIGIN=[includeSubdir, includePublicSubdir])
 
         # update environment by adding dependencies to used modules
         linkDependencies = targetBuildSettings.get('linkDependencies', [])
-        setModuleDependencies(targetEnv, linkDependencies)
+        self.setModuleDependencies(targetEnv, linkDependencies)
 
         # win32 specific define to export all symbols when creating a DLL
         newVars = targetBuildSettings.get('public', EnvVarDict())
@@ -461,11 +413,62 @@ class TargetMaker:
 
         return targetEnv
 
+    def setModuleDependencies(self, env, modules, **kw):
+        for fulltargetname in modules:
+            packagename, targetname = splitTargetname(fulltargetname)
+            theModule = loadPackage(packagename)
+            modDict = theModule.__dict__
+            ## support for old style module handling
+            if modDict.get('generate', None):
+                return theModule.generate(env, **kw)
+        
+            buildSettings = modDict.get('buildSettings', None)
+            if not buildSettings:
+                print 'Warning: buildSettings dictionary in module %s not defined!' % packagename
+                return None
+            # get default target name if not set already
+            if not targetname:
+                targetname = packagename
+            targets = self.programLookup.getPackageTarget(packagename, targetname)
+            self.setExternalDependencies(env, packagename, buildSettings.get(targetname, {}), plaintarget=targets['plaintarget'], **kw)
+    
+    def setExternalDependencies(self, env, packagename, buildSettings, plaintarget=None, **kw):
+        linkDependencies = buildSettings.get('linkDependencies', [])
+        if buildSettings.has_key('public'):
+            appendUnique = buildSettings['public'].get('appendUnique', {})
+            # flags / settings used by this library and users of it
+            env.AppendUnique(**appendUnique)
+    
+            destIncludeDir = env['BASEOUTDIR'].Dir(os.path.join(env['INCDIR'], packagename))
+            srcIncludeDir = self.programLookup.getPackageDir(packagename).Dir(buildSettings['public'].get('includeSubdir', ''))
+    
+            # destination dir if we have files to copy
+            if buildSettings['public'].get('includes', []):
+                env.AppendUnique(CPPPATH=[destIncludeDir])
+            else:
+                env.AppendUnique(CPPPATH=[srcIncludeDir])
+            
+            # just for info (p.e. scb-files)
+            env.AppendUnique(CPPPATH_ORIGIN=[srcIncludeDir])
+    
+        # this libraries dependencies
+        self.setModuleDependencies(env, linkDependencies)
+    
+        if plaintarget:
+            # try block needed to block Alias only targets without concrete builder
+            try:
+                strTargetType = plaintarget.builder.get_name(plaintarget.env)
+                if strTargetType.find('Library') != -1:
+                    tName = plaintarget.name
+                    env.AppendUnique(LIBS=[tName])
+            except:
+                pass
+
 def createTargets(packagename, buildSettings):
     tmk = TargetMaker(packagename, buildSettings, programLookup)
     tmk.createTargets()
     
-    doxyEnv = CloneBaseEnv()
+    doxyEnv = cloneBaseEnv()
     doxyTarget = doxyEnv.PackageDoxygen(programLookup, packagename)
     doxyEnv.Alias("doxygen", doxyTarget)
     # trigger for building doxygen is adding "doxygen" to BUILD_TARGETS (see below)
@@ -478,7 +481,7 @@ def writeSCB(packagename, buildSettings):
     for targetname, settings in buildSettings.items():
         target = programLookup.getPackageTarget(packagename, targetname)["plaintarget"]
         if target and target.has_builder():
-            for incpath in target.env["CPPPATH"]:
+            for incpath in target.env["CPPPATH_ORIGIN"]:
                 includeDirs.add(incpath.srcnode().abspath)
             for incpath in target.env["SYSINCLUDES"]:
                 sysIncludes.add(Dir(incpath).srcnode().abspath)
@@ -504,7 +507,7 @@ def writeSCB(packagename, buildSettings):
 baseEnv.lookup_list.append(programLookup.lookup)
 
 failedTargets = True
-for ftname in BUILD_TARGETS:
+for ftname in SCons.Script.BUILD_TARGETS:
     packagename, targetname = splitTargetname(ftname)
     print 'trying to find target [%s]' % ftname
     if programLookup.hasPackage(packagename):
@@ -521,15 +524,20 @@ if failedTargets:
         programLookup.lookup(tname)
 
 if GetOption("doxygen"):
-    BUILD_TARGETS.append("doxygen")
+    SCons.Script.BUILD_TARGETS.append("doxygen")
+if GetOption("run") or GetOption("run-force"):
+    for ftname in SCons.Script.COMMAND_LINE_TARGETS:
+        import RunBuilder
+        packagename, targetname = splitTargetname(ftname)
+        target = RunBuilder.getTarget(packagename, targetname)
+        SCons.Script.BUILD_TARGETS.append(target)
 
-print "BUILD_TARGETS is ", map(str, BUILD_TARGETS)
+print "BUILD_TARGETS is ", map(str, SCons.Script.BUILD_TARGETS)
 
 def print_build_failures():
-    from SCons.Script import GetBuildFailures
-    if GetBuildFailures():
+    if SCons.Script.GetBuildFailures():
         print "scons: printing failed nodes"
-        for bf in GetBuildFailures():
+        for bf in SCons.Script.GetBuildFailures():
             if str(bf.action) != "installFunc(target, source, env)":
                 print bf.node
         print "scons: done printing failed nodes"

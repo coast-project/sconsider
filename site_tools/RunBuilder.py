@@ -4,10 +4,26 @@ from SCons.Script import AddOption, GetOption
 import SCons.Action
 import SCons.Builder
 
+runtargets = {}
+def setTarget(packagename, targetname, target):
+    if SCons.Util.is_List(target) and len(target) > 0:
+        target = target[0]
+    runtargets.setdefault(packagename, {})[targetname] = target
+
+def getTarget(packagename, targetname):
+    return runtargets.get(packagename, {}).get(targetname, None)
+
 def run(cmd, **kw):
     """Run a Unix command and return the exit code."""
     args = cmd.split(' ')
     return subprocess.call(args, **kw)
+
+def emitPassedFile(target, source, env):
+    target = []
+    for src in source:
+        path, scriptname = os.path.split(src.abspath)
+        target.append(env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['LOGDIR']).Dir(env['VARIANTDIR']).File(scriptname+'.passed'))
+    return (target, source)
 
 def doTest(target, source, env):
     res = run(source[0].abspath + ' ' + env.get('runParams', ''))
@@ -28,15 +44,18 @@ def getRunParams(buildSettings, defaultRunParams):
         runParams = runConfig.get('runParams', defaultRunParams)
     return runParams
 
-def createTarget(env, builder, target, source, buildSettings, defaultRunParams):
-    if not SCons.Util.is_List(target):
-        target = [target]
-    if not SCons.Util.is_List(source):
-        source = [source]
+def createAutoTarget(env, source, packagename, targetname, buildSettings, **kw):
+    runConfig = buildSettings.get('runConfig', {})
+    if not runConfig:
+        return None
+    
+    factory = createRunTarget
+    if runConfig.get('type', 'run') == 'test':
+        factory = createTestTarget
 
-    return builder(target, source, runParams=getRunParams(buildSettings, defaultRunParams))
+    return factory(env, source, packagename, targetname, buildSettings, kw)
 
-def createTestTarget(env, source, buildSettings, defaultRunParams='-all'):
+def createTestTarget(env, source, packagename, targetname, buildSettings, defaultRunParams='-all'):
     """Creates a target which runs a target given in parameter 'source'. If ran successfully a
     file is generated (name given in parameter 'target') which indicates that this runner-target
     doesn't need to be executed unless the dependencies changed. Command line parameters could be
@@ -47,10 +66,13 @@ def createTestTarget(env, source, buildSettings, defaultRunParams='-all'):
     if not GetOption('run') and not GetOption('run-force'):
         return source
     
+    if not SCons.Util.is_List(source):
+        source = [source]
+    
     if GetOption('run-force'):
-        runner = createRunTarget(env, source, buildSettings, defaultRunParams)
+        runner = env.RunBuilder(['dummyfile'], source, runParams=getRunParams(buildSettings, defaultRunParams))
     else:
-        runner = createTarget(env, env.TestBuilder, [], source, buildSettings, defaultRunParams)
+        runner = env.TestBuilder([], source, runParams=getRunParams(buildSettings, defaultRunParams))
         
     runConfig = buildSettings.get('runConfig', {})
     setUp = runConfig.get('setUp', '')
@@ -61,23 +83,27 @@ def createTestTarget(env, source, buildSettings, defaultRunParams='-all'):
     if tearDown:
         env.AddPostAction(runner, tearDown)
 
+    env.Alias('test', runner)
+    env.Alias(packagename, runner)
+    
+    setTarget(packagename, targetname, runner)
     return runner
 
-def createRunTarget(env, source, buildSettings, defaultRunParams=''):
+def createRunTarget(env, source, packagename, targetname, buildSettings, defaultRunParams=''):
     """Creates a target which runs a target given in parameter 'source'. Command line parameters could be
     handed over by using --runparams="..." or by setting buildSettings['runConfig']['runParams']."""
-
+    
     if not GetOption('run') and not GetOption('run-force'):
         return source
+    
+    if not SCons.Util.is_List(source):
+        source = [source]
 
-    return createTarget(env, env.RunBuilder, 'dummyfile', source, buildSettings, defaultRunParams)
-
-def emitPassedFile(target, source, env):
-    target = []
-    for src in source:
-        path, scriptname = os.path.split(src.abspath)
-        target.append(env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['LOGDIR']).Dir(env['VARIANTDIR']).File(scriptname+'.passed'))
-    return (target, source)
+    runner = env.RunBuilder(['dummyfile'], source, runParams=getRunParams(buildSettings, defaultRunParams))
+    env.Alias(packagename, runner)
+    
+    setTarget(packagename, targetname, runner)
+    return runner
 
 def generate(env):
     try:
@@ -100,6 +126,7 @@ def generate(env):
     env.Append(BUILDERS={ 'RunBuilder' : RunBuilder })
     env.AddMethod(createTestTarget, "TestTarget")
     env.AddMethod(createRunTarget, "RunTarget")
+    env.AddMethod(createAutoTarget, "AutoRunTarget")
 
 def exists(env):
     return 1;
