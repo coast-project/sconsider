@@ -55,7 +55,7 @@ def programApp(env, name, sources, packagename, buildSettings, **kw):
 
     env.Alias('binaries', wrappers)
 
-    env.RunTarget(wrappers, packagename, targetname, buildSettings)
+    buildSettings.setdefault("runConfig", {}).setdefault("type", "run")
 
     return (plaintarget, wrappers)
 
@@ -70,7 +70,7 @@ def programTest(env, name, sources, packagename, targetname, buildSettings, **kw
     env.Tool('generateScript')
     wrappers = env.GenerateWrapperScript(instApps, GetOption('gdb'))
 
-    env.TestTarget(wrappers, packagename, targetname, buildSettings)
+    buildSettings.setdefault("runConfig", {}).setdefault("type", "test")
 
     return (plaintarget, wrappers)
 
@@ -93,7 +93,7 @@ def appTest(env, name, sources, packagename, targetname, buildSettings, **kw):
     env.Tool('generateScript')
     wrappers = env.GenerateWrapperScript(instApps, GetOption('gdb'))
 
-    env.TestTarget(wrappers, packagename, targetname, buildSettings)
+    buildSettings.setdefault("runConfig", {}).setdefault("type", "test")
 
     return (plaintarget, wrappers)
 
@@ -395,6 +395,8 @@ class TargetMaker:
                         
             targetEnv.Alias(pkgname, target)
             targetEnv.Alias('all', target)
+            
+            runCallback("PostCreateTarget", env=targetEnv, target=target, packagename=pkgname, targetname=name, buildSettings=targetBuildSettings)
 
         self.programLookup.setPackageTarget(pkgname, name, plaintarget, target)
 

@@ -44,17 +44,6 @@ def getRunParams(buildSettings, defaultRunParams):
         runParams = runConfig.get('runParams', defaultRunParams)
     return runParams
 
-def createAutoTarget(env, source, packagename, targetname, buildSettings, **kw):
-    runConfig = buildSettings.get('runConfig', {})
-    if not runConfig:
-        return None
-    
-    factory = createRunTarget
-    if runConfig.get('type', 'run') == 'test':
-        factory = createTestTarget
-
-    return factory(env, source, packagename, targetname, buildSettings, kw)
-
 def createTestTarget(env, source, packagename, targetname, buildSettings, defaultRunParams='-all'):
     """Creates a target which runs a target given in parameter 'source'. If ran successfully a
     file is generated (name given in parameter 'target') which indicates that this runner-target
@@ -126,14 +115,24 @@ def generate(env):
     env.Append(BUILDERS={ 'RunBuilder' : RunBuilder })
     env.AddMethod(createTestTarget, "TestTarget")
     env.AddMethod(createRunTarget, "RunTarget")
-    env.AddMethod(createAutoTarget, "AutoRunTarget")
+
+    def createTargetCallback(env, target, packagename, targetname, buildSettings, **kw):
+        runConfig = buildSettings.get('runConfig', {})
+        if not runConfig:
+            return None
+        factory = createRunTarget
+        if runConfig.get('type', 'run') == 'test':
+            factory = createTestTarget
+        factory(env, target, packagename, targetname, buildSettings, **kw)
+    StanfordUtils.registerCallback("PostCreateTarget", createTargetCallback)
     
     def addBuildTargetCallback(**kw):
         if GetOption("run") or GetOption("run-force"):
             for ftname in SCons.Script.COMMAND_LINE_TARGETS:
                 packagename, targetname = StanfordUtils.splitTargetname(ftname)
                 target = getTarget(packagename, targetname)
-                SCons.Script.BUILD_TARGETS.append(target)
+                if target:
+                    SCons.Script.BUILD_TARGETS.append(target)
     StanfordUtils.registerCallback("PreBuild", addBuildTargetCallback)
 
 def exists(env):
