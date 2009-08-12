@@ -1,8 +1,8 @@
 from __future__ import with_statement
 import os, pdb, subprocess, optparse
+import SCons.Action, SCons.Builder, SCons.Script
 from SCons.Script import AddOption, GetOption
-import SCons.Action
-import SCons.Builder
+import StanfordUtils
 
 runtargets = {}
 def setTarget(packagename, targetname, target):
@@ -127,6 +127,14 @@ def generate(env):
     env.AddMethod(createTestTarget, "TestTarget")
     env.AddMethod(createRunTarget, "RunTarget")
     env.AddMethod(createAutoTarget, "AutoRunTarget")
+    
+    def addBuildTargetCallback(**kw):
+        if GetOption("run") or GetOption("run-force"):
+            for ftname in SCons.Script.COMMAND_LINE_TARGETS:
+                packagename, targetname = StanfordUtils.splitTargetname(ftname)
+                target = getTarget(packagename, targetname)
+                SCons.Script.BUILD_TARGETS.append(target)
+    StanfordUtils.registerCallback("PreBuild", addBuildTargetCallback)
 
 def exists(env):
     return 1;

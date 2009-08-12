@@ -481,6 +481,18 @@ def generate(env):
     env.Append(BUILDERS={ 'DoxygenBuilder' : doxygenBuilder })
     env.Append(BUILDERS={ 'DoxyfileBuilder' : doxyfileBuilder })
     env.AddMethod(createDoxygenTarget, "PackageDoxygen")
+    
+    def createTargetCallback(registry, packagename, **kw):
+        doxyEnv = StanfordUtils.cloneBaseEnv()
+        doxyTarget = doxyEnv.PackageDoxygen(registry, packagename)
+        doxyEnv.Alias("doxygen", doxyTarget)
+    StanfordUtils.registerCallback("PostCreatePackageTargets", createTargetCallback)
+    
+    def addBuildTargetCallback(**kw):
+        if GetOption("doxygen"):
+            SCons.Script.BUILD_TARGETS.append("doxygen")
+    StanfordUtils.registerCallback("PreBuild", addBuildTargetCallback)
+    
 
 def exists(env):
    """

@@ -12,6 +12,15 @@ SCons.Script.EnsureSConsVersion(1, 2, 0)
 # but it was build and tested against Python 2.5
 SCons.Script.EnsurePythonVersion(2, 5)
 
+callbacks = {}
+def registerCallback(name, func, **kw):
+    callbacks.setdefault(name, []).append((func, kw))
+    
+def runCallback(name, **overrides):
+    for func, kw in callbacks.get(name, []):
+        kw.update(overrides)
+        func(**kw)
+
 if False:
     print "platform.dist:", platform.dist()
     print "platform.arch:", platform.architecture()
@@ -46,7 +55,7 @@ def programApp(env, name, sources, packagename, buildSettings, **kw):
 
     env.Alias('binaries', wrappers)
 
-    target = env.RunTarget(wrappers, packagename, targetname, buildSettings)
+    env.RunTarget(wrappers, packagename, targetname, buildSettings)
 
     return (plaintarget, wrappers)
 
@@ -61,7 +70,7 @@ def programTest(env, name, sources, packagename, targetname, buildSettings, **kw
     env.Tool('generateScript')
     wrappers = env.GenerateWrapperScript(instApps, GetOption('gdb'))
 
-    target = env.TestTarget(wrappers, packagename, targetname, buildSettings)
+    env.TestTarget(wrappers, packagename, targetname, buildSettings)
 
     return (plaintarget, wrappers)
 
@@ -84,7 +93,7 @@ def appTest(env, name, sources, packagename, targetname, buildSettings, **kw):
     env.Tool('generateScript')
     wrappers = env.GenerateWrapperScript(instApps, GetOption('gdb'))
 
-    target = env.TestTarget(wrappers, packagename, targetname, buildSettings)
+    env.TestTarget(wrappers, packagename, targetname, buildSettings)
 
     return (plaintarget, wrappers)
 
@@ -113,7 +122,7 @@ if GetOption('appendPath'):
     dEnv.AppendENVPath('PATH', GetOption('appendPath'))
     print 'appended path is [%s]' % dEnv['ENV']['PATH']
 
-globaltools = ["setupBuildTools", "coast_options",
+globaltools = ["setupBuildTools", "coast_options", "SCBWriter",
                "precompiledLibraryInstallBuilder", "RunBuilder", "DoxygenBuilder"]
 usetools = globaltools + GetOption('usetools')
 print 'tools to use %s' % Flatten(usetools)
@@ -468,41 +477,7 @@ def createTargets(packagename, buildSettings):
     tmk = TargetMaker(packagename, buildSettings, programLookup)
     tmk.createTargets()
     
-    doxyEnv = cloneBaseEnv()
-    doxyTarget = doxyEnv.PackageDoxygen(programLookup, packagename)
-    doxyEnv.Alias("doxygen", doxyTarget)
-    # trigger for building doxygen is adding "doxygen" to BUILD_TARGETS (see below)
-    
-    writeSCB(packagename, buildSettings)
-
-def writeSCB(packagename, buildSettings):
-    includeDirs = set()
-    sysIncludes = set()
-    for targetname, settings in buildSettings.items():
-        target = programLookup.getPackageTarget(packagename, targetname)["plaintarget"]
-        if target and target.has_builder():
-            for incpath in target.env["CPPPATH_ORIGIN"]:
-                includeDirs.add(incpath.srcnode().abspath)
-            for incpath in target.env["SYSINCLUDES"]:
-                sysIncludes.add(Dir(incpath).srcnode().abspath)
-            
-    inclLists = []
-    inclLists.extend(sorted(includeDirs))
-    inclLists.extend(sorted(sysIncludes))
-    
-    fname = os.path.join(Dir('.').srcnode().abspath, '.scb')
-    fstr = ""
-    if os.path.isfile(fname):
-        with open(fname, 'r') as of:
-            fstr = of.read()
-
-    pathstring = ""
-    for x in inclLists:
-        if not re.compile('CPPPATH.*' + re.escape(x)).search(fstr):
-            pathstring += "CPPPATH appendunique " + x + "\n"
-    if pathstring:
-        with open(fname, 'a+') as of:
-            of.write(pathstring)
+    runCallback("PostCreatePackageTargets", registry=programLookup, packagename=packagename, buildSettings=buildSettings)
 
 baseEnv.lookup_list.append(programLookup.lookup)
 
@@ -523,14 +498,7 @@ if failedTargets:
     for tname in packages:
         programLookup.lookup(tname)
 
-if GetOption("doxygen"):
-    SCons.Script.BUILD_TARGETS.append("doxygen")
-if GetOption("run") or GetOption("run-force"):
-    for ftname in SCons.Script.COMMAND_LINE_TARGETS:
-        import RunBuilder
-        packagename, targetname = splitTargetname(ftname)
-        target = RunBuilder.getTarget(packagename, targetname)
-        SCons.Script.BUILD_TARGETS.append(target)
+runCallback("PreBuild")
 
 print "BUILD_TARGETS is ", map(str, SCons.Script.BUILD_TARGETS)
 
