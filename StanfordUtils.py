@@ -122,7 +122,7 @@ if GetOption('appendPath'):
     dEnv.AppendENVPath('PATH', GetOption('appendPath'))
     print 'appended path is [%s]' % dEnv['ENV']['PATH']
 
-globaltools = ["setupBuildTools", "coast_options", "SCBWriter",
+globaltools = ["setupBuildTools", "coast_options", "SCBWriter", "TargetPrinter",
                "precompiledLibraryInstallBuilder", "RunBuilder", "DoxygenBuilder"]
 usetools = globaltools + GetOption('usetools')
 print 'tools to use %s' % Flatten(usetools)
@@ -268,7 +268,7 @@ class ProgramLookup:
         return self.packages[packagename].get('packagefile', '')
 
     def getPackageTargetNames(self, packagename):
-        return self.packages[packagename].get('targets', []).keys()
+        return self.packages[packagename].get('targets', {}).keys()
 
     def getBuildSettings(self, packagename):
         theModule = loadPackage(packagename)
@@ -500,7 +500,7 @@ if failedTargets:
     for tname in packages:
         programLookup.lookup(tname)
 
-runCallback("PreBuild")
+runCallback("PreBuild", registry=programLookup)
 
 print "BUILD_TARGETS is ", map(str, SCons.Script.BUILD_TARGETS)
 

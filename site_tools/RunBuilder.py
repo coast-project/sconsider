@@ -124,16 +124,17 @@ def generate(env):
         if runConfig.get('type', 'run') == 'test':
             factory = createTestTarget
         factory(env, target, packagename, targetname, buildSettings, **kw)
-    StanfordUtils.registerCallback("PostCreateTarget", createTargetCallback)
     
     def addBuildTargetCallback(**kw):
-        if GetOption("run") or GetOption("run-force"):
-            for ftname in SCons.Script.COMMAND_LINE_TARGETS:
-                packagename, targetname = StanfordUtils.splitTargetname(ftname)
-                target = getTarget(packagename, targetname)
-                if target:
-                    SCons.Script.BUILD_TARGETS.append(target)
-    StanfordUtils.registerCallback("PreBuild", addBuildTargetCallback)
+        for ftname in SCons.Script.COMMAND_LINE_TARGETS:
+            packagename, targetname = StanfordUtils.splitTargetname(ftname)
+            target = getTarget(packagename, targetname)
+            if target:
+                SCons.Script.BUILD_TARGETS.append(target)
+    
+    if GetOption("run") or GetOption("run-force"):            
+        StanfordUtils.registerCallback("PostCreateTarget", createTargetCallback)
+        StanfordUtils.registerCallback("PreBuild", addBuildTargetCallback)
 
 def exists(env):
     return 1;

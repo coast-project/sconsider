@@ -486,13 +486,14 @@ def generate(env):
         doxyEnv = StanfordUtils.cloneBaseEnv()
         doxyTarget = doxyEnv.PackageDoxygen(registry, packagename)
         doxyEnv.Alias("doxygen", doxyTarget)
-    StanfordUtils.registerCallback("PostCreatePackageTargets", createTargetCallback)
     
     def addBuildTargetCallback(**kw):
         if GetOption("doxygen"):
             SCons.Script.BUILD_TARGETS.append("doxygen")
-    StanfordUtils.registerCallback("PreBuild", addBuildTargetCallback)
     
+    if GetOption("doxygen"):
+        StanfordUtils.registerCallback("PostCreatePackageTargets", createTargetCallback)
+        StanfordUtils.registerCallback("PreBuild", addBuildTargetCallback)
 
 def exists(env):
    """
