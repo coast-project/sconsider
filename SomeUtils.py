@@ -119,7 +119,6 @@ def copyFileNodes(env, nodes, destDir, baseDir=None, stripRelDirs=[], mode=None)
             installRelPath = os.sep.join(relPathParts[len(delprefix):])
         
         instTarg = env.Install(destDir.Dir(installRelPath), file)
-        env.Clean(instTarg, destDir)
         if mode:
             env.AddPostAction(instTarg, SCons.Defaults.Chmod(str(instTarg[0]), mode))
         instTargs.extend(instTarg)
