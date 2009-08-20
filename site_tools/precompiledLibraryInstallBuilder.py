@@ -9,8 +9,9 @@ def findPlatformTargets(env, basedir, targetname, prefixes=[], suffixes=[]):
         if libRE:
             libRE += '|'
         libRE += re.escape(env.subst(pre))
-    libRE = '(' + libRE + ')' + targetname
-    libRE += '[^.]*'
+    libRE = '(' + libRE + ')'
+    # probably there are files like 'targetname64' or 'targetname_r': 
+    libRE += '(' + targetname + '[^.]*)'
     libSFX = ''
     for suf in suffixes:
         if libSFX:
@@ -20,7 +21,6 @@ def findPlatformTargets(env, basedir, targetname, prefixes=[], suffixes=[]):
     reLibname = re.compile(libRE)
     osStringSep = '[_-]'
     if env['PLATFORM'] == "cygwin":
-        pdb.set_trace()
         variantdir = 'Win_i386'
         osver = tuple([int(x) for x in platform.system().split('-')[1].split('.')])
 #        dirRE = platform.system() + osStringSep + '([0-9](\.[0-9])*)'
@@ -55,9 +55,10 @@ def findPlatformTargets(env, basedir, targetname, prefixes=[], suffixes=[]):
                                   'bits':bits,
                                   'file':libMatch.group(0),
                                   'path':dirpath,
-                                  'linkfile':libMatch.group(0).replace(libMatch.group(3), ''),
-                                  'suffix':libMatch.group(2),
-                                  'libVersion':libMatch.group(3),
+                                  'linkfile':libMatch.group(0).replace(libMatch.group(4), ''),
+                                  'filewoext':libMatch.group(2),
+                                  'suffix':libMatch.group(3),
+                                  'libVersion':libMatch.group(4),
                                   })
     # find best matching library
     # dirmatch: (xxver[1]:'2.9', xxx[2]:'.9', arch-bits[3]:'i686-32')
@@ -74,6 +75,8 @@ def findPlatformTargets(env, basedir, targetname, prefixes=[], suffixes=[]):
             osvermatch = entry['osver']
             break
     files = [entry for entry in files if entry['osver'] == osvermatch]
+    # shorter names are sorted first to prefer libtargetname.so over libtargetname64.so
+    files.sort(cmp=lambda l, r: cmp(len(l['filewoext']), len(r['filewoext'])))
     return files
 
 def findLibrary(env, basedir, libname):
