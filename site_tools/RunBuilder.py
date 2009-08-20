@@ -72,8 +72,9 @@ def createTestTarget(env, source, packagename, targetname, buildSettings, defaul
     if tearDown:
         env.AddPostAction(runner, tearDown)
 
-    env.Alias('test', runner)
+    env.Alias('tests', runner)
     env.Alias(packagename, runner)
+    env.Alias('all', runner)
     
     setTarget(packagename, targetname, runner)
     return runner
@@ -90,6 +91,7 @@ def createRunTarget(env, source, packagename, targetname, buildSettings, default
 
     runner = env.RunBuilder(['dummyfile'], source, runParams=getRunParams(buildSettings, defaultRunParams))
     env.Alias(packagename, runner)
+    env.Alias('all', runner)
     
     setTarget(packagename, targetname, runner)
     return runner
