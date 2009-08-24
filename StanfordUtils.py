@@ -12,14 +12,13 @@ SCons.Script.EnsureSConsVersion(1, 2, 0)
 # but it was build and tested against Python 2.5
 SCons.Script.EnsurePythonVersion(2, 5)
 
-callbacks = {}
+import Callback
+callback = Callback.Callback()
 def registerCallback(name, func, **kw):
-    callbacks.setdefault(name, []).append((func, kw))
-
+    callback.register(name, func, **kw)
+    
 def runCallback(name, **overrides):
-    for func, kw in callbacks.get(name, []):
-        kw.update(overrides)
-        func(**kw)
+    callback.call(name, **overrides)
 
 if False:
     print "platform.dist:", platform.dist()
