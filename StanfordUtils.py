@@ -13,12 +13,7 @@ SCons.Script.EnsureSConsVersion(1, 2, 0)
 SCons.Script.EnsurePythonVersion(2, 5)
 
 import Callback
-callback = Callback.Callback()
-def registerCallback(name, func, **kw):
-    callback.register(name, func, **kw)
-    
-def runCallback(name, **overrides):
-    callback.call(name, **overrides)
+Callback.addCallbackFeature(__name__)
 
 if False:
     print "platform.dist:", platform.dist()
