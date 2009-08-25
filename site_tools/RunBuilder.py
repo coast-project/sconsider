@@ -1,8 +1,10 @@
 from __future__ import with_statement
-import os, pdb, subprocess, optparse
+import os, pdb, subprocess, optparse, sys
 import SCons.Action, SCons.Builder, SCons.Script
 from SCons.Script import AddOption, GetOption
 import StanfordUtils
+import Callback
+Callback.addCallbackFeature(__name__)
 
 runtargets = {}
 def setTarget(packagename, targetname, target):
@@ -13,10 +15,27 @@ def setTarget(packagename, targetname, target):
 def getTarget(packagename, targetname):
     return runtargets.get(packagename, {}).get(targetname, None)
 
-def run(cmd, **kw):
+def run(cmd, logfile=None, **kw):
     """Run a Unix command and return the exit code."""
     args = cmd.split(' ')
-    return subprocess.call(args, **kw)
+    if logfile:
+        if not os.path.isdir(logfile.dir.abspath):
+            os.makedirs(logfile.dir.abspath)
+        log = open(logfile.abspath, 'w')
+    proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **kw)
+    while True:
+        out = proc.stdout.readline()
+        if out == '' and proc.poll() != None:
+            break
+        sys.stdout.write(out)
+        sys.stdout.flush()
+        if log:
+            log.write(out)
+
+    if log:
+        log.close()
+
+    return proc.returncode
 
 def emitPassedFile(target, source, env):
     target = []
@@ -26,14 +45,14 @@ def emitPassedFile(target, source, env):
     return (target, source)
 
 def doTest(target, source, env):
-    res = run(source[0].abspath + ' ' + env.get('runParams', ''))
+    res = run(source[0].abspath + ' ' + env.get('runParams', ''), logfile=env.get('logfile', None))
     if res == 0:
         with open(target[0].abspath, 'w') as file:
             file.write("PASSED\n")
     return res
 
 def doRun(target, source, env):
-    res = run(source[0].abspath + ' ' + env.get('runParams', ''))
+    res = run(source[0].abspath + ' ' + env.get('runParams', ''), logfile=env.get('logfile', None))
     return res
 
 def getRunParams(buildSettings, defaultRunParams):
@@ -58,11 +77,12 @@ def createTestTarget(env, source, packagename, targetname, buildSettings, defaul
     if not SCons.Util.is_List(source):
         source = [source]
     
+    logfile = env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['LOGDIR']).Dir(env['VARIANTDIR']).File(targetname+'.test.log')
     if GetOption('run-force'):
-        runner = env.RunBuilder(['dummyfile'], source, runParams=getRunParams(buildSettings, defaultRunParams))
+        runner = env.RunBuilder(['dummyfile'], source, runParams=getRunParams(buildSettings, defaultRunParams), logfile=logfile)
     else:
-        runner = env.TestBuilder([], source, runParams=getRunParams(buildSettings, defaultRunParams))
-        
+        runner = env.TestBuilder([], source, runParams=getRunParams(buildSettings, defaultRunParams), logfile=logfile)
+
     runConfig = buildSettings.get('runConfig', {})
     setUp = runConfig.get('setUp', '')
     tearDown = runConfig.get('tearDown', '')
@@ -89,7 +109,8 @@ def createRunTarget(env, source, packagename, targetname, buildSettings, default
     if not SCons.Util.is_List(source):
         source = [source]
 
-    runner = env.RunBuilder(['dummyfile'], source, runParams=getRunParams(buildSettings, defaultRunParams))
+    logfile = env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['LOGDIR']).Dir(env['VARIANTDIR']).File(targetname+'.run.log')
+    runner = env.RunBuilder(['dummyfile'], source, runParams=getRunParams(buildSettings, defaultRunParams), logfile=logfile)
     env.Alias(packagename, runner)
     env.Alias('all', runner)
     
