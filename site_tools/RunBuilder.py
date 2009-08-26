@@ -15,25 +15,39 @@ def setTarget(packagename, targetname, target):
 def getTarget(packagename, targetname):
     return runtargets.get(packagename, {}).get(targetname, None)
 
+class Tee:
+    def __init__(self):
+        self.writers = []
+    def add(self, writer, flush=False, close=True):
+        self.writers.append((writer, flush, close))
+    def write(self, output):
+        for writer, flush, close in self.writers:
+            writer.write(output)
+            if flush:
+                writer.flush()
+    def close(self):
+        for writer, flush, close in self.writers:
+            if close:
+                writer.close()
+            
 def run(cmd, logfile=None, **kw):
     """Run a Unix command and return the exit code."""
     args = cmd.split(' ')
-    if logfile:
-        if not os.path.isdir(logfile.dir.abspath):
-            os.makedirs(logfile.dir.abspath)
-        log = open(logfile.abspath, 'w')
-    proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **kw)
-    while True:
-        out = proc.stdout.readline()
-        if out == '' and proc.poll() != None:
-            break
-        sys.stdout.write(out)
-        sys.stdout.flush()
-        if log:
-            log.write(out)
-
-    if log:
-        log.close()
+    tee = Tee()
+    tee.add(sys.stdout, flush=True, close=False)
+    try:
+        if logfile:
+            if not os.path.isdir(logfile.dir.abspath):
+                os.makedirs(logfile.dir.abspath)
+            tee.add(open(logfile.abspath, 'w'))
+        proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **kw)
+        while True:
+            out = proc.stdout.readline()
+            if out == '' and proc.poll() != None:
+                break
+            tee.write(out)
+    finally:
+        tee.close()
 
     return proc.returncode
 
