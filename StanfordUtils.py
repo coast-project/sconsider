@@ -15,7 +15,7 @@ SCons.Script.EnsurePythonVersion(2, 5)
 callbacks = {}
 def registerCallback(name, func, **kw):
     callbacks.setdefault(name, []).append((func, kw))
-    
+
 def runCallback(name, **overrides):
     for func, kw in callbacks.get(name, []):
         kw.update(overrides)
@@ -263,7 +263,7 @@ class ProgramLookup:
 
     def getPackageDir(self, packagename):
         return self.packages[packagename].get('packagepath', '')
-    
+
     def getPackageFile(self, packagename):
         return self.packages[packagename].get('packagefile', '')
 
@@ -340,15 +340,15 @@ class TargetMaker:
             pkgdir = self.programLookup.getPackageDir(pkgname)
             includeSubdir = buildSettings['public'].get('includeSubdir', '')
             mode = stat.S_IREAD | stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
-            instTargets = copyFileNodes(env, ifiles, destdir, baseDir=pkgdir, stripRelDirs=includeSubdir, mode=mode)                
+            instTargets = copyFileNodes(env, ifiles, destdir, baseDir=pkgdir, stripRelDirs=includeSubdir, mode=mode)
         return instTargets
 
     def copyConfigFiles(self, env, destdir, buildSettings, target):
         instTargets = []
-        if buildSettings.has_key('configFiles'):
-            cfiles = buildSettings.get('configFiles')
-            mode = stat.S_IREAD | stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
-            instTargets = copyFileNodes(env, cfiles, destdir, mode=mode)
+        if buildSettings.has_key('copyFiles'):
+            listOfFileTuples = buildSettings.get('copyFiles')
+            for (cfiles, mode) in listOfFileTuples:
+                instTargets.append( copyFileNodes(env, cfiles, destdir, mode=mode) )
         return instTargets
 
     def requireTargets(self, env, target, requiredTargets, **kw):
@@ -385,19 +385,19 @@ class TargetMaker:
 
             reqTargets = targetBuildSettings.get('linkDependencies', []) + targetBuildSettings.get('requires', [])
             self.requireTargets(targetEnv, target, reqTargets)
-            
+
             includeTargets = self.copyIncludeFiles(targetEnv, pkgname, targetBuildSettings)
             targetEnv.Depends(target, includeTargets)
             targetEnv.Alias('includes', includeTargets)
 
             configTargets = self.copyConfigFiles(targetEnv, targetEnv['BASEOUTDIR'].Dir(targetEnv['RELTARGETDIR']), targetBuildSettings, target)
             targetEnv.Depends(target, configTargets)
-                        
+
             targetEnv.Alias(pkgname, target)
             targetEnv.Alias('all', target)
             if targetBuildSettings.get('runConfig', {}).get('type', '') == 'test':
                 targetEnv.Alias('tests', target)
-            
+
             runCallback("PostCreateTarget", env=targetEnv, target=target, packagename=pkgname, targetname=name, buildSettings=targetBuildSettings)
 
         self.programLookup.setPackageTarget(pkgname, name, plaintarget, target)
@@ -434,7 +434,7 @@ class TargetMaker:
             ## support for old style module handling
             if modDict.get('generate', None):
                 return theModule.generate(env, **kw)
-        
+
             buildSettings = modDict.get('buildSettings', None)
             if not buildSettings:
                 print 'Warning: buildSettings dictionary in module %s not defined!' % packagename
@@ -444,29 +444,29 @@ class TargetMaker:
                 targetname = packagename
             targets = self.programLookup.getPackageTarget(packagename, targetname)
             self.setExternalDependencies(env, packagename, buildSettings.get(targetname, {}), plaintarget=targets['plaintarget'], **kw)
-    
+
     def setExternalDependencies(self, env, packagename, buildSettings, plaintarget=None, **kw):
         linkDependencies = buildSettings.get('linkDependencies', [])
         if buildSettings.has_key('public'):
             appendUnique = buildSettings['public'].get('appendUnique', {})
             # flags / settings used by this library and users of it
             env.AppendUnique(**appendUnique)
-    
+
             destIncludeDir = env['BASEOUTDIR'].Dir(os.path.join(env['INCDIR'], packagename))
             srcIncludeDir = self.programLookup.getPackageDir(packagename).Dir(buildSettings['public'].get('includeSubdir', ''))
-    
+
             # destination dir if we have files to copy
             if buildSettings['public'].get('includes', []):
                 env.AppendUnique(CPPPATH=[destIncludeDir])
             else:
                 env.AppendUnique(CPPPATH=[srcIncludeDir])
-            
+
             # just for info (p.e. scb-files)
             env.AppendUnique(CPPPATH_ORIGIN=[srcIncludeDir])
-    
+
         # this libraries dependencies
         self.setModuleDependencies(env, linkDependencies)
-    
+
         if plaintarget:
             # try block needed to block Alias only targets without concrete builder
             try:
@@ -480,7 +480,7 @@ class TargetMaker:
 def createTargets(packagename, buildSettings):
     tmk = TargetMaker(packagename, buildSettings, programLookup)
     tmk.createTargets()
-    
+
     runCallback("PostCreatePackageTargets", registry=programLookup, packagename=packagename, buildSettings=buildSettings)
 
 baseEnv.lookup_list.append(programLookup.lookup)
