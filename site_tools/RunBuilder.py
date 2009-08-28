@@ -15,7 +15,7 @@ def setTarget(packagename, targetname, target):
 def getTarget(packagename, targetname):
     return runtargets.get(packagename, {}).get(targetname, None)
 
-class Tee:
+class Tee(object):
     def __init__(self):
         self.writers = []
     def add(self, writer, flush=False, close=True):
@@ -63,10 +63,12 @@ def doTest(target, source, env):
     if res == 0:
         with open(target[0].abspath, 'w') as file:
             file.write("PASSED\n")
+    runCallback('__PostTestOrRun')
     return res
 
 def doRun(target, source, env):
     res = run(source[0].abspath + ' ' + env.get('runParams', ''), logfile=env.get('logfile', None))
+    runCallback('__PostTestOrRun')
     return res
 
 def getRunParams(buildSettings, defaultRunParams):
@@ -77,7 +79,7 @@ def getRunParams(buildSettings, defaultRunParams):
         runParams = runConfig.get('runParams', defaultRunParams)
     return runParams
 
-def createTestTarget(env, source, packagename, targetname, buildSettings, defaultRunParams='-all'):
+def createTestTarget(env, source, registry, packagename, targetname, buildSettings, defaultRunParams='-all'):
     """Creates a target which runs a target given in parameter 'source'. If ran successfully a
     file is generated (name given in parameter 'target') which indicates that this runner-target
     doesn't need to be executed unless the dependencies changed. Command line parameters could be
@@ -106,6 +108,8 @@ def createTestTarget(env, source, packagename, targetname, buildSettings, defaul
     if tearDown:
         env.AddPostAction(runner, tearDown)
 
+    registerCallback('__PostTestOrRun', lambda: runCallback('PostTest', target=source, registry=registry, packagename=packagename, targetname=targetname, logfile=logfile))
+
     env.Alias('tests', runner)
     env.Alias(packagename, runner)
     env.Alias('all', runner)
@@ -113,7 +117,7 @@ def createTestTarget(env, source, packagename, targetname, buildSettings, defaul
     setTarget(packagename, targetname, runner)
     return runner
 
-def createRunTarget(env, source, packagename, targetname, buildSettings, defaultRunParams=''):
+def createRunTarget(env, source, registry, packagename, targetname, buildSettings, defaultRunParams=''):
     """Creates a target which runs a target given in parameter 'source'. Command line parameters could be
     handed over by using --runparams="..." or by setting buildSettings['runConfig']['runParams']."""
     
@@ -125,6 +129,9 @@ def createRunTarget(env, source, packagename, targetname, buildSettings, default
 
     logfile = env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['LOGDIR']).Dir(env['VARIANTDIR']).File(targetname+'.run.log')
     runner = env.RunBuilder(['dummyfile'], source, runParams=getRunParams(buildSettings, defaultRunParams), logfile=logfile)
+    
+    registerCallback('__PostTestOrRun', lambda: runCallback('PostRun', target=source, registry=registry, packagename=packagename, targetname=targetname, logfile=logfile))
+    
     env.Alias(packagename, runner)
     env.Alias('all', runner)
     
@@ -153,14 +160,14 @@ def generate(env):
     env.AddMethod(createTestTarget, "TestTarget")
     env.AddMethod(createRunTarget, "RunTarget")
 
-    def createTargetCallback(env, target, packagename, targetname, buildSettings, **kw):
+    def createTargetCallback(env, target, registry, packagename, targetname, buildSettings, **kw):
         runConfig = buildSettings.get('runConfig', {})
         if not runConfig:
             return None
         factory = createRunTarget
         if runConfig.get('type', 'run') == 'test':
             factory = createTestTarget
-        factory(env, target, packagename, targetname, buildSettings, **kw)
+        factory(env, target, registry, packagename, targetname, buildSettings, **kw)
     
     def addBuildTargetCallback(**kw):
         for ftname in SCons.Script.COMMAND_LINE_TARGETS:
@@ -169,7 +176,7 @@ def generate(env):
             if target:
                 SCons.Script.BUILD_TARGETS.append(target)
     
-    if GetOption("run") or GetOption("run-force"):            
+    if GetOption("run") or GetOption("run-force"):
         StanfordUtils.registerCallback("PostCreateTarget", createTargetCallback)
         StanfordUtils.registerCallback("PreBuild", addBuildTargetCallback)
 

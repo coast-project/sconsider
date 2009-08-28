@@ -391,8 +391,8 @@ class TargetMaker:
             targetEnv.Alias('all', target)
             if targetBuildSettings.get('runConfig', {}).get('type', '') == 'test':
                 targetEnv.Alias('tests', target)
-
-            runCallback("PostCreateTarget", env=targetEnv, target=target, packagename=pkgname, targetname=name, buildSettings=targetBuildSettings)
+            
+            runCallback("PostCreateTarget", env=targetEnv, target=target, registry=self.programLookup, packagename=pkgname, targetname=name, buildSettings=targetBuildSettings)
 
         self.programLookup.setPackageTarget(pkgname, name, plaintarget, target)
 

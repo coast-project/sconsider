@@ -1,4 +1,4 @@
-class Callback:
+class Callback(object):
     def __init__(self):
         self.callbacks = {}
 
