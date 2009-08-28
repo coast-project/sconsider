@@ -34,6 +34,7 @@ import sys, os
 import SCons.Util
 import SCons.Tool
 import SomeUtils
+import setupBuildTools
 
 def FileNodeComparer(left, right):
     """Specialized implementation of file node sorting
@@ -64,13 +65,39 @@ def sun_smart_link(source, target, env, for_signature):
 def generate(env):
     """Add Builders and construction variables for sun compilers to an Environment."""
     defaulttoolpath = SCons.Tool.DefaultToolpath
-    SCons.Tool.DefaultToolpath = []
-    # load default sunlink tool and extend afterwards
-    env.Tool('sunlink')
-    SCons.Tool.DefaultToolpath = defaulttoolpath
+    try:
+        SCons.Tool.DefaultToolpath = []
+        # load default sunlink tool and extend afterwards
+        env.Tool('sunlink')
+    finally:
+        SCons.Tool.DefaultToolpath = defaulttoolpath
 
     env['SMARTLINK'] = sun_smart_link
     env['LINK'] = "$SMARTLINK"
+
+    platf = env['PLATFORM']
+
+    setupBuildTools.registerCallback('MT_OPTIONS', lambda env: env.AppendUnique(LINKFLAGS='-mt') )
+    # do not use rpath
+    setupBuildTools.registerCallback('RPATH_OPTIONS', lambda env: env.AppendUnique(LINKFLAGS='-norunpath') )
+    setupBuildTools.registerCallback('LINKLIBS', lambda env: env.AppendUnique(LIBS=['socket', 'resolv', 'posix4', 'aio']) )
+
+    def bwopt(bitwidth):
+        bitwoption = '-xtarget=native'
+        if bitwidth == '32':
+            # when compiling 32bit, -xtarget=native is all we need, otherwise native64 must be specified
+            bitwidth = ''
+        return bitwoption + bitwidth
+
+    setupBuildTools.registerCallback('BITWIDTH_OPTIONS', lambda env, bitwidth: env.AppendUnique(LINKFLAGS=bwopt(bitwidth) ) )
+    setupBuildTools.registerCallback('STL_OPTIONS', lambda env, bitwidth: env.AppendUnique(LINKFLAGS='-library=stlport4' ) )
+
+    def iostreamOpt(env, usestdiostream):
+        ## iostream library means "classic", but we want to use the std
+        if usestdiostream:
+            env.AppendUnique(LINKFLAGS='-library=no%iostream')
+    setupBuildTools.registerCallback('IOSTREAM_OPTIONS', iostreamOpt(env, usestdiostream ) )
+
 
 def exists(env):
     return None

@@ -125,7 +125,6 @@ baseEnv = dEnv.Clone(tools=usetools)
 
 variant = "Unknown"
 myplatf = str(SCons.Platform.Platform())
-targetbits = GetOption('archbits')
 
 if myplatf == "posix":
     libcver = platform.libc_ver(executable='/lib/libc.so.6')
@@ -145,10 +144,9 @@ elif myplatf == "cygwin":
 elif myplatf == "win32":
     variant = platform.release() + "-" + platform.machine()
 
-variant += "-" + targetbits
-
-if GetOption('Trace'):
-    variant += '_trace'
+runCallback('VARIANT_SUFFIX', env=baseEnv)
+for v in baseEnv.get('VARIANT_SUFFIX', []):
+    variant += v
 
 print "compilation variant [", variant, "]"
 
