@@ -64,11 +64,13 @@ def doTest(target, source, env):
         with open(target[0].abspath, 'w') as file:
             file.write("PASSED\n")
     runCallback('__PostTestOrRun')
+    runCallback('__PostAction_'+str(id(target[0])))
     return res
 
 def doRun(target, source, env):
     res = run(source[0].abspath + ' ' + env.get('runParams', ''), logfile=env.get('logfile', None))
     runCallback('__PostTestOrRun')
+    runCallback('__PostAction_'+str(id(target[0])))
     return res
 
 def getRunParams(buildSettings, defaultRunParams):
@@ -106,10 +108,10 @@ def createTestTarget(env, source, registry, packagename, targetname, buildSettin
     if setUp:
         env.AddPreAction(runner, setUp)
     if tearDown:
-        env.AddPostAction(runner, tearDown)
-
+        registerCallback('__PostAction_'+str(id(runner[0])), lambda: tearDown(target=runner, source=source, env=env))
+    
     registerCallback('__PostTestOrRun', lambda: runCallback('PostTest', target=source, registry=registry, packagename=packagename, targetname=targetname, logfile=logfile))
-
+    
     env.Alias('tests', runner)
     env.Alias(packagename, runner)
     env.Alias('all', runner)
