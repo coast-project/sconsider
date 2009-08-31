@@ -26,9 +26,8 @@ class Result(object):
         if self.currentSection['testcases'].has_key(name):
             self.currentSection['testcases'][name][key] = value
     def appendTestData(self, name, key, value):
-        if self.currentSection['testcases'].has_key(name):
-            self.currentSection['testcases'][name].setdefault(key, '')
-            self.currentSection['testcases'][name][key] += value
+        self.currentSection['testcases'][name].setdefault(key, '')
+        self.currentSection['testcases'][name][key] += value
         
     def setTotal(self, name, value):
         self.total[name] = value
@@ -110,14 +109,14 @@ class FailedState(State):
         self.context.setState(EndedState(self.context))
     
     def work(self, line):
-        pattern = re.compile('^\d+\)\s+([^\s]+).*(line.*)')
+        pattern = re.compile('^\d+\)\s+([^\s]+).*line:\s*(.*)')
         match = re.match(pattern, line)
         if match:
-            self.result.setTestData(match.group(1), 'message', match.group(2))
             self.result.setTestData(match.group(1), 'passed', False)
+            self.result.appendTestData(match.group(1), 'message', match.group(2).strip()+'\n')
             self.current_testcase = match.group(1)
         else:
-            if hasattr(self, 'current_testcase'):
+            if isinstance(self.current_testcase, str):
                 self.result.appendTestData(self.current_testcase, 'message', line)
         self.result.appendSectionData('content', line)
     
@@ -134,32 +133,24 @@ class Parser(object):
     def __init__(self):
         self.result = Result()
         self.patterns = [
-                        (re.compile('^Running (.*)'), self.start),
-                        (re.compile('^OK \((\d+)\D*test\D*(\d+)\D*assertion\D*(\d+)\D*ms.*\)'), self.end),
-                        (re.compile('^--([^-]+)--'), self.test),
-                        (re.compile('^!!!FAILURES!!!'), self.fail),
-                        (re.compile('^(\d+)\D*assertion\D*(\d+)\D*ms\D*(\d+)\D*failure.*'), self.stop),
-                        (re.compile('^Run\D*(\d+)\D*Failure\D*(\d+)\D*Error\D*(\d+)'), self.failResult),
-                        (re.compile('^\((\d+)\D*assertion\D*(\d+)\D*ms.*\)'), self.failSuccess)
+                        ( re.compile('^Running (.*)'),
+                          lambda match: self.state.start(name=match.group(1)) ),
+                        ( re.compile('^OK \((\d+)\D*test\D*(\d+)\D*assertion\D*(\d+)\D*ms.*\)'),
+                          lambda match: self.state.end(tests=match.group(1), assertions=match.group(2), msecs=match.group(3)) ),
+                        ( re.compile('^--([^-]+)--'),
+                          lambda match: self.state.test(name=match.group(1)) ),
+                        ( re.compile('^!!!FAILURES!!!'),
+                          lambda match: self.state.fail() ),
+                        ( re.compile('^(\d+)\D*assertion\D*(\d+)\D*ms\D*(\d+)\D*failure.*'),
+                          lambda match: self.state.stop(assertions=match.group(1), msecs=match.group(2), failures=match.group(3)) ),
+                        ( re.compile('^Run\D*(\d+)\D*Failure\D*(\d+)\D*Error\D*(\d+)'),
+                          lambda match: self.state.failResult(runs=match.group(1), failures=match.group(2), errors=match.group(3)) ),
+                        ( re.compile('^\((\d+)\D*assertion\D*(\d+)\D*ms.*\)'),
+                          lambda match: self.state.failSuccess(assertions=match.group(1), msecs=match.group(2)) )
                         ]
     
     def setState(self, state):
         self.state = state
-    
-    def start(self, match):
-        self.state.start(name=match.group(1))
-    def test(self, match):
-        self.state.test(name=match.group(1))
-    def end(self, match):
-        self.state.end(tests=match.group(1), assertions=match.group(2), msecs=match.group(3))
-    def fail(self, match):
-        self.state.fail()
-    def failResult(self, match):
-        self.state.failResult(runs=match.group(1), failures=match.group(2), errors=match.group(3))
-    def failSuccess(self, match):
-        self.state.failSuccess(assertions=match.group(1), msecs=match.group(2))
-    def stop(self, match):
-        self.state.stop(assertions=match.group(1), msecs=match.group(2), failures=match.group(3))
     
     def parse(self, content):
         self.setState(EndedState(self))
@@ -178,7 +169,7 @@ def dependsOnTestfw(target, registry):
     if SCons.Util.is_List(target):
         target = target[0]
     plaintarget = registry.getPackageTarget('testfw', 'testfw')['plaintarget']
-    return plaintarget.name in target.get_env()['LIBS']  
+    return plaintarget.name in target.get_env()['LIBS']
 
 def callPostTest(target, registry, packagename, targetname, logfile, **kw):
     if dependsOnTestfw(target, registry):
