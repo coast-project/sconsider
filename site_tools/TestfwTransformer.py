@@ -50,7 +50,7 @@ class Result(object):
                     for name, testcase in section['testcases'].iteritems():
                         with xml.testcase(name=name, classname=section.get('name', ''), time=0):
                             if not testcase['passed']:
-                                xml << ('failure', testcase['message'], {'message': 'failed', 'type': 'Assertion' })
+                                xml << ('failure', testcase['message'], {'message': testcase['cause'], 'type': 'Assertion' })
                     xml << ('system-out', section.get('content', '').strip())
                     xml << ('system-err', '')
         etree_node = ~xml
@@ -72,10 +72,10 @@ class StartedState(State):
         self.result.setSectionData('assertions', assertions)
         self.result.setSectionData('msecs', msecs)
         self.result.storeSection()
-        self.context.setState('ended')
+        return 'ended'
     
     def fail(self, **kw):
-        self.context.setState('failed')
+        return 'failed'
     
     def test(self, name, **kw):
         self.result.addTest(name)
@@ -84,19 +84,19 @@ class StartedState(State):
         self.result.setTotal('assertions', assertions)
         self.result.setTotal('msecs', msecs)
         self.result.setTotal('failures', failures)
-        self.context.setState('ended')
+        return 'ended'
 
 class EndedState(State):
     def start(self, name, **kw):
         self.result.newSection(name)
-        self.context.setState('started')
+        return 'started'
 
 class FailedState(State):    
     def start(self, name, **kw):
         self.result.storeSection()
         self.result.newSection(name)
         self.current_testcase = None
-        self.context.setState('started')
+        return 'started'
     
     def stop(self, assertions, msecs, failures, **kw):
         self.result.setTotal('assertions', assertions)
@@ -104,7 +104,7 @@ class FailedState(State):
         self.result.setTotal('failures', failures)
         self.result.storeSection()
         self.current_testcase = None
-        self.context.setState('ended')
+        return 'ended'
     
     def handle(self, line, **kw):
         if isinstance(self.current_testcase, str):
@@ -120,8 +120,9 @@ class FailedState(State):
         self.result.setSectionData('assertions', assertions)
         self.result.setSectionData('msecs', msecs)
     
-    def failStartFailure(self, testcase, message, line, **kw):
+    def failStartFailure(self, testcase, message, line, cause, **kw):
         self.result.setTestData(testcase, 'passed', False)
+        self.result.setTestData(testcase, 'cause', cause)
         self.result.appendTestData(testcase, 'message', message.strip()+'\n')
         self.current_testcase = testcase
         self.result.appendSectionData('content', line)
@@ -149,8 +150,8 @@ class Parser(object):
                           lambda line, match: self.state.failResult(line=line, runs=match.group(1), failures=match.group(2), errors=match.group(3)) ),
                         ( re.compile('^\((\d+)\D*assertion\D*(\d+)\D*ms.*\)'),
                           lambda line, match: self.state.failSuccess(line=line, assertions=match.group(1), msecs=match.group(2)) ),
-                        ( re.compile('^\d+\)\s+([^\s]+).*line:\s*(.*)'),
-                          lambda line, match: self.state.failStartFailure(line=line, testcase=match.group(1), message=match.group(2)) )
+                        ( re.compile('^\d+\)\s+([^\s]+):\s*(.*:\d+:\s*(.*))'),
+                          lambda line, match: self.state.failStartFailure(line=line, testcase=match.group(1), message=match.group(2), cause=match.group(3)) )
                         ]
     
     def setState(self, state):
@@ -165,7 +166,9 @@ class Parser(object):
         for pattern, event in self.patterns:
             match = re.match(pattern, line)
             if match:
-                event(line, match)
+                state = event(line, match)
+                if state:
+                    self.setState(state)
                 found = True
         if not found:
             self.state.handle(line)
