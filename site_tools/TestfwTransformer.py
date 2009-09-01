@@ -158,8 +158,10 @@ class Parser(object):
         if isinstance(state, str):
             if self.states.has_key(state):
                 self.state = self.states[state]
-        else:
+        elif isinstance(state, State):
             self.state = state
+        else:
+            raise TypeError('parameter has wrong type')
     
     def parseLine(self, line):
         found = False
