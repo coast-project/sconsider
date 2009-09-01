@@ -90,13 +90,13 @@ def generate(env):
         return bitwoption + bitwidth
 
     setupBuildTools.registerCallback('BITWIDTH_OPTIONS', lambda env, bitwidth: env.AppendUnique(LINKFLAGS=bwopt(bitwidth) ) )
-    setupBuildTools.registerCallback('STL_OPTIONS', lambda env, bitwidth: env.AppendUnique(LINKFLAGS='-library=stlport4' ) )
+    setupBuildTools.registerCallback('STL_OPTIONS', lambda env: env.AppendUnique(LINKFLAGS='-library=stlport4' ) )
 
     def iostreamOpt(env, usestdiostream):
         ## iostream library means "classic", but we want to use the std
         if usestdiostream:
             env.AppendUnique(LINKFLAGS='-library=no%iostream')
-    setupBuildTools.registerCallback('IOSTREAM_OPTIONS', iostreamOpt(env, usestdiostream ) )
+    setupBuildTools.registerCallback('IOSTREAM_OPTIONS', iostreamOpt )
 
 
 def exists(env):
