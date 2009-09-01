@@ -1,5 +1,5 @@
 import socket, time, pdb
-import threading, KillableThread
+import threading
 
 def sockrecv( sock, chunksize = 4096 ):
     msg = ''
@@ -13,9 +13,9 @@ def sockrecv( sock, chunksize = 4096 ):
         msg = msg + chunk
     return msg
 
-class AcceptorThread( KillableThread.KillableThread ):
+class AcceptorThread( threading.Thread ):
     def __init__( self, addr, port, callback, protocol = socket.AF_INET, backlog = 1 ):
-        KillableThread.KillableThread.__init__( self )
+        threading.Thread.__init__( self )
         self.addr = addr
         self.port = port
         self.backlog = backlog
