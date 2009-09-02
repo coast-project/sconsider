@@ -121,7 +121,7 @@ def generate( env ):
 
     def setupWarnings( env, warnlevel ):
         if warnlevel == 'medium' or warnlevel == 'full':
-            env.AppendUnique( CFLAGS = ['-Wall', '-Wunused', '-Wno-system-headers', '-Wreturn-type', '-Wdeprecated'] )
+            env.AppendUnique( CFLAGS = ['-Wall', '-Wunused', '-Wno-system-headers', '-Wreturn-type'] )
         if warnlevel == 'full':
             env.AppendUnique( CFLAGS = ['-Wconversion', '-Wundef', '-Wwrite-strings'] )
 
