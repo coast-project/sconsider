@@ -36,39 +36,39 @@ import SCons.Tool
 import SomeUtils
 import setupBuildTools
 
-def FileNodeComparer(left, right):
+def FileNodeComparer( left, right ):
     """Specialized implementation of file node sorting
     based on the fact that config_ files must get placed
     after any other object on the linker command line"""
     nleft = left.srcnode().abspath
     nright = right.srcnode().abspath
-    ldirname, lbasename = os.path.split(nleft)
-    rdirname, rbasename = os.path.split(nright)
+    ldirname, lbasename = os.path.split( nleft )
+    rdirname, rbasename = os.path.split( nright )
     # l < r, -1
     # l == r, 0
     # l > r, 1
-    if lbasename.startswith('config_'): return 1
-    elif rbasename.startswith('config_'): return - 1
-    return cmp(nleft, nright)
+    if lbasename.startswith( 'config_' ): return 1
+    elif rbasename.startswith( 'config_' ): return - 1
+    return cmp( nleft, nright )
 
 SomeUtils.FileNodeComparer = FileNodeComparer
 
-def sun_smart_link(source, target, env, for_signature):
+def sun_smart_link( source, target, env, for_signature ):
     try:
         cplusplus = sys.modules['SCons.Tool.c++']
-        if cplusplus.iscplusplus(source):
-            env.AppendUnique(LIBS=['Crun'])
+        if cplusplus.iscplusplus( source ):
+            env.AppendUnique( LIBS = ['Crun'] )
     except:
         pass
     return '$CXX'
 
-def generate(env):
+def generate( env ):
     """Add Builders and construction variables for sun compilers to an Environment."""
     defaulttoolpath = SCons.Tool.DefaultToolpath
     try:
         SCons.Tool.DefaultToolpath = []
         # load default sunlink tool and extend afterwards
-        env.Tool('sunlink')
+        env.Tool( 'sunlink' )
     finally:
         SCons.Tool.DefaultToolpath = defaulttoolpath
 
@@ -77,27 +77,38 @@ def generate(env):
 
     platf = env['PLATFORM']
 
-    setupBuildTools.registerCallback('MT_OPTIONS', lambda env: env.AppendUnique(LINKFLAGS='-mt') )
+    setupBuildTools.registerCallback( 'MT_OPTIONS', lambda env: env.AppendUnique( LINKFLAGS = '-mt' ) )
+    setupBuildTools.registerCallback( 'MT_OPTIONS', lambda env: env.AppendUnique( SHLINKFLAGS = '-mt' ) )
     # do not use rpath
-    setupBuildTools.registerCallback('RPATH_OPTIONS', lambda env: env.AppendUnique(LINKFLAGS='-norunpath') )
-    setupBuildTools.registerCallback('LINKLIBS', lambda env: env.AppendUnique(LIBS=['socket', 'resolv', 'posix4', 'aio']) )
+    setupBuildTools.registerCallback( 'RPATH_OPTIONS', lambda env: env.AppendUnique( SHLINKFLAGS = '-norunpath' ) )
+    setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LIBS = ['socket', 'resolv', 'posix4', 'aio'] ) )
 
-    def bwopt(bitwidth):
+    def bwopt( bitwidth ):
         bitwoption = '-xtarget=native'
         if bitwidth == '32':
             # when compiling 32bit, -xtarget=native is all we need, otherwise native64 must be specified
             bitwidth = ''
         return bitwoption + bitwidth
 
-    setupBuildTools.registerCallback('BITWIDTH_OPTIONS', lambda env, bitwidth: env.AppendUnique(LINKFLAGS=bwopt(bitwidth) ) )
-    setupBuildTools.registerCallback('STL_OPTIONS', lambda env: env.AppendUnique(LINKFLAGS='-library=stlport4' ) )
+    setupBuildTools.registerCallback( 'BITWIDTH_OPTIONS', lambda env, bitwidth: env.AppendUnique( LINKFLAGS = bwopt( bitwidth ) ) )
+    setupBuildTools.registerCallback( 'BITWIDTH_OPTIONS', lambda env, bitwidth: env.AppendUnique( SHLINKFLAGS = bwopt( bitwidth ) ) )
+    setupBuildTools.registerCallback( 'STL_OPTIONS', lambda env: env.AppendUnique( SHLINKFLAGS = '-library=stlport4' ) )
 
-    def iostreamOpt(env, usestdiostream):
+    def iostreamOpt( env, usestdiostream ):
         ## iostream library means "classic", but we want to use the std
         if usestdiostream:
-            env.AppendUnique(LINKFLAGS='-library=no%iostream')
-    setupBuildTools.registerCallback('IOSTREAM_OPTIONS', iostreamOpt )
+            env.AppendUnique( SHLINKFLAGS = '-library=no%iostream' )
+    setupBuildTools.registerCallback( 'IOSTREAM_OPTIONS', iostreamOpt )
+
+    setupBuildTools.registerCallback( 'DEBUG_OPTIONS', lambda env: env.AppendUnique( LINKFLAGS = ['-v'] ) )
+    setupBuildTools.registerCallback( 'DEBUG_OPTIONS', lambda env: env.AppendUnique( SHLINKFLAGS = ['-v'] ) )
+
+    setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( LINKFLAGS = ['-xbinopt=prepare'] ) )
+    setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( SHLINKFLAGS = ['-xbinopt=prepare'] ) )
+
+    setupBuildTools.registerCallback( 'PROFILE_OPTIONS', lambda env: env.AppendUnique( LINKFLAGS = ['-xpg'] ) )
+    setupBuildTools.registerCallback( 'PROFILE_OPTIONS', lambda env: env.AppendUnique( SHLINKFLAGS = ['-xpg'] ) )
 
 
-def exists(env):
+def exists( env ):
     return None

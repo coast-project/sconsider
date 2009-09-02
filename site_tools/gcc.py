@@ -41,25 +41,25 @@ import setupBuildTools
 
 compilers = ['gcc', 'cc']
 
-def generate(env):
+def generate( env ):
     """Add Builders and construction variables for gcc to an Environment."""
 
-    SCons.Tool.Tool('cc')(env)
+    SCons.Tool.Tool( 'cc' )( env )
 
-    if env.get('_CCPREPEND_'):
-        compilers.insert(0, env.get('_CCPREPEND_'))
-    env['CC'] = env.Detect(compilers) or 'gcc'
+    if env.get( '_CCPREPEND_' ):
+        compilers.insert( 0, env.get( '_CCPREPEND_' ) )
+    env['CC'] = env.Detect( compilers ) or 'gcc'
     if env['PLATFORM'] in ['cygwin', 'win32']:
-        env['SHCCFLAGS'] = SCons.Util.CLVar('$CCFLAGS')
+        env['SHCCFLAGS'] = SCons.Util.CLVar( '$CCFLAGS' )
     else:
-        env['SHCCFLAGS'] = SCons.Util.CLVar('$CCFLAGS -fPIC')
+        env['SHCCFLAGS'] = SCons.Util.CLVar( '$CCFLAGS -fPIC' )
     # determine compiler version
     if env['CC']:
         #pipe = SCons.Action._subproc(env, [env['CC'], '-dumpversion'],
-        pipe = SCons.Action._subproc(env, [env['CC'], '--version'],
+        pipe = SCons.Action._subproc( env, [env['CC'], '--version'],
                                      stdin = 'devnull',
                                      stderr = 'devnull',
-                                     stdout = subprocess.PIPE)
+                                     stdout = subprocess.PIPE )
         if pipe.wait() != 0: return
         # -dumpversion was added in GCC 3.0.  As long as we're supporting
         # GCC versions older than that, we should use --version and a
@@ -68,23 +68,66 @@ def generate(env):
         #if line:
         #    env['CCVERSION'] = line
         line = pipe.stdout.readline()
-        match = re.search(r'(\s+)([0-9]+(\.[0-9]+)+)', line)
+        match = re.search( r'(\s+)([0-9]+(\.[0-9]+)+)', line )
         if match:
-            env['CCVERSION'] = match.group(2)
+            env['CCVERSION'] = match.group( 2 )
 
-    setupBuildTools.registerCallback('MT_OPTIONS', lambda env: env.AppendUnique(CPPDEFINES=['_POSIX_PTHREAD_SEMANTICS']) )
-    setupBuildTools.registerCallback('MT_OPTIONS', lambda env: env.AppendUnique(CPPDEFINES=['_REENTRANT']) )
-    setupBuildTools.registerCallback('DEBUG_OPTIONS', lambda env: env.AppendUnique(CFLAGS=['-g']) )
-    setupBuildTools.registerCallback('BITWIDTH_OPTIONS', lambda env, bitwidth: env.AppendUnique(CCFLAGS='-m'+bitwidth) )
-    setupBuildTools.registerCallback('LARGEFILE_OPTIONS', lambda env: env.AppendUnique(CPPDEFINES=['_LARGEFILE64_SOURCE']) )
+        ## own extension to detect system include paths
+        tFile = os.path.join( SCons.Script.Dir( '.' ).abspath, '.x1y2' )
+        outFile = os.path.join( SCons.Script.Dir( '.' ).abspath, '.gugus' )
+        try:
+            outf = open( tFile, 'w' )
+            outf.write( '#include <stdlib.h>\nint main(){}' )
+            outf.close()
+        except: pass
+        pipe = SCons.Action._subproc( env, [env['CC'], '-v', '-xc', tFile, '-o', outFile],
+                                     stdin = 'devnull',
+                                     stderr = subprocess.PIPE,
+                                     stdout = subprocess.PIPE )
+        pRet = pipe.wait()
+        os.remove( tFile )
+        os.remove( outFile )
+        if pRet != 0:
+            print "pipe error:", pRet
+            return
+        pout = pipe.stderr.read()
+        reIncl = re.compile( '#include <\.\.\.>.*:$\s((^ .*\s)*)', re.M )
+        match = reIncl.search( pout )
+        sysincludes = []
+        if match:
+            for it in re.finditer( "^ (.*)$", match.group( 1 ), re.M ):
+                sysincludes.append( it.groups()[0] )
+        if sysincludes:
+            env.AppendUnique( SYSINCLUDES = sysincludes )
 
-def exists(env):
-    if env.get('_CCPREPEND_'):
-        compilers.insert(0, env.get('_CCPREPEND_'))
-    return env.Detect(compilers)
+    platf = env['PLATFORM']
+    setupBuildTools.registerCallback( 'MT_OPTIONS', lambda env: env.AppendUnique( CPPDEFINES = ['_POSIX_PTHREAD_SEMANTICS'] ) )
+    setupBuildTools.registerCallback( 'MT_OPTIONS', lambda env: env.AppendUnique( CPPDEFINES = ['_REENTRANT'] ) )
 
-# Local Variables:
-# tab-width:4
-# indent-tabs-mode:nil
-# End:
-# vim: set expandtab tabstop=4 shiftwidth=4:
+    setupBuildTools.registerCallback( 'BITWIDTH_OPTIONS', lambda env, bitwidth: env.AppendUnique( CCFLAGS = '-m' + bitwidth ) )
+    setupBuildTools.registerCallback( 'LARGEFILE_OPTIONS', lambda env: env.AppendUnique( CPPDEFINES = ['_LARGEFILE64_SOURCE'] ) )
+
+    if str( platf ) == "sunos":
+        setupBuildTools.registerCallback( 'DEBUG_OPTIONS', lambda env: env.AppendUnique( CFLAGS = ['-ggdb3'] ) )
+    else:
+        setupBuildTools.registerCallback( 'DEBUG_OPTIONS', lambda env: env.AppendUnique( CFLAGS = ['-g'] ) )
+
+    if str( platf ) == "sunos":
+        setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( CFLAGS = ['-O0'] ) )
+    else:
+        setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( CFLAGS = ['-O0', '-fdefer-pop', '-fmerge-constants', '-fthread-jumps', '-fguess-branch-probability', '-fcprop-registers'] ) )
+
+    setupBuildTools.registerCallback( 'PROFILE_OPTIONS', lambda env: env.AppendUnique( CFLAGS = ['-fprofile'] ) )
+
+    def setupWarnings( env, warnlevel ):
+        if warnlevel == 'medium' or warnlevel == 'full':
+            env.AppendUnique( CFLAGS = ['-Wall', '-Wunused', '-Wno-system-headers', '-Wreturn-type', '-Wdeprecated'] )
+        if warnlevel == 'full':
+            env.AppendUnique( CFLAGS = ['-Wconversion', '-Wundef', '-Wwrite-strings'] )
+
+    setupBuildTools.registerCallback( 'WARN_OPTIONS', setupWarnings )
+
+def exists( env ):
+    if env.get( '_CCPREPEND_' ):
+        compilers.insert( 0, env.get( '_CCPREPEND_' ) )
+    return env.Detect( compilers )
