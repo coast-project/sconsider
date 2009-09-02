@@ -35,7 +35,7 @@ class AcceptorThread( threading.Thread ):
             # become a server socket and limit max connects
             self.serversocket.listen( self.backlog )
             while not self.__terminate:
-                print "waiting on connect..."
+                print "accepting on", self.addr, ":", self.port
                 ( clientsocket, address ) = self.serversocket.accept()
                 print "...connected to", address
                 self.callback( sock = clientsocket, addr = address )
@@ -43,7 +43,6 @@ class AcceptorThread( threading.Thread ):
         finally:
             self.serversocket.close()
             self.serversocket = None
-            print "simpleListener terminated"
 
     def terminate( self ):
         self.__terminate = True
