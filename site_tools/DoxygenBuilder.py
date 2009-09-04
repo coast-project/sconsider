@@ -1,5 +1,5 @@
 from __future__ import with_statement
-import os, pdb, subprocess, optparse
+import os, pdb, subprocess, optparse, re
 import SCons.Action, SCons.Builder
 from SCons.Script import AddOption, GetOption
 import StanfordUtils, SomeUtils
@@ -267,6 +267,23 @@ def buildDoxyfile(target, source, env):
                 doxyfile.write("%s \\\n" % tagfileline)
             doxyfile.write("\n")
     
+        doxyfile.write("PREDEFINED = \\\n")
+        
+        defines = {}
+        defines.update(compilerDefines)
+        for define in env.get('CPPDEFINES', []):
+            defines[define] = ''
+        
+        for define, value in defines.iteritems():
+            if value:
+                if value.find(' ') != -1:
+                    doxyfile.write("\"%s=%s\" \\\n" % (define, value))
+                else:
+                    doxyfile.write("%s=%s \\\n" % (define, value))
+            else:
+                doxyfile.write("%s \\\n" % define)
+        doxyfile.write("\n")
+    
     proc = subprocess.Popen(["doxygen", "-s", "-u", target[0].get_abspath()], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     res = proc.wait()
                 
@@ -404,6 +421,25 @@ class DoxygenToolException(Exception):
     def __str__(self):
         return repr(self.value)
 
+def determineCompilerDefines(env):
+    cmd = 'PATH='+env.get("ENV", []).get("PATH",'')
+    cmd += ' ' + os.path.join(os.path.dirname(__file__), 'defines.sh')
+    cmd += ' ' + env['CXX']
+    
+    proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdoutdata, stderrdata = proc.communicate()
+    
+    defines = {}
+    ignores = ['cc', '__BASE_FILE__', '__DATE__', '__FILE__', '__LINE__', '__TIME__', '__TIMESTAMP__']
+    pattern = re.compile('^([^\s]+)\s*=\s*(.*)\s*')
+    for line in stdoutdata.splitlines():
+        match = re.match(pattern, line)
+        if match and match.group(1) not in ignores:
+            defines[match.group(1)] = match.group(2)
+
+    return defines
+
+compilerDefines = {}
 def generate(env):
     """
     Add the options, builders and wrappers to the current Environment.
@@ -438,6 +474,7 @@ def generate(env):
     if GetOption("doxygen"):
         StanfordUtils.registerCallback("PostCreatePackageTargets", createTargetCallback)
         StanfordUtils.registerCallback("PreBuild", addBuildTargetCallback)
+        compilerDefines.update(determineCompilerDefines(env))
 
 def exists(env):
    """
