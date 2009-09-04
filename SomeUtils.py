@@ -109,7 +109,7 @@ class EnvVarDict( dict ):
 #
 #TestFunc()
 
-def copyFileNodes( env, nodes, destDir, baseDir = None, stripRelDirs = [], mode = None ):
+def copyFileNodes( env, nodes, destDir, baseDir = None, stripRelDirs = [], mode = None, packagename = None, checkEnvCfg = False ):
     if not baseDir:
         baseDir = env.Dir( '.' )
     if hasattr( baseDir, 'srcnode' ):
@@ -132,6 +132,19 @@ def copyFileNodes( env, nodes, destDir, baseDir = None, stripRelDirs = [], mode 
             for stripRelDir in stripRelDirs:
                 delprefix = os.path.commonprefix( [stripRelDir.split( os.sep ), relPathParts] )
             installRelPath = os.sep.join( relPathParts[len( delprefix ):] )
+
+        if checkEnvCfg:
+            # based on installRelPath and file, try to find an override file to use instead
+            fileWithRelpathToSearch = os.path.relpath( file.abspath, baseDir.abspath )
+            #print "checking for cfgfile",fileWithRelpathToSearch
+            envconfigdir = env.get( '__envconfigdir__', None )
+            # catch possible errors and stop when wanting to do realtive movements
+            if envconfigdir and not fileWithRelpathToSearch.startswith('..'):
+                envcfgdir = envconfigdir.Dir( packagename ).abspath
+                fileToCheckFor = os.path.join( envcfgdir, fileWithRelpathToSearch )
+                if os.path.isfile( fileToCheckFor ):
+                    #print "found override file",fileToCheckFor
+                    file = File( fileToCheckFor )
 
         instTarg = env.Install( destDir.Dir( installRelPath ), file )
         if mode:

@@ -24,6 +24,7 @@ if False:
     print "platform.version:", platform.version()
     print "platform.proc:", platform.processor()
     print "platform.system:", platform.system()
+    print "platform.uname:", platform.uname()
 
 AddOption('--baseoutdir', dest='baseoutdir', action='store', nargs=1, type='string', default='#', metavar='DIR', help='Directory containing packages superseding installed ones. Relative paths not supported!')
 AddOption('--exclude', dest='exclude', action='append', nargs=1, type='string', metavar='DIR', help='Directory containing a SConscript file that should be ignored.')
@@ -267,7 +268,7 @@ class ProgramLookup:
             theModule = loadPackage(packagename)
             modDict = theModule.__dict__
             return modDict.get('buildSettings', {})
-        except PackageNotFound as e:
+        except PackageNotFound, e:
             return {}
 
     def lookup(self, fulltargetname, **kw):
@@ -305,7 +306,7 @@ def loadPackage(packagename):
         modname = packagename + 'Lib'
         theModule = __import__(modname)
         sys.modules[modname] = theModule
-    except ImportError as e:
+    except ImportError, e:
         raise PackageNotFound(packagename)
     return theModule
 
@@ -341,15 +342,15 @@ class TargetMaker:
             pkgdir = self.programLookup.getPackageDir(pkgname)
             includeSubdir = buildSettings['public'].get('includeSubdir', '')
             mode = stat.S_IREAD | stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
-            instTargets = copyFileNodes(env, ifiles, destdir, baseDir=pkgdir, stripRelDirs=includeSubdir, mode=mode)
+            instTargets = copyFileNodes(env, ifiles, destdir, baseDir=pkgdir, stripRelDirs=includeSubdir, mode=mode, packagename=pkgname, checkEnvCfg = False)
         return instTargets
 
-    def copyConfigFiles(self, env, destdir, buildSettings, target):
+    def copyConfigFiles(self, env, destdir, buildSettings, target, pkgname):
         instTargets = []
         if buildSettings.has_key('copyFiles'):
             listOfFileTuples = buildSettings.get('copyFiles')
             for (cfiles, mode) in listOfFileTuples:
-                instTargets.append( copyFileNodes(env, cfiles, destdir, mode=mode) )
+                instTargets.append( copyFileNodes(env, cfiles, destdir, mode=mode, packagename=pkgname, checkEnvCfg = True) )
         return instTargets
 
     def requireTargets(self, env, target, requiredTargets, **kw):
@@ -377,33 +378,33 @@ class TargetMaker:
                         plaintarget, target = targets
                     else:
                         plaintarget = target = targets
-    
+
                 if plaintarget:
                     targetEnv.Depends(plaintarget, self.programLookup.getPackageFile(pkgname))
                 else:
                     # Actually includeOnlyTarget is obsolete, but we still need a (dummy) targetType in build settings to get in here!
                     # The following is a workaround, otherwise an alias won't get built in newer SCons versions (because it has depends but no sources)
                     plaintarget = target = targetEnv.Alias(pkgname+'.'+name, self.programLookup.getPackageFile(pkgname))
-    
+
                 reqTargets = targetBuildSettings.get('linkDependencies', []) + targetBuildSettings.get('requires', [])
                 self.requireTargets(targetEnv, target, reqTargets)
-    
+
                 includeTargets = self.copyIncludeFiles(targetEnv, pkgname, targetBuildSettings)
                 targetEnv.Depends(target, includeTargets)
                 targetEnv.Alias('includes', includeTargets)
-    
-                configTargets = self.copyConfigFiles(targetEnv, targetEnv['BASEOUTDIR'].Dir(targetEnv['RELTARGETDIR']), targetBuildSettings, target)
+
+                configTargets = self.copyConfigFiles(targetEnv, targetEnv['BASEOUTDIR'].Dir(targetEnv['RELTARGETDIR']), targetBuildSettings, target, pkgname)
                 targetEnv.Depends(target, configTargets)
-    
+
                 targetEnv.Alias(pkgname, target)
                 targetEnv.Alias('all', target)
                 if targetBuildSettings.get('runConfig', {}).get('type', '') == 'test':
                     targetEnv.Alias('tests', target)
-                
+
                 runCallback("PostCreateTarget", env=targetEnv, target=target, registry=self.programLookup, packagename=pkgname, targetname=name, buildSettings=targetBuildSettings)
-    
+
             self.programLookup.setPackageTarget(pkgname, name, plaintarget, target)
-        except PackageNotFound as e:
+        except PackageNotFound, e:
             print 'package [%s] not found, ignoring target [%s]' % (str(e), pkgname+'.'+name)
 
     def createTargetEnv(self, targetname, targetBuildSettings, envVars={}):
