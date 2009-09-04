@@ -342,15 +342,39 @@ class TargetMaker:
             pkgdir = self.programLookup.getPackageDir(pkgname)
             includeSubdir = buildSettings['public'].get('includeSubdir', '')
             mode = stat.S_IREAD | stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
-            instTargets = copyFileNodes(env, ifiles, destdir, baseDir=pkgdir, stripRelDirs=includeSubdir, mode=mode, packagename=pkgname, checkEnvCfg = False)
+            instTargets = copyFileNodes(env, ifiles, destdir, baseDir=pkgdir, stripRelDirs=includeSubdir, mode=mode)
         return instTargets
+
+    def replaceWithSiteSpecificFiles(self, env, packagename, baseDir = None, nodes = []):
+        if not baseDir:
+            baseDir = env.Dir( '.' )
+        if hasattr( baseDir, 'srcnode' ):
+            baseDir = baseDir.srcnode()
+        retnodes= []
+        envconfigdir = env.get( '__envconfigdir__', None )
+        if envconfigdir:
+            envcfgdir = envconfigdir.Dir( packagename ).abspath
+            for file in nodes:
+                # based on installRelPath and file, try to find an override file to use instead
+                fileWithRelpathToSearch = os.path.relpath( file.abspath, baseDir.abspath )
+                #print "checking for cfgfile",fileWithRelpathToSearch
+                # catch possible errors and stop when wanting to do realtive movements
+                if not fileWithRelpathToSearch.startswith('..'):
+                    fileToCheckFor = os.path.join( envcfgdir, fileWithRelpathToSearch )
+                    if os.path.isfile( fileToCheckFor ):
+                        #print "found override file",fileToCheckFor
+                        file = File( fileToCheckFor )
+                retnodes.append(file)
+        else:
+            retnodes = nodes
+        return retnodes
 
     def copyConfigFiles(self, env, destdir, buildSettings, target, pkgname):
         instTargets = []
         if buildSettings.has_key('copyFiles'):
             listOfFileTuples = buildSettings.get('copyFiles')
             for (cfiles, mode) in listOfFileTuples:
-                instTargets.append( copyFileNodes(env, cfiles, destdir, mode=mode, packagename=pkgname, checkEnvCfg = True) )
+                instTargets.append( copyFileNodes(env, self.replaceWithSiteSpecificFiles(env, pkgname, nodes=cfiles), destdir, mode=mode) )
         return instTargets
 
     def requireTargets(self, env, target, requiredTargets, **kw):
