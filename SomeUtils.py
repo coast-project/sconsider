@@ -109,21 +109,12 @@ class EnvVarDict( dict ):
 #
 #TestFunc()
 
-def copyFileNodes( env, nodes, destDir, baseDir = None, stripRelDirs = [], mode = None ):
-    if not baseDir:
-        baseDir = env.Dir( '.' )
-    if hasattr( baseDir, 'srcnode' ):
-        baseDir = baseDir.srcnode()
-
+def copyFileNodes( env, nodetuples, destDir, stripRelDirs = [], mode = None ):
     if not SCons.Util.is_List( stripRelDirs ):
         stripRelDirs = [stripRelDirs]
 
     instTargs = []
-    for node in nodes:
-        file = node
-        if hasattr( node, 'srcnode' ):
-            file = node.srcnode()
-
+    for file, baseDir in nodetuples:
         installRelPath = baseDir.rel_path( file.get_dir() )
 
         if stripRelDirs and baseDir.get_abspath() != file.get_dir().get_abspath():
