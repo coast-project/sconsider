@@ -81,6 +81,49 @@ def RemoveEnvDump():
                 except IOError:
                     pass
 
+#if defined(__GNUG__) || defined(__SUNPRO_CC)
+    #ident "@(#) $Id$ (c) itopia"
+#else
+    #define AnythingPerfTest_H_ID "@(#) $Id$ (c) itopia"
+#    static char static_c_rcs_id[] = "@(#) $Id$ (c) itopia";
+#    static char static_h_rcs_id[] = AnythingPerfTest_H_ID;
+#endif
+
+def RemoveIdentLines():
+    for dirpath, dirnames, filenames in os.walk('.'):
+        dirnames[:] = [d for d in dirnames if not d in excludelist]
+        for name in filenames:
+            if re.compile('^.*.cpp$').match(name) or re.compile('^.*.hp*$').match(name):
+                fname = os.path.join(dirpath, name)
+                try:
+                    fo = open(fname)
+                    if fo:
+                        fstr = fo.read()
+                        fo.close()
+                        strout = ''
+                        lastiter = None
+                        for it in re.finditer(r"^(#if.*$\s+#ident.*$\s+#else\s+(#?\w+.*$\s+){1,2}#endif\s*$\s)", fstr, re.M):
+                            if lastiter:
+                                strout += it.string[lastiter.end(0):it.start(0)]
+                            else:
+                                strout += it.string[:it.start(0)]
+                            g = it.groups()
+                            envName = g[0]
+                            lastiter = it
+                        if lastiter:
+                            outstr = strout
+                            outstr += lastiter.string[lastiter.end(0):]
+                            if fstr != outstr:
+                                print "matches in file:", fname
+                                try:
+                                    of = open(fname, 'w+')
+                                    of.write(outstr)
+                                    of.close()
+                                except:
+                                    pass
+                except IOError:
+                    pass
+
 def ChangeBaseEnvClone():
     for dirpath, dirnames, filenames in os.walk('.'):
         dirnames[:] = [d for d in dirnames if not d in excludelist]
@@ -194,3 +237,4 @@ def ChangePackageName():
 #RemoveEnvDump()
 #ChangeListFiles()
 #ChangePackageName()
+RemoveIdentLines()
