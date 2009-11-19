@@ -119,7 +119,10 @@ def generate( env ):
     else:
         setupBuildTools.registerCallback( 'DEBUG_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = ['-g'] ) )
 
-    setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = ['-O3'] ) )
+    if str( platf ) == "sunos":
+        setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = ['-O1'] ) )
+    else:
+        setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = ['-O3'] ) )
 
     setupBuildTools.registerCallback( 'PROFILE_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = ['-fprofile'] ) )
 
