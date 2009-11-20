@@ -54,6 +54,7 @@ def generate( env ):
     else:
         env['SHCCFLAGS'] = SCons.Util.CLVar( '$CCFLAGS -fPIC' )
     # determine compiler version
+    gccfss=False
     if env['CC']:
         #pipe = SCons.Action._subproc(env, [env['CC'], '-dumpversion'],
         pipe = SCons.Action._subproc( env, [env['CC'], '--version'],
@@ -68,9 +69,13 @@ def generate( env ):
         #if line:
         #    env['CCVERSION'] = line
         line = pipe.stdout.readline()
-        match = re.search( r'(\s+)([0-9]+(\.[0-9]+)+)', line )
-        if match:
-            env['CCVERSION'] = match.group( 2 )
+        versionmatch = re.search( r'(\s+)([0-9]+(\.[0-9]+)+)', line )
+        gccfssmatch = re.search( r'(\(gccfss\))', line )
+        if versionmatch:
+            env['CCVERSION'] = versionmatch.group( 2 )
+        if gccfssmatch:
+            env['CCFLAVOUR'] = gccfssmatch.group( 1 )
+            gccfss=True
 
         ## own extension to detect system include paths
         tFile = os.path.join( SCons.Script.Dir( '.' ).abspath, '.x1y2' )

@@ -61,6 +61,7 @@ def generate( env ):
     elif env['PLATFORM'] == 'sunos':
         env['SHOBJSUFFIX'] = '.pic.o'
     # determine compiler version
+    gccfss=False
     if env['CXX']:
         #pipe = SCons.Action._subproc(env, [env['CXX'], '-dumpversion'],
         pipe = SCons.Action._subproc( env, [env['CXX'], '--version'],
@@ -75,9 +76,13 @@ def generate( env ):
         #if line:
         #    env['CXXVERSION'] = line
         line = pipe.stdout.readline()
-        match = re.search( r'(\s+)([0-9]+(\.[0-9]+)+)', line )
-        if match:
-            env['CXXVERSION'] = match.group( 2 )
+        versionmatch = re.search( r'(\s+)([0-9]+(\.[0-9]+)+)', line )
+        gccfssmatch = re.search( r'(\(gccfss\))', line )
+        if versionmatch:
+            env['CXXVERSION'] = versionmatch.group( 2 )
+        if gccfssmatch:
+            env['CXXFLAVOUR'] = gccfssmatch.group( 1 )
+            gccfss=True
 
         ## own extension to detect system include paths
         tFile = os.path.join( SCons.Script.Dir( '.' ).abspath, '.x1y2' )
@@ -120,7 +125,11 @@ def generate( env ):
         setupBuildTools.registerCallback( 'DEBUG_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = ['-g'] ) )
 
     if str( platf ) == "sunos":
-        setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = ['-O1'] ) )
+        if gccfss:
+            # at least until g++ 4.3.3 (gccfss), there is a bug #100 when using optimization levels above -O1
+            setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = ['-O1', '-fast'] ) )
+        else:
+            setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = ['-O3'] ) )
     else:
         setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = ['-O3'] ) )
 
