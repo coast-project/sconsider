@@ -127,7 +127,8 @@ def generate( env ):
     if str( platf ) == "sunos":
         if gccfss:
             # at least until g++ 4.3.3 (gccfss), there is a bug #100 when using optimization levels above -O1
-            setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = ['-O1', '-fast'] ) )
+            # -> -fast option breaks creation of correct static initialization sequence
+            setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = ['-O1'] ) )
         else:
             setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = ['-O3'] ) )
     else:
