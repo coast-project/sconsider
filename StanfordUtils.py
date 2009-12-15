@@ -336,16 +336,16 @@ class TargetMaker:
 
     def prepareFileNodeTuples(self, nodes, baseDir, alternativeDir=None):
         nodetuples = []
-        
+
         for node in nodes:
             currentFile = node
             if hasattr( node, 'srcnode' ):
                 currentFile = node.srcnode()
-            
+
             currentBaseDir = baseDir
             if hasattr( baseDir, 'srcnode' ):
                 currentBaseDir = baseDir.srcnode()
-            
+
             if alternativeDir:
                 # based on installRelPath and file, try to find an override file to use instead
                 fileWithRelpathToSearch = os.path.relpath(currentFile.abspath, currentBaseDir.abspath)
@@ -355,7 +355,7 @@ class TargetMaker:
                     if os.path.isfile(fileToCheckFor):
                         currentFile = File(fileToCheckFor)
                         currentBaseDir = alternativeDir
-            
+
             nodetuples.append((currentFile, currentBaseDir))
         return nodetuples
 
@@ -372,17 +372,17 @@ class TargetMaker:
 
     def copyConfigFiles(self, env, destdir, pkgname, buildSettings):
         instTargets = []
-        
+
         if buildSettings.has_key('copyFiles'):
             pkgdir = self.programLookup.getPackageDir(pkgname)
-            
+
             envconfigdir = env.get('__envconfigdir__', None)
             if envconfigdir:
                 envconfigdir = envconfigdir.Dir(pkgname)
-            
+
             for (cfiles, mode) in buildSettings.get('copyFiles', []):
                 instTargets.append( copyFileNodes(env, self.prepareFileNodeTuples(cfiles, pkgdir, envconfigdir), destdir, mode=mode) )
-        
+
         return instTargets
 
     def requireTargets(self, env, target, requiredTargets, **kw):

@@ -136,38 +136,58 @@ def getPyFilename( filename ):
         filename = filename[:-1]
     return filename
 
-def replaceRegexInFile( fname, searchpattern, replacepatternorfunc ):
+def DoReplaceInString(fstr, strRegex, replaceWith):
+    lastiter = None
+    strout = ''
+    for it in re.finditer(strRegex, fstr, re.M):
+        if lastiter:
+            strout += it.string[lastiter.end(0):it.start(0)]
+        else:
+            strout += it.string[:it.start(0)]
+        g = it.groups()
+        if callable(replaceWith):
+            strout += replaceWith(g, it)
+        else:
+            strout += replaceWith
+        lastiter = it
+    if lastiter:
+        strout += lastiter.string[lastiter.end(0):]
+        if fstr != strout:
+            return strout
+    return None
+
+def replaceRegexInFile( fname, searchReplace ):
     try:
         fo = open( fname )
         if fo:
             fstr = fo.read()
             fo.close()
-            strout = ''
-            lastiter = None
-            for it in re.finditer( searchpattern, fstr, re.M ):
-                if lastiter:
-                    strout += it.string[lastiter.end( 0 ):it.start( 0 )]
-                else:
-                    strout += it.string[:it.start( 0 )]
-                g = it.groups()
-                if callable( replacepatternorfunc ):
-                    strout += replacepatternorfunc( g )
-                else:
-                    strout += replacepatternorfunc
-                lastiter = it
-            if lastiter:
-                outstr = strout
-                outstr += lastiter.string[lastiter.end( 0 ):]
-                if fstr != outstr:
-                    print "replaced in", fname
+            if fstr:
+                for reStr, replX in searchReplace:
+                    strout = DoReplaceInString(fstr, reStr, replX)
+                    if strout:
+                        # prepare for potential next loop
+                        fstr=strout
+                if strout:
                     try:
-                        of = open( fname, 'w+' )
-                        of.write( outstr )
+                        of = open(fname, 'w+')
+                        of.write(strout)
                         of.close()
                     except:
                         pass
     except IOError:
         pass
+
+def RegexReplace(filematch, baseDir='.', searchReplace=[], excludelist=[] ):
+    for dirpath, dirnames, filenames in os.walk(baseDir):
+        dirnames[:] = [d for d in dirnames if not d in excludelist]
+        for name in filenames:
+            if filematch(dirpath, name):
+                fname = os.path.join(dirpath, name)
+                try:
+                    replaceRegexInFile( fname, searchReplace )
+                except IOError:
+                    pass
 
 # monkey patch os.path to include relpath if python version is < 2.6
 if not hasattr(os.path, "relpath"):
