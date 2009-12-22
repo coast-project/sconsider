@@ -81,7 +81,7 @@ def generate( env ):
     setupBuildTools.registerCallback( 'MT_OPTIONS', lambda env: env.AppendUnique( SHLINKFLAGS = '-mt' ) )
     # do not use rpath
     setupBuildTools.registerCallback( 'RPATH_OPTIONS', lambda env: env.AppendUnique( SHLINKFLAGS = '-norunpath' ) )
-    setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LIBS = ['socket', 'resolv', 'posix4', 'aio'] ) )
+    setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LIBS = ['socket', 'resolv', 'nsl', 'posix4', 'aio'] ) )
 
     def bwopt( bitwidth ):
         bitwoption = '-xtarget=native'
