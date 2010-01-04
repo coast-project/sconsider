@@ -50,9 +50,9 @@ class Result(object):
                     for name, testcase in section['testcases'].iteritems():
                         # Testfw prints 'Testcase.Testmethod', but we just need 'Testmethod' here
                         testname = re.sub('^'+section.get('name', 'unknown')+'\.', '', name)
-                        with xml.testcase(name=testname, classname=classname, time=0):
+                        with xml.testcase(name=testname, classname=classname, time=testcase.get('msecs', 0)):
                             if not testcase['passed']:
-                                xml << ('failure', testcase['message'], {'message': testcase['cause'], 'type': 'Assertion' })
+                                xml << ('failure', testcase.get('message', ''), {'message': testcase.get('cause', ''), 'type': 'Assertion' })
                     xml << ('system-out', section.get('content', '').strip())
                     xml << ('system-err', '')
         etree_node = ~xml
@@ -79,14 +79,22 @@ class StartedState(State):
     def fail(self, **kw):
         return 'failed'
     
-    def test(self, name, **kw):
+    def test(self, name, line, **kw):
         self.result.addTest(name)
+        self.current_testcase = name
+        self.handle(line)
     
     def stop(self, assertions, msecs, failures, **kw):
         self.result.setTotal('assertions', assertions)
         self.result.setTotal('msecs', msecs)
         self.result.setTotal('failures', failures)
         return 'ended'
+
+    def handle(self, line, **kw):
+        pattern = re.compile('\((\d+)[\)]*ms\)')
+        match = re.search(pattern, line)
+        if match:
+            self.result.setTestData(self.current_testcase, 'msecs', match.group(1))
 
 class EndedState(State):
     def start(self, name, **kw):
