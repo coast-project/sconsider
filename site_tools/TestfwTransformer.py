@@ -39,16 +39,18 @@ class Result(object):
         xml = XMLBuilder(format=True)
         with xml.testsuites():
             for section in self.getSections():
+                classname = package+'.'+section.get('name', 'unknown')
                 with xml.testsuite(tests=section.get('tests', 0),
                                    errors=section.get('errors', 0),
                                    failures=section.get('failures', 0),
                                    hostname=section.get('hostname', 'unknown'),
                                    time=section.get('msecs', 0),
                                    timestamp=section.get('time', ''),
-                                   package=package,
-                                   name=section.get('name', '')):
+                                   name=classname):
                     for name, testcase in section['testcases'].iteritems():
-                        with xml.testcase(name=name, classname=section.get('name', ''), time=0):
+                        # Testfw prints 'Testcase.Testmethod', but we just need 'Testmethod' here
+                        testname = re.sub('^'+section.get('name', 'unknown')+'\.', '', name)
+                        with xml.testcase(name=testname, classname=classname, time=0):
                             if not testcase['passed']:
                                 xml << ('failure', testcase['message'], {'message': testcase['cause'], 'type': 'Assertion' })
                     xml << ('system-out', section.get('content', '').strip())
