@@ -44,13 +44,13 @@ class Result(object):
                                    errors=section.get('errors', 0),
                                    failures=section.get('failures', 0),
                                    hostname=section.get('hostname', 'unknown'),
-                                   time=section.get('msecs', 0),
+                                   time=float(section.get('msecs', 0))/1000,
                                    timestamp=section.get('time', ''),
                                    name=classname):
                     for name, testcase in section['testcases'].iteritems():
                         # Testfw prints 'Testcase.Testmethod', but we just need 'Testmethod' here
                         testname = re.sub('^'+section.get('name', 'unknown')+'\.', '', name)
-                        with xml.testcase(name=testname, classname=classname, time=testcase.get('msecs', 0)):
+                        with xml.testcase(name=testname, classname=classname, time=float(testcase.get('msecs', 0))/1000):
                             if not testcase['passed']:
                                 xml << ('failure', testcase.get('message', ''), {'message': testcase.get('cause', ''), 'type': 'Assertion' })
                     xml << ('system-out', section.get('content', '').strip())
