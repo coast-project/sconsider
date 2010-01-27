@@ -1,4 +1,5 @@
-import os, SCons, glob, pdb, string, re
+import os, SCons, glob, string, re
+import pdb
 
 from SCons.Script import Glob, Dir, Import, File
 
@@ -135,6 +136,14 @@ def getPyFilename( filename ):
     if ( filename.endswith( ".pyc" ) or filename.endswith( ".pyo" ) ):
         filename = filename[:-1]
     return filename
+
+def multiple_replace(dict, text):
+    """ Replace in 'text' all occurences of any key in the given
+    dictionary by its corresponding value.  Returns the new string.""" 
+    # Create a regular expression  from the dictionary keys
+    regex = re.compile("(%s)" % "|".join(map(re.escape, dict.keys())))
+    # For each match, look-up corresponding value in dictionary
+    return regex.sub(lambda mo: dict[mo.string[mo.start():mo.end()]], text)
 
 def DoReplaceInString(fstr, strRegex, replaceWith):
     lastiter = None
