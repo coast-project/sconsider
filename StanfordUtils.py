@@ -2,7 +2,7 @@ from __future__ import with_statement
 import os, platform, SCons, glob, re, atexit, sys, traceback, commands, pdb, dircache, stat, types
 import SomeUtils
 
-from SCons.Script import AddOption, GetOption, Dir, DefaultEnvironment, Split, Flatten, SConsignFile
+from SCons.Script import AddOption, GetOption, Dir, File, DefaultEnvironment, Split, Flatten, SConsignFile
 from SomeUtils import *
 
 # SconsBuilder may work with earlier version,

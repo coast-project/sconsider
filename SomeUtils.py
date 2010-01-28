@@ -1,40 +1,41 @@
-import os, SCons, glob, string, re
+import os, glob, string, re
 import pdb
-
-from SCons.Script import Glob, Dir, Import, File
 
 def FileNodeComparer( left, right ):
     """Default implementation for sorting File nodes according to their lexicographical order"""
     return cmp( left.srcnode().abspath, right.srcnode().abspath )
 
 def listFiles( files, **kw ):
+    import SCons
     allFiles = []
     for file in files:
-        globFiles = Glob( file )
+        globFiles = SCons.Script.Glob( file )
         newFiles = []
         for globFile in globFiles:
             if 'recursive' in kw and kw.get( 'recursive' ) and os.path.isdir( globFile.srcnode().abspath ) and os.path.basename( globFile.srcnode().abspath ) != 'CVS':
-                allFiles += StanfordUtils.listFiles( [str( Dir( '.' ).srcnode().rel_path( globFile.srcnode() ) ) + "/*"], recursive = True )
+                allFiles += StanfordUtils.listFiles( [str( SCons.Script.Dir( '.' ).srcnode().rel_path( globFile.srcnode() ) ) + "/*"], recursive = True )
             if os.path.isfile( globFile.srcnode().abspath ):
                 allFiles.append( globFile )
     allFiles.sort( cmp = FileNodeComparer )
     return allFiles
 
 def removeFiles( files, **kw ):
+    import SCons
     import types
     if not isinstance( files, types.ListType ):
         files = [files]
     for fname in files:
         try:
-            os.unlink( File( fname ).abspath )
+            os.unlink( SCons.Script.File( fname ).abspath )
         except: pass
 
 def findFiles( directories, extensions = [], matchfiles = [], direxcludes = [] ):
+    import SCons
     files = []
     for directory in directories:
-        directory = Dir( directory ).srcnode().abspath
+        directory = SCons.Script.Dir( directory ).srcnode().abspath
         for dirpath, dirnames, filenames in os.walk( directory ):
-            curDir = Dir( dirpath )
+            curDir = SCons.Script.Dir( dirpath )
             dirnames[:] = [d for d in dirnames if not d in direxcludes]
             addfiles = []
             if extensions:
@@ -111,6 +112,7 @@ class EnvVarDict( dict ):
 #TestFunc()
 
 def copyFileNodes( env, nodetuples, destDir, stripRelDirs = [], mode = None ):
+    import SCons
     if not SCons.Util.is_List( stripRelDirs ):
         stripRelDirs = [stripRelDirs]
 
@@ -137,13 +139,12 @@ def getPyFilename( filename ):
         filename = filename[:-1]
     return filename
 
-def multiple_replace(dict, text):
-    """ Replace in 'text' all occurences of any key in the given
-    dictionary by its corresponding value.  Returns the new string.""" 
-    # Create a regular expression  from the dictionary keys
-    regex = re.compile("(%s)" % "|".join(map(re.escape, dict.keys())))
-    # For each match, look-up corresponding value in dictionary
-    return regex.sub(lambda mo: dict[mo.string[mo.start():mo.end()]], text)
+def multiple_replace(replist, text):
+    """ Using a list of tuples (pattern, replacement) replace all occurrences
+    of pattern (supports regex) with replacement. Returns the new string."""
+    for pattern, replacement in replist:
+        text = re.sub(pattern, replacement, text)
+    return text
 
 def DoReplaceInString(fstr, strRegex, replaceWith):
     lastiter = None
