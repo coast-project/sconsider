@@ -1,9 +1,12 @@
+import sys
+
 class Callback(object):
     def __init__(self):
         self.callbacks = {}
 
     def register(self, signalname, func, **kw):
-        self.callbacks.setdefault(signalname, []).append((func, kw))
+        if callable(func):
+            self.callbacks.setdefault(signalname, []).append((func, kw))
         
     def call(self, signalname, **overrides):
         for func, kw in self.callbacks.get(signalname, []):
@@ -19,6 +22,7 @@ def addCallbackFeature(modulename):
     def runCallback(signalname, **overrides):
         callback.call(signalname, **overrides)
 
-    module = __import__(modulename)
+    __import__(modulename)
+    module = sys.modules[modulename]
     module.registerCallback = registerCallback
     module.runCallback = runCallback
