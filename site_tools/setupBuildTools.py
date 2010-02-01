@@ -2,7 +2,7 @@ import pdb, os, platform
 import SCons.Tool
 import SCons.Script
 from SCons.Script import AddOption, Dir, GetOption
-import StanfordUtils
+import SConsider
 
 import Callback
 Callback.addCallbackFeature( __name__ )
@@ -128,7 +128,7 @@ def generate( env, **kw ):
     def variantSuffix( env ):
         env.Append( VARIANT_SUFFIX = ['-' + bitwidth] )
         runCallback( 'VARIANT_SUFFIX', env = env )
-    StanfordUtils.registerCallback( 'VARIANT_SUFFIX', variantSuffix )
+    SConsider.registerCallback( 'VARIANT_SUFFIX', variantSuffix )
 
 def exists( env ):
     return 1

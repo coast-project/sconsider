@@ -2,7 +2,7 @@ from __future__ import with_statement
 import os, pdb, subprocess, optparse
 import SCons.Action, SCons.Builder
 from SCons.Script import AddOption, GetOption
-import StanfordUtils, SomeUtils
+import SConsider, SomeUtils
 
 def generate(env):
     """
@@ -26,9 +26,9 @@ def generate(env):
              
         print "\nAvailable Aliases"
         print "-----------------"
-        env = StanfordUtils.cloneBaseEnv()
+        env = SConsider.cloneBaseEnv()
         for al in env.ans.keys():
-            pkg, target = StanfordUtils.splitTargetname(al)
+            pkg, target = SConsider.splitTargetname(al)
             if not registry.hasPackage(pkg):
                 print al
         
@@ -36,7 +36,7 @@ def generate(env):
         exit()
 
     if GetOption("showtargets"):
-        StanfordUtils.registerCallback("PreBuild", printTargets)
+        SConsider.registerCallback("PreBuild", printTargets)
 
 def exists(env):
    return 1

@@ -11,7 +11,7 @@ reShell=re.compile('^.*\.sh$')
 reAny=re.compile('^.*\.any$')
 
 # ChangePackageName
-#RegexReplace(lambda d,f: reLibPy.match(f), r"string.replace\(([\w_]+),\s*'Lib',\s*''\)", lambda g,it: "StanfordUtils.getPackageName(" + g[0] + ")" )
+#RegexReplace(lambda d,f: reLibPy.match(f), r"string.replace\(([\w_]+),\s*'Lib',\s*''\)", lambda g,it: "SConsider.getPackageName(" + g[0] + ")" )
 
 # remove #ident from c++ source files
 #if defined(__GNUG__) || defined(__SUNPRO_CC)

@@ -2,7 +2,7 @@ from __future__ import with_statement
 import os, pdb, subprocess, optparse, re
 import SCons.Action, SCons.Builder
 from SCons.Script import AddOption, GetOption
-import StanfordUtils, SomeUtils
+import SConsider, SomeUtils
 
 def __getDependencies(registry, packagename, fnobj, recursive=False):
     depPackages = {}
@@ -15,7 +15,7 @@ def __getDependencies(registry, packagename, fnobj, recursive=False):
             deps.append(usedTarget)
         
         for ftn in deps:
-            depPkgname, depTname = StanfordUtils.splitTargetname(ftn)
+            depPkgname, depTname = SConsider.splitTargetname(ftn)
             if not depPkgname == packagename:
                 if recursive:
                     depPackages.update(__getDependencies(registry, depPkgname, fnobj, recursive))
@@ -463,7 +463,7 @@ def generate(env):
     env.AddMethod(createDoxygenTarget, "PackageDoxygen")
     
     def createTargetCallback(registry, packagename, **kw):
-        doxyEnv = StanfordUtils.cloneBaseEnv()
+        doxyEnv = SConsider.cloneBaseEnv()
         doxyTarget = doxyEnv.PackageDoxygen(registry, packagename)
         doxyEnv.Alias("doxygen", doxyTarget)
     
@@ -472,8 +472,8 @@ def generate(env):
             SCons.Script.BUILD_TARGETS.append("doxygen")
     
     if GetOption("doxygen"):
-        StanfordUtils.registerCallback("PostCreatePackageTargets", createTargetCallback)
-        StanfordUtils.registerCallback("PreBuild", addBuildTargetCallback)
+        SConsider.registerCallback("PostCreatePackageTargets", createTargetCallback)
+        SConsider.registerCallback("PreBuild", addBuildTargetCallback)
         compilerDefines.update(determineCompilerDefines(env))
 
 def exists(env):

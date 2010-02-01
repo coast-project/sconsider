@@ -2,7 +2,7 @@ from __future__ import with_statement
 import os, pdb, subprocess, optparse, sys
 import SCons.Action, SCons.Builder, SCons.Script
 from SCons.Script import AddOption, GetOption
-import StanfordUtils
+import SConsider
 import Callback
 Callback.addCallbackFeature(__name__)
 
@@ -173,14 +173,14 @@ def generate(env):
     
     def addBuildTargetCallback(**kw):
         for ftname in SCons.Script.COMMAND_LINE_TARGETS:
-            packagename, targetname = StanfordUtils.splitTargetname(ftname)
+            packagename, targetname = SConsider.splitTargetname(ftname)
             target = getTarget(packagename, targetname)
             if target:
                 SCons.Script.BUILD_TARGETS.append(target)
     
     if GetOption("run") or GetOption("run-force"):
-        StanfordUtils.registerCallback("PostCreateTarget", createTargetCallback)
-        StanfordUtils.registerCallback("PreBuild", addBuildTargetCallback)
+        SConsider.registerCallback("PostCreateTarget", createTargetCallback)
+        SConsider.registerCallback("PreBuild", addBuildTargetCallback)
 
 def exists(env):
     return 1;

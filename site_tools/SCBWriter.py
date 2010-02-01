@@ -1,7 +1,7 @@
 from __future__ import with_statement
 import os, re, pdb
 from SCons.Script import Dir
-import StanfordUtils
+import SConsider
 
 def writeSCB(registry, packagename, buildSettings, **kw):
     includeDirs = set()
@@ -33,7 +33,7 @@ def writeSCB(registry, packagename, buildSettings, **kw):
             of.write(pathstring)
 
 def generate(env):
-    StanfordUtils.registerCallback("PostCreatePackageTargets", writeSCB)
+    SConsider.registerCallback("PostCreatePackageTargets", writeSCB)
 
 def exists(env):
    return 1
