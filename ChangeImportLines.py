@@ -10,9 +10,6 @@ reScons=re.compile('^SConscript$')
 reShell=re.compile('^.*\.sh$')
 reAny=re.compile('^.*\.any$')
 
-# ChangePackageName
-#RegexReplace(lambda d,f: reLibPy.match(f), r"string.replace\(([\w_]+),\s*'Lib',\s*''\)", lambda g,it: "SConsider.getPackageName(" + g[0] + ")" )
-
 # remove #ident from c++ source files
 #if defined(__GNUG__) || defined(__SUNPRO_CC)
     #ident "@(#) $Id$ (c) itopia"
@@ -21,7 +18,6 @@ reAny=re.compile('^.*\.any$')
 #    static char static_c_rcs_id[] = "@(#) $Id$ (c) itopia";
 #    static char static_h_rcs_id[] = AnythingPerfTest_H_ID;
 #endif
-#RegexReplace(lambda d,f: reCpp.match(f) or reHeader.match(f), r"^(#if.*$\s+#ident.*$\s+#else\s+(#?\w+.*$\s+){1,2}#endif\s*$\s)", "")
 
 #ifdef __370__
     #pragma nomargins
@@ -29,7 +25,6 @@ reAny=re.compile('^.*\.any$')
 #ifdef __GNUG__
     #pragma implementation
 #endif
-#RegexReplace(lambda d,f: reCpp.match(f) or reHeader.match(f), r"^([ \t]*#if.*$\s+#pragma\s+(nomargins|implementation|interface)\s*$\s+#endif\s*$\s)", "")
 
 #/*
 # * Copyright (c) 2003 SYNLOGIC
@@ -73,10 +68,9 @@ def replaceHeaderFunc(g, it):
                 chgHeader=yearHeader
     return chgHeader
 
-#RegexReplace(lambda d,f: reCpp.match(f) or reHeader.match(f), r"^([ \t]*//?\*.*\s+(\s*\*(?!/).*)*(\s*\*/))", replaceHeaderFunc)
-RegexReplace(lambda d,f: reCpp.match(f) or reHeader.match(f), searchReplace=[(r"^(#if.*$\s+#ident.*$\s+#else\s+(#?\w+.*$\s+){1,2}#endif\s*$\s)", ""),
+RegexReplace(lambda d,f: reCpp.match(f) or reHeader.match(f), searchReplace=[(r"^(#if.*$\s+#ident.*$\s+#else\s+((\w+|#[^e]\w+).*$\s+){1,2}#endif\s*$\s)", ""),
                                                                (r"^([ \t]*#if.*$\s+#pragma\s+(nomargins|implementation|interface)\s*$\s+#endif\s*$\s)", ""),
-                                                               (r"^([ \t]*//?\*.*\s+(\s*\*(?!/).*)*(\s*\*/))", replaceHeaderFunc)
+                                                               #(r"^([ \t]*//?\*.*\s+(\s*\*(?!/).*)*(\s*\*/))", replaceHeaderFunc),
                                                                ], excludelist=excludelist)
 
 fstr='/*\n * Copyright (c) 2003 SYNLOGIC\n * All Rights Reserved\n */\n\n#if defined(__GNUG__) || defined(__SUNPRO_CC)\n    #ident "@(#) $Id$ (c) itopia"\n#else\n    static char static_c_rcs_id[] = "@(#) $Id$ (c) itopia";\n    static char static_h_rcs_id[] = AnythingPerfTest_H_ID;\n#endif\n\nfsdfds\nfsfds\n\n'
