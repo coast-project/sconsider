@@ -146,56 +146,35 @@ def multiple_replace(replist, text):
         text = re.sub(pattern, replacement, text)
     return text
 
-def DoReplaceInString(fstr, strRegex, replaceWith):
-    lastiter = None
-    strout = ''
-    for it in re.finditer(strRegex, fstr, re.M):
-        if lastiter:
-            strout += it.string[lastiter.end(0):it.start(0)]
-        else:
-            strout += it.string[:it.start(0)]
-        g = it.groups()
-        if callable(replaceWith):
-            strout += replaceWith(g, it)
-        else:
-            strout += replaceWith
-        lastiter = it
-    if lastiter:
-        strout += lastiter.string[lastiter.end(0):]
-        if fstr != strout:
-            return strout
-    return None
-
-def replaceRegexInFile( fname, searchReplace ):
+def replaceRegexInFile( fname, searchReplace, multiReplFunc=multiple_replace, replacedCallback=None ):
     try:
         fo = open( fname )
         if fo:
             fstr = fo.read()
             fo.close()
             if fstr:
-                for reStr, replX in searchReplace:
-                    strout = DoReplaceInString(fstr, reStr, replX)
-                    if strout:
-                        # prepare for potential next loop
-                        fstr=strout
-                if strout:
+                strout=multiReplFunc(searchReplace, fstr)
+                if fstr != strout:
                     try:
                         of = open(fname, 'w+')
                         of.write(strout)
                         of.close()
+                        if replacedCallback: replacedCallback(fname=fname, text=strout)
+                        return strout
                     except:
                         pass
     except IOError:
         pass
+    return None
 
-def RegexReplace(filematch, baseDir='.', searchReplace=[], excludelist=[] ):
+def RegexReplace(filematch, baseDir='.', searchReplace=[], excludelist=[], replacedCallback=None ):
     for dirpath, dirnames, filenames in os.walk(baseDir):
         dirnames[:] = [d for d in dirnames if not d in excludelist]
         for name in filenames:
             if filematch(dirpath, name):
                 fname = os.path.join(dirpath, name)
                 try:
-                    replaceRegexInFile( fname, searchReplace )
+                    replaceRegexInFile( fname, searchReplace, replacedCallback)
                 except IOError:
                     pass
 

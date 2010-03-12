@@ -67,13 +67,11 @@ while [ $# -ne 0 ]; do
     esac
 done
 
-
 # print some helpful identifying info for those who collect these things
 
 echo \
   'This is output from `defines'"' version $v, from your buddies at Newtware!"
 date
-
 
 # search the path for uname and strings (apparently "which" is broken in some
 # versions of Ultrix, and "test" does not accept the -x option)
@@ -113,14 +111,12 @@ else
 fi
 echo ""
 
-
 # this is the start of a *really big* if-block; look for "END IF-BLOCK 1"
 # about 135 lines down...
 
 if [ "$strpath" = "" ]; then
     echo "$0:  error: no "'`'"strings' command...giving up."
 else
-
 
 # search the path for the compiler
 
@@ -137,7 +133,6 @@ if [ "$ccpath" = "" ]; then
     echo "$0:  warning: $cc unreadable (can't search for strings)"
 fi
 
-
 # create a list of possible preprocessors; cd into /tmp now to avoid
 # problems with "." in path during "cc -v" compilation
 #   $dir/$cc/*cpp    :  Convex cc; *not* caught by "cc -v":  no -v option
@@ -146,7 +141,7 @@ fi
 #   /usr/lpp/xlc/bin :  AIX C Set++; not caught by "cc -v" (apparently)
 #   $dir/cpp.ansi    :  HP-UX
 #   /usr/lib/cmplrs/<compiler>/{decc,driver,cfe} : DEC Ultrix and OSF/1;
-  
+
 cd /tmp
 cpp=`for file in /etc/*.cfg ; do
     if [ -r $file ]; then
@@ -170,7 +165,6 @@ eval 'echo "debug:  cpp = [$cpp]"'"$DEBUG"
 if [ "$cpp" = "" ]; then
     echo "$0:  warning: preprocessor(s) unreadable (can't search for strings)"
 fi
-
 
 # grab all possible compiler components out of "cc -v" output (catches GNU
 # cpp and Sun acomp, in particular) and "cc -#" output (catches DNIX cc and
@@ -219,7 +213,6 @@ else
 fi
 eval 'echo "debug:  incl = [$incl]"'"$DEBUG"
 
-
 # if nothing is readable, no point in continuing:  strings would hang (this
 # is the start of another big if-block; look for "END IF-BLOCK 2" about 50
 # lines down)
@@ -229,7 +222,6 @@ eval 'echo "debug:  all = [$all]"'"$DEBUG"
 if [ "$all" = "" ]; then
     echo "$0:  error: all compiler components unreadable...giving up."
 else
-
 
 # figure out proper "strings" options for searching entire executable with
 # minimum string-length 2
