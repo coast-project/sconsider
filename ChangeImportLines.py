@@ -145,8 +145,16 @@ copyReplaceAnyShell=(strReCopyrightAnyShell, lambda mo: replaceHeaderFunc(mo,hea
 
 cleanNewLines=(re.compile(r"(^[ \t]*$\s)+",re.M),"\n")
 
-fgReplaceFuncs.append(copyReplace)
-fgReplaceFuncs.append(copyReplaceAnyShell)
+cleanQuotedSpaces=[(re.compile(r"([/%])\s+"),lambda mo: mo.group(1)),
+                   (re.compile(r"\s*([<>=-?])\s*"),lambda mo: mo.group(1))]
+def correctQuote(mo):
+    return mo.group(1) + multiple_replace(cleanQuotedSpaces, mo.group(2))
+
+quoteCorrect=(re.compile("(_QUOTE_\s*\()([^)]+)",re.M), correctQuote)
+
+#fgReplaceFuncs.append(quoteCorrect)
+#fgReplaceFuncs.append(copyReplace)
+#fgReplaceFuncs.append(copyReplaceAnyShell)
 fgReplaceFuncs.append(identoldReplace)
 fgReplaceFuncs.append(rcsidReplace)
 fgReplaceFuncs.append(hidReplace)
