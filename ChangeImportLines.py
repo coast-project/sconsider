@@ -1,18 +1,17 @@
 import os, pdb, re, time, sys
 from SomeUtils import *
+from xmlrpclib import datetime
 
 excludelist = ['build', 'CVS', 'data', 'xml', 'doc', 'bin', 'lib', '.git', '.gitmodules']
 
-reCpp=re.compile('^.*\.(cpp|C)$')
-reHeader=re.compile('^.*\.(hp*|ip*)$')
-reLibPy=re.compile('^.*Lib\.py$')
-reScons=re.compile('^SConscript$')
-reShell=re.compile('^.*\.sh$')
-reAny=re.compile('^.*\.any$')
-reMake=re.compile('^Makefile.*$')
-reHtml=re.compile('^.*\.html?$')
-
-fgReplaceFuncs=[]
+reCpp=re.compile(r'\.(cpp|C)$')
+reHeader=re.compile(r'\.(hp*|ip*)$')
+reLibPy=re.compile(r'\w+Lib\.py$')
+reScons=re.compile(r'SConscript$')
+reShell=re.compile(r'\.sh$')
+reAny=re.compile(r'\.any$')
+reMake=re.compile(r'Makefile.*$')
+reHtml=re.compile(r'\.html?$')
 
 # within .h
 ##define ATTFlowController_H_ID "itopia, ($Id$)"
@@ -107,7 +106,7 @@ headerTemplateC="""/*
  */
 
 """
-startHeaderReplacementFrom=time.mktime(time.strptime('20050101000000','%Y%m%d%H%M%S'))
+replacementFromDate=time.mktime(time.strptime('20050101000000','%Y%m%d%H%M%S'))
 reCopyYear=re.compile(r"(Copyright \(c\) )(\d{4})?(, Peter Sommerlad)?")
 
 def getCopyrightYear(text):
@@ -116,24 +115,28 @@ def getCopyrightYear(text):
         return (crMatch.group(2), crMatch)
     return (None,crMatch)
 
+def getAuthorDate():
+    # get commit date
+    authdate=time.mktime(time.gmtime())
+    authStr=os.environ.get('GIT_AUTHOR_DATE','')
+    if authStr:
+        authdate=float(authStr.split()[0])
+    return authdate
+
 def replaceHeaderFunc(mo, newheader, fileCopyrightYear=None):
     originalHeader=mo.group(0)
     (copyYear,matches)=getCopyrightYear(originalHeader)
     if not matches or matches.group(3):
         return originalHeader
     # get commit date
-    authdate=time.mktime(time.gmtime())
-    authStr=os.environ.get('GIT_AUTHOR_DATE','')
-    if authStr:
-        authdate=float(authStr.split()[0])
-    # get date from dict or commit author date
-    if fileCopyrightYear:
-        authYear=fileCopyrightYear
-    else:
-        authYear=time.strftime('%Y', time.gmtime(authdate))
-
+    authdate=getAuthorDate()
     # compare old and current header string to not overwrite existing data
-    if authdate >= startHeaderReplacementFrom:
+    if authdate >= replacementFromDate:
+        # get date from dict or commit author date
+        if fileCopyrightYear:
+            authYear=fileCopyrightYear
+        else:
+            authYear=time.strftime('%Y', time.gmtime(authdate))
         # assume the header is of new format when ", Peter Sommerlad" is matched
         yearHeader=re.sub(reCopyYear, lambda moSub: moSub.group(1) + authYear + moSub.group(3), newheader)
         # if string is equal already, it returns None
@@ -152,9 +155,10 @@ def correctQuote(mo):
 
 quoteCorrect=(re.compile("(_QUOTE_\s*\()([^)]+)",re.M), correctQuote)
 
+fgReplaceFuncs=[]
 #fgReplaceFuncs.append(quoteCorrect)
-#fgReplaceFuncs.append(copyReplace)
-#fgReplaceFuncs.append(copyReplaceAnyShell)
+fgReplaceFuncs.append(copyReplace)
+fgReplaceFuncs.append(copyReplaceAnyShell)
 fgReplaceFuncs.append(identoldReplace)
 fgReplaceFuncs.append(rcsidReplace)
 fgReplaceFuncs.append(hidReplace)
@@ -166,80 +170,68 @@ fgExcludeDirs.extend(['3rdparty','site_scons','scripts'])
 
 fgExtensionReList=[reCpp, reHeader, reAny, reShell, reMake]
 
-fgReplaceThreads=[]
+fgExtensionToReplaceFuncMap={
+    reCpp:    [identoldReplace,
+               rcsidReplace,
+               pragmaReplace,
+               cleanNewLines],
+    reHeader: [identoldReplace,
+               rcsidReplace,
+               hidReplace,
+               pragmaReplace,
+               cleanNewLines],
+    reAny:    [cleanNewLines],
+    reShell:  [cleanNewLines],
+    reMake:   [cleanNewLines],
+}
 
-import threading, subprocess
+import threading, subprocess, math
+
+def processFiles(theFiles, fileCopyrightDict, extensionToReplaceFuncMap, doAstyle=False):
+    astyleFiles=[]
+    replaceFuncs=[]
+    fileCopyrightYear=None
+    authdate=getAuthorDate()
+    if authdate >= replacementFromDate:
+        localMap={}
+        for (rex,funcs) in extensionToReplaceFuncMap.iteritems():
+            if rex == reCpp or rex == reHeader:
+                funcs.insert(0,(strReCopyright, lambda mo: replaceHeaderFunc(mo,headerTemplateC, fileCopyrightYear)))
+            else:
+                funcs.insert(0,(strReCopyrightAnyShell, lambda mo: replaceHeaderFunc(mo,headerTemplateAnyShell, fileCopyrightYear)))
+            localMap.setdefault(rex,funcs)
+        for fname in theFiles:
+            for (rex,funcs) in localMap.iteritems():
+                if rex.search(fname):
+                    fileCopyrightYear=fileCopyrightDict.get(fname,None)
+                    strReplaced=replaceRegexInFile(fname, searchReplace=funcs)
+                    if strReplaced:
+                        (year,matches)=getCopyrightYear(strReplaced)
+                        if year:
+                            copyDate=time.mktime(time.strptime(year, "%Y"))
+                            if copyDate >= replacementFromDate:
+                                fileCopyrightDict.setdefault(fname,year)
+                        if doAstyle and reCpp.search(fname) or reHeader.search(fname):
+                            astyleFiles.append(fname)
+                    break
+        if astyleFiles and doAstyle:
+            astyleCmd=["astyle", "--quiet", "--suffix=none", "--mode=c"]
+            astyleCmd.extend(astyleFiles)
+            proc = subprocess.Popen(astyleCmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            res = proc.wait()
+
 class replaceThread(threading.Thread):
-    def __init__(self, fileRegEx, replaceFuncs, baseDir, excludeDirs, fileCopyrightDict={}, files=[], doAstyle=False):
+    def __init__(self, replaceFuncs, files, fileCopyrightDict={}, doAstyle=False):
         threading.Thread.__init__( self )
-        self.fileRegEx=fileRegEx
         self.files=files
-        self.excludeDirs=excludeDirs
         self.fileCopyrightDict=fileCopyrightDict
-        self.replaceFuncs=[]
+        self.replaceFuncs=replaceFuncs
         self.fileCopyrightYear=None
         self.doAstyle=doAstyle
-        self.replaceFuncs.append((strReCopyright, lambda mo: replaceHeaderFunc(mo,headerTemplateC, self.fileCopyrightYear)))
-        self.replaceFuncs.append((strReCopyrightAnyShell, lambda mo: replaceHeaderFunc(mo,headerTemplateAnyShell, self.fileCopyrightYear)))
-        self.replaceFuncs.extend(replaceFuncs)
-        self.baseDir=baseDir
-
-    def replacedCallback(self,fname,text):
-        (year,matches)=getCopyrightYear(text)
-        self.fileCopyrightDict.setdefault(fname,year)
-
-    def multiple_replace(self, replist, text):
-        """ Using a list of tuples (pattern, replacement) replace all occurrences
-        of pattern (supports regex) with replacement. Returns the new string."""
-        for pattern, replacement in replist:
-            text = re.sub(pattern, replacement, text)
-        return text
-
-    def processRecursive(self):
-        astyleFiles=[]
-        for dirpath, dirnames, filenames in os.walk(self.baseDir):
-            dirnames[:] = [d for d in dirnames if not d in self.excludeDirs]
-            for name in filenames:
-                if self.fileRegEx.match(name):
-                    fname = os.path.join(dirpath, name)
-                    try:
-                        self.fileCopyrightYear=self.fileCopyrightDict.get(fname,None)
-                        strReplaced=replaceRegexInFile( fname, searchReplace=self.replaceFuncs, multiReplFunc=self.multiple_replace)
-                        if strReplaced:
-                            self.replacedCallback(fname, strReplaced)
-                            if reCpp.match(name) or reHeader.match(name):
-                                astyleFiles.append(fname)
-                    except IOError:
-                        pass
-        if astyleFiles and self.doAstyle:
-            astyleCmd=["astyle", "--quiet", "--suffix=none", "--mode=c"]
-            astyleCmd.extend(astyleFiles)
-            proc = subprocess.Popen(astyleCmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            res = proc.wait()
-
-    def processFiles(self):
-        astyleFiles=[]
-        for fname in self.files:
-            try:
-                self.fileCopyrightYear=self.fileCopyrightDict.get(fname,None)
-                strReplaced=replaceRegexInFile( fname, searchReplace=self.replaceFuncs, multiReplFunc=self.multiple_replace)
-                if strReplaced:
-                    self.replacedCallback(fname, strReplaced)
-                    if reCpp.match(fname) or reHeader.match(fname):
-                        astyleFiles.append(fname)
-            except IOError:
-                pass
-        if astyleFiles and self.doAstyle:
-            astyleCmd=["astyle", "--quiet", "--suffix=none", "--mode=c"]
-            astyleCmd.extend(astyleFiles)
-            proc = subprocess.Popen(astyleCmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            res = proc.wait()
 
     def run(self):
         if self.files:
-            self.processFiles()
-        else:
-            self.processRecursive()
+            processFiles(self.files, self.replaceFuncs, self.fileCopyrightDict, self.doAstyle)
 
 def readDictFromFile(fname):
     import pickle
@@ -265,6 +257,7 @@ def writeDictToFile(fname, outDict):
 
 if __name__ == "__main__":
     from optparse import OptionParser
+    import time
 
     usage = "usage: %prog [options] <file>..."
     parser = OptionParser(usage=usage)
@@ -273,6 +266,7 @@ if __name__ == "__main__":
     parser.add_option("-x", "--fileregex", action="append", dest="fileregex", help="process only files matching regular expression, like '"+reCpp.pattern+"'", default=[])
     parser.add_option("-f", "--filepattern", action="append", dest="filepattern", help="process only files matching glob spec, like '*.cpp'", default=[])
     parser.add_option("-d", "--dictfile", action="store", dest="dictfilename",help="write processed entries to FILE", metavar="FILE")
+    parser.add_option("-t", "--threadnum", action="store", dest="threadnum",help="use given number of threads to process files")
 
     (options, positionalArgs) = parser.parse_args()
     if not options.allfiles and len(positionalArgs) < 1:
@@ -288,31 +282,48 @@ if __name__ == "__main__":
         extensionReList=fgExtensionReList
     if options.dictfilename:
         fileCopyrightDict=readDictFromFile(options.dictfilename)
+    filesToProcess=positionalArgs
+    start = time.clock()
+    matchIt=lambda n: not bool(extensionReList)
+    for fileRegEx in extensionReList:
+        matchIt=lambda n, r=fileRegEx.search,l=matchIt: l(n) or bool(r(n))
     if options.allfiles and len(extensionReList):
-        for fileRegEx in extensionReList:
-            t=replaceThread(fileRegEx, replaceFuncs=fgReplaceFuncs, baseDir='.', excludeDirs=fgExcludeDirs, fileCopyrightDict=fileCopyrightDict, doAstyle=options.astyle)
+        for dirpath, dirnames, filenames in os.walk('.'):
+            dirnames[:] = [d for d in dirnames if not d in fgExcludeDirs]
+#            newfiles = [os.path.join(dirpath, name) for name in filenames if matchIt(name)]
+            newfiles = [os.path.join(dirpath, name) for name in filenames]
+            filesToProcess.extend(newfiles)
+
+    end = time.clock()
+    numFiles=len(filesToProcess)
+    print "Time elapsed = ", end - start, "s for nfiles:",numFiles
+
+    start = time.clock()
+    numthreads=None
+    if options.threadnum:
+        numthreads=int(options.threadnum)
+    # check here to see why multi threading in python is not what we would expect -> http://www.dabeaz.com/python/GIL.pdf
+    if False or numthreads > 0:
+        replaceThreads=[]
+        filesPerThread=int(math.ceil(float(numFiles)/float(numthreads)))
+        nstart=0
+        nend=numthreads*filesPerThread
+        while nstart < numFiles:
+            t=replaceThread(replaceFuncs=fgReplaceFuncs, fileCopyrightDict=fileCopyrightDict, doAstyle=options.astyle, files=filesToProcess[nstart:nend])
             t.start()
-            fgReplaceThreads.append(t)
-        for t in fgReplaceThreads:
+            replaceThreads.append(t)
+            nstart+=filesPerThread
+            nend+=filesPerThread
+        for t in replaceThreads:
             t.join()
             # get dict from thread and update with current
             fileCopyrightDict.update(t.fileCopyrightDict)
     else:
-        numFiles=len(positionalArgs)
-        filesPerThread=2000
-        numthreads=int(numFiles/filesPerThread)+1
-        nstart=0
-        nend=numthreads*filesPerThread
-        while nstart < numFiles:
-            t=replaceThread(reCpp, replaceFuncs=fgReplaceFuncs, baseDir='.', excludeDirs=fgExcludeDirs, fileCopyrightDict=fileCopyrightDict, doAstyle=options.astyle, files=positionalArgs[nstart:nend])
-            t.start()
-            fgReplaceThreads.append(t)
-            nstart+=filesPerThread
-            nend+=filesPerThread
-        for t in fgReplaceThreads:
-            t.join()
-            # get dict from thread and update with current
-            fileCopyrightDict.update(t.fileCopyrightDict)
+        processFiles(filesToProcess, fileCopyrightDict=fileCopyrightDict, extensionToReplaceFuncMap=fgExtensionToReplaceFuncMap, doAstyle=options.astyle)
+#        processFiles(filesToProcess, fgReplaceFuncs, fileCopyrightDict=fileCopyrightDict, extensionToReplaceFuncMap=fgExtensionToReplaceFuncMap, regexList=extensionReList, doAstyle=options.astyle)
+    end = time.clock()
+    chgElapsed=end-start
+    print "Time elapsed = ", chgElapsed, "s for processing,",(chgElapsed/numFiles),"s per file"
 
     if options.dictfilename:
         writeDictToFile(options.dictfilename, fileCopyrightDict)

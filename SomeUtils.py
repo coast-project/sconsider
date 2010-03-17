@@ -159,7 +159,7 @@ def replaceRegexInFile( fname, searchReplace, multiReplFunc=multiple_replace, re
                         of = open(fname, 'w+')
                         of.write(strout)
                         of.close()
-                        if replacedCallback: replacedCallback(fname=fname, text=strout)
+                        if callable(replacedCallback): replacedCallback(fname=fname, text=strout)
                         return strout
                     except:
                         pass
