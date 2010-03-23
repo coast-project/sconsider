@@ -55,62 +55,6 @@ def getPackageName( name ):
 def getModuleDirName( name ):
     return os.path.dirname( name )
 
-class EnvVarDict( dict ):
-    def __init__( self, _dict = None, uniqueValues = True, **kw ):
-        self.uniqueValues = uniqueValues
-        if not _dict:
-            _dict = kw
-        dict.__init__( self, _dict )
-
-    def __getitem__( self, key ):
-        return dict.__getitem__( self, key )
-
-    def __setitem__( self, key, item ):
-        import types
-        if not isinstance( item, types.ListType ):
-            item = [item]
-        if dict.has_key( self, key ):
-            ditem = dict.get( self, key )
-            if not self.uniqueValues or not item[0] in ditem:
-                ditem.extend( item )
-                dict.setdefault( self, key, ditem )
-        else:
-            dict.setdefault( self, key, item )
-
-    def __iadd__( self, other ):
-        self.update( other )
-        return self
-
-    def __add__( self, other ):
-        _dict = self.copy()
-        _dict.update( other )
-        return _dict
-
-    def __radd__( self, other ):
-        _dict = self.copy()
-        _dict.update( other )
-        return _dict
-
-    def copy( self ):
-        _dict = EnvVarDict()
-        _dict.update( self )
-        return _dict
-
-    def update( self, _dict ):
-        for ( key, val ) in _dict.items():
-            self.__setitem__( key, val )
-
-#def TestFunc():
-#    pdb.set_trace()
-#    _envFlags = EnvVarDict({ 'CPPDEFINES' : 'fooX' })
-#    print _envFlags
-#    _envFlags += EnvVarDict(CPPDEFINES=['blabla' + '_IMPL'])
-#    print _envFlags
-#    _envFlags += EnvVarDict(CPPDEFINES=['blabla' + '_IMPL'])
-#    print _envFlags
-#
-#TestFunc()
-
 def copyFileNodes( env, nodetuples, destDir, stripRelDirs = [], mode = None ):
     import SCons
     import types
