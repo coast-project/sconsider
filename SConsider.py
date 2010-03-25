@@ -27,7 +27,7 @@ if False:
     print "platform.uname:", platform.uname()
 
 AddOption('--baseoutdir', dest='baseoutdir', action='store', nargs=1, type='string', default='#', metavar='DIR', help='Directory containing packages superseding installed ones. Relative paths not supported!')
-AddOption('--exclude', dest='exclude', action='append', nargs=1, type='string', metavar='DIR', help='Directory containing a SConscript file that should be ignored.')
+AddOption('--exclude', dest='exclude', action='append', nargs=1, type='string', default=[], metavar='DIR', help='Directory containing a SConscript file that should be ignored.')
 AddOption('--usetool', dest='usetools', action='append', nargs=1, type='string', default=[], metavar='VAR', help='tools to use when constructing default environment')
 AddOption('--appendPath', dest='appendPath', action='append', nargs=1, type='string', metavar='DIR', help='Directory to append to PATH environment variable.')
 AddOption('--prependPath', dest='prependPath', action='append', nargs=1, type='string', metavar='DIR', help='Directory to prepend to PATH environment variable.')
@@ -186,43 +186,10 @@ baseEnv.AppendUnique(LIBPATH=[baseoutdir.Dir(baseEnv['LIBDIR']).Dir(baseEnv['VAR
 def cloneBaseEnv():
     return baseEnv.Clone()
 
-def collectPackages(directory, direxcludes=[]):
-    """
-    Recursively collects SConsider packages.
-    
-    Walks recursively through 'directory' (without 'direxcludes')
-    and collects found packages. 
-    """
-    packages = {}
-    reLib = re.compile('^(.*)Lib.py$')
-    followln = {}
-    try:
-        v_major, v_minor, v_micro, release, serial = sys.version_info
-        python_ver = (v_major, v_minor)
-    except AttributeError:
-        python_ver = self._get_major_minor_revision(sys.version)[:2]
-    if python_ver >= (2, 6):
-        followln = { 'followlinks' : True }
-    for dirpath, dirnames, filenames in os.walk(directory, followln):
-        dirnames[:] = [d for d in dirnames if not d in direxcludes]
-        for name in filenames:
-            rmatch = reLib.match(name)
-            if rmatch:
-                pkgname = rmatch.group(1)
-                if not packages.has_key(pkgname):
-                    packages[pkgname] = {}
-                thePath = os.path.abspath(dirpath)
-                ## append path to module path, otherwise we can not import someLib[.py]
-                sys.path.append(thePath)
-                packages[pkgname]['packagepath'] = Dir(thePath)
-                packages[pkgname]['packagefile'] = Dir(thePath).File(name)
-                print 'appended toolpath  [%s]' % thePath
-                if not os.path.isfile(Dir(dirpath).File('SConscript').abspath):
-                    print 'warning: SConscript not found in [%s]' % thePath
-    return packages
-
 def splitTargetname(fulltargetname):
-    # split fulltargetname into module and target
+    """
+    Split fulltargetname into packagename and targetname.
+    """
     parts = fulltargetname.split('.')
     pkgname = parts[0]
     targetname = None
@@ -234,14 +201,38 @@ class PackageNotFound(Exception):
     pass
 
 class PackageRegistry:
-    def __init__(self, env, packages, baseoutdir, variant):
+    def __init__(self, env, scandir, scanexcludes=[]):
         self.env = env
-        self.packages = packages
-        self.baseoutdir = baseoutdir.abspath
-        self.variant = variant
+        self.packages = self.collectPackages(scandir, scanexcludes)
+
+    def collectPackages(self, directory, direxcludes=[]):
+        """
+        Recursively collects SConsider packages.
+        
+        Walks recursively through 'directory' (without 'direxcludes')
+        and collects found packages. 
+        """
+        packages = {}
+        rePackage = re.compile('^(.*).sconsider$')
+        followlinks = False
+        if sys.version_info[:2] >= (2, 6):
+            followlinks = True
+        for dirpath, dirnames, filenames in os.walk(directory, followlinks=followlinks):
+            dirnames[:] = [d for d in dirnames if not d in direxcludes]
+            for name in filenames:
+                rmatch = rePackage.match(name)
+                if rmatch:
+                    pkgname = rmatch.group(1)
+                    if not packages.has_key(pkgname):
+                        packages[pkgname] = {}
+                    thePath = os.path.abspath(dirpath)
+                    packages[pkgname]['packagepath'] = Dir(thePath)
+                    packages[pkgname]['packagefile'] = Dir(thePath).File(name)
+                    print 'found package [%s] in [%s]' % (pkgname, thePath)
+        return packages
 
     def setPackageTarget(self, packagename, targetname, plaintarget, target):
-        if not self.packages.has_key(packagename):
+        if not self.hasPackage(packagename):
             print 'tried to register target [%s] for non existent package [%s]' % (targetname, packagename)
             return
         theTargets = self.packages[packagename].setdefault('targets', {})
@@ -254,69 +245,63 @@ class PackageRegistry:
         theTargets[targetname] = {'plaintarget':plaintarget, 'target':target}
 
     def getPackageTarget(self, packagename, targetname):
-        if not self.packages.has_key(packagename):
+        if not self.hasPackage(packagename):
             print 'tried to access target [%s] of non existent package [%s]' % (targetname, packagename)
             return
         theTargets = self.packages[packagename].setdefault('targets', {})
         return theTargets.get(targetname, {'plaintarget':None, 'target':None})
 
     def hasPackage(self, packagename):
-        """check if packagename is found in list of packages
-        this solely relies on directories and <packagename>Lib.py files found"""
+        """
+        Check if packagename is found in list of packages.
+        
+        This solely relies on directories and <packagename>.sconscript files found
+        """
         return self.packages.has_key(packagename)
 
     def getPackageDir(self, packagename):
-        return self.packages[packagename].get('packagepath', '')
+        return self.packages.get(packagename, {}).get('packagepath', '')
 
     def getPackageFile(self, packagename):
-        return self.packages[packagename].get('packagefile', '')
+        return self.packages.get(packagename, {}).get('packagefile', '')
 
     def getPackageTargetNames(self, packagename):
-        return self.packages[packagename].get('targets', {}).keys()
+        return self.packages.get(packagename, {}).get('targets', {}).keys()
+
+    def setBuildSettings(self, packagename, buildSettings):
+        if self.hasPackage(packagename):
+            self.packages[packagename]['buildsettings'] = buildSettings
 
     def getBuildSettings(self, packagename):
-        try:
-            theModule = self.loadPackage(packagename)
-            modDict = theModule.__dict__
-            return modDict.get('buildSettings', {})
-        except PackageNotFound, e:
-            return {}
+        return self.packages.get(packagename, {}).get('buildsettings', {})
 
     def loadPackage(self, packagename):
-        try:
-            # execute the SConscript first
-            self.lookup(packagename)
-            modname = packagename + 'Lib'
-            __import__(modname)
-        except ImportError, e:
+        if not self.hasPackage(packagename):
             raise PackageNotFound(packagename)
-        return sys.modules[modname]
+        self.lookup(packagename)
+
+    def isPackageLoaded(self, packagename):
+        return self.packages.get(packagename, {}).has_key('loaded')
 
     def lookup(self, fulltargetname, **kw):
         packagename, targetname = splitTargetname(fulltargetname)
         #print 'looking up [%s]' % packagename
         if self.hasPackage(packagename):
-            if not self.packages[packagename].has_key('loaded'):
+            if not self.isPackageLoaded(packagename):
                 self.packages[packagename]['loaded'] = True
-                if self.packages[packagename].has_key('packagepath'):
-                    path = self.packages[packagename]['packagepath']
-                    relpath = path.path
-                    scfile = os.path.join(path.abspath, 'SConscript')
-                    if os.path.isfile(scfile):
-                        builddir = os.path.join(self.baseoutdir, relpath, self.env['BUILDDIR'], self.variant)
-                        print 'executing SConscript for package [%s]' % packagename
-                        self.env.SConscript(scfile, build_dir=builddir, duplicate=0)
+                packagedir = self.getPackageDir(packagename)
+                packagefile = self.getPackageFile(packagename)
+                builddir = os.path.join(self.env['BASEOUTDIR'].abspath, packagedir.path, self.env['BUILDDIR'], self.env['VARIANTDIR'])
+                print 'executing [%s] as SConscript for package [%s]' % (packagefile.path, packagename)
+                self.env.SConscript(packagefile, build_dir=builddir, duplicate=0, exports=['packagename'])
             if targetname:
                 return self.getPackageTarget(packagename, targetname)['target']
         return None
 
 direxcludes = [baseEnv['BUILDDIR'], 'CVS', '.git', '.gitmodules', 'doc']
-if not baseEnv.GetOption('exclude') == None:
-    direxcludes.extend(baseEnv.GetOption('exclude'))
-for varname in ['BINDIR', 'LIBDIR', 'LOGDIR', 'CONFIGDIR']:
-    direxcludes.extend(baseEnv[varname])
-packages = collectPackages(Dir('#').path, direxcludes)
-packageRegistry = PackageRegistry(baseEnv, packages, baseoutdir, variant)
+direxcludes.extend(baseEnv.GetOption('exclude'))
+direxcludes.extend([baseEnv[varname] for varname in ['BINDIR', 'LIBDIR', 'LOGDIR', 'CONFIGDIR']])
+packageRegistry = PackageRegistry(baseEnv, Dir('#').path, direxcludes)
 
 class TargetMaker:
     def __init__(self, packagename, tlist, registry):
@@ -462,10 +447,9 @@ class TargetMaker:
         linkDependencies = targetBuildSettings.get('linkDependencies', [])
         self.setModuleDependencies(targetEnv, linkDependencies)
 
+        targetVars = targetBuildSettings.get('public', {}).get('appendUnique', {})
+        targetEnv.AppendUnique(**targetVars)
         
-        newVars = targetBuildSettings.get('public', {}).get('appendUnique', {})
-        if newVars:
-            targetEnv.AppendUnique(**newVars)
         targetEnv.AppendUnique(**envVars)
 
         return targetEnv
@@ -473,13 +457,8 @@ class TargetMaker:
     def setModuleDependencies(self, env, modules, **kw):
         for fulltargetname in modules:
             packagename, targetname = splitTargetname(fulltargetname)
-            theModule = self.registry.loadPackage(packagename)
-            modDict = theModule.__dict__
-            ## support for old style module handling
-            if modDict.get('generate', None):
-                return theModule.generate(env, **kw)
-
-            buildSettings = modDict.get('buildSettings', None)
+            self.registry.loadPackage(packagename)
+            buildSettings = self.registry.getBuildSettings(packagename)
             if not buildSettings:
                 print 'Warning: buildSettings dictionary in module %s not defined!' % packagename
                 return None
@@ -528,6 +507,7 @@ def createTargets(packagename, buildSettings):
     
     This is a helper function which must be called from SConscript to create the targets.
     """
+    packageRegistry.setBuildSettings(packagename, buildSettings)
     tmk = TargetMaker(packagename, buildSettings, packageRegistry)
     tmk.createTargets()
 

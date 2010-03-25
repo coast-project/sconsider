@@ -49,12 +49,6 @@ def findFiles( directories, extensions = [], matchfiles = [], direxcludes = [] )
     files.sort( cmp = FileNodeComparer )
     return files
 
-def getPackageName( name ):
-    return string.replace( name, 'Lib', '' )
-
-def getModuleDirName( name ):
-    return os.path.dirname( name )
-
 def copyFileNodes( env, nodetuples, destDir, stripRelDirs = [], mode = None ):
     import SCons
     import types
