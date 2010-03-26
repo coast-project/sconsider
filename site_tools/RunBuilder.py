@@ -97,7 +97,7 @@ def createTestTarget(env, source, registry, packagename, targetname, buildSettin
     
     logfile = env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['LOGDIR']).Dir(env['VARIANTDIR']).File(targetname+'.test.log')
     if GetOption('run-force'):
-        runner = env.RunBuilder(['dummyfile'], source, runParams=getRunParams(buildSettings, defaultRunParams), logfile=logfile)
+        runner = env.RunBuilder(['dummyfile_'+targetname], source, runParams=getRunParams(buildSettings, defaultRunParams), logfile=logfile)
     else:
         runner = env.TestBuilder([], source, runParams=getRunParams(buildSettings, defaultRunParams), logfile=logfile)
 
@@ -130,7 +130,7 @@ def createRunTarget(env, source, registry, packagename, targetname, buildSetting
         source = [source]
 
     logfile = env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['LOGDIR']).Dir(env['VARIANTDIR']).File(targetname+'.run.log')
-    runner = env.RunBuilder(['dummyfile'], source, runParams=getRunParams(buildSettings, defaultRunParams), logfile=logfile)
+    runner = env.RunBuilder(['dummyfile_'+targetname], source, runParams=getRunParams(buildSettings, defaultRunParams), logfile=logfile)
     
     registerCallback('__PostTestOrRun', lambda: runCallback('PostRun', target=source, registry=registry, packagename=packagename, targetname=targetname, logfile=logfile))
     
