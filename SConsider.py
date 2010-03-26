@@ -267,6 +267,9 @@ class PackageRegistry:
 
     def getPackageTargetNames(self, packagename):
         return self.packages.get(packagename, {}).get('targets', {}).keys()
+    
+    def getPackageNames(self):
+        return self.packages.keys()
 
     def setBuildSettings(self, packagename, buildSettings):
         if self.hasPackage(packagename):
@@ -516,15 +519,17 @@ def createTargets(packagename, buildSettings):
 baseEnv.lookup_list.append(packageRegistry.lookup)
 
 # we need to define the targets before entering the build phase:
-try:    
-    for ftname in SCons.Script.BUILD_TARGETS:
+try:
+    buildtargets = SCons.Script.BUILD_TARGETS
+    if not buildtargets:
+        buildtargets = packageRegistry.getPackageNames()
+    for ftname in buildtargets:
         packagename, targetname = splitTargetname(ftname)
-        print 'trying to find target [%s]' % ftname
         packageRegistry.loadPackage(packagename)
 except PackageNotFound, e:
     print 'package [%s] not found, aborting' % str(e)
     print 'loading all SConscript files to find target'
-    for packagename in packages:
+    for packagename in packageRegistry.getPackageNames():
         packageRegistry.loadPackage(packagename)
 
 runCallback("PreBuild", registry=packageRegistry)
