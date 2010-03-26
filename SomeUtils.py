@@ -113,11 +113,14 @@ class EnvVarDict( dict ):
 
 def copyFileNodes( env, nodetuples, destDir, stripRelDirs = [], mode = None ):
     import SCons
+    import types
     if not SCons.Util.is_List( stripRelDirs ):
         stripRelDirs = [stripRelDirs]
 
     instTargs = []
     for file, baseDir in nodetuples:
+        if isinstance( file, types.StringType ):
+            file=SCons.Script.File(file)
         installRelPath = baseDir.rel_path( file.get_dir() )
 
         if stripRelDirs and baseDir.get_abspath() != file.get_dir().get_abspath():
