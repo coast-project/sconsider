@@ -335,12 +335,14 @@ class TargetMaker:
 
         for node in nodes:
             currentFile = node
-            if hasattr( node, 'srcnode' ):
-                currentFile = node.srcnode()
+            if isinstance( currentFile, str ):
+               currentFile = SCons.Script.File(currentFile)
+            if hasattr( currentFile, 'srcnode' ):
+                currentFile = currentFile.srcnode()
 
             currentBaseDir = baseDir
-            if hasattr( baseDir, 'srcnode' ):
-                currentBaseDir = baseDir.srcnode()
+            if hasattr( currentBaseDir, 'srcnode' ):
+                currentBaseDir = currentBaseDir.srcnode()
 
             if alternativeDir:
                 # based on installRelPath and file, try to find an override file to use instead
@@ -361,9 +363,11 @@ class TargetMaker:
             ifiles = buildSettings['public'].get('includes', [])
             destdir = env['BASEOUTDIR'].Dir(os.path.join(env['INCDIR'], pkgname))
             pkgdir = self.registry.getPackageDir(pkgname)
-            includeSubdir = buildSettings['public'].get('includeSubdir', '')
+            stripRelDirs = []
+            if buildSettings['public'].get('stripSubdir', True):
+                stripRelDirs.append( buildSettings['public'].get('includeSubdir', '') )
             mode = stat.S_IREAD | stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
-            instTargets = copyFileNodes(env, self.prepareFileNodeTuples(ifiles, pkgdir), destdir, stripRelDirs=includeSubdir, mode=mode)
+            instTargets = copyFileNodes(env, self.prepareFileNodeTuples(ifiles, pkgdir), destdir, stripRelDirs=stripRelDirs, mode=mode)
         return instTargets
 
     def copyConfigFiles(self, env, destdir, pkgname, buildSettings):
