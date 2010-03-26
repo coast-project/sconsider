@@ -21,8 +21,7 @@ def listFiles( files, **kw ):
 
 def removeFiles( files, **kw ):
     import SCons
-    import types
-    if not isinstance( files, types.ListType ):
+    if not isinstance( files, list ):
         files = [files]
     for fname in files:
         try:
@@ -51,13 +50,12 @@ def findFiles( directories, extensions = [], matchfiles = [], direxcludes = [] )
 
 def copyFileNodes( env, nodetuples, destDir, stripRelDirs = [], mode = None ):
     import SCons
-    import types
     if not SCons.Util.is_List( stripRelDirs ):
         stripRelDirs = [stripRelDirs]
 
     instTargs = []
     for file, baseDir in nodetuples:
-        if isinstance( file, types.StringType ):
+        if isinstance( file, str ):
             file=SCons.Script.File(file)
         installRelPath = baseDir.rel_path( file.get_dir() )
 

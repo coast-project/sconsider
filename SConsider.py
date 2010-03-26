@@ -1,5 +1,5 @@
 from __future__ import with_statement
-import os, platform, SCons, glob, re, atexit, sys, traceback, commands, pdb, dircache, stat, types
+import os, platform, SCons, glob, re, atexit, sys, traceback, commands, pdb, dircache, stat
 import SomeUtils
 
 from SCons.Script import AddOption, GetOption, Dir, File, DefaultEnvironment, Split, Flatten, SConsignFile
@@ -402,7 +402,7 @@ class TargetMaker:
                     kw['buildSettings'] = targetBuildSettings
                     sources = targetBuildSettings.get('sourceFiles', [])
                     targets = apply(func, [name, sources], kw)
-                    if isinstance(targets, types.TupleType):
+                    if isinstance(targets, tuple):
                         plaintarget, target = targets
                     else:
                         plaintarget = target = targets
@@ -527,7 +527,7 @@ try:
         packagename, targetname = splitTargetname(ftname)
         packageRegistry.loadPackage(packagename)
 except PackageNotFound, e:
-    print 'package [%s] not found, aborting' % str(e)
+    print 'package [%s] not found' % str(e)
     print 'loading all SConscript files to find target'
     for packagename in packageRegistry.getPackageNames():
         packageRegistry.loadPackage(packagename)
