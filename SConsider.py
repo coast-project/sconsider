@@ -197,6 +197,18 @@ def splitTargetname(fulltargetname):
         targetname = parts[1]
     return (pkgname, targetname)
 
+def generateFulltargetname(packagename, targetname, default=False):
+    """
+    Generate fulltargetname using packagename and targetname.
+    """
+    if not targetname:
+        if default:
+            return packagename+"."+packagename
+        else:
+            return packagename
+    else: 
+        return packagename+"."+targetname
+
 class PackageNotFound(Exception):
     pass
 
@@ -251,6 +263,23 @@ class PackageRegistry:
         theTargets = self.packages[packagename].setdefault('targets', {})
         return theTargets.get(targetname, {'plaintarget':None, 'target':None})
 
+    def getPackageDependencies(self, packagename):
+        deps = dict()
+        for targetname in self.getPackageTargetNames(packagename):
+            deps[generateFulltargetname(packagename, targetname)] = self.getPackageTargetDependencies(packagename, targetname)
+        return deps
+
+    def getPackageTargetDependencies(self, packagename, targetname):
+        targetBuildSettings = self.getBuildSettings(packagename).get(targetname, {})
+        deps = dict()
+        for dep_fulltargetname in targetBuildSettings.get('requires', []) + targetBuildSettings.get('linkDependencies', []) + [targetBuildSettings.get('usedTarget', '')]:
+            if dep_fulltargetname:
+                dep_packagename, dep_targetname = splitTargetname(dep_fulltargetname)
+                if not dep_targetname:
+                    dep_targetname = dep_packagename
+                deps[generateFulltargetname(dep_packagename, dep_targetname)] = self.getPackageTargetDependencies(dep_packagename, dep_targetname)
+        return deps
+
     def hasPackage(self, packagename):
         """
         Check if packagename is found in list of packages.
@@ -258,6 +287,9 @@ class PackageRegistry:
         This solely relies on directories and <packagename>.sconscript files found
         """
         return self.packages.has_key(packagename)
+
+    def hasPackageTarget(self, packagename, targetname):
+        return self.packages.get(packagename, {}).get('targets', {}).has_key(targetname)
 
     def getPackageDir(self, packagename):
         return self.packages.get(packagename, {}).get('packagepath', '')
@@ -536,7 +568,7 @@ except PackageNotFound, e:
     for packagename in packageRegistry.getPackageNames():
         packageRegistry.loadPackage(packagename)
 
-runCallback("PreBuild", registry=packageRegistry)
+runCallback("PreBuild", registry=packageRegistry, buildTargets=SCons.Script.BUILD_TARGETS)
 
 print "BUILD_TARGETS is ", map(str, SCons.Script.BUILD_TARGETS)
 
