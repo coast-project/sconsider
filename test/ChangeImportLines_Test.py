@@ -1,4 +1,5 @@
-import unittest, ChangeImportLines, SomeUtils, time, os
+import unittest, SomeUtils, time, os
+from maintenance import ChangeImportLines
 
 testCopyrightHeader = """
 /*
