@@ -1,4 +1,5 @@
 import re, os, optparse, functools, pdb
+import SomeUtils
 
 def makePackage(registry, buildTargets, env, destination, **kw):
     import SCons.Script
@@ -14,10 +15,12 @@ def makePackage(registry, buildTargets, env, destination, **kw):
 
 def copyPackage(name, deps, env, destination):
     import SCons.Script
+    filters = [filterTestsAppsPath, filterVariantPath]
     if os.path.isdir(destination):
         destdir = SCons.Script.Dir(destination)
         for target in deps:
-            copyTarget(env, determineDirInPackage(name, env, destdir, target), target)
+            print target.path
+            copyTarget(env, determineDirInPackage(name, env, destdir, target, filters), target)
 
 def copyTarget(env, destdir, node):
     old = env.Alias(destdir.File(node.name))
@@ -48,13 +51,29 @@ def isSConsiderTarget(registry, ftn):
     if registry.hasPackageTarget(pkg, tn):
         return True
     return False
-            
-def determineDirInPackage(name, env, destdir, target):
-    import SomeUtils, pdb
+
+def filterTestsAppsPath(path, **kw):
+    replist = [('^tests'+os.sep+'[^'+os.sep+']*'+os.sep+'?', ''),
+               ('^apps'+os.sep+'[^'+os.sep+']*'+os.sep+'?', '')]
+    return SomeUtils.multiple_replace(replist, path)
+
+def filterVariantPath(path, **kw):
+    variant = kw.get('env', {}).get('VARIANTDIR', False)
+    if not variant:
+        return path
+
+    return re.sub(re.escape(variant)+os.sep+'?', '', path)
+
+def determineDirInPackage(name, env, destdir, target, filters=[]):
+    path = target.get_dir().path
+
+    if not isinstance(filters, list):
+        filters = [filters]
+    for filter in filters:
+        if callable(filter):
+            path = filter(path, env=env)
+
     copydir = destdir.Dir(name)
-    replist = [('^tests'+os.sep+'.*?'+os.sep, ''),
-               ('^apps'+os.sep+'.*?'+os.sep, '')] 
-    path = SomeUtils.multiple_replace(replist, target.get_dir().path)
     return copydir.Dir(path)
     
 class PackageToolException(Exception):

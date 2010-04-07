@@ -49,9 +49,11 @@ def generateShellScript(scriptFile, env, wrapper):
 SCRIPT=`readlink -f $0`
 SCRIPTPATH=`dirname $SCRIPT`
 
+LIBDIR=\""""+env['LIBDIR']+"""\"
+
 # find the base directory 
 cd $SCRIPTPATH
-while [ ! -d """+env['LIBDIR']+""" ] && [ `pwd` != / ]
+while [ ! -d $LIBDIR ] && [ `pwd` != / ]
 do
     cd ..
 done
@@ -60,11 +62,17 @@ INST_DIR=`pwd`
 
 if [ $INST_DIR = / ]
 then
-    echo "LIBDIR-Directory ["""+env['LIBDIR']+"""] not found, exiting."
+    echo "LIBDIR-Directory [$LIBDIR] not found, exiting."
     exit 1
 fi
 
-LD_LIBRARY_PATH=$INST_DIR/""" + os.path.join(env['LIBDIR'], env['VARIANTDIR']) + """:$LD_LIBRARY_PATH
+VARIANTDIR=\""""+env['VARIANTDIR']+"""\"
+if [ -d $LIBDIR/$VARIANTDIR ]
+then
+    LIBDIR=$LIBDIR/$VARIANTDIR
+fi
+
+LD_LIBRARY_PATH=$INST_DIR/$LIBDIR:$LD_LIBRARY_PATH
 
 export LD_LIBRARY_PATH PATH
 
@@ -105,9 +113,10 @@ EOF
     fi;
 }
 
-if [ -d """+env['RELTARGETDIR']+""" ]
+RELTARGETDIR=\""""+env['RELTARGETDIR']+"""\"
+if [ -d $RELTARGETDIR ]
 then
-    cd """+env['RELTARGETDIR']+"""
+    cd $RELTARGETDIR
 fi
 
 """
@@ -117,9 +126,14 @@ def generatePosixScript(target, source, env):
     for t, s in zip(target, source):
         scriptFile = open(str(t), 'w')
         generateShellScript(scriptFile, env, 1)
-        filepath = re.sub('^'+env['RELTARGETDIR']+'/?', '', s.get_path())
+        filepath = re.sub('^'+env['RELTARGETDIR']+os.sep+'?', '', s.get_path())
+        scriptFile.write('CMD="' + filepath + '"\n')
+        scriptFile.write('if [ ! -f $CMD ]\n')
+        scriptFile.write('then\n')
+        scriptFile.write('    CMD="' + re.sub(env['VARIANTDIR']+os.sep+'?', '', filepath) + '"\n')
+        scriptFile.write('fi\n')
         if env["createGDBscript"]:
-            scriptFile.write('WDS_BIN=' + filepath + '\n')
+            scriptFile.write('WDS_BIN=$CMD\n')
             scriptFile.write("""
 
 cfg_gdbcommands="/tmp/`basename $0`_$$";
@@ -130,7 +144,7 @@ echo "Generated gdb command file:"
 """)
             scriptFile.write('gdb --command ${cfg_gdbcommands}\n')
         else:
-            scriptFile.write(filepath + ' "$@"\n')
+            scriptFile.write('$CMD "$@"\n')
         scriptFile.close()
     return 0
 

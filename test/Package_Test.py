@@ -133,3 +133,10 @@ class InstalledDependencyTest(unittest.TestCase):
     def testNotIsInstalledDependency(self):
         self.node3.builder.name = "BlaBuilder"
         self.assertFalse(Package.isInstalledDependency(self.testnode, self.node3))
+
+class PathFilterTest(unittest.TestCase):
+    def setUp(self):
+        self.path = "apps/package/bin/variant123/blub"
+
+    def testFilterTestsAppsPath(self):
+        self.assertEqual(Package.filterTestsAppsPath(self.path), "bin/variant123/blub")
