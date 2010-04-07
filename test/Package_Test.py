@@ -14,17 +14,18 @@ class AllFuncsTest(unittest.TestCase):
     def testAllFuncsMultipleArgs(self):        
         self.assertTrue(Package.allFuncs(self.funcs, "blub", "bla", "bloek"))
 
-class TargetStub(object):
-    sources = []
-    depends = []
-    prerequisites = []
-    
+class UpdateableObject(object):
     def __init__(self, **kw):
         self.update(kw)
         
     def update(self, dict):
         for key, value in dict.iteritems():
             setattr(self, key, value)
+
+class TargetStub(UpdateableObject):
+    sources = []
+    depends = []
+    prerequisites = []
     
     def is_derived(self):
         """Try to imitate SCons.Node.is_derived()
@@ -114,3 +115,21 @@ class PackageToolTest(unittest.TestCase):
         self.alias.builder = object() 
         deps = Package.getTargetDependencies(self.alias, Package.isDerivedDependency)
         self.assertEqual(len(deps), 1)
+
+class InstalledDependencyTest(unittest.TestCase):
+    def setUp(self):
+        self.node1 = TargetStub(path = "3rdparty/blub")
+        self.node2 = TargetStub(path = "bin/blub",
+                                sources = [self.node1],
+                                builder = UpdateableObject(name='InstallBuilder'))
+        self.node3 = TargetStub(path = "tests/bla/bin/blub",
+                                sources = [self.node2],
+                                builder = UpdateableObject(name='InstallBuilder'))
+        self.testnode = TargetStub(path = "bin/blub")
+
+    def testIsInstalledDependency(self):
+        self.assertTrue(Package.isInstalledDependency(self.testnode, self.node3))
+
+    def testNotIsInstalledDependency(self):
+        self.node3.builder.name = "BlaBuilder"
+        self.assertFalse(Package.isInstalledDependency(self.testnode, self.node3))

@@ -1,4 +1,4 @@
-import re, os, optparse, functools
+import re, os, optparse, functools, pdb
 
 def makePackage(registry, buildTargets, env, destination, **kw):
     import SCons.Script
@@ -7,10 +7,8 @@ def makePackage(registry, buildTargets, env, destination, **kw):
     notCopiedInclude = lambda target: not target.path.startswith(env['INCDIR'])
     for tn in buildTargets:
         if isSConsiderTarget(registry, tn):
-            print "==="
             tdeps = getTargetDependencies(env.Alias(tn)[0], [isDerivedDependency, notInBuilddir, notCopiedInclude])
             copyPackage(tn, tdeps, env, destination)
-            print "==="
     
     SCons.Script.BUILD_TARGETS.append("makepackage")
 
@@ -19,9 +17,28 @@ def copyPackage(name, deps, env, destination):
     if os.path.isdir(destination):
         destdir = SCons.Script.Dir(destination)
         for target in deps:
-            print target.path
-            target = env.Install(determineDirInPackage(name, env, destdir, target), target)
-            env.Alias("makepackage", target)
+            copyTarget(env, determineDirInPackage(name, env, destdir, target), target)
+
+def copyTarget(env, destdir, node):
+    old = env.Alias(destdir.File(node.name))
+    if len(old) and len(old[0].sources):
+        if isInstalledDependency(node, old[0].sources[0]) or isInstalledDependency(old[0].sources[0], node):
+            return None
+        else:
+            print "Ambiguous target [%s] copied from [%s] and [%s]." % (old[0].path, node.path, old[0].sources[0].path)
+            print "Can't create package! See errors below..."
+    target = env.Install(destdir, node)
+    env.Alias("makepackage", target)
+    return target
+
+def isInstalledDependency(testnode, node):
+    if testnode.path == node.path:
+        return True
+    if not hasattr(node, 'builder') or not hasattr(node.builder, 'name') or node.builder.name != 'InstallBuilder':
+        return False
+    if len(node.sources) < 1:
+        return False
+    return isInstalledDependency(testnode, node.sources[0])
 
 def isSConsiderTarget(registry, ftn):
     import SConsider
@@ -92,8 +109,8 @@ def getTargetDependencies(target, customfilters=[]):
     deps = set()
     if allFuncs(filters, target):
         deps.add(target)
-    
+
     for t in target.sources + target.depends + target.prerequisites:
         deps.update(getTargetDependencies(t, customfilters))
-    
+
     return deps
