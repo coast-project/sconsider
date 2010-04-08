@@ -22,11 +22,22 @@ class UpdateableObject(object):
         for key, value in dict.iteritems():
             setattr(self, key, value)
 
+class ExecutorStub(object):
+    def __init__(self, targets):
+        if not isinstance(targets, list):
+            targets = [targets]
+        self.targets = targets
+    def get_all_targets(self):
+        return self.targets
+
 class TargetStub(UpdateableObject):
     sources = []
     depends = []
     prerequisites = []
     
+    def get_executor(self):
+        return ExecutorStub([self])
+
     def is_derived(self):
         """Try to imitate SCons.Node.is_derived()
         

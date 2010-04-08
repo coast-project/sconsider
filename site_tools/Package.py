@@ -127,7 +127,7 @@ def getTargetDependencies(target, customfilters=[]):
     
     deps = set()
     if allFuncs(filters, target):
-        deps.add(target)
+        deps.update( target.get_executor().get_all_targets() )
 
     for t in target.sources + target.depends + target.prerequisites:
         deps.update(getTargetDependencies(t, customfilters))
