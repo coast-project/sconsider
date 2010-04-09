@@ -1,26 +1,21 @@
 import re, os, optparse, functools, pdb
 import SomeUtils
 
-def makePackage(registry, buildTargets, env, destination, **kw):
-    import SCons.Script
+def makePackage(registry, buildTargets, env, destdir, **kw):
     isInBuilddir = functools.partial(hasPathPart, pathpart=env['BUILDDIR'])
     notInBuilddir = lambda target: not isInBuilddir(target)
     notCopiedInclude = lambda target: not target.path.startswith(env['INCDIR'])
+    copyfilters = [filterTestsAppsPath, filterVariantPath]
     for tn in buildTargets:
         if isSConsiderTarget(registry, tn):
             tdeps = getTargetDependencies(env.Alias(tn)[0], [isDerivedDependency, notInBuilddir, notCopiedInclude])
-            copyPackage(tn, tdeps, env, destination)
+            copyPackage(tn, tdeps, env, destdir, copyfilters)
     
-    SCons.Script.BUILD_TARGETS.append("makepackage")
+    buildTargets.append("makepackage")
 
-def copyPackage(name, deps, env, destination):
-    import SCons.Script
-    filters = [filterTestsAppsPath, filterVariantPath]
-    if os.path.isdir(destination):
-        destdir = SCons.Script.Dir(destination)
-        for target in deps:
-            print target.path
-            copyTarget(env, determineDirInPackage(name, env, destdir, target, filters), target)
+def copyPackage(name, deps, env, destdir, filters=[]):
+    for target in deps:
+        copyTarget(env, determineDirInPackage(name, env, destdir, target, filters), target)
 
 def copyTarget(env, destdir, node):
     old = env.Alias(destdir.File(node.name))
@@ -80,15 +75,17 @@ class PackageToolException(Exception):
     pass
     
 def generate(env):
-    import SCons.Script, SConsider
+    import SCons.Script, SCons.Script.Main, SConsider
     try:
         SCons.Script.AddOption('--packagedestination', dest='packagedestination', action='store', default=False, help='Specify the destination directory')
     except optparse.OptionConflictError:
         raise PackageToolException("Only one Package-Tool instance allowed")
     
     destination = SCons.Script.GetOption('packagedestination')
-    if destination:
-        SConsider.registerCallback("PreBuild", makePackage, env=env, destination=destination)
+    if not os.path.isdir(destination):
+        SCons.Script.Main.OptionsParser.error("given package destination path doesn't exist")
+    else:
+        SConsider.registerCallback("PreBuild", makePackage, env=env, destdir=SCons.Script.Dir(destination))
 
 def exists(env):
     return 1

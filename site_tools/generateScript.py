@@ -50,6 +50,9 @@ SCRIPT=`readlink -f $0`
 SCRIPTPATH=`dirname $SCRIPT`
 
 LIBDIR=\""""+env['LIBDIR']+"""\"
+BINDIR=\""""+env['BINDIR']+"""\"
+SCRIPTDIR=\""""+env['SCRIPTDIR']+"""\"
+CONFIGDIR=\""""+env['CONFIGDIR']+"""\"
 
 # find the base directory 
 cd $SCRIPTPATH
@@ -62,7 +65,7 @@ INST_DIR=`pwd`
 
 if [ $INST_DIR = / ]
 then
-    echo "LIBDIR-Directory [$LIBDIR] not found, exiting."
+    echo "Base directory not found (using [$LIBDIR]), exiting."
     exit 1
 fi
 

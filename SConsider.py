@@ -5,12 +5,8 @@ import SomeUtils
 from SCons.Script import AddOption, GetOption, Dir, File, DefaultEnvironment, Split, Flatten, SConsignFile
 from SomeUtils import *
 
-# SconsBuilder may work with earlier version,
-# but it was build and tested against SCons 1.2.0
-SCons.Script.EnsureSConsVersion(1, 2, 0)
-# SconsBuilder may work with earlier version,
-# but it was build and tested against Python 2.5
-SCons.Script.EnsurePythonVersion(2, 5)
+SCons.Script.EnsureSConsVersion(1, 3, 0)
+SCons.Script.EnsurePythonVersion(2, 6)
 
 import Callback
 Callback.addCallbackFeature(__name__)
