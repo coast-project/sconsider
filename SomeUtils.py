@@ -6,7 +6,7 @@ def FileNodeComparer( left, right ):
     return cmp( left.srcnode().abspath, right.srcnode().abspath )
 
 def listFiles( files, **kw ):
-    import SCons
+    import SCons, SConsider
     allFiles = []
     for file in files:
         globFiles = SCons.Script.Glob( file )
