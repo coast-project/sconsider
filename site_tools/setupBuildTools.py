@@ -112,6 +112,8 @@ def generate( env, **kw ):
         osver = tuple( [int( x ) for x in platform.system().split( '-' )[1].split( '.' )] )
     elif str( platf ) == 'sunos':
         osver = tuple( [int( x ) for x in platform.release().split( '.' )] )
+    elif str( platf ) == 'darwin':
+        osver = tuple( [int( x ) for x in platform.release().split( '.' )] )
     elif platform.system() == 'Linux':
         osver = tuple( [int( x ) for x in platform.release().split( '-' )[0].split( '.' )] )
 
@@ -121,6 +123,8 @@ def generate( env, **kw ):
     if str( platf ) == 'sunos':
         env.AppendUnique( CCFLAGS = ['-DOS_SYSV'] )
         env.AppendUnique( CCFLAGS = ['-DOS_SOLARIS'] )
+    elif str( platf ) == 'darwin':
+        env.AppendUnique( CCFLAGS = ['-DOS_SYSV'] )
     elif platform.system() == 'Linux':
         env.AppendUnique( CCFLAGS = ['-DOS_SYSV'] )
         env.AppendUnique( CCFLAGS = ['-DOS_LINUX'] )
