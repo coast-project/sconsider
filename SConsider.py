@@ -35,7 +35,7 @@ def changed_timestamp_or_content(dependency, target, prev_ni):
     return dependency.changed_content(target, prev_ni) or dependency.changed_timestamp_newer(target, prev_ni)
 
 def programApp(env, name, sources, packagename, buildSettings, **kw):
-    plaintarget = env.Program(name, sources)
+    plaintarget = env.Program(env.File(name), sources)
 
     baseoutdir = env['BASEOUTDIR']
     env['RELTARGETDIR'] = os.path.join('apps', packagename)
@@ -52,7 +52,10 @@ def programApp(env, name, sources, packagename, buildSettings, **kw):
 
 def programTest(env, name, sources, packagename, targetname, buildSettings, **kw):
     env.Decider(changed_timestamp_or_content)
-    plaintarget = env.Program(name, sources)
+
+    # env.File is a workaround, otherwise if an Alias with the same 'name' is defined
+    # arg2nodes (called from all builders) would return the Alias, but we would need a file node
+    plaintarget = env.Program(env.File(name), sources)
 
     baseoutdir = env['BASEOUTDIR']
     env['RELTARGETDIR'] = os.path.join('tests', packagename)
@@ -316,7 +319,7 @@ class PackageRegistry:
 
     def lookup(self, fulltargetname, **kw):
         packagename, targetname = splitTargetname(fulltargetname)
-        #print 'looking up [%s]' % packagename
+        #print 'looking up [%s]' % fulltargetname
         if self.hasPackage(packagename):
             if not self.isPackageLoaded(packagename):
                 self.packages[packagename]['loaded'] = True
