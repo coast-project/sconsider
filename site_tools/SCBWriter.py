@@ -18,7 +18,11 @@ def writeSCB(registry, packagename, buildSettings, **kw):
     inclLists.extend(sorted(includeDirs))
     inclLists.extend(sorted(sysIncludes))
     
-    fname = os.path.join(Dir('.').srcnode().abspath, '.scb')
+    projectdir = Dir('.').srcnode()
+    while not os.path.isfile(os.path.join(projectdir.abspath, '.project')) and projectdir.abspath != Dir('#').abspath:
+        projectdir = projectdir.up()
+
+    fname = os.path.join(projectdir.abspath, '.scb')
     fstr = ""
     if os.path.isfile(fname):
         with open(fname, 'r') as of:
