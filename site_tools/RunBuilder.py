@@ -59,7 +59,7 @@ def emitPassedFile(target, source, env):
     return (target, source)
 
 def doTest(target, source, env):
-    res = run(source[0].abspath + ' ' + env.get('runParams', ''), logfile=env.get('logfile', None))
+    res = run(source[0].abspath + ' ' + env.get('runParams', ''), env=env['ENV'], logfile=env.get('logfile', None))
     if res == 0:
         with open(target[0].abspath, 'w') as file:
             file.write("PASSED\n")
@@ -68,7 +68,7 @@ def doTest(target, source, env):
     return res
 
 def doRun(target, source, env):
-    res = run(source[0].abspath + ' ' + env.get('runParams', ''), logfile=env.get('logfile', None))
+    res = run(source[0].abspath + ' ' + env.get('runParams', ''), env=env['ENV'], logfile=env.get('logfile', None))
     runCallback('__PostTestOrRun')
     runCallback('__PostAction_'+str(id(target[0])))
     return res
