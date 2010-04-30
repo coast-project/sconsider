@@ -10,7 +10,7 @@ def findPlatformTargets(env, basedir, targetname, prefixes=[], suffixes=[]):
             libRE += '|'
         libRE += re.escape(env.subst(pre))
     libRE = '(' + libRE + ')'
-    # probably there are files like 'targetname64' or 'targetname_r': 
+    # probably there are files like 'targetname64' or 'targetname_r':
     libRE += '(' + targetname + '[^.]*)'
     libSFX = ''
     for suf in suffixes:
@@ -120,6 +120,9 @@ def precompBinNamesEmitter(target, source, env):
     target = []
     newsource = []
     for src in source:
+        # catch misleading alias nodes with the same name as the binary to search for
+        if not hasattr( src, 'srcnode' ):
+            src=env.File(str(src))
         path, binaryname = os.path.split(src.srcnode().abspath)
         srcpath, srcfile, linkfile = findBinary(env, path, binaryname)
         if srcfile:
@@ -134,6 +137,9 @@ def precompLibNamesEmitter(target, source, env):
     target = []
     newsource = []
     for src in source:
+        # catch misleading alias nodes with the same name as the library to search for
+        if not hasattr( src, 'srcnode' ):
+            src=env.File(str(src))
         path, libname = os.path.split(src.srcnode().abspath)
         srcpath, srcfile, linkfile, isStaticLib = findLibrary(env, path, libname)
         if srcfile:
