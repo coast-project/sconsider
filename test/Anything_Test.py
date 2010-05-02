@@ -43,6 +43,7 @@ class AnythingTest(unittest.TestCase):
 			'b': 2,
 			'c': 4
 		}
+		print self.any1.items()
 		self.assertEqual(expected, dict(self.any1.items()))
 		
 	def testIteritems(self):
@@ -64,10 +65,10 @@ class AnythingTest(unittest.TestCase):
 		self.assertEqual('b', self.any1.slotname(1))
 		self.assertEqual('c', self.any1.slotname(3))
 		self.assertEqual(None, self.any1.slotname(2))
-		self.assertEqual(None, self.any1.slotname(5))
+		self.assertRaises(IndexError, self.any1.slotname, 5)
 
 	def testStr(self):
-		expected = str([1, 2, 3, 4, 5])
+		expected = str([('a', 1), ('b', 2), 3, ('c', 4), 5])
 		self.assertEqual(expected, str(self.any1))
 		
 	def testHasKey(self):
@@ -82,3 +83,38 @@ class AnythingTest(unittest.TestCase):
 		self.assertFalse(0 in self.any1)
 		self.assertTrue(6 not in self.any1)
 	
+	def testInsert(self):
+		self.any1.insert(2, 'new')
+		self.assertEqual(6, len(self.any1))
+		self.assertEqual(1, self.any1[0])
+		self.assertEqual(2, self.any1[1])
+		self.assertEqual('new', self.any1[2])
+		self.assertEqual(3, self.any1[3])
+		self.assertEqual(4, self.any1[4])
+		self.assertEqual(5, self.any1[5])
+		self.assertEqual(1, self.any1['a'])
+		self.assertEqual(2, self.any1['b'])
+		self.assertEqual(4, self.any1['c'])
+
+	def testDeleteWithPos(self):
+		del self.any1[0]
+		self.assertEqual(4, len(self.any1))
+		self.assertEqual(2, self.any1[0])
+		self.assertEqual(3, self.any1[1])
+		self.assertEqual(4, self.any1[2])
+		self.assertEqual(5, self.any1[3])
+		self.assertEqual(2, self.any1['b'])		
+		self.assertEqual(4, self.any1['c'])
+		self.assertEqual(None, self.any1.get('a', None))
+		
+	def testDeleteWithKey(self):
+		del self.any1['a']
+		self.assertEqual(4, len(self.any1))
+		self.assertEqual(2, self.any1[0])
+		self.assertEqual(3, self.any1[1])
+		self.assertEqual(4, self.any1[2])
+		self.assertEqual(5, self.any1[3])
+		self.assertEqual(2, self.any1['b'])
+		self.assertEqual(4, self.any1['c'])
+		self.assertEqual(None, self.any1.get('a', None))
+		
