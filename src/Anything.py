@@ -72,6 +72,7 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 		elif isinstance(key, str):
 			return self.__data[self.__keys[key]][1]
 		else:
+			print key
 			return self.__data[key][1]
 		
 	def __len__(self):
@@ -106,6 +107,9 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 		else:
 			for key, pos in self.__keys.iteritems():
 				yield (key, self.__data[pos][1])
+
+	def itervalues(self):
+		return self.__iter__()
 	
 	def slotname(self, pos):
 		if self.__data[pos][0]:
@@ -117,5 +121,5 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 		return key in self.__keys
 		
 	def __str__(self):
-		return str(map(lambda data: data if data[0] else data[1], self.items(all=True)))
+		return str(map(lambda data: data if data[0] else data[1], self.iteritems(all=True)))
 

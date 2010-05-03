@@ -32,10 +32,12 @@ class AnythingTest(unittest.TestCase):
 		self.assertEqual(99, self.any1[0])
 	
 	def testArrayIteration(self):
-		i = 1
-		for v in self.any1:
-			self.assertEqual(i, v)
-			i += 1
+		expected = map(lambda i: i+1, range(5))
+		self.assertEqual(expected, [v for v in self.any1])
+	
+	def testItervalues(self):
+		expected = map(lambda i: i+1, range(5))
+		self.assertEqual(expected, list(self.any1.itervalues()))
 			
 	def testItems(self):
 		expected = {
