@@ -115,14 +115,4 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 		return key in self.__keys
 		
 	def __str__(self):
-		string = '['
-		for pos, data in enumerate(self.__data):
-			if data[0]:
-				string += str(data)
-			else:
-				string += str(data[1])
-			if pos < len(self.__data)-1:
-				string += ', '
-		string += ']'
-		return string
-
+		return str(map(lambda data: data if data[0] else data[1], self.items(all=True)))
