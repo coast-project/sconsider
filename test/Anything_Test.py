@@ -43,7 +43,6 @@ class AnythingTest(unittest.TestCase):
 			'b': 2,
 			'c': 4
 		}
-		print self.any1.items()
 		self.assertEqual(expected, dict(self.any1.items()))
 		
 	def testIteritems(self):
@@ -118,3 +117,46 @@ class AnythingTest(unittest.TestCase):
 		self.assertEqual(4, self.any1['c'])
 		self.assertEqual(None, self.any1.get('a', None))
 		
+	def testUpdateWithDict(self):
+		self.any1.update({'a': 99, 'b': 88, 'd': 77})
+		self.assertEqual(99, self.any1['a'])
+		self.assertEqual(88, self.any1['b'])
+		self.assertEqual(77, self.any1['d'])
+
+	def testUpdateWithAnything(self):
+		any2 = Anything()
+		any2['a'] = 99
+		any2['b'] = 88
+		any2['d'] = 77
+		self.any1.update(any2)
+		self.assertEqual(99, self.any1['a'])
+		self.assertEqual(88, self.any1['b'])
+		self.assertEqual(77, self.any1['d'])
+
+	def testMergeWithAnything(self):
+		any2 = Anything()
+		any2['a'] = 99
+		any2.append(66)
+		any2['b'] = 88
+		any2['d'] = 77
+		any2.append(55)
+		self.any1.merge(any2)
+		self.assertEqual(99, self.any1['a'])
+		self.assertEqual(66, self.any1[5])
+		self.assertEqual(88, self.any1['b'])
+		self.assertEqual(77, self.any1['d'])
+		self.assertEqual(55, self.any1[7])
+
+	def testMergeWithDict(self):
+		self.any1.merge({'a': 99, 'b': 88, 'd': 77})
+		self.assertEqual(99, self.any1['a'])
+		self.assertEqual(88, self.any1['b'])
+		self.assertEqual(77, self.any1['d'])
+		
+	def testMergeWithList(self):
+		self.any1.merge([('a', 99), 66, ('b', 88), ('d', 77), 55])
+		self.assertEqual(99, self.any1['a'])
+		self.assertEqual(66, self.any1[5])
+		self.assertEqual(88, self.any1['b'])
+		self.assertEqual(77, self.any1['d'])
+		self.assertEqual(55, self.any1[7])

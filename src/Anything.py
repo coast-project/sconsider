@@ -4,11 +4,38 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 	def __init__(self):
 		self.__data = []
 		self.__keys = {}
-	
+
 	def insert(self, pos, value):
 		self.__data.insert(pos, (None, value))
 		self.__updateKeys(pos+1)
 	
+	def update(self, other):
+		if isinstance(other, Anything):
+			for key, value in other.iteritems():
+				self[key] = value
+		else:
+			super(Anything, self).update(other)
+			
+	def merge(self, other):
+		if isinstance(other, Anything):
+			for data in other.iteritems(all=True):
+				self.__mergeData(data)
+		if isinstance(other, collections.Mapping):
+			for data in other.iteritems():
+				self.__mergeData(data)
+		else:
+			for data in other:
+				self.__mergeData(data)
+				
+	def __mergeData(self, data):
+		if isinstance(data, tuple):
+			if isinstance(data[0], str):
+				self[data[0]] = data[1]
+			else:
+				self.append(data[1])
+		else:
+			self.append(data)
+
 	def __updateKeys(self, fromPos=0):
 		for pos, data in enumerate(self.__data[fromPos:], fromPos):
 			if data[0]:
@@ -64,12 +91,19 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 	def iterkeys(self):
 		return self.__keys.iterkeys()
 		
-	def items(self):
-		return [(key, self.__data[pos][1]) for key, pos in self.__keys.iteritems()]
+	def items(self, all=False):
+		if all:
+			return [(self.slotname(pos), value) for pos, value in enumerate(self)]
+		else:
+			return [(key, self.__data[pos][1]) for key, pos in self.__keys.iteritems()]
 		
-	def iteritems(self):
-		for key, pos in self.__keys.iteritems():
-			yield (key, self.__data[pos][1])
+	def iteritems(self, all=False):
+		if all:
+			for pos, value in enumerate(self):
+				yield (self.slotname(pos), value)
+		else:
+			for key, pos in self.__keys.iteritems():
+				yield (key, self.__data[pos][1])
 	
 	def slotname(self, pos):
 		if self.__data[pos][0]:
