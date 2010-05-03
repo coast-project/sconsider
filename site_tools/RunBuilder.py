@@ -12,8 +12,11 @@ def setTarget(packagename, targetname, target):
         target = target[0]
     runtargets.setdefault(packagename, {})[targetname] = target
 
-def getTarget(packagename, targetname):
-    return runtargets.get(packagename, {}).get(targetname, None)
+def getTargets(packagename, targetname=None):
+	if not targetname:
+		return [target for tname, target in runtargets.get(packagename, {}).iteritems()]
+	else:
+		return [runtargets.get(packagename, {}).get(targetname, None)]
 
 class Tee(object):
     def __init__(self):
@@ -113,7 +116,6 @@ def createTestTarget(env, source, registry, packagename, targetname, buildSettin
     registerCallback('__PostTestOrRun', lambda: runCallback('PostTest', target=source, registry=registry, packagename=packagename, targetname=targetname, logfile=logfile))
     
     env.Alias('tests', runner)
-    env.Alias(packagename, runner)
     env.Alias('all', runner)
     
     setTarget(packagename, targetname, runner)
@@ -134,7 +136,6 @@ def createRunTarget(env, source, registry, packagename, targetname, buildSetting
     
     registerCallback('__PostTestOrRun', lambda: runCallback('PostRun', target=source, registry=registry, packagename=packagename, targetname=targetname, logfile=logfile))
     
-    env.Alias(packagename, runner)
     env.Alias('all', runner)
     
     setTarget(packagename, targetname, runner)
@@ -174,8 +175,7 @@ def generate(env):
     def addBuildTargetCallback(**kw):
         for ftname in SCons.Script.COMMAND_LINE_TARGETS:
             packagename, targetname = SConsider.splitTargetname(ftname)
-            target = getTarget(packagename, targetname)
-            if target:
+            for target in getTargets(packagename, targetname):
                 SCons.Script.BUILD_TARGETS.append(target)
     
     if GetOption("run") or GetOption("run-force"):
