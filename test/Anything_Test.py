@@ -34,10 +34,22 @@ class AnythingTest(unittest.TestCase):
 	def testArrayIteration(self):
 		expected = map(lambda i: i+1, range(5))
 		self.assertEqual(expected, [v for v in self.any1])
-	
+
 	def testItervalues(self):
+		expected = [1, 2, 4]
+		self.assertEqual(sorted(expected), sorted(list(self.any1.itervalues())))
+	
+	def testItervaluesAll(self):
 		expected = map(lambda i: i+1, range(5))
-		self.assertEqual(expected, list(self.any1.itervalues()))
+		self.assertEqual(expected, list(self.any1.itervalues(all=True)))
+
+	def testValues(self):
+		expected = [1, 2, 4]
+		self.assertEqual(sorted(expected), sorted(list(self.any1.values())))
+	
+	def testValuesAll(self):
+		expected = map(lambda i: i+1, range(5))
+		self.assertEqual(expected, list(self.any1.values(all=True)))
 			
 	def testItems(self):
 		expected = {
@@ -47,6 +59,10 @@ class AnythingTest(unittest.TestCase):
 		}
 		self.assertEqual(expected, dict(self.any1.items()))
 		
+	def testItemsAll(self):
+		expected = [('a', 1), ('b', 2), (None, 3), ('c', 4), (None, 5)]
+		self.assertEqual(expected, self.any1.items(all=True))
+		
 	def testIteritems(self):
 		expected = {
 			'a': 1,
@@ -54,7 +70,11 @@ class AnythingTest(unittest.TestCase):
 			'c': 4
 		}
 		self.assertEqual(expected, dict(self.any1.iteritems()))
-		
+
+	def testIteritemsAll(self):
+		expected = [('a', 1), ('b', 2), (None, 3), ('c', 4), (None, 5)]
+		self.assertEqual(expected, list(self.any1.iteritems(all=True)))
+
 	def testKeys(self):
 		self.assertEqual(sorted(['a', 'b', 'c']), sorted(self.any1.keys()))
 	
@@ -71,6 +91,17 @@ class AnythingTest(unittest.TestCase):
 	def testStr(self):
 		expected = str([('a', 1), ('b', 2), 3, ('c', 4), 5])
 		self.assertEqual(expected, str(self.any1))
+		
+	def testRepr(self):
+		any2 = eval(repr(self.any1))
+		self.assertEqual(1, self.any1['a'])
+		self.assertEqual(2, self.any1['b'])
+		self.assertEqual(4, self.any1['c'])
+		self.assertEqual(1, self.any1[0])
+		self.assertEqual(2, self.any1[1])
+		self.assertEqual(3, self.any1[2])
+		self.assertEqual(4, self.any1[3])
+		self.assertEqual(5, self.any1[4])
 		
 	def testHasKey(self):
 		self.assertTrue(self.any1.has_key('a'))
@@ -170,6 +201,13 @@ class AnythingTest(unittest.TestCase):
 		self.assertEqual(88, any2['b'])
 		self.assertEqual(77, any2['d'])
 		
+	def testInitWithKW(self):
+		any2 = Anything(a=99, b=88, d=77)
+		self.assertEqual(3, len(any2))
+		self.assertEqual(99, any2['a'])
+		self.assertEqual(88, any2['b'])
+		self.assertEqual(77, any2['d'])
+		
 	def testInitWithAnything(self):
 		any2 = Anything(self.any1)
 		self.assertEqual(1, any2['a'])
@@ -188,4 +226,29 @@ class AnythingTest(unittest.TestCase):
 		self.assertEqual(88, any2['b'])
 		self.assertEqual(77, any2['d'])
 		self.assertEqual(55, any2[4])
+
+	def testPop(self):
+		value = self.any1.pop('a')
+		self.assertEqual(1, value)
+		self.assertEqual(4, len(self.any1))
+		self.assertEqual(None, self.any1.get('a', None))
+		self.assertRaises(KeyError, self.any1.pop, 'a')
+	
+	def testPopitem(self):
+		data = self.any1.popitem()
+		self.assertEqual(4, len(self.any1))
+		self.assertEqual(('a', 1), data)
+		data = self.any1.popitem()
+		self.assertEqual(3, len(self.any1))
+		self.assertEqual(('b', 2), data)
+		data = self.any1.popitem()
+		self.assertEqual(2, len(self.any1))
+		self.assertEqual((None, 3), data)
+		data = self.any1.popitem()
+		self.assertEqual(1, len(self.any1))
+		self.assertEqual(('c', 4), data)
+		data = self.any1.popitem()
+		self.assertEqual(0, len(self.any1))
+		self.assertEqual((None, 5), data)
+		self.assertRaises(KeyError, self.any1.popitem)
 

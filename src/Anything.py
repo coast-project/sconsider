@@ -1,11 +1,13 @@
 import collections
 
 class Anything(collections.MutableSequence, collections.MutableMapping):
-	def __init__(self, other=None):
+	def __init__(self, other=None, **kw):
 		self.__data = []
 		self.__keys = {}
 		if other:
 			self.merge(other)
+		elif kw:
+			self.merge(kw)
 
 	def insert(self, pos, value):
 		self.__data.insert(pos, (None, value))
@@ -72,7 +74,6 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 		elif isinstance(key, str):
 			return self.__data[self.__keys[key]][1]
 		else:
-			print key
 			return self.__data[key][1]
 		
 	def __len__(self):
@@ -108,8 +109,27 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 			for key, pos in self.__keys.iteritems():
 				yield (key, self.__data[pos][1])
 
-	def itervalues(self):
-		return self.__iter__()
+	def itervalues(self, all=False):
+		if all:
+			for value in self:
+				yield value
+		else:
+			for key, pos in self.__keys.iteritems():
+				yield self.__data[pos][1]
+
+	def values(self, all=False):
+		if all:
+			return list(self)
+		else:
+			return [self.__data[pos][1] for key, pos in self.__keys.iteritems()]
+
+	def popitem(self):
+		try:
+			key, value = next(self.iteritems(all=True))
+		except StopIteration:
+			raise KeyError
+		del self[0]
+		return (key, value)
 	
 	def slotname(self, pos):
 		if self.__data[pos][0]:
@@ -122,4 +142,7 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 		
 	def __str__(self):
 		return str(map(lambda data: data if data[0] else data[1], self.iteritems(all=True)))
+
+	def __repr__(self):
+		return 'Anything('+str(self)+')'
 
