@@ -1,9 +1,11 @@
 import collections
 
 class Anything(collections.MutableSequence, collections.MutableMapping):
-	def __init__(self):
+	def __init__(self, other=None):
 		self.__data = []
 		self.__keys = {}
+		if other:
+			self.merge(other)
 
 	def insert(self, pos, value):
 		self.__data.insert(pos, (None, value))
@@ -116,3 +118,4 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 		
 	def __str__(self):
 		return str(map(lambda data: data if data[0] else data[1], self.items(all=True)))
+

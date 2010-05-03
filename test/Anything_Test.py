@@ -160,3 +160,30 @@ class AnythingTest(unittest.TestCase):
 		self.assertEqual(88, self.any1['b'])
 		self.assertEqual(77, self.any1['d'])
 		self.assertEqual(55, self.any1[7])
+		
+	def testInitWithDict(self):
+		any2 = Anything({'a': 99, 'b': 88, 'd': 77})
+		self.assertEqual(3, len(any2))
+		self.assertEqual(99, any2['a'])
+		self.assertEqual(88, any2['b'])
+		self.assertEqual(77, any2['d'])
+		
+	def testInitWithAnything(self):
+		any2 = Anything(self.any1)
+		self.assertEqual(1, any2['a'])
+		self.assertEqual(2, any2['b'])
+		self.assertEqual(4, any2['c'])
+		self.assertEqual(1, any2[0])
+		self.assertEqual(2, any2[1])
+		self.assertEqual(3, any2[2])
+		self.assertEqual(4, any2[3])
+		self.assertEqual(5, any2[4])
+		
+	def testInitWithList(self):
+		any2 = Anything([('a', 99), 66, ('b', 88), ('d', 77), 55])
+		self.assertEqual(99, any2['a'])
+		self.assertEqual(66, any2[1])
+		self.assertEqual(88, any2['b'])
+		self.assertEqual(77, any2['d'])
+		self.assertEqual(55, any2[4])
+
