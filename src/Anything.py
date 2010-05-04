@@ -146,3 +146,9 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 	def __repr__(self):
 		return 'Anything('+str(self)+')'
 
+	def copy(self):
+		return Anything(self)
+
+	def __eq__(self, other):
+		return isinstance(other, Anything) and self.items(all=True) == other.items(all=True)
+

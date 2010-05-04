@@ -252,3 +252,17 @@ class AnythingTest(unittest.TestCase):
 		self.assertEqual((None, 5), data)
 		self.assertRaises(KeyError, self.any1.popitem)
 
+	def testEq(self):
+		any2 = Anything()
+		any2['a'] = 1
+		any2['b'] = 2
+		any2.append(3)
+		any2['c'] = 4
+		any2.append(5)
+		self.assertEqual(self.any1, any2)
+
+	def testCopy(self):
+		any2 = self.any1.copy()
+		self.assertNotEqual(id(any2), id(self.any1))
+		self.assertEqual(self.any1, any2)
+		
