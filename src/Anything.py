@@ -140,11 +140,23 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 	def has_key(self, key):
 		return key in self.__keys
 		
+	def __pprint(self, level=1):
+		content = ''
+		for key, value in self.iteritems(all=True):
+			content += '\t'*level
+			if key:
+				content += '/'+str(key)+' '
+			if isinstance(value, Anything):
+				content += value.__pprint(level+1)+'\n'
+			else:
+				content += str(value)+'\n'
+		return '{\n'+content+('\t'*(level-1))+'}'
+		
 	def __str__(self):
-		return str(map(lambda data: data if data[0] else data[1], self.iteritems(all=True)))
+		return self.__pprint()
 
 	def __repr__(self):
-		return 'Anything('+str(self)+')'
+		return 'Anything('+str(map(lambda data: data if data[0] else data[1], self.iteritems(all=True)))+')'
 
 	def copy(self):
 		return Anything(self)

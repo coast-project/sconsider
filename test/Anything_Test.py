@@ -89,11 +89,28 @@ class AnythingTest(unittest.TestCase):
 		self.assertRaises(IndexError, self.any1.slotname, 5)
 
 	def testStr(self):
-		expected = str([('a', 1), ('b', 2), 3, ('c', 4), 5])
+		any2 = Anything([1, 2, 3, 4])
+		self.any1['d'] = any2
+		expected = """{
+	/a 1
+	/b 2
+	3
+	/c 4
+	5
+	/d {
+		1
+		2
+		3
+		4
+	}
+}"""
 		self.assertEqual(expected, str(self.any1))
 		
 	def testRepr(self):
-		any2 = eval(repr(self.any1))
+		expected = "Anything([('a', 1), ('b', 2), 3, ('c', 4), 5])"
+		result = repr(self.any1)
+		self.assertEqual(expected, result)
+		any2 = eval(result)
 		self.assertEqual(1, self.any1['a'])
 		self.assertEqual(2, self.any1['b'])
 		self.assertEqual(4, self.any1['c'])
