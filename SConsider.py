@@ -102,12 +102,19 @@ def sharedLibrary(env, name, sources, packagename, targetname, buildSettings, **
 
     return (plaintarget, instTarg)
 
+def installBinary(env, name, sources, packagename, targetname, buildSettings, **kw):
+    env['RELTARGETDIR'] = os.path.join('globals', packagename)
+    plaintarget = env.PrecompiledBinaryInstallBuilder(name, sources)
+
+    return (plaintarget, plaintarget)
+
 dEnv = DefaultEnvironment()
 
 dEnv.AddMethod(appTest, "AppTest")
 dEnv.AddMethod(programTest, "ProgramTest")
 dEnv.AddMethod(programApp, "ProgramApp")
 dEnv.AddMethod(sharedLibrary, "LibraryShared")
+dEnv.AddMethod(installBinary, "PrecompiledBinary")
 
 if GetOption('prependPath'):
     dEnv.PrependENVPath('PATH', GetOption('prependPath'))
@@ -185,7 +192,7 @@ baseEnv.AppendUnique(LIBPATH=[baseoutdir.Dir(baseEnv['LIBDIR']).Dir(baseEnv['VAR
 def cloneBaseEnv():
     return baseEnv.Clone()
 
-def splitTargetname(fulltargetname):
+def splitTargetname(fulltargetname, default=False):
     """
     Split fulltargetname into packagename and targetname.
     """
@@ -194,6 +201,8 @@ def splitTargetname(fulltargetname):
     targetname = None
     if len(parts) > 1:
         targetname = parts[1]
+    elif default:
+        targetname = pkgname
     return (pkgname, targetname)
 
 def generateFulltargetname(packagename, targetname, default=False):
@@ -306,8 +315,11 @@ class PackageRegistry:
         if self.hasPackage(packagename):
             self.packages[packagename]['buildsettings'] = buildSettings
 
-    def getBuildSettings(self, packagename):
-        return self.packages.get(packagename, {}).get('buildsettings', {})
+    def getBuildSettings(self, packagename, targetname=None):
+        if not targetname:
+            return self.packages.get(packagename, {}).get('buildsettings', {})
+        else:
+            return self.packages.get(packagename, {}).get('buildsettings', {}).get(targetname, {})
 
     def loadPackage(self, packagename):
         if not self.hasPackage(packagename):
@@ -401,18 +413,17 @@ class TargetMaker:
             instTargets = copyFileNodes(env, self.prepareFileNodeTuples(ifiles, pkgdir), destdir, stripRelDirs=stripRelDirs, mode=mode)
         return instTargets
 
-    def copyConfigFiles(self, env, destdir, pkgname, buildSettings):
+    def copyFiles(self, env, destdir, pkgname, copyFiles):
         instTargets = []
 
-        if buildSettings.has_key('copyFiles'):
-            pkgdir = self.registry.getPackageDir(pkgname)
+        pkgdir = self.registry.getPackageDir(pkgname)
 
-            envconfigdir = env.get('__envconfigdir__', None)
-            if envconfigdir:
-                envconfigdir = envconfigdir.Dir(pkgname)
+        envconfigdir = env.get('__envconfigdir__', None)
+        if envconfigdir:
+            envconfigdir = envconfigdir.Dir(pkgname)
 
-            for (cfiles, mode) in buildSettings.get('copyFiles', []):
-                instTargets.append( copyFileNodes(env, self.prepareFileNodeTuples(cfiles, pkgdir, envconfigdir), destdir, mode=mode) )
+        for (cfiles, mode) in copyFiles:
+            instTargets.extend( copyFileNodes(env, self.prepareFileNodeTuples(cfiles, pkgdir, envconfigdir), destdir, mode=mode) )
 
         return instTargets
 
@@ -456,8 +467,9 @@ class TargetMaker:
                 targetEnv.Depends(target, includeTargets)
                 targetEnv.Alias('includes', includeTargets)
 
-                configTargets = self.copyConfigFiles(targetEnv, targetEnv['BASEOUTDIR'].Dir(targetEnv['RELTARGETDIR']), pkgname, targetBuildSettings)
-                targetEnv.Depends(target, configTargets)
+                if targetBuildSettings.has_key('copyFiles'):
+                    copyTargets = self.copyFiles(targetEnv, targetEnv['BASEOUTDIR'].Dir(targetEnv['RELTARGETDIR']), pkgname, targetBuildSettings.get('copyFiles', []))
+                    targetEnv.Depends(target, copyTargets)
 
                 targetEnv.Alias(pkgname, target)
                 targetEnv.Alias('all', target)
@@ -485,9 +497,11 @@ class TargetMaker:
         linkDependencies = targetBuildSettings.get('linkDependencies', [])
         self.setModuleDependencies(targetEnv, linkDependencies)
 
+        self.setExecEnv(targetEnv, linkDependencies + targetBuildSettings.get('requires', []))
+
         targetVars = targetBuildSettings.get('public', {}).get('appendUnique', {})
         targetEnv.AppendUnique(**targetVars)
-        
+
         targetEnv.AppendUnique(**envVars)
 
         return targetEnv
@@ -506,6 +520,17 @@ class TargetMaker:
                 targetname = packagename
             targets = self.registry.getPackageTarget(packagename, targetname)
             self.setExternalDependencies(env, packagename, buildSettings.get(targetname, {}), plaintarget=targets['plaintarget'], **kw)
+
+    def setExecEnv(self, env, requiredTargets):
+        for targ in requiredTargets:
+            packagename, targetname = splitTargetname(targ, default=True)
+            if self.registry.hasPackageTarget(packagename, targetname):
+                settings = self.registry.getBuildSettings(packagename, targetname)
+                target = self.registry.getPackageTarget(packagename, targetname)['plaintarget']
+                for key, value in settings.get('public', {}).get('execEnv', {}).iteritems():
+                    env['ENV'][key] = target.env.subst(value)
+                reqTargets = settings.get('linkDependencies', []) + settings.get('requires', [])
+                self.setExecEnv(env, reqTargets)
 
     def setExternalDependencies(self, env, packagename, buildSettings, plaintarget=None, **kw):
         linkDependencies = buildSettings.get('linkDependencies', [])

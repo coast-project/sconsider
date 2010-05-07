@@ -128,9 +128,9 @@ def precompBinNamesEmitter(target, source, env):
         if srcfile:
             if srcfile != linkfile:
                 newsource.append(SCons.Script.File(os.path.join(srcpath, srcfile)))
-                target.append(env['BASEOUTDIR'].Dir(env['BINDIR']).Dir(env['VARIANTDIR']).File(linkfile))
+                target.append(env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['BINDIR']).Dir(env['VARIANTDIR']).File(linkfile))
             newsource.append(SCons.Script.File(os.path.join(srcpath, srcfile)))
-            target.append(env['BASEOUTDIR'].Dir(env['BINDIR']).Dir(env['VARIANTDIR']).File(srcfile))
+            target.append(env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['BINDIR']).Dir(env['VARIANTDIR']).File(srcfile))
     return (target, newsource)
 
 def precompLibNamesEmitter(target, source, env):
@@ -146,9 +146,9 @@ def precompLibNamesEmitter(target, source, env):
             if not isStaticLib:
                 if srcfile != linkfile:
                     newsource.append(SCons.Script.File(os.path.join(srcpath, srcfile)))
-                    target.append(env['BASEOUTDIR'].Dir(env['LIBDIR']).Dir(env['VARIANTDIR']).File(linkfile))
+                    target.append(env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['LIBDIR']).Dir(env['VARIANTDIR']).File(linkfile))
                 newsource.append(SCons.Script.File(os.path.join(srcpath, srcfile)))
-                target.append(env['BASEOUTDIR'].Dir(env['LIBDIR']).Dir(env['VARIANTDIR']).File(srcfile))
+                target.append(env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['LIBDIR']).Dir(env['VARIANTDIR']).File(srcfile))
             else:
                 newsource.append(SCons.Script.File(os.path.join(srcpath, srcfile)))
                 target.append(SCons.Script.Dir('.').File(srcfile))
