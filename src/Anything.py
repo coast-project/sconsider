@@ -197,6 +197,12 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
     def __add__(self, other):
         return self.copy().extend(other)
 
+    def __radd__(self, other):
+        return self.copy().extend(other)
+
+    def __iadd__(self, other):
+        return self.extend(other)
+
 def parse(content):
     commentstart = Literal('#')
     comment = ~commentstart & AnyBut('\n')[:,...] & ~Literal('\n')
@@ -214,3 +220,4 @@ def parse(content):
     with Separator(~Star(AnyBut(anystart | anystop))):
         document = ~AnyBut(anystart)[:] & anything[:] & ~Any()[:]
     return document.parse(content)
+
