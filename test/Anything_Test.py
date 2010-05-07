@@ -183,6 +183,14 @@ class AnythingTest(unittest.TestCase):
 		self.assertEqual(88, self.any1['b'])
 		self.assertEqual(77, self.any1['d'])
 
+	def testExtendWithList(self):
+		self.any1.extend([55, ('d', 66), 77])
+		self.assertEqual(Anything([('a', 1), ('b', 2), 3, ('c', 4), 5, 55, ('d', 66), 77]), self.any1)
+
+	def testExtendWithAnything(self):
+		self.any1.extend(Anything([55, ('d', 66), 77]))
+		self.assertEqual(Anything([('a', 1), ('b', 2), 3, ('c', 4), 5, 55, ('d', 66), 77]), self.any1)
+
 	def testMergeWithAnything(self):
 		any2 = Anything()
 		any2['a'] = 99
@@ -283,3 +291,21 @@ class AnythingTest(unittest.TestCase):
 		self.assertNotEqual(id(any2), id(self.any1))
 		self.assertEqual(self.any1, any2)
 		
+	def testGetSlice(self):
+		any2 = self.any1[1:3]
+		self.assertEqual(Anything([('b', 2), 3]), any2)
+
+	def testDelSlice(self):
+		del self.any1[1:3]
+		self.assertEqual(Anything([('a', 1), ('c', 4), 5]), self.any1)
+		self.assertEqual(None, self.any1.get('b', None))
+		self.assertEqual(4, self.any1['c'])
+		
+	def testSetSliceWithAnything(self):
+		self.any1[1:3] = Anything([99, ('d', 88)])
+		self.assertEqual(Anything([('a', 1), 99, ('d', 88), ('c', 4), 5]), self.any1)
+		
+	def testSetSliceWithList(self):
+		self.any1[1:3] = [99, ('d', 88)]
+		self.assertEqual(Anything([('a', 1), 99, ('d', 88), ('c', 4), 5]), self.any1)
+

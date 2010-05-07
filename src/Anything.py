@@ -20,6 +20,9 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 		else:
 			super(Anything, self).update(other)
 			
+	def extend(self, other):
+		self.merge(other)
+	
 	def merge(self, other):
 		if isinstance(other, Anything):
 			for data in other.iteritems(all=True):
@@ -48,9 +51,19 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 	def clear(self):
 		self.__data.clear()
 		self.__keys.clear()
+
+	def __delslice(self, theslice):
+		start, stop, step = theslice.indices(len(self))
+		for key, value in self.__data[start:stop:step]:
+			if key:
+				del self.__keys[key]
+		del self.__data[start:stop:step]
+		self.__updateKeys(start)
 	
 	def __delitem__(self, key):
-		if isinstance(key, str):
+		if isinstance(key, slice):
+			return self.__delslice(key)
+		elif isinstance(key, str):
 			if key in self.__keys:
 				pos = self.__keys[key]
 				del self.__data[pos]
@@ -63,10 +76,8 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 			self.__updateKeys(key)
 
 	def __getslice(self, theslice):
-		print theslice.start
-		print theslice.stop
-		print theslice.step
-		print theslice.indices(5)
+		start, stop, step = theslice.indices(len(self))
+		return Anything(self.__data[start:stop:step])
 
 	def __getitem__(self, key):
 		if isinstance(key, slice):
@@ -78,9 +89,22 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 		
 	def __len__(self):
 		return len(self.__data)
+
+	def __setslice(self, theslice, other):
+		start, stop, step = theslice.indices(len(self))
+		for key, value in self.__data[start:stop:step]:
+			if key:
+				del self.__keys[key]
+		if isinstance(other, Anything):
+			self.__data[start:stop:step] = other.items(all=True)
+		elif isinstance(other, collections.Sequence):
+			self.__data[start:stop:step] = Anything(other).items(all=True)
+		self.__updateKeys(start)
 		
 	def __setitem__(self, key, value):
-		if isinstance(key, str):
+		if isinstance(key, slice):
+			self.__setslice(key, value)
+		elif isinstance(key, str):
 			if key in self.__keys:
 				self.__data[self.__keys[key]] = (key, value)
 			else:
