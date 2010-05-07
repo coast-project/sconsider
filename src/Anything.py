@@ -12,17 +12,17 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
     def insert(self, pos, value):
         self.__data.insert(pos, (None, value))
         self.__updateKeys(pos+1)
-    
+
     def update(self, other):
         if isinstance(other, Anything):
             for key, value in other.iteritems():
                 self[key] = value
         else:
             super(Anything, self).update(other)
-            
+
     def extend(self, other):
-        self.merge(other)
-    
+        return self.merge(other)
+
     def merge(self, other):
         if isinstance(other, Anything):
             for data in other.iteritems(all=True):
@@ -33,7 +33,8 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
         else:
             for data in other:
                 self.__mergeData(data)
-                
+        return self
+
     def __mergeData(self, data):
         if isinstance(data, tuple):
             if isinstance(data[0], str):
@@ -47,7 +48,7 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
         for pos, data in enumerate(self.__data[fromPos:], fromPos):
             if data[0]:
                 self.__keys[data[0]] = pos
-    
+
     def clear(self):
         self.__data.clear()
         self.__keys.clear()
@@ -59,7 +60,7 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
                 del self.__keys[key]
         del self.__data[start:stop:step]
         self.__updateKeys(start)
-    
+
     def __delitem__(self, key):
         if isinstance(key, slice):
             return self.__delslice(key)
@@ -86,7 +87,7 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
             return self.__data[self.__keys[key]][1]
         else:
             return self.__data[key][1]
-        
+
     def __len__(self):
         return len(self.__data)
 
@@ -100,7 +101,7 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
         elif isinstance(other, collections.Sequence):
             self.__data[start:stop:step] = Anything(other).items(all=True)
         self.__updateKeys(start)
-        
+
     def __setitem__(self, key, value):
         if isinstance(key, slice):
             self.__setslice(key, value)
@@ -112,19 +113,19 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
                 self.__data.append((key, value))
         else:
             self.__data[key] = (key, value)
-    
+
     def keys(self):
         return self.__keys.keys()
-    
+
     def iterkeys(self):
         return self.__keys.iterkeys()
-        
+
     def items(self, all=False):
         if all:
             return [(self.slotname(pos), value) for pos, value in enumerate(self)]
         else:
             return [(key, self.__data[pos][1]) for key, pos in self.__keys.iteritems()]
-        
+
     def iteritems(self, all=False):
         if all:
             for pos, value in enumerate(self):
@@ -154,16 +155,16 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
             raise KeyError
         del self[0]
         return (key, value)
-    
+
     def slotname(self, pos):
         if self.__data[pos][0]:
             return self.__data[pos][0]
         else:
             return None
-    
+
     def has_key(self, key):
         return key in self.__keys
-        
+
     def __pprint(self, level=1):
         content = ''
         for key, value in self.iteritems(all=True):
@@ -185,5 +186,12 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
     def copy(self):
         return Anything(self)
 
+    def reverse(self):
+        self.__data.reverse()
+        self.__updateKeys()
+
     def __eq__(self, other):
         return isinstance(other, Anything) and self.items(all=True) == other.items(all=True)
+
+    def __add__(self, other):
+        return self.copy().extend(other)

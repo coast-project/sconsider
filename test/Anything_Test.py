@@ -92,17 +92,17 @@ class AnythingTest(unittest.TestCase):
         any2 = Anything([1, 2, 3, 4])
         self.any1['d'] = any2
         expected = """{
-    /a 1
-    /b 2
-    3
-    /c 4
-    5
-    /d {
-        1
-        2
-        3
-        4
-    }
+	/a 1
+	/b 2
+	3
+	/c 4
+	5
+	/d {
+		1
+		2
+		3
+		4
+	}
 }"""
         self.assertEqual(expected, str(self.any1))
         
@@ -190,6 +190,20 @@ class AnythingTest(unittest.TestCase):
     def testExtendWithAnything(self):
         self.any1.extend(Anything([55, ('d', 66), 77]))
         self.assertEqual(Anything([('a', 1), ('b', 2), 3, ('c', 4), 5, 55, ('d', 66), 77]), self.any1)
+
+    def testAddAnything(self):
+        self.any1 += Anything([55, ('d', 66), 77])
+        self.assertEqual(Anything([('a', 1), ('b', 2), 3, ('c', 4), 5, 55, ('d', 66), 77]), self.any1)
+
+    def testAddList(self):
+        self.any1 += [55, ('d', 66), 77]
+        self.assertEqual(Anything([('a', 1), ('b', 2), 3, ('c', 4), 5, 55, ('d', 66), 77]), self.any1)
+
+    def testAddReturnsCopy(self):
+        any1before = self.any1.copy()
+        any2 = self.any1 + Anything([55, ('d', 66), 77])
+        self.assertEqual(any1before, self.any1)
+        self.assertEqual(Anything([('a', 1), ('b', 2), 3, ('c', 4), 5, 55, ('d', 66), 77]), any2)
 
     def testMergeWithAnything(self):
         any2 = Anything()
@@ -308,3 +322,7 @@ class AnythingTest(unittest.TestCase):
     def testSetSliceWithList(self):
         self.any1[1:3] = [99, ('d', 88)]
         self.assertEqual(Anything([('a', 1), 99, ('d', 88), ('c', 4), 5]), self.any1)
+
+    def testReverse(self):
+        self.any1.reverse()
+        self.assertEqual(Anything([5, ('c', 4), 3, ('b', 2), ('a', 1)]), self.any1)
