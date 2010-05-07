@@ -326,3 +326,16 @@ class AnythingTest(unittest.TestCase):
     def testReverse(self):
         self.any1.reverse()
         self.assertEqual(Anything([5, ('c', 4), 3, ('b', 2), ('a', 1)]), self.any1)
+
+    def testIndex(self):
+        for i in xrange(1,5):
+            print i
+            self.assertEqual(i-1, self.any1.index(i))
+
+    def testCount(self):
+        self.any1.extend([2 ,3 ,3])
+        self.assertEqual(1, self.any1.count(1))
+        self.assertEqual(2, self.any1.count(2))
+        self.assertEqual(3, self.any1.count(3))
+        self.assertEqual(1, self.any1.count(4))
+        self.assertEqual(1, self.any1.count(5))
