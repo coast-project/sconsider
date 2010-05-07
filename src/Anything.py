@@ -1,4 +1,5 @@
 import collections
+from lepl import *
 
 class Anything(collections.MutableSequence, collections.MutableMapping):
     def __init__(self, other=None, **kw):
@@ -37,7 +38,7 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 
     def __mergeData(self, data):
         if isinstance(data, tuple):
-            if isinstance(data[0], str):
+            if isinstance(data[0], basestring):
                 self[data[0]] = data[1]
             else:
                 self.append(data[1])
@@ -64,7 +65,7 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
     def __delitem__(self, key):
         if isinstance(key, slice):
             return self.__delslice(key)
-        elif isinstance(key, str):
+        elif isinstance(key, basestring):
             if key in self.__keys:
                 pos = self.__keys[key]
                 del self.__data[pos]
@@ -83,7 +84,7 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
     def __getitem__(self, key):
         if isinstance(key, slice):
             return self.__getslice(key)
-        elif isinstance(key, str):
+        elif isinstance(key, basestring):
             return self.__data[self.__keys[key]][1]
         else:
             return self.__data[key][1]
@@ -105,7 +106,7 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
     def __setitem__(self, key, value):
         if isinstance(key, slice):
             self.__setslice(key, value)
-        elif isinstance(key, str):
+        elif isinstance(key, basestring):
             if key in self.__keys:
                 self.__data[self.__keys[key]] = (key, value)
             else:
@@ -195,3 +196,21 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 
     def __add__(self, other):
         return self.copy().extend(other)
+
+def parse(content):
+    commentstart = Literal('#')
+    comment = ~commentstart & AnyBut('\n')[:,...] & ~Literal('\n')
+    anystart = Literal('{')
+    anystop = Literal('}')
+    word = Word(AnyBut(Whitespace() | anystart | anystop | commentstart))
+    anything = Delayed()
+    anyvalue = anything | String() | word
+    anykey = ~Literal('/') & ( String() | word )
+    anykeyvalue = Delayed()
+    anycontent = ~comment | anykeyvalue | anyvalue
+    with Separator(~Star(Whitespace())):
+        anykeyvalue += anykey & anyvalue > tuple
+        anything += ~anystart & anycontent[:] & ~anystop > Anything
+    with Separator(~Star(AnyBut(anystart | anystop))):
+        document = ~AnyBut(anystart)[:] & anything[:] & ~Any()[:]
+    return document.parse(content)
