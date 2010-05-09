@@ -49,7 +49,7 @@ def generateShellScript(scriptFile, env, binpath):
 MYNAME=`basename $0`
 SCRIPT=`readlink -f $0`
 SCRIPTPATH=`dirname $SCRIPT`
-STARTPATH=$(pwd -P)
+STARTPATH=`pwd -P`
 
 LIBDIR=\""""+env['LIBDIR']+"""\"
 BINDIR=\""""+env['BINDIR']+"""\"
@@ -101,7 +101,7 @@ do
     esac
 done
 
-shift $(($OPTIND - 1))
+shift `expr $OPTIND - 1`
 
 # find base directory for a given path
 # param $1 path to start from
@@ -112,12 +112,12 @@ searchBaseDirUp()
     start_dir=${1};
     searchSegment=${2};
     ret_var=${3};
-    basePath=$(cd $start_dir &&
-        while [ ! -d ${searchSegment} ] && [ `pwd` != / ]; do
+    basePath=`cd $start_dir &&
+        while [ ! -d ${searchSegment} ] && [ \`pwd\` != / ]; do
             cd .. 2>/dev/null;
         done;
         pwd -P
-    );
+    `;
     test -d ${basePath} || basePath="";
     eval ${ret_var}="$basePath";
 }
@@ -186,8 +186,8 @@ test ${doChangeDir} -eq 1 -a -d ${BINDIR_BASE} && cd ${BINDIR_BASE}
 
 test ${doTrace} -eq 1 && ( cat <<EOF
 Executing command [${CMD}]
-$( test -z "$@" || echo " with arguments   [$@]" )
- in directory     [$(pwd)]
+`test -z "$@" || echo " with arguments   [$@]"`
+ in directory     [`pwd`]
 EOF
 )
 
