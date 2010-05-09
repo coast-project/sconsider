@@ -34,9 +34,10 @@ def generate( env ):
         SCons.Tool.DefaultToolpath = defaulttoolpath
 
     platf = env['PLATFORM']
-    setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LIBS = ['m', 'dl', 'c'] ) )
+    setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LINKFLAGS = ['-nodefaultlibs'] ) )
+    #FIXME: stdc++ should be C++ conditional, but how can we achieve this?
+    setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LIBS = ['m', 'dl', 'c', 'gcc', 'gcc_s', 'stdc++'] ) )
     setupBuildTools.registerCallback( 'BITWIDTH_OPTIONS', lambda env, bitwidth: env.AppendUnique( LINKFLAGS = '-m' + bitwidth ) )
-    setupBuildTools.registerCallback( 'BITWIDTH_OPTIONS', lambda env, bitwidth: env.AppendUnique( SHLINKFLAGS = '-m' + bitwidth ) )
 
     if not str( platf ) == "cygwin":
         setupBuildTools.registerCallback( 'LAZYLINK_OPTIONS', lambda env: env.Append( _NONLAZYLINKFLAGS = '-z defs -z now --no-undefined ' ) )
