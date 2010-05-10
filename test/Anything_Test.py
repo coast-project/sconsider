@@ -340,6 +340,15 @@ class AnythingTest(unittest.TestCase):
         self.assertEqual(1, self.any1.count(4))
         self.assertEqual(1, self.any1.count(5))
 
+    def testSort(self):
+        any2 = Anything([('e',7),3,5,('a',2),('b',1), ('c', 1), 4])
+        any2.sort()
+        self.assertEqual(Anything([('b',1),('c',1),('a',2),3,4,5,('e',7)]), any2)
+        self.assertEqual(7, any2['e'])
+        self.assertEqual(1, any2['c'])
+        self.assertEqual(1, any2['b'])
+        self.assertEqual(2, any2['a'])
+
 class AnythingParserTest(unittest.TestCase):
     def testParse(self):
         content = """

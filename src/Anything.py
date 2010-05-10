@@ -1,5 +1,25 @@
-import collections
+import collections, operator
 from lepl import *
+
+class AnythingEntry(object):
+    def __init__(self, key, value=None):
+        if isinstance(key, AnythingEntry):
+            self.key, key.key
+            self.value = key.value
+        elif isinstance(key, tuple):
+            self.key, self.value = key
+        else:
+            self.key = key
+            self.value = value
+    
+    def __eq__(self, other):
+        return isinstance(other, AnythingEntry) and self.key == other.key and self.value == other.value
+
+    def __str__(self):
+        return '('+str(self.key)+', '+str(self.value)+')'
+
+    def __repr__(self):
+        return 'AnythingEntry('+str(self.key)+', '+str(self.value)+')'
 
 class Anything(collections.MutableSequence, collections.MutableMapping):
     def __init__(self, other=None, **kw):
@@ -11,7 +31,7 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
             self.merge(kw)
 
     def insert(self, pos, value):
-        self.__data.insert(pos, (None, value))
+        self.__data.insert(pos, AnythingEntry(None, value))
         self.__updateKeys(pos+1)
 
     def update(self, other):
@@ -37,7 +57,12 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
         return self
 
     def __mergeData(self, data):
-        if isinstance(data, tuple):
+        if isinstance(data, AnythingEntry):
+            if data.key:
+                self[data.key] = data.value
+            else:
+                self.append(data.value)
+        elif isinstance(data, tuple):
             if isinstance(data[0], basestring):
                 self[data[0]] = data[1]
             else:
@@ -47,8 +72,8 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 
     def __updateKeys(self, fromPos=0):
         for pos, data in enumerate(self.__data[fromPos:], fromPos):
-            if data[0]:
-                self.__keys[data[0]] = pos
+            if data.key:
+                self.__keys[data.key] = pos
 
     def clear(self):
         self.__data.clear()
@@ -56,9 +81,9 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 
     def __delslice(self, theslice):
         start, stop, step = theslice.indices(len(self))
-        for key, _ in self.__data[start:stop:step]:
-            if key:
-                del self.__keys[key]
+        for data in self.__data[start:stop:step]:
+            if data.key:
+                del self.__keys[data.key]
         del self.__data[start:stop:step]
         self.__updateKeys(start)
 
@@ -72,8 +97,8 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
                 del self.__keys[key]
                 self.__updateKeys(pos)
         else:
-            if self.__data[key][0]:
-                del self.__keys[self.__data[key][0]]
+            if self.__data[key].key:
+                del self.__keys[self.__data[key].key]
             del self.__data[key]
             self.__updateKeys(key)
 
@@ -85,22 +110,22 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
         if isinstance(key, slice):
             return self.__getslice(key)
         elif isinstance(key, basestring):
-            return self.__data[self.__keys[key]][1]
+            return self.__data[self.__keys[key]].value
         else:
-            return self.__data[key][1]
+            return self.__data[key].value
 
     def __len__(self):
         return len(self.__data)
 
     def __setslice(self, theslice, other):
         start, stop, step = theslice.indices(len(self))
-        for key, _ in self.__data[start:stop:step]:
-            if key:
-                del self.__keys[key]
+        for data in self.__data[start:stop:step]:
+            if data.key:
+                del self.__keys[data.key]
         if isinstance(other, Anything):
-            self.__data[start:stop:step] = other.items(all=True)
+            self.__data[start:stop:step] = [AnythingEntry(key, value) for key, value in other.items(all=True)]
         elif isinstance(other, collections.Sequence):
-            self.__data[start:stop:step] = Anything(other).items(all=True)
+            self.__data[start:stop:step] = [AnythingEntry(key, value) for key, value in Anything(other).items(all=True)]
         self.__updateKeys(start)
 
     def __setitem__(self, key, value):
@@ -108,12 +133,12 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
             self.__setslice(key, value)
         elif isinstance(key, basestring):
             if key in self.__keys:
-                self.__data[self.__keys[key]] = (key, value)
+                self.__data[self.__keys[key]] = AnythingEntry(key, value)
             else:
                 self.__keys[key] = len(self.__data)
-                self.__data.append((key, value))
+                self.__data.append(AnythingEntry(key, value))
         else:
-            self.__data[key] = (key, value)
+            self.__data[key] = AnythingEntry(key, value)
 
     def keys(self):
         return self.__keys.keys()
@@ -125,7 +150,7 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
         if all:
             return [(self.slotname(pos), value) for pos, value in enumerate(self)]
         else:
-            return [(key, self.__data[pos][1]) for key, pos in self.__keys.iteritems()]
+            return [(key, self.__data[pos].value) for key, pos in self.__keys.iteritems()]
 
     def iteritems(self, all=False):
         if all:
@@ -133,7 +158,7 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
                 yield (self.slotname(pos), value)
         else:
             for key, pos in self.__keys.iteritems():
-                yield (key, self.__data[pos][1])
+                yield (key, self.__data[pos].value)
 
     def itervalues(self, all=False):
         if all:
@@ -141,13 +166,13 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
                 yield value
         else:
             for _, pos in self.__keys.iteritems():
-                yield self.__data[pos][1]
+                yield self.__data[pos].value
 
     def values(self, all=False):
         if all:
             return list(self)
         else:
-            return [self.__data[pos][1] for _, pos in self.__keys.iteritems()]
+            return [self.__data[pos].value for _, pos in self.__keys.iteritems()]
 
     def popitem(self):
         try:
@@ -158,8 +183,8 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
         return (key, value)
 
     def slotname(self, pos):
-        if self.__data[pos][0]:
-            return self.__data[pos][0]
+        if self.__data[pos].key:
+            return self.__data[pos].key
         else:
             return None
 
@@ -202,6 +227,10 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 
     def __iadd__(self, other):
         return self.extend(other)
+    
+    def sort(self):
+        self.__data.sort(key=operator.attrgetter('value', 'key'))
+        self.__updateKeys()
 
 def parse(content):
     commentstart = Literal('#')
