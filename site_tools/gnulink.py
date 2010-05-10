@@ -35,8 +35,18 @@ def generate( env ):
 
     platf = env['PLATFORM']
     setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LINKFLAGS = ['-nodefaultlibs'] ) )
-    #FIXME: stdc++ should be C++ conditional, but how can we achieve this?
-    setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LIBS = ['m', 'dl', 'c', 'gcc', 'gcc_s', 'stdc++'] ) )
+    setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LIBS = ['m', 'dl', 'c', 'gcc', 'gcc_s'] ) )
+    orig_smart_link = env['SMARTLINK']
+    def smart_link(source, target, env, for_signature):
+        try:
+            cplusplus = sys.modules['SCons.Tool.c++']
+            if cplusplus.iscplusplus( source ):
+                env.AppendUnique( LIBS = ['stdc++'] )
+        except:
+            pass
+        return orig_smart_link(source, target, env, for_signature)
+    setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.Replace(SMARTLINK = smart_link))
+
     setupBuildTools.registerCallback( 'BITWIDTH_OPTIONS', lambda env, bitwidth: env.AppendUnique( LINKFLAGS = '-m' + bitwidth ) )
 
     if not str( platf ) == "cygwin":
