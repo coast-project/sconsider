@@ -32,7 +32,7 @@ class Tee(object):
         for writer, flush, close in self.writers:
             if close:
                 writer.close()
-            
+
 def run(cmd, logfile=None, **kw):
     """Run a Unix command and return the exit code."""
     args = cmd.split(' ')
@@ -84,7 +84,7 @@ def getRunParams(buildSettings, defaultRunParams):
         runParams = runConfig.get('runParams', defaultRunParams)
     return runParams
 
-def createTestTarget(env, source, registry, packagename, targetname, buildSettings, defaultRunParams='-all'):
+def createTestTarget(env, source, registry, packagename, targetname, buildSettings, defaultRunParams='-- -all'):
     """Creates a target which runs a target given in parameter 'source'. If ran successfully a
     file is generated (name given in parameter 'target') which indicates that this runner-target
     doesn't need to be executed unless the dependencies changed. Command line parameters could be
@@ -94,10 +94,10 @@ def createTestTarget(env, source, registry, packagename, targetname, buildSettin
 
     if not GetOption('run') and not GetOption('run-force'):
         return source
-    
+
     if not SCons.Util.is_List(source):
         source = [source]
-    
+
     logfile = env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['LOGDIR']).Dir(env['VARIANTDIR']).File(targetname+'.test.log')
     if GetOption('run-force'):
         runner = env.RunBuilder(['dummyfile_'+targetname], source, runParams=getRunParams(buildSettings, defaultRunParams), logfile=logfile)
@@ -112,32 +112,32 @@ def createTestTarget(env, source, registry, packagename, targetname, buildSettin
         env.AddPreAction(runner, setUp)
     if tearDown:
         registerCallback('__PostAction_'+str(id(runner[0])), lambda: tearDown(target=runner, source=source, env=env))
-    
+
     registerCallback('__PostTestOrRun', lambda: runCallback('PostTest', target=source, registry=registry, packagename=packagename, targetname=targetname, logfile=logfile))
-    
+
     env.Alias('tests', runner)
     env.Alias('all', runner)
-    
+
     setTarget(packagename, targetname, runner)
     return runner
 
 def createRunTarget(env, source, registry, packagename, targetname, buildSettings, defaultRunParams=''):
     """Creates a target which runs a target given in parameter 'source'. Command line parameters could be
     handed over by using --runparams="..." or by setting buildSettings['runConfig']['runParams']."""
-    
+
     if not GetOption('run') and not GetOption('run-force'):
         return source
-    
+
     if not SCons.Util.is_List(source):
         source = [source]
 
     logfile = env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['LOGDIR']).Dir(env['VARIANTDIR']).File(targetname+'.run.log')
     runner = env.RunBuilder(['dummyfile_'+targetname], source, runParams=getRunParams(buildSettings, defaultRunParams), logfile=logfile)
-    
+
     registerCallback('__PostTestOrRun', lambda: runCallback('PostRun', target=source, registry=registry, packagename=packagename, targetname=targetname, logfile=logfile))
-    
+
     env.Alias('all', runner)
-    
+
     setTarget(packagename, targetname, runner)
     return runner
 
@@ -171,13 +171,13 @@ def generate(env):
         if runConfig.get('type', 'run') == 'test':
             factory = createTestTarget
         factory(env, target, registry, packagename, targetname, buildSettings, **kw)
-    
+
     def addBuildTargetCallback(**kw):
         for ftname in SCons.Script.COMMAND_LINE_TARGETS:
             packagename, targetname = SConsider.splitTargetname(ftname)
             for target in getTargets(packagename, targetname):
                 SCons.Script.BUILD_TARGETS.append(target)
-    
+
     if GetOption("run") or GetOption("run-force"):
         SConsider.registerCallback("PostCreateTarget", createTargetCallback)
         SConsider.registerCallback("PreBuild", addBuildTargetCallback)
