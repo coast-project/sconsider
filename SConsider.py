@@ -99,6 +99,9 @@ def sharedLibrary(env, name, sources, packagename, targetname, buildSettings, **
 
     baseoutdir = env['BASEOUTDIR']
     instTarg = env.Install(baseoutdir.Dir(env['LIBDIR']).Dir(env['VARIANTDIR']), plaintarget)
+    
+    compLibs = env.InstallCompilerLibs(plaintarget)
+    env.Requires(instTarg, compLibs)
 
     return (plaintarget, instTarg)
 
