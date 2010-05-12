@@ -127,7 +127,8 @@ if GetOption('appendPath'):
     print 'appended path is [%s]' % dEnv['ENV']['PATH']
 
 globaltools = ["setupBuildTools", "coast_options", "SCBWriter", "TargetPrinter",
-               "precompiledLibraryInstallBuilder", "RunBuilder", "DoxygenBuilder"]
+               "precompiledLibraryInstallBuilder", "RunBuilder", "DoxygenBuilder",
+               "CompilerLibsInstallBuilder"]
 usetools = globaltools + GetOption('usetools')
 print 'tools to use %s' % Flatten(usetools)
 
