@@ -1,17 +1,35 @@
 import re, os, optparse, functools, pdb
 import SomeUtils
 
+def addPackage(registry, buildTargets, env, destdir, **kw):
+    import SCons
+    createDeferredAction = SCons.Action.ActionFactory(makePackage, lambda *args, **kw: '')
+    
+    sources = []
+    for tn in buildTargets:
+        if isSConsiderTarget(registry, tn):
+            sources.extend( env.Alias(tn) )
+
+    # bind parameters to an Action which is called in the build phase
+    # '$__env__' is used to supply the caller's environment to the action (see SCons -> Action.py -> ActionCaller)
+    action = createDeferredAction(registry, buildTargets, '$__env__', destdir)
+    # create a dummy target which always will be built
+    maker = env.Command('Package_dummy', sources, action)
+    # create intermediate target to which we add dependency in the build phase and add it to build targets
+    makepackage = env.Alias('makepackage', maker)
+    buildTargets.append('makepackage')
+
 def makePackage(registry, buildTargets, env, destdir, **kw):
     isInBuilddir = functools.partial(hasPathPart, pathpart=env['BUILDDIR'])
     notInBuilddir = lambda target: not isInBuilddir(target)
     notCopiedInclude = lambda target: not target.path.startswith(env['INCDIR'])
-    copyfilters = [filterTestsAppsPath, filterVariantPath]
+    copyfilters = [filterTestsAppsGlobalsPath, filterVariantPath]
     for tn in buildTargets:
         if isSConsiderTarget(registry, tn):
             tdeps = getTargetDependencies(env.Alias(tn)[0], [isDerivedDependency, notInBuilddir, notCopiedInclude])
             copyPackage(tn, tdeps, env, destdir, copyfilters)
     
-    buildTargets.append("makepackage")
+    buildTargets.append('makepackage')
 
 def copyPackage(name, deps, env, destdir, filters=[]):
     for target in deps:
@@ -26,7 +44,7 @@ def copyTarget(env, destdir, node):
             print "Ambiguous target [%s] copied from [%s] and [%s]." % (old[0].path, node.path, old[0].sources[0].path)
             print "Can't create package! See errors below..."
     target = env.Install(destdir, node)
-    env.Alias("makepackage", target)
+    env.Alias('makepackage', target)
     return target
 
 def isInstalledDependency(testnode, node):
@@ -47,9 +65,10 @@ def isSConsiderTarget(registry, ftn):
         return True
     return False
 
-def filterTestsAppsPath(path, **kw):
+def filterTestsAppsGlobalsPath(path, **kw):
     replist = [('^tests'+os.sep+'[^'+os.sep+']*'+os.sep+'?', ''),
-               ('^apps'+os.sep+'[^'+os.sep+']*'+os.sep+'?', '')]
+               ('^apps'+os.sep+'[^'+os.sep+']*'+os.sep+'?', ''),
+               ('^globals'+os.sep+'[^'+os.sep+']*'+os.sep+'?', '')]
     return SomeUtils.multiple_replace(replist, path)
 
 def filterVariantPath(path, **kw):
@@ -77,7 +96,7 @@ class PackageToolException(Exception):
 def generate(env):
     import SCons.Script, SCons.Script.Main, SConsider
     try:
-        SCons.Script.AddOption('--packagedestination', dest='packagedestination', action='store', default=False, help='Specify the destination directory')
+        SCons.Script.AddOption('--packagedestination', dest='packagedestination', action='store', default='', help='Specify the destination directory')
     except optparse.OptionConflictError:
         raise PackageToolException("Only one Package-Tool instance allowed")
     
@@ -85,7 +104,7 @@ def generate(env):
     if not os.path.isdir(destination):
         SCons.Script.Main.OptionsParser.error("given package destination path doesn't exist")
     else:
-        SConsider.registerCallback("PreBuild", makePackage, env=env, destdir=SCons.Script.Dir(destination))
+        SConsider.registerCallback("PreBuild", addPackage, env=env, destdir=SCons.Script.Dir(destination))
 
 def exists(env):
     return 1
