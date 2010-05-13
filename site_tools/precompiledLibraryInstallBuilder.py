@@ -23,18 +23,18 @@ def findPlatformTargets(env, basedir, targetname, prefixes=[], suffixes=[]):
     if env['PLATFORM'] == "cygwin":
         variantdir = 'Win_i386'
         osver = tuple([int(x) for x in platform.system().split('-')[1].split('.')])
-#        dirRE = platform.system() + osStringSep + '([0-9](\.[0-9])*)'
+#        dirRE = platform.system() + osStringSep + '([0-9]+(\.[0-9]+)*)'
         dirRE = 'Win' + osStringSep + 'i386'
         # re for architecture (i686, sparc, amd,...) - bitwidth (32,64)
         dirRE += osStringSep + '?(.*)'
     elif env['PLATFORM'] == 'sunos':
         osver = tuple([int(x) for x in platform.release().split('.')])
-        dirRE = platform.system() + osStringSep + '([0-9](\.[0-9])*)'
+        dirRE = platform.system() + osStringSep + '([0-9]+(\.[0-9]+)*)'
         # re for architecture (i686, sparc, amd,...) - bitwidth (32,64)
         dirRE += osStringSep + '?(.*)'
     else:
         osver = tuple([int(x) for x in platform.libc_ver(executable='/lib/libc.so.6')[1].split('.')])
-        dirRE = platform.system() + osStringSep + 'glibc' + osStringSep + '([0-9](\.[0-9])*)'
+        dirRE = platform.system() + osStringSep + 'glibc' + osStringSep + '([0-9]+(\.[0-9]+)*)'
         # re for architecture (i686, sparc, amd,...) - bitwidth (32,64)
         dirRE += osStringSep + '?(.*)'
     reDirname = re.compile(dirRE)
