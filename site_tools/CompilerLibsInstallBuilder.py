@@ -41,7 +41,7 @@ def installCompilerLibs(source):
     libdirs = []
     linkercmd = env.subst('$LINK', target=source, source=source[0].sources)
     cmdargs = [linkercmd, '-print-search-dirs'] + env.subst('$LINKFLAGS').split(' ')
-    linker = subprocess.Popen(cmdargs, stdout=subprocess.PIPE, env=os.environ)
+    linker = subprocess.Popen(cmdargs, stdout=subprocess.PIPE, env=env['ENV'])
     out, err = linker.communicate()
     match = re.search('^libraries.*=(.*)$', out, re.MULTILINE)
     if match:
