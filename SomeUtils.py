@@ -172,3 +172,31 @@ if not hasattr(os.path, "relpath"):
         os.path.relpath = relpath_posix
     elif os.name == 'nt':
         os.path.relpath = relpath_nt
+
+def getFlatENV(env):
+    import SCons
+
+    if 'ENV' not in env:
+        env = Environment(ENV = env)
+
+    # Ensure that the ENV values are all strings:
+    newENV = {}
+    for key, value in env['ENV'].items():
+        if SCons.Util.is_List(value):
+            # If the value is a list, then we assume it is a path list,
+            # because that's a pretty common list-like value to stick
+            # in an environment variable:
+            value = SCons.Util.flatten_sequence(value)
+            newENV[key] = string.join(map(str, value), os.pathsep)
+        else:
+            # It's either a string or something else.  If it's a string,
+            # we still want to call str() because it might be a *Unicode*
+            # string, which makes subprocess.Popen() gag.  If it isn't a
+            # string or a list, then we just coerce it to a string, which
+            # is the proper way to handle Dir and File instances and will
+            # produce something reasonable for just about everything else:
+            newENV[key] = str(value)
+
+        newENV[key] = env.subst(newENV[key])
+
+    return newENV

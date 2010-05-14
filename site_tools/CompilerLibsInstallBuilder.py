@@ -41,7 +41,7 @@ def installCompilerLibs(source):
     libdirs = []
     linkercmd = env.subst('$LINK', target=source, source=source[0].sources)
     cmdargs = [linkercmd, '-print-search-dirs'] + env.subst('$LINKFLAGS').split(' ')
-    linker = subprocess.Popen(cmdargs, stdout=subprocess.PIPE, env=env['ENV'])
+    linker = subprocess.Popen(cmdargs, stdout=subprocess.PIPE, env=SConsider.getFlatENV(env))
     out, err = linker.communicate()
     match = re.search('^libraries.*=(.*)$', out, re.MULTILINE)
     if match:
@@ -49,10 +49,9 @@ def installCompilerLibs(source):
     ownlibdir = env['BASEOUTDIR'].Dir(env['LIBDIR']).Dir(env['VARIANTDIR'])
     libdirs.append( ownlibdir.abspath )
     
-    callenv = dict(env['ENV'])
-    callenv['LD_LIBRARY_PATH'] = os.pathsep.join(libdirs)
+    env['ENV']['LD_LIBRARY_PATH'] = libdirs
     
-    ldd = subprocess.Popen(['ldd', source[0].abspath], stdout=subprocess.PIPE, env=callenv)
+    ldd = subprocess.Popen(['ldd', source[0].abspath], stdout=subprocess.PIPE, env=SConsider.getFlatENV(env))
     out, err = ldd.communicate()
     deplibs = filter(functools.partial(filterLibs, env), re.findall('^.*=>\s*([^\s^\(]*)', out, re.MULTILINE))
 
