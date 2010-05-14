@@ -1,5 +1,5 @@
 from __future__ import with_statement
-import os, pdb, subprocess, optparse
+import os, pdb, subprocess, optparse, functools
 import SCons.Action, SCons.Builder
 from SCons.Script import AddOption, GetOption
 import SConsider, SomeUtils
@@ -17,10 +17,18 @@ def printTargets(registry, **kw):
     print "\nAvailable Aliases"
     print "-----------------"
     env = SConsider.cloneBaseEnv()
-    for al in env.ans.keys():
-        pkg, target = SConsider.splitTargetname(al)
-        if not registry.hasPackage(pkg):
-            print al
+
+    def isPackage(alias):
+        pkg, target = SConsider.splitTargetname(alias)
+        return registry.hasPackage(pkg)
+    filters = [lambda alias: not isPackage(alias)]
+    if not GetOption("showallaliases"):
+        filters.append(lambda alias: not alias.startswith('_'))
+
+    predicate = functools.partial(SomeUtils.allFuncs, filters)
+
+    for alias in filter(predicate, env.ans.keys()):
+        print alias
 
     print "\nOption 'showtargets' active, exiting."
     exit()
@@ -64,6 +72,7 @@ def generate(env):
     try:
         AddOption('--showtargets', dest='showtargets', action='store_true', default=False, help='Show available targets')
         AddOption('--showtree', dest='showtree', action='store_true', default=False, help='Show dependencytree')
+        AddOption('--showallaliases', dest='showallaliases', action='store_true', default=False, help='Show all defined aliases')
     except optparse.OptionConflictError:
         pass
 

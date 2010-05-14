@@ -34,7 +34,7 @@ def installCompilerLibs(source):
         source = [source]
     
     if len(source) != 1:
-        return []
+        return None
 
     env = SConsider.cloneBaseEnv()
     
@@ -69,7 +69,7 @@ def installCompilerLibs(source):
             target.extend(libtarget)
     
     # add targets as dependency of the intermediate target
-    env.Depends(source[0].name+'_CompilerLibs', target)
+    env.Depends('__CompilerLibs_'+source[0].name, target)
 
 def generate(env):
     """
@@ -81,7 +81,7 @@ def generate(env):
         # create a dummy target which always will be built
         target = env.Command(source[0].name+'_dummy', source, createDeferredAction(source))
         # create intermediate target to which we add dependency in the build phase
-        return env.Alias(source[0].name+'_CompilerLibs', target)
+        return env.Alias('__CompilerLibs_'+source[0].name, target)
     env.AddMethod(createDeferredTarget, "InstallCompilerLibs")
 
 def exists(env):

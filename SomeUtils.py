@@ -173,6 +173,13 @@ if not hasattr(os.path, "relpath"):
     elif os.name == 'nt':
         os.path.relpath = relpath_nt
 
+def allFuncs(funcs, *args):
+    """Returns True if all functions in 'funcs' return True"""
+    for f in funcs:
+        if not f(*args):
+            return False
+    return True
+
 def getFlatENV(env):
     import SCons
 

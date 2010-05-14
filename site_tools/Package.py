@@ -9,7 +9,7 @@ def addPackageTarget(registry, buildTargets, env, destdir, **kw):
     
     sources = []
     for tn in buildTargets:
-        if isSConsiderTarget(registry, tn):
+        if registry.isValidFulltargetname(tn):
             sources.extend( env.Alias(tn) )
 
     # bind parameters to an Action which is called in the build phase
@@ -27,7 +27,7 @@ def makePackage(registry, buildTargets, env, destdir, **kw):
     notCopiedInclude = lambda target: not target.path.startswith(env['INCDIR'])
     copyfilters = [filterTestsAppsGlobalsPath, filterVariantPath]
     for tn in buildTargets:
-        if isSConsiderTarget(registry, tn):
+        if registry.isValidFulltargetname(tn):
             tdeps = getTargetDependencies(env.Alias(tn)[0], [isDerivedDependency, notInBuilddir, notCopiedInclude])
             copyPackage(tn, tdeps, env, destdir, copyfilters)
 
@@ -55,15 +55,6 @@ def isInstalledDependency(testnode, node):
     if len(node.sources) < 1:
         return False
     return isInstalledDependency(testnode, node.sources[0])
-
-def isSConsiderTarget(registry, ftn):
-    import SConsider
-    if registry.hasPackage(str(ftn)):
-        return True
-    pkg, tn = SConsider.splitTargetname(str(ftn))
-    if registry.hasPackageTarget(pkg, tn):
-        return True
-    return False
 
 def filterTestsAppsGlobalsPath(path, **kw):
     replist = [('^tests'+os.sep+'[^'+os.sep+']*'+os.sep+'?', ''),
@@ -124,13 +115,6 @@ def hasPathPart(target, pathpart):
     regex += '|(.*'+re.escape(os.sep+pathpart)+'$)'
     match = re.match(regex, target.path)
     return match is not None
-
-def allFuncs(funcs, *args):
-    """Returns True if all functions in 'funcs' return True"""
-    for f in funcs:
-        if not f(*args):
-            return False
-    return True
         
 def getTargetDependencies(target, customfilters=[]):
     """Determines the recursive dependencies of a target (including itself).
@@ -142,7 +126,7 @@ def getTargetDependencies(target, customfilters=[]):
     filters = [isFileDependency] + customfilters
     
     deps = set()
-    if allFuncs(filters, target):
+    if SomeUtils.allFuncs(filters, target):
         deps.update( target.get_executor().get_all_targets() )
 
     for t in target.sources + target.depends + target.prerequisites:

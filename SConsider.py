@@ -303,6 +303,12 @@ class PackageRegistry:
     def hasPackageTarget(self, packagename, targetname):
         return self.packages.get(packagename, {}).get('targets', {}).has_key(targetname)
 
+    def isValidFulltargetname(self, fulltargetname):
+        if self.hasPackage(str(fulltargetname)):
+            return True
+        packagename, targetname = splitTargetname(str(fulltargetname))
+        return self.hasPackageTarget(packagename, targetname)
+
     def getPackageDir(self, packagename):
         return self.packages.get(packagename, {}).get('packagepath', '')
 

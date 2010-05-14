@@ -13,10 +13,10 @@ def setTarget(packagename, targetname, target):
     runtargets.setdefault(packagename, {})[targetname] = target
 
 def getTargets(packagename, targetname=None):
-	if not targetname:
-		return [target for tname, target in runtargets.get(packagename, {}).iteritems()]
-	else:
-		return [runtargets.get(packagename, {}).get(targetname, None)]
+    if not targetname:
+        return [target for tname, target in runtargets.get(packagename, {}).iteritems()]
+    else:
+        return filter(bool, [runtargets.get(packagename, {}).get(targetname, None)])
 
 class Tee(object):
     def __init__(self):
