@@ -62,6 +62,10 @@ def emitPassedFile(target, source, env):
     return (target, source)
 
 def doTest(target, source, env):
+    if '__SKIP_TEST__' in env:
+        print 'Test skipped: '+str(env['__SKIP_TEST__'])
+        return 0
+
     res = run(source[0].abspath + ' ' + env.get('runParams', ''), env=SConsider.getFlatENV(env), logfile=env.get('logfile', None))
     if res == 0:
         with open(target[0].abspath, 'w') as file:
@@ -84,6 +88,19 @@ def getRunParams(buildSettings, defaultRunParams):
         runParams = runConfig.get('runParams', defaultRunParams)
     return runParams
 
+class SkipTest(Exception):
+    def __init__(self, message='No reason given'):
+        self.message = message
+
+def wrapSetUp(setUpFunc):
+    def setUp(target, source, env):
+        try:
+            return setUpFunc(target, source, env)
+        except SkipTest as e:
+            env['__SKIP_TEST__'] = e.message
+            return 0
+    return setUp
+
 def createTestTarget(env, source, registry, packagename, targetname, buildSettings, defaultRunParams='-- -all'):
     """Creates a target which runs a target given in parameter 'source'. If ran successfully a
     file is generated (name given in parameter 'target') which indicates that this runner-target
@@ -99,17 +116,17 @@ def createTestTarget(env, source, registry, packagename, targetname, buildSettin
         source = [source]
 
     logfile = env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['LOGDIR']).Dir(env['VARIANTDIR']).File(targetname+'.test.log')
+
+    runner = env.TestBuilder([], source, runParams=getRunParams(buildSettings, defaultRunParams), logfile=logfile)
     if GetOption('run-force'):
-        runner = env.RunBuilder(['dummyfile_'+targetname], source, runParams=getRunParams(buildSettings, defaultRunParams), logfile=logfile)
-    else:
-        runner = env.TestBuilder([], source, runParams=getRunParams(buildSettings, defaultRunParams), logfile=logfile)
+        env.AlwaysBuild(runner)
 
     runConfig = buildSettings.get('runConfig', {})
-    setUp = runConfig.get('setUp', '')
+    setUp = wrapSetUp(runConfig.get('setUp', ''))
     tearDown = runConfig.get('tearDown', '')
 
     if setUp:
-        env.AddPreAction(runner, setUp)
+        env.AddPreAction(runner, SCons.Action.Action(setUp, lambda *args, **kw: ''))
     if tearDown:
         registerCallback('__PostAction_'+str(id(runner[0])), lambda: tearDown(target=runner, source=source, env=env))
 
@@ -162,6 +179,7 @@ def generate(env):
     env.Append(BUILDERS={ 'RunBuilder' : RunBuilder })
     env.AddMethod(createTestTarget, "TestTarget")
     env.AddMethod(createRunTarget, "RunTarget")
+    SConsider.SkipTest = SkipTest
 
     def createTargetCallback(env, target, registry, packagename, targetname, buildSettings, **kw):
         runConfig = buildSettings.get('runConfig', {})
