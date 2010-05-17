@@ -62,6 +62,10 @@ def generate( env, **kw ):
     if "mingw" in GetOption( 'usetools' ):
         platf = "win32"
 
+    # select target architecture bits
+    bitwidth = GetOption( 'archbits' )
+    env['ARCHBITS'] = bitwidth
+
     # tool initialization, previously done in <scons>/Tool/default.py
     for t in SCons.Tool.tool_list( platf, env ):
         SCons.Tool.Tool( t )( env )
@@ -79,10 +83,6 @@ def generate( env, **kw ):
 #    elif str(platf) == "win32":
 #        env.AppendUnique(CPPDEFINES=['WIN32', '_WIN32_WINNT=0x400'])
 #        env.AppendUnique(CPPDEFINES=['_MSC_VER=$MSVC_VER'])
-
-    # select target architecture bits
-    bitwidth = GetOption( 'archbits' )
-    env['ARCHBITS'] = bitwidth
 
     # flags which influence compilation
     runCallback( 'MT_OPTIONS', env = env )

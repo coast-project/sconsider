@@ -85,7 +85,7 @@ def generate( env ):
             outf.write( '#include <stdlib.h>\nint main(){}' )
             outf.close()
         except: pass
-        pipe = SCons.Action._subproc( env, [env['CC'], '-v', '-xc', tFile, '-o', outFile],
+        pipe = SCons.Action._subproc( env, [env['CC'], '-v', '-xc', tFile, '-o', outFile, '-m'+env['ARCHBITS']],
                                      stdin = 'devnull',
                                      stderr = subprocess.PIPE,
                                      stdout = subprocess.PIPE )
