@@ -122,12 +122,12 @@ def createTestTarget(env, source, registry, packagename, targetname, buildSettin
         env.AlwaysBuild(runner)
 
     runConfig = buildSettings.get('runConfig', {})
-    setUp = wrapSetUp(runConfig.get('setUp', ''))
+    setUp = runConfig.get('setUp', '')
     tearDown = runConfig.get('tearDown', '')
 
-    if setUp:
-        env.AddPreAction(runner, SCons.Action.Action(setUp, lambda *args, **kw: ''))
-    if tearDown:
+    if callable(setUp):
+        env.AddPreAction(runner, SCons.Action.Action(wrapSetUp(setUp), lambda *args, **kw: ''))
+    if callable(tearDown):
         registerCallback('__PostAction_'+str(id(runner[0])), lambda: tearDown(target=runner, source=source, env=env))
 
     registerCallback('__PostTestOrRun', lambda: runCallback('PostTest', target=source, registry=registry, packagename=packagename, targetname=targetname, logfile=logfile))
