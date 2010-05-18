@@ -9,3 +9,17 @@ class SomeUtilsTest(unittest.TestCase):
                                              ('^t\S*', 'blub')
                                             ], text)
         self.assertEqual("blub is a fantastic string for testing", result)
+
+class AllFuncsTest(unittest.TestCase):
+    def setUp(self):
+        self.funcs = [lambda *attrs: True, lambda *attrs: True, lambda *attrs: True]
+    
+    def testAllFuncsTrue(self):        
+        self.assertTrue(SomeUtils.allFuncs(self.funcs, "blub"))
+        
+    def testAllFuncsFalse(self):
+        self.funcs.append(lambda *attrs: False)        
+        self.assertFalse(SomeUtils.allFuncs(self.funcs, "blub"))
+        
+    def testAllFuncsMultipleArgs(self):        
+        self.assertTrue(SomeUtils.allFuncs(self.funcs, "blub", "bla", "bloek"))

@@ -1,19 +1,5 @@
 import os, unittest, Package, functools
 
-class AllFuncsTest(unittest.TestCase):
-    def setUp(self):
-        self.funcs = [lambda *attrs: True, lambda *attrs: True, lambda *attrs: True]
-    
-    def testAllFuncsTrue(self):        
-        self.assertTrue(Package.allFuncs(self.funcs, "blub"))
-        
-    def testAllFuncsFalse(self):
-        self.funcs.append(lambda *attrs: False)        
-        self.assertFalse(Package.allFuncs(self.funcs, "blub"))
-        
-    def testAllFuncsMultipleArgs(self):        
-        self.assertTrue(Package.allFuncs(self.funcs, "blub", "bla", "bloek"))
-
 class UpdateableObject(object):
     def __init__(self, **kw):
         self.update(kw)
@@ -149,5 +135,9 @@ class PathFilterTest(unittest.TestCase):
     def setUp(self):
         self.path = "apps/package/bin/variant123/blub"
 
-    def testFilterTestsAppsPath(self):
-        self.assertEqual(Package.filterTestsAppsPath(self.path), "bin/variant123/blub")
+    def testFilterTestsAppsGlobalsPath(self):
+        self.assertEqual(Package.filterTestsAppsGlobalsPath(self.path), "bin/variant123/blub")
+        
+    def testFilterVariantPath(self):
+        env = {'VARIANTDIR': 'variant123'}
+        self.assertEqual(Package.filterVariantPath(self.path, env=env), "apps/package/bin/blub")
