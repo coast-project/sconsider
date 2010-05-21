@@ -42,7 +42,7 @@ def programApp(env, name, sources, packagename, buildSettings, **kw):
     instApps = env.InstallAs(baseoutdir.Dir(env['RELTARGETDIR']).Dir(env['BINDIR']).Dir(env['VARIANTDIR']).File(name), plaintarget)
 
     env.Tool('generateScript')
-    wrappers = env.GenerateWrapperScript(instApps, GetOption('gdb'))
+    wrappers = env.GenerateWrapperScript(instApps)
 
     env.Alias('binaries', wrappers)
 
@@ -62,7 +62,7 @@ def programTest(env, name, sources, packagename, targetname, buildSettings, **kw
     instApps = env.InstallAs(baseoutdir.Dir(env['RELTARGETDIR']).Dir(env['BINDIR']).Dir(env['VARIANTDIR']).File(name), plaintarget)
 
     env.Tool('generateScript')
-    wrappers = env.GenerateWrapperScript(instApps, GetOption('gdb'))
+    wrappers = env.GenerateWrapperScript(instApps)
 
     buildSettings.setdefault("runConfig", {}).setdefault("type", "test")
 
@@ -85,7 +85,7 @@ def appTest(env, name, sources, packagename, targetname, buildSettings, **kw):
     instApps = env.InstallAs(baseoutdir.Dir(env['RELTARGETDIR']).Dir(env['BINDIR']).Dir(env['VARIANTDIR']).File(name), plaintarget)
 
     env.Tool('generateScript')
-    wrappers = env.GenerateWrapperScript(instApps, GetOption('gdb'))
+    wrappers = env.GenerateWrapperScript(instApps)
 
     buildSettings.setdefault("runConfig", {}).setdefault("type", "test")
 

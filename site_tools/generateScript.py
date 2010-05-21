@@ -220,23 +220,17 @@ def generateWindowsScript(target, source, env):
 
 def generateScriptEmitter(target, source, env):
     target = []
-    gdbsuffix = '_gdb' if env["createGDBscript"] else ''
     for src in source:
         if env['PLATFORM'] != 'win32':
-            target.append(env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['SCRIPTDIR']).Dir(env['VARIANTDIR']).File(os.path.basename(src.abspath + gdbsuffix)))
+            target.append(env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['SCRIPTDIR']).Dir(env['VARIANTDIR']).File(os.path.basename(src.abspath)))
         else:
-            target.append(env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['SCRIPTDIR']).Dir(env['VARIANTDIR']).File(os.path.splitext(os.path.basename(src.abspath + gdbsuffix))[0] + ".vbs"))
+            target.append(env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['SCRIPTDIR']).Dir(env['VARIANTDIR']).File(os.path.splitext(os.path.basename(src.abspath))[0] + ".vbs"))
     return (target, source)
 
-def generateWrapperScript(env, target, gdb=False):
-    return env.Depends(env.GenerateScriptBuilder(target, createGDBscript=gdb), SomeUtils.getPyFilename(__file__))
+def generateWrapperScript(env, target):
+    return env.Depends(env.GenerateScriptBuilder(target), SomeUtils.getPyFilename(__file__))
 
 def generate(env):
-    try:
-        AddOption('--gdb', dest='gdb', action='store_true', default=False, help='Should we run the target within gdb control')
-    except optparse.OptionConflictError:
-        pass
-
     if env['PLATFORM'] != 'win32':
         GenerateScriptAction = SCons.Action.Action(generatePosixScript, "Creating wrapper script for '$TARGET'")
         GenerateScriptBuilder = SCons.Builder.Builder(action=[GenerateScriptAction, SCons.Defaults.Chmod('$TARGET', 0755)],
