@@ -6,14 +6,14 @@ import SConsider, SomeUtils
 
 def __getDependencies(registry, packagename, fnobj, recursive=False):
     depPackages = {}
-    
+
     buildSettings = registry.getBuildSettings(packagename)
     for targetname, settings in buildSettings.items():
         deps = settings.get('requires', []) + settings.get('linkDependencies', [])
         usedTarget = settings.get('usedTarget', '')
         if usedTarget:
             deps.append(usedTarget)
-        
+
         for ftn in deps:
             depPkgname, depTname = SConsider.splitTargetname(ftn)
             if not depPkgname == packagename:
@@ -22,7 +22,7 @@ def __getDependencies(registry, packagename, fnobj, recursive=False):
                 file = fnobj(depPkgname)
                 if file:
                     depPackages[depPkgname] = file
-    
+
     return depPackages
 
 def getPackageDependencies(registry, packagename, recursive=False):
@@ -61,12 +61,12 @@ def parseDoxyfile(file_node, env):
    """
    if not os.path.isfile(file_node.get_abspath()):
        return {}
-   
+
    with open(file_node.get_abspath()) as file:
        file_contents = file.read()
-       
+
    file_dir = file_node.get_dir().get_abspath()
-   
+
    data = {}
 
    import shlex
@@ -82,7 +82,7 @@ def parseDoxyfile(file_node, env):
    last_token = ""
    key_token = True
    new_data = True
-   
+
    def append_data(data, key, new_data, token):
       if token[:2] == "$(":
          try:
@@ -159,7 +159,7 @@ def getInputDirs(registry, packagename):
     Gets the input directories using this package's build settings.
     """
     doxyfilepath = registry.getPackageDir(packagename).get_abspath()
-    
+
     buildSettings = registry.getBuildSettings(packagename)
     sourceDirs = set()
     includeBasedir = registry.getPackageDir(packagename)
@@ -172,7 +172,7 @@ def getInputDirs(registry, packagename):
         # include directory of own private headers
         includeSubdirPrivate = settings.get("includeSubdir", '')
         sourceDirs.add(os.path.relpath(includeBasedir.Dir(includeSubdirPrivate).abspath, doxyfilepath))
-                    
+
         # include directory of own public headers
         includeSubdirPublic = settings.get("public", {}).get("includeSubdir", '')
         sourceDirs.add(os.path.relpath(includeBasedir.Dir(includeSubdirPublic).abspath, doxyfilepath))
@@ -181,7 +181,7 @@ def getInputDirs(registry, packagename):
         for sourcefile in settings.get("public", {}).get("includes", []):
             if isinstance(sourcefile, SCons.Node.FS.File):
                 sourceDirs.add(os.path.relpath(sourcefile.srcnode().dir.abspath, doxyfilepath))
-    
+
     return sourceDirs
 
 def getSourceFiles(registry, packagename):
@@ -207,13 +207,13 @@ def getTagfileDependencyLines(target, ownData, dependencies, env):
     Parses the dependencies, gets their tagfile and determines the path relative to the current Doxyfile.
     """
     deps = []
-    
+
     ownPath = ownData.get("HTML_OUTPUT", 'html')
     if not os.path.isabs(ownPath):
         ownPath = os.path.join(ownData.get("OUTPUT_DIRECTORY", ''), ownPath)
         if not os.path.isabs(ownPath):
             ownPath = os.path.realpath(os.path.join(target.dir.get_abspath(), ownPath))
-    
+
     for doxyfile in dependencies:
         if doxyfile:
             data = getDoxyfileData(doxyfile, env)
@@ -221,7 +221,7 @@ def getTagfileDependencyLines(target, ownData, dependencies, env):
             if tagfile:
                 tagfilePath = os.path.realpath(os.path.join(doxyfile.dir.get_abspath(), tagfile))
                 tagfileRelPath = os.path.relpath(tagfilePath, target.dir.get_abspath())
-                
+
                 linkPath = data.get("HTML_OUTPUT", 'html')
                 if not os.path.isabs(linkPath):
                     linkPath = os.path.join(data.get("OUTPUT_DIRECTORY", ''), linkPath)
@@ -229,12 +229,12 @@ def getTagfileDependencyLines(target, ownData, dependencies, env):
                         linkPath = os.path.realpath(os.path.join(doxyfile.dir.get_abspath(), linkPath))
 
                 linkRelPath = os.path.relpath(linkPath, ownPath)
-                
+
                 deps.append("%s=%s" % (tagfileRelPath, linkRelPath))
-    
+
     return deps
 
-def buildDoxyfile(target, source, env):    
+def buildDoxyfile(target, source, env):
     """
     Creates the Doxyfile.
     The first (and only) target should be the Doxyfile.
@@ -243,16 +243,16 @@ def buildDoxyfile(target, source, env):
     if not os.path.isfile(target[0].get_abspath()):
         proc = subprocess.Popen(["doxygen", "-s", "-g", target[0].get_abspath()], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         res = proc.wait()
-        
+
         data = env.get('doxyDefaults', {})
         if data:
             with open(target[0].get_abspath(), 'a') as doxyfile:
                 for k, v in data.items():
                     doxyfile.write("%s = %s\n" % (k, v))
-    
+
     data = parseDoxyfile(target[0], env) # needs to be uncached
-    
-    with open(str(target[0]), 'a') as doxyfile:    
+
+    with open(str(target[0]), 'a') as doxyfile:
         inputDirs = env.get('inputDirs', [])
         if inputDirs:
             doxyfile.write("INPUT = \\\n")
@@ -266,14 +266,14 @@ def buildDoxyfile(target, source, env):
             for tagfileline in getTagfileDependencyLines(target[0], data, dependencies, env):
                 doxyfile.write("%s \\\n" % tagfileline)
             doxyfile.write("\n")
-    
+
         doxyfile.write("PREDEFINED = \\\n")
-        
+
         defines = {}
         defines.update(compilerDefines)
         for define in env.get('CPPDEFINES', []):
             defines[define] = ''
-        
+
         for define, value in defines.iteritems():
             if value:
                 if value.find(' ') != -1:
@@ -283,10 +283,10 @@ def buildDoxyfile(target, source, env):
             else:
                 doxyfile.write("%s \\\n" % define)
         doxyfile.write("\n")
-    
+
     proc = subprocess.Popen(["doxygen", "-s", "-u", target[0].get_abspath()], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     res = proc.wait()
-                
+
 # don't need this for now... hopefully works with tag files
 #        target = registry.getPackageTarget(packagename, targetname)["plaintarget"]
 #        if target and target.has_builder():
@@ -294,7 +294,7 @@ def buildDoxyfile(target, source, env):
 #                print cpppath.srcnode().abspath
 #                includeDirs.add(cpppath.srcnode().abspath)
 
-def callDoxygen(target, source, env):   
+def callDoxygen(target, source, env):
     """
     Creates the output directory (doxygen can't do that recursively) and calls doxygen.
     The first source must be the Doxyfile, the other sources are used for dependency tracking only.
@@ -306,12 +306,12 @@ def callDoxygen(target, source, env):
         outputpath = os.path.realpath(os.path.join(doxyfilepath, outputpath))
     if not os.path.isdir(outputpath):
         os.makedirs(outputpath)
-    
+
     cmd = "cd %s && %s %s" % (source[0].get_dir().get_abspath(), "doxygen", os.path.basename(str(source[0])))
-    
+
     log_out = None
     log_err = None
-    
+
     logfilebasename = env.get('logname', '')
     if logfilebasename:
         logpath = env['BASEOUTDIR'].Dir(os.path.join(env['LOGDIR'])).get_abspath()
@@ -319,10 +319,10 @@ def callDoxygen(target, source, env):
             os.makedirs(logpath)
         log_out = open(os.path.join(logpath, logfilebasename + '.stdout'), 'w')
         log_err = open(os.path.join(logpath, logfilebasename + '.stderr'), 'w')
-        
+
     proc = subprocess.Popen(cmd, shell=True, stdout=log_out, stderr=log_err)
     res = proc.wait()
-    
+
     if log_out:
         log_out.close()
     if log_err:
@@ -337,9 +337,9 @@ def emitDoxygen(target, source, env):
     data = env.get("doxyDefaults", {})
     if os.path.isfile(source[0].get_abspath()):
         data = parseDoxyfile(source[0], env) # needs to be uncached
-    
+
     doxyfilepath = source[0].get_dir().get_abspath()
-    
+
     target = []
     tagfile = data.get("GENERATE_TAGFILE", '')
     if tagfile:
@@ -355,17 +355,17 @@ def emitDoxygen(target, source, env):
     for format in ["HTML", "LATEX", "RTF", "MAN", "XML"]:
         generate = data.get("GENERATE_" + format, "NO").upper()
         destination = data.get(format + "_OUTPUT", format.lower())
-        
+
         if generate == "YES" and destination:
             path = destination
             if not os.path.isabs(path):
                 path = os.path.realpath(os.path.join(outputpath, path))
             target.append(env.Dir(path))
-    
+
     env.Clean(target, outputpath)
     for t in target:
         env.Clean(target, t)
-    
+
     return target, source
 
 def getDoxyDefaults(env, registry, packagename):
@@ -373,16 +373,51 @@ def getDoxyDefaults(env, registry, packagename):
     Determines the default Doxyfile settings for a package.
     Used if the Doxyfile is not yet existing.
     """
+    basepathrel = os.path.relpath(env['BASEOUTDIR'].get_abspath(), registry.getPackageDir(packagename).get_abspath())
     outputpath = os.path.relpath(env['BASEOUTDIR'].Dir(env['DOCDIR']).Dir(packagename).get_abspath(),
                                                 registry.getPackageDir(packagename).get_abspath())
+    filepats = '*.c *.cc *.cxx *.cpp *.c++ *.java *.ii *.ixx *.ipp *.i++ *.inl *.h *.hh *.hxx *.hpp *.h++ *.idl *.odl *.cs *.php *.php3 *.inc *.m *.mm *.py *.f90'.split(' ') + ['*.sh','*.any','*.sconsider']
+
     return {
-            'OUTPUT_DIRECTORY': outputpath,
-            'PROJECT_NAME': packagename,
-            'GENERATE_HTML': 'YES',
-            'HTML_OUTPUT': 'html',
-            'GENERATE_LATEX': 'NO',
-            'GENERATE_TAGFILE': os.path.join(outputpath, packagename+'.tag'),
-            }
+        'PROJECT_NAME': packagename,
+        'OUTPUT_DIRECTORY': outputpath,
+        'IMAGE_PATH': basepathrel,
+        'INPUT_ENCODING': 'ISO-8859-1',
+        'TAB_SIZE': '4',
+        'BUILTIN_STL_SUPPORT': 'YES',
+        'EXTRACT_ALL': 'YES',
+        'EXTRACT_STATIC': 'YES',
+        'EXTRACT_LOCAL_METHODS': 'YES',
+        'SHOW_DIRECTORIES': 'YES',
+        'SOURCE_BROWSER': 'YES',
+        'REFERENCES_RELATION': 'YES',
+        'ALPHABETICAL_INDEX': 'YES',
+        'SEARCHENGINE': 'NO',
+        'SEARCH_INCLUDES': 'NO',
+        'HIDE_UNDOC_RELATIONS': 'NO',
+        'HAVE_DOT': 'YES',
+        'TEMPLATE_RELATIONS': 'YES',
+        'DOT_TRANSPARENT': 'YES',
+        'SORT_BY_SCOPE_NAME': 'YES',
+        'SORT_MEMBERS_CTORS_1ST': 'YES',
+        'SHOW_USED_FILES': 'NO',
+        'LAYOUT_FILE': os.path.join(basepathrel,'DoxygenLayout.xml'),
+        'FILE_PATTERNS': ' '.join(filepats),
+        'GENERATE_ECLIPSEHELP': 'NO',
+        'DOT_GRAPH_MAX_NODES': '80',
+        'MAX_DOT_GRAPH_DEPTH': '7',
+        'FULL_PATH_NAMES': 'NO',
+        'SORT_GROUP_NAMES': 'YES',
+        'MULTILINE_CPP_IS_BRIEF': 'NO',
+        'REPEAT_BRIEF': 'NO',
+        'EXTENSION_MAPPING': ' '.join(['sh=Python','sconsider=Python','any=Python']),
+        'GENERATE_HTML': 'YES',
+        'HTML_OUTPUT': 'html',
+        'GENERATE_LATEX': 'NO',
+        'LATEX_HIDE_INDICES': 'YES',
+        'ALIASES': '"FIXME=\\xrefitem FIXME \\"Fixme\\" \\"Locations to fix when possible\\" "',
+        'GENERATE_TAGFILE': os.path.join(outputpath, packagename+'.tag'),
+    }
 
 def createDoxygenTarget(env, registry, packagename):
     """
@@ -390,7 +425,7 @@ def createDoxygenTarget(env, registry, packagename):
     """
     if not GetOption('doxygen'):
         return None
-    
+
     defaults = getDoxyDefaults(env, registry, packagename)
     doxyfileTarget = env.DoxyfileBuilder(target=registry.getPackageDir(packagename).File('Doxyfile'),
                                          source=registry.getPackageFile(packagename),
@@ -401,7 +436,7 @@ def createDoxygenTarget(env, registry, packagename):
     env.NoClean(doxyfileTarget)
     registerPackageDoxyfile(packagename, doxyfileTarget[0])
     env.Depends(doxyfileTarget[0], getDoxyfileDependencies(registry, packagename))
-    
+
     doxySources = doxyfileTarget[:]
     doxySources.extend(getSourceFiles(registry, packagename))
     doxyTarget = env.DoxygenBuilder(source=doxySources,
@@ -425,10 +460,10 @@ def determineCompilerDefines(env):
     cmd = 'PATH='+env.get("ENV", []).get("PATH",'')
     cmd += ' ' + os.path.join(os.path.dirname(__file__), 'defines.sh')
     cmd += ' ' + env['CXX']
-    
+
     proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdoutdata, stderrdata = proc.communicate()
-    
+
     defines = {}
     ignores = ['cc', '__BASE_FILE__', '__DATE__', '__FILE__', '__LINE__', '__TIME__', '__TIMESTAMP__']
     pattern = re.compile('^([^\s]+)\s*=\s*(.*)\s*')
@@ -461,16 +496,16 @@ def generate(env):
     env.Append(BUILDERS={ 'DoxygenBuilder' : doxygenBuilder })
     env.Append(BUILDERS={ 'DoxyfileBuilder' : doxyfileBuilder })
     env.AddMethod(createDoxygenTarget, "PackageDoxygen")
-    
+
     def createTargetCallback(registry, packagename, **kw):
         doxyEnv = SConsider.cloneBaseEnv()
         doxyTarget = doxyEnv.PackageDoxygen(registry, packagename)
         doxyEnv.Alias("doxygen", doxyTarget)
-    
+
     def addBuildTargetCallback(**kw):
         if GetOption("doxygen"):
             SCons.Script.BUILD_TARGETS.append("doxygen")
-    
+
     if GetOption("doxygen"):
         SConsider.registerCallback("PostCreatePackageTargets", createTargetCallback)
         SConsider.registerCallback("PreBuild", addBuildTargetCallback)
