@@ -128,7 +128,7 @@ if GetOption('appendPath'):
 
 globaltools = ["setupBuildTools", "coast_options", "SCBWriter", "TargetPrinter",
                "precompiledLibraryInstallBuilder", "RunBuilder", "DoxygenBuilder",
-               "CompilerLibsInstallBuilder"]
+               "CompilerLibsInstallBuilder", "Package"]
 usetools = globaltools + GetOption('usetools')
 print 'tools to use %s' % Flatten(usetools)
 

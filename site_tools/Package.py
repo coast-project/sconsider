@@ -87,15 +87,16 @@ class PackageToolException(Exception):
 def generate(env):
     import SCons.Script, SCons.Script.Main, SConsider
     try:
-        SCons.Script.AddOption('--packagedestination', dest='packagedestination', action='store', default='', help='Specify the destination directory')
+        SCons.Script.AddOption('--package', dest='package', action='store', default='', help='Specify the destination directory')
     except optparse.OptionConflictError:
         raise PackageToolException("Only one Package-Tool instance allowed")
     
-    destination = SCons.Script.GetOption('packagedestination')
-    if not os.path.isdir(destination):
-        SCons.Script.Main.OptionsParser.error("given package destination path doesn't exist")
-    else:
-        SConsider.registerCallback("PreBuild", addPackageTarget, env=env, destdir=SCons.Script.Dir(destination))
+    destination = SCons.Script.GetOption('package')
+    if destination:
+        if not os.path.isdir(destination):
+            SCons.Script.Main.OptionsParser.error("given package destination path doesn't exist")
+        else:
+            SConsider.registerCallback("PreBuild", addPackageTarget, env=env, destdir=SCons.Script.Dir(destination))
 
 def exists(env):
     return 1
