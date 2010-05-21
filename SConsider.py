@@ -447,46 +447,45 @@ class TargetMaker:
         plaintarget = None
         target = None
         try:
-            if targetBuildSettings.has_key('targetType'):
-                envVars = targetBuildSettings.get('appendUnique', {})
-                targetEnv = self.createTargetEnv(name, targetBuildSettings, envVars)
-                func = getattr(targetEnv, targetBuildSettings.get('targetType', ''), None)
-                if func:
-                    kw = {}
-                    kw['packagename'] = pkgname
-                    kw['targetname'] = name
-                    kw['buildSettings'] = targetBuildSettings
-                    sources = targetBuildSettings.get('sourceFiles', [])
-                    targets = apply(func, [name, sources], kw)
-                    if isinstance(targets, tuple):
-                        plaintarget, target = targets
-                    else:
-                        plaintarget = target = targets
-
-                if plaintarget:
-                    targetEnv.Depends(plaintarget, self.registry.getPackageFile(pkgname))
+            envVars = targetBuildSettings.get('appendUnique', {})
+            targetEnv = self.createTargetEnv(name, targetBuildSettings, envVars)
+            func = getattr(targetEnv, targetBuildSettings.get('targetType', '__UNDEFINED_TARGETTYPE__'), None)
+            if func:
+                kw = {}
+                kw['packagename'] = pkgname
+                kw['targetname'] = name
+                kw['buildSettings'] = targetBuildSettings
+                sources = targetBuildSettings.get('sourceFiles', [])
+                targets = apply(func, [name, sources], kw)
+                if isinstance(targets, tuple):
+                    plaintarget, target = targets
                 else:
-                    # Actually includeOnlyTarget is obsolete, but we still need a (dummy) targetType in build settings to get in here!
-                    # The following is a workaround, otherwise an alias won't get built in newer SCons versions (because it has depends but no sources)
-                    plaintarget = target = targetEnv.Alias(pkgname+'.'+name, self.registry.getPackageFile(pkgname))
+                    plaintarget = target = targets
 
-                reqTargets = targetBuildSettings.get('linkDependencies', []) + targetBuildSettings.get('requires', [])
-                self.requireTargets(targetEnv, target, reqTargets)
+            if plaintarget:
+                targetEnv.Depends(plaintarget, self.registry.getPackageFile(pkgname))
+            else:
+                # Actually includeOnlyTarget is obsolete, but we still need a (dummy) targetType in build settings to get in here!
+                # The following is a workaround, otherwise an alias won't get built in newer SCons versions (because it has depends but no sources)
+                plaintarget = target = targetEnv.Alias(pkgname+'.'+name, self.registry.getPackageFile(pkgname))
 
-                includeTargets = self.copyIncludeFiles(targetEnv, pkgname, targetBuildSettings)
-                targetEnv.Depends(target, includeTargets)
-                targetEnv.Alias('includes', includeTargets)
+            reqTargets = targetBuildSettings.get('linkDependencies', []) + targetBuildSettings.get('requires', [])
+            self.requireTargets(targetEnv, target, reqTargets)
 
-                if targetBuildSettings.has_key('copyFiles'):
-                    copyTargets = self.copyFiles(targetEnv, targetEnv['BASEOUTDIR'].Dir(targetEnv['RELTARGETDIR']), pkgname, targetBuildSettings.get('copyFiles', []))
-                    targetEnv.Depends(target, copyTargets)
+            includeTargets = self.copyIncludeFiles(targetEnv, pkgname, targetBuildSettings)
+            targetEnv.Depends(target, includeTargets)
+            targetEnv.Alias('includes', includeTargets)
 
-                targetEnv.Alias(pkgname, target)
-                targetEnv.Alias('all', target)
-                if targetBuildSettings.get('runConfig', {}).get('type', '') == 'test':
-                    targetEnv.Alias('tests', target)
+            if targetBuildSettings.has_key('copyFiles'):
+                copyTargets = self.copyFiles(targetEnv, targetEnv['BASEOUTDIR'].Dir(targetEnv['RELTARGETDIR']), pkgname, targetBuildSettings.get('copyFiles', []))
+                targetEnv.Depends(target, copyTargets)
 
-                runCallback("PostCreateTarget", env=targetEnv, target=target, registry=self.registry, packagename=pkgname, targetname=name, buildSettings=targetBuildSettings)
+            targetEnv.Alias(pkgname, target)
+            targetEnv.Alias('all', target)
+            if targetBuildSettings.get('runConfig', {}).get('type', '') == 'test':
+                targetEnv.Alias('tests', target)
+
+            runCallback("PostCreateTarget", env=targetEnv, target=target, registry=self.registry, packagename=pkgname, targetname=name, buildSettings=targetBuildSettings)
 
             self.registry.setPackageTarget(pkgname, name, plaintarget, target)
         except PackageNotFound, e:
