@@ -34,44 +34,9 @@ print 'base output dir [%s]' % baseoutdir.abspath
 def changed_timestamp_or_content(dependency, target, prev_ni):
     return dependency.changed_content(target, prev_ni) or dependency.changed_timestamp_newer(target, prev_ni)
 
-def programApp(env, name, sources, packagename, buildSettings, **kw):
-    plaintarget = env.Program(env.File(name), sources)
-
-    baseoutdir = env['BASEOUTDIR']
-    env['RELTARGETDIR'] = os.path.join('apps', packagename)
-    instApps = env.InstallAs(baseoutdir.Dir(env['RELTARGETDIR']).Dir(env['BINDIR']).Dir(env['VARIANTDIR']).File(name), plaintarget)
-
-    env.Tool('generateScript')
-    wrappers = env.GenerateWrapperScript(instApps)
-
-    env.Alias('binaries', wrappers)
-
-    buildSettings.setdefault("runConfig", {}).setdefault("type", "run")
-
-    return (plaintarget, wrappers)
-
-def programTest(env, name, sources, packagename, targetname, buildSettings, **kw):
-    env.Decider(changed_timestamp_or_content)
-
-    # env.File is a workaround, otherwise if an Alias with the same 'name' is defined
-    # arg2nodes (called from all builders) would return the Alias, but we would need a file node
-    plaintarget = env.Program(env.File(name), sources)
-
-    baseoutdir = env['BASEOUTDIR']
-    env['RELTARGETDIR'] = os.path.join('tests', packagename)
-    instApps = env.InstallAs(baseoutdir.Dir(env['RELTARGETDIR']).Dir(env['BINDIR']).Dir(env['VARIANTDIR']).File(name), plaintarget)
-
-    env.Tool('generateScript')
-    wrappers = env.GenerateWrapperScript(instApps)
-
-    buildSettings.setdefault("runConfig", {}).setdefault("type", "test")
-
-    return (plaintarget, wrappers)
-
-def appTest(env, name, sources, packagename, targetname, buildSettings, **kw):
-    env.Decider(changed_timestamp_or_content)
-    usedFullTargetname = buildSettings.get('usedTarget', None)
+def getUsedTarget(env, buildSettings):
     plaintarget = None
+    usedFullTargetname = buildSettings.get('usedTarget', None)
     if usedFullTargetname:
         usedPackagename, usedTargetname = splitTargetname(usedFullTargetname)
         packageRegistry.loadPackage(usedPackagename)
@@ -79,17 +44,36 @@ def appTest(env, name, sources, packagename, targetname, buildSettings, **kw):
         if not usedTargetname:
             usedTargetname = usedPackagename
         plaintarget = packageRegistry.getPackageTarget(usedPackagename, usedTargetname)['plaintarget']
+    return plaintarget
 
+def usedOrProgramTarget(env, name, sources, buildSettings):
+    plaintarget = getUsedTarget(env, buildSettings)
+    if not plaintarget:
+        # env.File is a workaround, otherwise if an Alias with the same 'name' is defined
+        # arg2nodes (called from all builders) would return the Alias, but we would need a file node
+        plaintarget = env.Program(env.File(name), sources)
+    return plaintarget
+
+def setupTargetDirAndWrapperScripts(env, name, packagename, plaintarget, basetargetdir):
     baseoutdir = env['BASEOUTDIR']
-    env['RELTARGETDIR'] = os.path.join('tests', packagename)
+    env['RELTARGETDIR'] = os.path.join(basetargetdir, packagename)
     instApps = env.InstallAs(baseoutdir.Dir(env['RELTARGETDIR']).Dir(env['BINDIR']).Dir(env['VARIANTDIR']).File(name), plaintarget)
-
     env.Tool('generateScript')
     wrappers = env.GenerateWrapperScript(instApps)
-
-    buildSettings.setdefault("runConfig", {}).setdefault("type", "test")
-
     return (plaintarget, wrappers)
+
+def programApp(env, name, sources, packagename, buildSettings, **kw):
+    plaintarget = usedOrProgramTarget(env, name, sources, buildSettings)
+    plaintarget, wrappers = setupTargetDirAndWrapperScripts(env, name, packagename, plaintarget, 'apps')
+    buildSettings.setdefault("runConfig", {}).setdefault("type", "run")
+    env.Alias('binaries', wrappers)
+    return (plaintarget, wrappers)
+
+def programTest(env, name, sources, packagename, targetname, buildSettings, **kw):
+    env.Decider(changed_timestamp_or_content)
+    plaintarget = usedOrProgramTarget(env, name, sources, buildSettings)
+    buildSettings.setdefault("runConfig", {}).setdefault("type", "test")
+    return setupTargetDirAndWrapperScripts(env, name, packagename, plaintarget, 'tests')
 
 def sharedLibrary(env, name, sources, packagename, targetname, buildSettings, **kw):
     if buildSettings.get('lazylinking', False):
@@ -113,7 +97,7 @@ def installBinary(env, name, sources, packagename, targetname, buildSettings, **
 
 dEnv = DefaultEnvironment()
 
-dEnv.AddMethod(appTest, "AppTest")
+dEnv.AddMethod(programTest, "AppTest")	#@!FIXME: should use ProgramTest instead
 dEnv.AddMethod(programTest, "ProgramTest")
 dEnv.AddMethod(programApp, "ProgramApp")
 dEnv.AddMethod(sharedLibrary, "LibraryShared")
