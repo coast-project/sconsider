@@ -101,6 +101,16 @@ def wrapSetUp(setUpFunc):
             return 0
     return setUp
 
+def addRunConfigHooks(env, source, runner, buildSettings):
+    runConfig = buildSettings.get('runConfig', {})
+    setUp = runConfig.get('setUp', '')
+    tearDown = runConfig.get('tearDown', '')
+
+    if callable(setUp):
+        env.AddPreAction(runner, SCons.Action.Action(wrapSetUp(setUp), lambda *args, **kw: ''))
+    if callable(tearDown):
+        registerCallback('__PostAction_'+str(id(runner[0])), lambda: tearDown(target=runner, source=source, env=env))
+
 def createTestTarget(env, source, registry, packagename, targetname, buildSettings, defaultRunParams='-- -all'):
     """Creates a target which runs a target given in parameter 'source'. If ran successfully a
     file is generated (name given in parameter 'target') which indicates that this runner-target
@@ -121,14 +131,7 @@ def createTestTarget(env, source, registry, packagename, targetname, buildSettin
     if GetOption('run-force'):
         env.AlwaysBuild(runner)
 
-    runConfig = buildSettings.get('runConfig', {})
-    setUp = runConfig.get('setUp', '')
-    tearDown = runConfig.get('tearDown', '')
-
-    if callable(setUp):
-        env.AddPreAction(runner, SCons.Action.Action(wrapSetUp(setUp), lambda *args, **kw: ''))
-    if callable(tearDown):
-        registerCallback('__PostAction_'+str(id(runner[0])), lambda: tearDown(target=runner, source=source, env=env))
+    addRunConfigHooks(env, source, runner, buildSettings)
 
     registerCallback('__PostTestOrRun', lambda: runCallback('PostTest', target=source, registry=registry, packagename=packagename, targetname=targetname, logfile=logfile))
 
@@ -140,7 +143,9 @@ def createTestTarget(env, source, registry, packagename, targetname, buildSettin
 
 def createRunTarget(env, source, registry, packagename, targetname, buildSettings, defaultRunParams=''):
     """Creates a target which runs a target given in parameter 'source'. Command line parameters could be
-    handed over by using --runparams="..." or by setting buildSettings['runConfig']['runParams']."""
+    handed over by using --runparams="..." or by setting buildSettings['runConfig']['runParams'].
+    The Fields 'setUp' and 'tearDown' in 'runConfig' accept a string (executed as shell command),
+    a Python function (with arguments 'target', 'source', 'env') or any SCons.Action."""
 
     if not GetOption('run') and not GetOption('run-force'):
         return source
@@ -149,7 +154,10 @@ def createRunTarget(env, source, registry, packagename, targetname, buildSetting
         source = [source]
 
     logfile = env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['LOGDIR']).Dir(env['VARIANTDIR']).File(targetname+'.run.log')
+
     runner = env.RunBuilder(['dummyfile_'+targetname], source, runParams=getRunParams(buildSettings, defaultRunParams), logfile=logfile)
+
+    addRunConfigHooks(env, source, runner, buildSettings)
 
     registerCallback('__PostTestOrRun', lambda: runCallback('PostRun', target=source, registry=registry, packagename=packagename, targetname=targetname, logfile=logfile))
 
