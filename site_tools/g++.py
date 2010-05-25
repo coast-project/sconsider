@@ -138,10 +138,23 @@ def generate( env ):
 
     def setupWarnings( env, warnlevel ):
         if warnlevel == 'medium' or warnlevel == 'full':
-            env.AppendUnique( CXXFLAGS = ['-Wall', '-Wunused', '-Wno-system-headers', '-Wreturn-type'] )
-            env.AppendUnique( CXXFLAGS = ['-Wdeprecated', '-Wshadow', '-Woverloaded-virtual'] )
+            env.AppendUnique( CXXFLAGS = [
+                '-Wall',
+                '-Wunused',
+                '-Wno-system-headers',
+                '-Wreturn-type',
+                '-Wdeprecated',
+                '-Wshadow',
+                '-Woverloaded-virtual',
+            ] )
         if warnlevel == 'full':
-            env.AppendUnique( CXXFLAGS = ['-Wconversion', '-Winline', '-Wundef', '-Weffc++'] )
+            env.AppendUnique( CXXFLAGS = [
+                '-Wold-style-cast',
+                '-Wconversion',
+                '-Winline',
+                '-Wundef',
+                '-Weffc++',
+            ] )
 
     setupBuildTools.registerCallback( 'WARN_OPTIONS', setupWarnings )
 
