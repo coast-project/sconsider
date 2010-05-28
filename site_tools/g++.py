@@ -139,21 +139,24 @@ def generate( env ):
     def setupWarnings( env, warnlevel ):
         if warnlevel == 'medium' or warnlevel == 'full':
             env.AppendUnique( CXXFLAGS = [
-                '-Wall',
-                '-Wunused',
-                '-Wno-system-headers',
-                '-Wreturn-type',
+                '-Waddress',                #<! Warn about suspicious uses of memory addresses
+                '-Wall',                    #<! Enable most warning messages
                 '-Wdeprecated',
-                '-Wshadow',
+                '-Wendif-labels',
+                '-Wno-system-headers',
                 '-Woverloaded-virtual',
+                '-Wpointer-arith',          #<! Warn about function pointer arithmetic
+                '-Wreturn-type',
+                '-Wshadow',
+                '-Wundef',                  #<! Warn if an undefined macro is used in an #if directive
             ] )
         if warnlevel == 'full':
             env.AppendUnique( CXXFLAGS = [
-                '-Wold-style-cast',
-                '-Wconversion',
-                '-Winline',
-                '-Wundef',
-                '-Weffc++',
+                '-Wcast-qual',              #<! Warn about casts which discard qualifiers
+                '-Wconversion',             #<! Warn for implicit type conversions that may change a value
+                '-Weffc++',                 #<! Warn about violations of Effective C++ style rules
+                '-Wignored-qualifiers',     #<! Warn whenever type qualifiers are ignored.
+                '-Wold-style-cast',         #<! Warn if a C-style cast is used in a program
             ] )
 
     setupBuildTools.registerCallback( 'WARN_OPTIONS', setupWarnings )
