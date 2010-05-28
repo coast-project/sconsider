@@ -149,7 +149,7 @@ test -d ${ABS_BINDIR}/${VARIANTDIR} && ABS_BINDIR=${ABS_BINDIR}/$VARIANTDIR
 generateGdbCommandFile()
 {
     outputfile=${1};
-    locsrvopts=${2};
+    locsrvopts="${2}";
     locRunAsServer=${3:-1};
     # <<-EOF ignore tabs, nice for formatting heredocs
 cat > ${outputfile} <<-EOF
@@ -166,7 +166,7 @@ cat > ${outputfile} <<-EOF
 #    set environment PID_FILE=${PID_FILE}
     set auto-solib-add 1
     file ${WDS_BIN}
-    set args ${locsrvopts}
+    set args "${locsrvopts}"
 EOF
     if [ $locRunAsServer -eq 1 ]; then
 cat >> ${outputfile} <<-EOF

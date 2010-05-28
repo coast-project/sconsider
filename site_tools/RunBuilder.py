@@ -35,7 +35,8 @@ class Tee(object):
 
 def run(cmd, logfile=None, **kw):
     """Run a Unix command and return the exit code."""
-    args = cmd.split(' ')
+    import shlex
+    command=shlex.split(cmd)
     tee = Tee()
     tee.add(sys.stdout, flush=True, close=False)
     try:
@@ -43,7 +44,7 @@ def run(cmd, logfile=None, **kw):
             if not os.path.isdir(logfile.dir.abspath):
                 os.makedirs(logfile.dir.abspath)
             tee.add(open(logfile.abspath, 'w'))
-        proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **kw)
+        proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **kw)
         while True:
             out = proc.stdout.readline()
             if out == '' and proc.poll() != None:
