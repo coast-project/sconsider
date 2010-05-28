@@ -174,12 +174,12 @@ def generate(env):
     except optparse.OptionConflictError:
         pass
 
-    TestAction = SCons.Action.Action(doTest, "Running Test '$SOURCE'")
+    TestAction = SCons.Action.Action(doTest, "Running Test '$SOURCE'\n with runParams [$runParams]")
     TestBuilder = SCons.Builder.Builder(action=[TestAction],
                                         emitter=emitPassedFile,
                                         single_source=True)
 
-    RunAction = SCons.Action.Action(doRun, "Running Executable '$SOURCE'")
+    RunAction = SCons.Action.Action(doRun, "Running Executable '$SOURCE'\n with runParams [$runParams]")
     RunBuilder = SCons.Builder.Builder(action=[RunAction],
                                               single_source=True)
 
