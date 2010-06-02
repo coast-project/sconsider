@@ -31,17 +31,18 @@ def removeFiles( files, **kw ):
 def findFiles( directories, extensions = [], matchfiles = [], direxcludes = [] ):
     import SCons
     files = []
+    basepathabs=SCons.Script.Dir('.').srcnode().abspath
     for directory in directories:
         directory = SCons.Script.Dir( directory ).srcnode().abspath
         for dirpath, dirnames, filenames in os.walk( directory ):
-            curDir = SCons.Script.Dir( dirpath )
+            curDir = SCons.Script.Dir(os.path.relpath(dirpath,basepathabs))
             dirnames[:] = [d for d in dirnames if not d in direxcludes]
             addfiles = []
             if extensions:
-                efiles = [curDir.File( f ).srcnode() for f in filenames if os.path.splitext( f )[1] in extensions]
+                efiles = [curDir.File( f ) for f in filenames if os.path.splitext( f )[1] in extensions]
                 addfiles.extend( efiles )
             if matchfiles:
-                mfiles = [curDir.File( f ).srcnode() for f in filenames if os.path.split( f )[1] in matchfiles]
+                mfiles = [curDir.File( f ) for f in filenames if os.path.split( f )[1] in matchfiles]
                 addfiles.extend( mfiles )
             if addfiles:
                 files.extend( addfiles )
