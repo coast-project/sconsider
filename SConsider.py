@@ -255,9 +255,7 @@ class PackageRegistry:
     def getPackageTarget(self, packagename, targetname):
         if not self.hasPackage(packagename):
             print 'tried to access target [%s] of non existent package [%s]' % (targetname, packagename)
-            return
-        theTargets = self.packages[packagename].setdefault('targets', {})
-        return theTargets.get(targetname, {'plaintarget':None, 'target':None})
+        return self.packages.get(packagename, {}).get('targets', {}).get(targetname, {'plaintarget':None, 'target':None})
 
     def getPackageDependencies(self, packagename):
         deps = dict()
