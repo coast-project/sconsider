@@ -436,6 +436,17 @@ class ResolvePathTest(unittest.TestCase):
         os.environ['WD_PATH'] = '.:config:src:test'
         self.assertEqual(os.path.join(self.tempdir, 'test', 'test4.any'), resolvePath("test4.any"))
 
+    def testResolvePathTLS(self):
+        setRoot(self.tempdir)
+        self.assertEqual(os.path.join(self.tempdir, 'test1.any'), resolvePath("test1.any"))
+        self.assertEqual(os.path.join(self.tempdir, 'config', 'test2.any'), resolvePath("test2.any"))
+        self.assertEqual(os.path.join(self.tempdir, 'src', 'test3.any'), resolvePath("test3.any"))
+        self.assertRaises(IOError, lambda: resolvePath("test4.any"))
+        setPath('.:config:src:test')
+        self.assertEqual(os.path.join(self.tempdir, 'test', 'test4.any'), resolvePath("test4.any"))
+        setRoot(None)
+        setPath(None)
+
     def testResolvePathPassed(self):
         self.assertEqual(os.path.join(self.tempdir, 'test1.any'), resolvePath("test1.any", self.tempdir))
         self.assertEqual(os.path.join(self.tempdir, 'config', 'test2.any'), resolvePath("test2.any", self.tempdir))

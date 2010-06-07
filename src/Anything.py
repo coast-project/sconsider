@@ -1,4 +1,4 @@
-import collections, operator, threading
+import collections, operator, threading, os
 from lepl import *
 
 class AnythingEntry(object):
@@ -288,24 +288,40 @@ class AnythingReference(object):
     def __repr__(self):
         return 'AnythingReference('+repr(self.keys)+(", '"+self.file+"'" if self.file else '')+')'
 
+tls = threading.local()
+def setRoot(root):
+    tls.root = root
+
+def getRoot():
+    if hasattr(tls, 'root') and tls.root:
+        return tls.root
+    elif 'WD_ROOT' in os.environ:
+        return os.environ['WD_ROOT']
+    else:
+        return os.getcwd()
+
+def setPath(path):
+    tls.path = path
+
+def getPath():
+    if hasattr(tls, 'path') and tls.path:
+        return tls.path
+    elif 'WD_PATH' in os.environ:
+        return os.environ['WD_PATH']
+    else:
+        return ['.','config', 'src']
+
 def resolvePath(filename, root=None, path=None):
-    import os
     if os.path.isabs(filename):
         return filename
 
     if not root or not os.path.isdir(root):
-        if 'WD_ROOT' in os.environ:
-            root = os.environ['WD_ROOT']
-        else:
-            root = os.getcwd()
+        root = getRoot()
 
-    if path:
-        if isinstance(path, basestring):
-            path = path.split(':')
-    elif 'WD_PATH' in os.environ:
-        path = os.environ['WD_PATH'].split(':') # not os.pathsep?
-    else:
-        path = ['.','config', 'src']
+    if not path:
+        path = getPath()
+    if isinstance(path, basestring):
+        path = path.split(':')
 
     for rel in path:
         absfilepath = os.path.abspath(os.path.join(root, rel, filename))
@@ -363,4 +379,3 @@ def parse(anythingstring):
     with Separator(~Star(AnyBut(anystart | anystop))):
         document = ~AnyBut(anystart)[:] & anything[:] & ~Any()[:]
     return document.parse(anythingstring)
-
