@@ -1,4 +1,4 @@
-import unittest
+import unittest, os, tempfile, shutil
 from Anything import *
 
 class AnythingTest(unittest.TestCase):
@@ -374,13 +374,14 @@ dd
    {
    1
    2
+   3.0
    } sdfdsf !
    """
         result = parse(content)
         expected = [
                     Anything(['bla',
                              'blub dd',
-                             '12',
+                             12,
                              ('key', 'va3lue'),
                              ('a nice key', 'value'),
                              Anything(['ggg', 'xs']),
@@ -388,7 +389,111 @@ dd
                              ('blub', Anything(['sdfsd', 'sdf', 'ddd']))
                              ]),
                     Anything(['second']),
-                    Anything(['1', '2'])
+                    Anything([1, 2, 3.0])
                    ]
         self.assertEqual(expected, result)
 
+class ResolvePathTest(unittest.TestCase):
+    def __makeTempFile(self, filename, relpath=None):
+        if relpath:
+            path = os.path.join(self.tempdir, relpath)
+            os.makedirs(path)
+        else:
+            path = self.tempdir
+        os.mknod(os.path.join(path, filename))
+
+    def setUp(self):
+        self.savedPath = os.getcwd()
+        self.savedEnviron = os.environ.copy()
+        self.tempdir = tempfile.mkdtemp()
+        self.__makeTempFile('test1.any')
+        self.__makeTempFile('test2.any', 'config')
+        self.__makeTempFile('test3.any', 'src')
+        self.__makeTempFile('test4.any', 'test')
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+        os.chdir(self.savedPath)
+        os.environ = self.savedEnviron
+
+    def testResolveAbs(self):
+        self.assertRaises(IOError, lambda: resolvePath("test4.any"))
+        self.assertEqual(os.path.join(self.tempdir, 'test1.any'), resolvePath(os.path.join(self.tempdir, "test1.any")))
+
+    def testResolveCwd(self):
+        os.chdir(self.tempdir)
+        self.assertEqual(os.path.join(self.tempdir, 'test1.any'), resolvePath("test1.any"))
+        self.assertEqual(os.path.join(self.tempdir, 'config', 'test2.any'), resolvePath("test2.any"))
+        self.assertEqual(os.path.join(self.tempdir, 'src', 'test3.any'), resolvePath("test3.any"))
+        self.assertRaises(IOError, lambda: resolvePath("test4.any"))
+
+    def testResolvePathEnv(self):
+        os.environ['WD_ROOT'] = self.tempdir
+        self.assertEqual(os.path.join(self.tempdir, 'test1.any'), resolvePath("test1.any"))
+        self.assertEqual(os.path.join(self.tempdir, 'config', 'test2.any'), resolvePath("test2.any"))
+        self.assertEqual(os.path.join(self.tempdir, 'src', 'test3.any'), resolvePath("test3.any"))
+        self.assertRaises(IOError, lambda: resolvePath("test4.any"))
+        os.environ['WD_PATH'] = '.:config:src:test'
+        self.assertEqual(os.path.join(self.tempdir, 'test', 'test4.any'), resolvePath("test4.any"))
+
+    def testResolvePathPassed(self):
+        self.assertEqual(os.path.join(self.tempdir, 'test1.any'), resolvePath("test1.any", self.tempdir))
+        self.assertEqual(os.path.join(self.tempdir, 'config', 'test2.any'), resolvePath("test2.any", self.tempdir))
+        self.assertEqual(os.path.join(self.tempdir, 'src', 'test3.any'), resolvePath("test3.any", self.tempdir))
+        self.assertRaises(IOError, lambda: resolvePath("test4.any", self.tempdir))
+        self.assertEqual(os.path.join(self.tempdir, 'test', 'test4.any'),
+                         resolvePath("test4.any", self.tempdir, '.:config:src:test'))
+        self.assertEqual(os.path.join(self.tempdir, 'test', 'test4.any'),
+                         resolvePath("test4.any", self.tempdir, ['.','config','src','test']))
+
+class LoadFromFileTest(unittest.TestCase):
+    def testLoadFromFile(self):
+        result = loadFromFile(resolvePath('LoadFromFileTest.any', os.path.dirname(__file__), 'data'))
+        expected = [
+                    Anything([('key', 'value')])
+                   ]
+        self.assertEqual(expected, result)
+
+class AnythingReferenceTest(unittest.TestCase):
+    def setUp(self):
+        self.any1 = Anything([('a', 1), ('b', 2), 3, ('c', Anything([('a', Anything([1, 2, 3]))])), 5])
+        self.savedEnviron = os.environ.copy()
+        os.environ['WD_ROOT'] = os.path.dirname(__file__)
+        os.environ['WD_PATH'] = '.:data'
+
+    def tearDown(self):
+        os.environ = self.savedEnviron
+
+    def testInternalKey(self):
+        anyref1 = parseRef('%a')
+        self.assertEqual(1, anyref1.resolve(self.any1))
+
+    def testInternalIndex(self):
+        anyref1 = parseRef('%:1')
+        self.assertEqual(2, anyref1.resolve(self.any1))
+
+    def testInternalCombined(self):
+        anyref1 = parseRef('%c.a:0')
+        self.assertEqual(1, anyref1.resolve(self.any1))
+
+    def testExternal(self):
+        expected = 'include works'
+        anyref1 = parseRef('!AnythingReferenceTest2.any?test')
+        self.assertEqual(expected, anyref1.resolve())
+        anyref1 = parseRef('!file:///AnythingReferenceTest2.any?test')
+        self.assertEqual(expected, anyref1.resolve())
+        anyref1 = parseRef('!file://dummyhost/AnythingReferenceTest2.any?test')
+        self.assertEqual(expected, anyref1.resolve())
+        anyref2 = parseRef('!AnythingReferenceTest2.any?struct')
+        expected = Anything([1, 2, 3])
+        self.assertEqual(expected, anyref2.resolve())
+
+    def testInternalFromFile(self):
+        anys = loadFromFile(resolvePath('AnythingReferenceTest.any'))
+        self.assertEqual(1, anys[0]["ref1"])
+        self.assertEqual(4, anys[0]["ref2"])
+        self.assertEqual('d2', anys[0]["ref3"])
+
+    def testExternalFromFile(self):
+        anys = loadFromFile(resolvePath('AnythingReferenceTest.any'))
+        self.assertEqual('include works', anys[0]["ref4"])

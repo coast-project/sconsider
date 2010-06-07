@@ -1,0 +1,16 @@
+{
+    /a 1
+    /b 2
+    3
+    4
+    /c 5
+    /d {
+        d1
+        d2
+    }
+    
+    /ref1 %a
+    /ref2 %:3
+    /ref3 %d:1
+    /ref4 !AnythingReferenceTest2.any?test
+}

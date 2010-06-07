@@ -1,17 +1,25 @@
-import collections, operator
+import collections, operator, threading
 from lepl import *
 
 class AnythingEntry(object):
     def __init__(self, key, value=None):
         if isinstance(key, AnythingEntry):
-            self.key, key.key
+            self.key = key.key
             self.value = key.value
         elif isinstance(key, tuple):
             self.key, self.value = key
         else:
             self.key = key
             self.value = value
-    
+
+    def get_value(self):
+        if isinstance(self.__value, AnythingReference):
+            return self.__value.resolve()
+        return self.__value
+    def set_value(self, newvalue):
+        self.__value = newvalue
+    value = property(get_value, set_value)
+
     def __eq__(self, other):
         return isinstance(other, AnythingEntry) and self.key == other.key and self.value == other.value
 
@@ -129,6 +137,8 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
         self.__updateKeys(start)
 
     def __setitem__(self, key, value):
+        if isinstance(value, AnythingReference):
+            value.context = self
         if isinstance(key, slice):
             self.__setslice(key, value)
         elif isinstance(key, basestring):
@@ -232,21 +242,125 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
         self.__data.sort(key=operator.attrgetter('value', 'key'))
         self.__updateKeys()
 
-def parse(content):
+class AnythingReference(object):
+    def __init__(self, keys, file=None):
+        self.keys = keys
+        self.file = file
+        self.context = None
+
+    def resolve(self, context=None):
+        if not context:
+            if self.file:
+                context = loadFromFile(resolvePath(self.file))
+                if isinstance(context, list):
+                    context = context[0]
+            elif self.context:
+                context = self.context
+            else:
+                raise ValueError('context not set')
+
+        for key in self.keys:
+            context = context[key]
+        return context
+
+    def __str__(self):
+        keystr = ''
+        for key in self.keys:
+            if isinstance(key, int):
+                keystr += ':'
+            elif len(keystr) > 0:
+                keystr += '.'
+            keystr += str(key)
+
+        if self.file:
+            result = '!'+self.file
+            if len(keystr) > 0:
+                result += '?'
+        else:
+            result = '%'
+
+        result += keystr
+
+        if ' ' in result:
+            return result[0]+'"'+result[1:]+'"'
+        return result
+
+    def __repr__(self):
+        return 'AnythingReference('+repr(self.keys)+(", '"+self.file+"'" if self.file else '')+')'
+
+def resolvePath(filename, root=None, path=None):
+    import os
+    if os.path.isabs(filename):
+        return filename
+
+    if not root or not os.path.isdir(root):
+        if 'WD_ROOT' in os.environ:
+            root = os.environ['WD_ROOT']
+        else:
+            root = os.getcwd()
+
+    if path:
+        if isinstance(path, basestring):
+            path = path.split(':')
+    elif 'WD_PATH' in os.environ:
+        path = os.environ['WD_PATH'].split(':') # not os.pathsep?
+    else:
+        path = ['.','config', 'src']
+
+    for rel in path:
+        absfilepath = os.path.abspath(os.path.join(root, rel, filename))
+        if os.path.isfile(absfilepath):
+            return absfilepath
+    raise IOError(filename)
+
+anythingCache = {}
+anythingCacheLock = threading.Lock()
+def loadFromFile(filename):
+    with anythingCacheLock:
+        if filename not in anythingCache:
+            with open(filename, "r") as file:
+                anythingCache[filename] = parse(file.read())
+        return anythingCache[filename]
+
+def toNumber(string):
+    try:
+        return int(string) if string.isdigit() else float(string)
+    except ValueError:
+        return string
+
+def parseRef(refstring):
+    indexstart = Literal(':')
+    keystart = Literal('.')
+    key = Optional(~keystart) & ( Word(AnyBut(keystart | indexstart)) )
+    index = ~indexstart & Integer() >> int
+    internalref = (key | index)[:] > list
+
+    delimiter = Literal('?')
+    filename = Word(AnyBut(delimiter))
+    filedesc = Optional(~Regexp(r'file://[^/]*/')) & filename
+    reverse = lambda alist: list(reversed(alist))
+    externalref = ( filedesc & Optional(~delimiter & internalref) ) >= reverse
+
+    fullref = (~Literal('!') & externalref) | (~Literal('%') & internalref)
+    return AnythingReference(*fullref.parse(refstring))
+
+def parse(anythingstring):
     commentstart = Literal('#')
-    comment = ~commentstart & AnyBut('\n')[:,...] & ~Literal('\n')
+    comment = ~commentstart & AnyBut(Newline())[:,...] & ~Newline()
     anystart = Literal('{')
     anystop = Literal('}')
     word = Word(AnyBut(Whitespace() | anystart | anystop | commentstart))
     anything = Delayed()
-    anyvalue = anything | String() | word
-    anykey = ~Literal('/') & ( String() | word )
-    anykeyvalue = Delayed()
-    anycontent = ~comment | anykeyvalue | anyvalue
+    reference = ( Literal('!') | Literal('%') ) + ( String() | word ) >> parseRef
+    stringvalue = String() | word >> toNumber
+    value = anything | reference | stringvalue
+    key = ~Literal('/') & ( String() | word )
+    keyvalue = Delayed()
+    content = ~comment | keyvalue | value
     with Separator(~Star(Whitespace())):
-        anykeyvalue += anykey & anyvalue > tuple
-        anything += ~anystart & anycontent[:] & ~anystop > Anything
+        keyvalue += key & value > tuple
+        anything += ~anystart & content[:] & ~anystop > Anything
     with Separator(~Star(AnyBut(anystart | anystop))):
         document = ~AnyBut(anystart)[:] & anything[:] & ~Any()[:]
-    return document.parse(content)
+    return document.parse(anythingstring)
 
