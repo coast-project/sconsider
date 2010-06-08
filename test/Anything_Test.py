@@ -456,11 +456,16 @@ class UtilsTest(unittest.TestCase):
         self.assertEqual(42.0, toNumber("42.0"))
         self.assertEqual("42.0a", toNumber("42.0a"))
         
-    def testLoadFromFile(self):
-        result = loadFromFile(resolvePath('AnythingLoadFromFileTest.any', os.path.dirname(__file__), 'data'))
+    def testLoadAllFromFile(self):
+        result = loadAllFromFile(resolvePath('AnythingLoadFromFileTest.any', os.path.dirname(__file__), 'data'))
         expected = [
                     Anything([('key', 'value')])
                    ]
+        self.assertEqual(expected, result)
+
+    def testLoadFromFile(self):
+        result = loadFromFile(resolvePath('AnythingLoadFromFileTest.any', os.path.dirname(__file__), 'data'))
+        expected = Anything([('key', 'value')])
         self.assertEqual(expected, result)
 
 class AnythingReferenceTest(unittest.TestCase):
@@ -499,10 +504,10 @@ class AnythingReferenceTest(unittest.TestCase):
 
     def testInternalFromFile(self):
         anys = loadFromFile(resolvePath('AnythingReferenceTest.any'))
-        self.assertEqual(1, anys[0]["ref1"])
-        self.assertEqual(4, anys[0]["ref2"])
-        self.assertEqual('d2', anys[0]["ref3"])
+        self.assertEqual(1, anys["ref1"])
+        self.assertEqual(4, anys["ref2"])
+        self.assertEqual('d2', anys["ref3"])
 
     def testExternalFromFile(self):
         anys = loadFromFile(resolvePath('AnythingReferenceTest.any'))
-        self.assertEqual('include works', anys[0]["ref4"])
+        self.assertEqual('include works', anys["ref4"])

@@ -251,7 +251,7 @@ class AnythingReference(object):
     def resolve(self, context=None):
         if not context:
             if self.file:
-                context = loadFromFile(resolvePath(self.file))
+                context = loadFromFile(self.file)
                 if isinstance(context, list):
                     context = context[0]
             elif self.context:
@@ -327,12 +327,16 @@ def resolvePath(filename, root=None, path=None):
 
 anythingCache = {}
 anythingCacheLock = threading.Lock()
-def loadFromFile(filename):
+def loadAllFromFile(filename):
+    filename = resolvePath(filename)
     with anythingCacheLock:
         if filename not in anythingCache:
             with open(filename, "r") as file:
                 anythingCache[filename] = parse(file.read())
         return anythingCache[filename]
+
+def loadFromFile(filename):
+    return loadAllFromFile(filename)[0]
 
 def toNumber(string):
     try:
