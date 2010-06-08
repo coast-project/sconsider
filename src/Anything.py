@@ -289,37 +289,33 @@ class AnythingReference(object):
         return 'AnythingReference('+repr(self.keys)+(", '"+self.file+"'" if self.file else '')+')'
 
 tls = threading.local()
-def setRoot(root):
-    tls.root = root
+tls.env = {}
+def setLocalEnv(env=None, **kw):
+    if env:
+        tls.env = env
+    tls.env.update(kw)
 
-def getRoot():
-    if hasattr(tls, 'root') and tls.root:
-        return tls.root
-    elif 'WD_ROOT' in os.environ:
-        return os.environ['WD_ROOT']
-    else:
-        return os.getcwd()
+resolvers = [
+             lambda key: tls.env.get(key, None) if hasattr(tls, 'env') else None,
+             lambda key: os.environ.get(key, None)
+            ]
 
-def setPath(path):
-    tls.path = path
-
-def getPath():
-    if hasattr(tls, 'path') and tls.path:
-        return tls.path
-    elif 'WD_PATH' in os.environ:
-        return os.environ['WD_PATH']
-    else:
-        return ['.','config', 'src']
+def first(funcs, *args):
+    for func in funcs:
+        result = func(*args)
+        if result:
+            return result
+    return None
 
 def resolvePath(filename, root=None, path=None):
     if os.path.isabs(filename):
         return filename
 
     if not root or not os.path.isdir(root):
-        root = getRoot()
+        root = first(resolvers+[lambda key: os.getcwd()], 'WD_ROOT')
 
     if not path:
-        path = getPath()
+        path = first(resolvers+[lambda key: ['.','config', 'src']], 'WD_PATH')
     if isinstance(path, basestring):
         path = path.split(':')
 
@@ -379,3 +375,8 @@ def parse(anythingstring):
     with Separator(~Star(AnyBut(anystart | anystop))):
         document = ~AnyBut(anystart)[:] & anything[:] & ~Any()[:]
     return document.parse(anythingstring)
+
+if __name__ == '__main__':
+    setEnv({'WD_ROOT': 'dsfsdf'})
+    blub = first(resolvers+[lambda key: os.getcwd()], 'WD_ROOT')
+    print blub

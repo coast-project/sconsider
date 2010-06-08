@@ -437,15 +437,14 @@ class ResolvePathTest(unittest.TestCase):
         self.assertEqual(os.path.join(self.tempdir, 'test', 'test4.any'), resolvePath("test4.any"))
 
     def testResolvePathTLS(self):
-        setRoot(self.tempdir)
+        setLocalEnv({'WD_ROOT': self.tempdir})
         self.assertEqual(os.path.join(self.tempdir, 'test1.any'), resolvePath("test1.any"))
         self.assertEqual(os.path.join(self.tempdir, 'config', 'test2.any'), resolvePath("test2.any"))
         self.assertEqual(os.path.join(self.tempdir, 'src', 'test3.any'), resolvePath("test3.any"))
         self.assertRaises(IOError, lambda: resolvePath("test4.any"))
-        setPath('.:config:src:test')
+        setLocalEnv(WD_PATH='.:config:src:test')
         self.assertEqual(os.path.join(self.tempdir, 'test', 'test4.any'), resolvePath("test4.any"))
-        setRoot(None)
-        setPath(None)
+        setLocalEnv({})
 
     def testResolvePathPassed(self):
         self.assertEqual(os.path.join(self.tempdir, 'test1.any'), resolvePath("test1.any", self.tempdir))
@@ -457,7 +456,20 @@ class ResolvePathTest(unittest.TestCase):
         self.assertEqual(os.path.join(self.tempdir, 'test', 'test4.any'),
                          resolvePath("test4.any", self.tempdir, ['.','config','src','test']))
 
-class LoadFromFileTest(unittest.TestCase):
+class UtilsTest(unittest.TestCase):
+    def testFirst(self):
+        result = first([lambda: None, lambda: 2, lambda: 3])
+        self.assertEqual(2, result)
+    
+    def testFirstWithArg(self):
+        result = first([lambda arg: None, lambda arg: arg, lambda arg: 3], 42)
+        self.assertEqual(42, result)
+        
+    def testToNumber(self):
+        self.assertEqual(42, toNumber("42"))
+        self.assertEqual(42.0, toNumber("42.0"))
+        self.assertEqual("42.0a", toNumber("42.0a"))
+        
     def testLoadFromFile(self):
         result = loadFromFile(resolvePath('LoadFromFileTest.any', os.path.dirname(__file__), 'data'))
         expected = [
