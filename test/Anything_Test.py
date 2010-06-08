@@ -386,7 +386,8 @@ class ResolvePathTest(unittest.TestCase):
             os.makedirs(path)
         else:
             path = self.tempdir
-        os.mknod(os.path.join(path, filename))
+        with open(os.path.join(path, filename), 'w') as file:
+            file.write('{ dummy }')
 
     def setUp(self):
         self.savedPath = os.getcwd()
