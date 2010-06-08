@@ -3,12 +3,7 @@ from Anything import *
 
 class AnythingTest(unittest.TestCase):
     def setUp(self):
-        self.any1 = Anything()
-        self.any1['a'] = 1
-        self.any1['b'] = 2
-        self.any1.append(3)
-        self.any1['c'] = 4
-        self.any1.append(5)
+        self.any1 = Anything([('a', 1), ('b', 2), 3, ('c', 4), 5])
 
     def testLen(self):
         self.assertEqual(5, len(self.any1))
@@ -107,18 +102,9 @@ class AnythingTest(unittest.TestCase):
         self.assertEqual(expected, str(self.any1))
 
     def testRepr(self):
-        expected = "Anything([('a', 1), ('b', 2), 3, ('c', 4), 5])"
         result = repr(self.any1)
-        self.assertEqual(expected, result)
-        any2 = eval(result)
-        self.assertEqual(1, self.any1['a'])
-        self.assertEqual(2, self.any1['b'])
-        self.assertEqual(4, self.any1['c'])
-        self.assertEqual(1, self.any1[0])
-        self.assertEqual(2, self.any1[1])
-        self.assertEqual(3, self.any1[2])
-        self.assertEqual(4, self.any1[3])
-        self.assertEqual(5, self.any1[4])
+        self.assertEqual("Anything([('a', 1), ('b', 2), 3, ('c', 4), 5])", result)
+        self.assertEqual(self.any1, eval(result))
 
     def testHasKey(self):
         self.assertTrue(self.any1.has_key('a'))
