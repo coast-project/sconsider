@@ -457,7 +457,7 @@ class UtilsTest(unittest.TestCase):
         self.assertEqual("42.0a", toNumber("42.0a"))
         
     def testLoadFromFile(self):
-        result = loadFromFile(resolvePath('LoadFromFileTest.any', os.path.dirname(__file__), 'data'))
+        result = loadFromFile(resolvePath('AnythingLoadFromFileTest.any', os.path.dirname(__file__), 'data'))
         expected = [
                     Anything([('key', 'value')])
                    ]
