@@ -201,6 +201,8 @@ if [ ${doDebug:-0} -eq 1 ]; then
 else
     $CMD "$@"
 fi
+
+exit $?
 """
     scriptFile.write(scriptText)
 

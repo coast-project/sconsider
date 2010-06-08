@@ -39,6 +39,7 @@ def run(cmd, logfile=None, **kw):
     command=shlex.split(cmd)
     tee = Tee()
     tee.add(sys.stdout, flush=True, close=False)
+    rcode=99
     try:
         if logfile:
             if not os.path.isdir(logfile.dir.abspath):
@@ -50,10 +51,11 @@ def run(cmd, logfile=None, **kw):
             if out == '' and proc.poll() != None:
                 break
             tee.write(out)
+        rcode=proc.returncode
     finally:
         tee.close()
 
-    return proc.returncode
+    return rcode
 
 def emitPassedFile(target, source, env):
     target = []
