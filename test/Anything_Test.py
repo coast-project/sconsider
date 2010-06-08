@@ -399,8 +399,8 @@ class ResolvePathTest(unittest.TestCase):
         self.__makeTempFile('test4.any', 'test')
 
     def tearDown(self):
-        shutil.rmtree(self.tempdir)
         os.chdir(self.savedPath)
+        shutil.rmtree(self.tempdir)
         os.environ = self.savedEnviron
         setLocalEnv({})
 
