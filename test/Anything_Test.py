@@ -415,6 +415,7 @@ class ResolvePathTest(unittest.TestCase):
         shutil.rmtree(self.tempdir)
         os.chdir(self.savedPath)
         os.environ = self.savedEnviron
+        setLocalEnv({})
 
     def testResolveAbs(self):
         self.assertRaises(IOError, lambda: resolvePath("test4.any"))
@@ -444,7 +445,6 @@ class ResolvePathTest(unittest.TestCase):
         self.assertRaises(IOError, lambda: resolvePath("test4.any"))
         setLocalEnv(WD_PATH='.:config:src:test')
         self.assertEqual(os.path.join(self.tempdir, 'test', 'test4.any'), resolvePath("test4.any"))
-        setLocalEnv({})
 
     def testResolvePathPassed(self):
         self.assertEqual(os.path.join(self.tempdir, 'test1.any'), resolvePath("test1.any", self.tempdir))
