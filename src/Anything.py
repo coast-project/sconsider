@@ -375,8 +375,3 @@ def parse(anythingstring):
     with Separator(~Star(AnyBut(anystart | anystop))):
         document = ~AnyBut(anystart)[:] & anything[:] & ~Any()[:]
     return document.parse(anythingstring)
-
-if __name__ == '__main__':
-    setEnv({'WD_ROOT': 'dsfsdf'})
-    blub = first(resolvers+[lambda key: os.getcwd()], 'WD_ROOT')
-    print blub
