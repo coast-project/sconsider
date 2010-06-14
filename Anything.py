@@ -288,8 +288,10 @@ class AnythingReference(object):
     def __repr__(self):
         return 'AnythingReference('+repr(self.keys)+(", '"+self.file+"'" if self.file else '')+')'
 
-tls = threading.local()
-tls.env = {}
+class TLS(threading.local):
+    env = {}
+
+tls = TLS()
 def setLocalEnv(env=None, **kw):
     if env:
         tls.env = env
