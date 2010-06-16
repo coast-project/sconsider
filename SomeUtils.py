@@ -31,21 +31,25 @@ def removeFiles( files, **kw ):
 def findFiles( directories, extensions = [], matchfiles = [], direxcludes = [] ):
     import SCons
     files = []
-    basepathabs=SCons.Script.Dir('.').srcnode().abspath
+    baseDir=SCons.Script.Dir('.').srcnode()
+    basepathabs=baseDir.abspath
     for directory in directories:
         directory = SCons.Script.Dir( directory ).srcnode().abspath
         for dirpath, dirnames, filenames in os.walk( directory ):
-            curDir = SCons.Script.Dir(os.path.relpath(dirpath,basepathabs))
-            dirnames[:] = [d for d in dirnames if not d in direxcludes]
-            addfiles = []
-            if extensions:
-                efiles = [curDir.File( f ) for f in filenames if os.path.splitext( f )[1] in extensions]
-                addfiles.extend( efiles )
-            if matchfiles:
-                mfiles = [curDir.File( f ) for f in filenames if os.path.split( f )[1] in matchfiles]
-                addfiles.extend( mfiles )
-            if addfiles:
-                files.extend( addfiles )
+            try:
+                # the following call fails if the relative directory evaluates to a target...
+                curDir = baseDir.Dir(os.path.relpath(dirpath,basepathabs))
+                dirnames[:] = [d for d in dirnames if not d in direxcludes]
+                addfiles = []
+                if extensions:
+                    efiles = [curDir.File( f ) for f in filenames if os.path.splitext( f )[1] in extensions]
+                    addfiles.extend( efiles )
+                if matchfiles:
+                    mfiles = [curDir.File( f ) for f in filenames if os.path.split( f )[1] in matchfiles]
+                    addfiles.extend( mfiles )
+                if addfiles:
+                    files.extend( addfiles )
+            except: pass
     files.sort( cmp = FileNodeComparer )
     return files
 
