@@ -53,6 +53,11 @@ def run(cmd, logfile=None, **kw):
             tee.write(out)
         rcode=proc.returncode
     finally:
+        while True:
+            out = proc.stdout.readline()
+            if out == '' and proc.poll() != None:
+                break
+            tee.write(out)
         tee.close()
 
     return rcode
