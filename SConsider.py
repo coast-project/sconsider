@@ -331,7 +331,7 @@ class PackageRegistry:
                 packagefile = self.getPackageFile(packagename)
                 builddir = os.path.join(self.env['BASEOUTDIR'].abspath, packagedir.path, self.env['BUILDDIR'], self.env['VARIANTDIR'])
                 print 'executing [%s] as SConscript for package [%s]' % (packagefile.path, packagename)
-                self.env.SConscript(packagefile, build_dir=builddir, duplicate=0, exports=['packagename'])
+                self.env.SConscript(packagefile, variant_dir=builddir, duplicate=0, exports=['packagename'])
             if targetname:
                 return self.getPackageTarget(packagename, targetname)['target']
         return None
