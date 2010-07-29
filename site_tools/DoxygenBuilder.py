@@ -76,10 +76,10 @@ def getDependentInputDirs(registry, packagename):
     dependentPackages = [packagename] # add own package of target first
     dependentPackages += getPackageDependencies(registry, packagename, recursive=True)
     allDependentInputDirs = []
-    
+
     for package in dependentPackages:
         allDependentInputDirs += getInputDirs(registry, package, relative=False)
-        
+
     return allDependentInputDirs
 
 def getPackageDependencies(registry, packagename, recursive=False):
@@ -343,7 +343,7 @@ def buildDoxyfile(target, source, env):
             inputDirs = env.get('inputDirs', [])
         else:
             inputDirs = packageInputDirs[target[0]]
-            
+
         dirs3rdParty = []
         if not GetOption('doxygenTags'):
             dirs3rdParty = filter3rdParty(inputDirs)
@@ -554,9 +554,8 @@ def createDoxygenTarget(env, registry, packagename):
     """
     Wrapper for creating a doxygen target for a package.
     """
-
     defaults = getDoxyDefaults(env, registry, packagename)
-
+    doxyfileTarget = None
     if GetOption('doxygen'):
         collectInputDirs(registry, packagename)
         doxyfileTarget = env.DoxyfileBuilder(target=registry.getPackageDir(packagename).File('Doxyfile'),
@@ -570,6 +569,8 @@ def createDoxygenTarget(env, registry, packagename):
                                              inputDirs=getInputDirs(registry, packagename),
                                              dependencies=getDoxyfileDependencies(registry, packagename, recursive=True),
                                              doxyDefaults=defaults)
+    else:
+        return
     env.Precious(doxyfileTarget)
     env.NoClean(doxyfileTarget)
 
@@ -691,7 +692,7 @@ def generate(env):
 
     if doxyAllRequested and GetOption("doxygen"):
         SConsider.registerCallback("PreBuild", addBuildAllTargetCallback)
-    else:
+    elif GetOption("doxygen") or GetOption("doxygenTags"):
         SConsider.registerCallback("PostCreatePackageTargets", createTargetCallback)
         SConsider.registerCallback("PreBuild", addBuildTargetCallback)
         compilerDefines.update(determineCompilerDefines(env))
