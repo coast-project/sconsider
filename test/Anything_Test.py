@@ -469,6 +469,13 @@ class UtilsTest(unittest.TestCase):
         expected = Anything([('key', 'value')])
         self.assertEqual(expected, result)
 
+    def testLoadFromNonexistingFile(self):
+        self.assertRaises(IOError, lambda: loadFromFile(os.path.join(os.path.dirname(__file__), 'data', 'NotThere.any')))
+        result=None
+        try: result=loadFromFile(os.path.join(os.path.dirname(__file__), 'data', 'NotThere.any'))
+        except IOError: pass
+        self.assertEqual(None, result)
+
 class AnythingReferenceTest(unittest.TestCase):
     def setUp(self):
         self.any1 = Anything([('a', 1), ('b', 2), 3, ('c', Anything([('a', Anything([1, 2, 3]))])), 5])

@@ -293,7 +293,7 @@ class TLS(threading.local):
 
 tls = TLS()
 def setLocalEnv(env=None, **kw):
-    if env:
+    if not env==None:
         tls.env = env
     tls.env.update(kw)
 
