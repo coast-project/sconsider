@@ -423,6 +423,7 @@ def getDoxyDefaults(env, registry, packagename=""):
         'GENERATE_ECLIPSEHELP': 'NO',
         'DOT_GRAPH_MAX_NODES': '80',
         'MAX_DOT_GRAPH_DEPTH': '7',
+        'DOT_CLEANUP': 'NO',
         'FULL_PATH_NAMES': 'NO',
         'SORT_GROUP_NAMES': 'YES',
         'MULTILINE_CPP_IS_BRIEF': 'NO',
