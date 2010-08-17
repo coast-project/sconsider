@@ -426,6 +426,8 @@ def getDoxyDefaults(env, registry, packagename=""):
         'DOT_CLEANUP': 'NO',
         'FULL_PATH_NAMES': 'NO',
         'SORT_GROUP_NAMES': 'YES',
+        'DOT_MULTI_TARGETS': 'YES',
+        'DOT_NUM_THREADS': '2',
         'MULTILINE_CPP_IS_BRIEF': 'NO',
         'REPEAT_BRIEF': 'NO',
         'EXTENSION_MAPPING': ' '.join(['sh=Python', 'sconsider=Python', 'any=Python']),
