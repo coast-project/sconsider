@@ -112,7 +112,7 @@ if GetOption('appendPath'):
 
 globaltools = ["setupBuildTools", "coast_options", "SCBWriter", "TargetPrinter",
                "precompiledLibraryInstallBuilder", "RunBuilder", "DoxygenBuilder",
-               "CompilerLibsInstallBuilder", "Package"]
+               "CompilerLibsInstallBuilder", "Package", "SubstInFileBuilder"]
 usetools = globaltools + GetOption('usetools')
 print 'tools to use %s' % Flatten(usetools)
 
@@ -414,8 +414,13 @@ class TargetMaker:
         if envconfigdir:
             envconfigdir = envconfigdir.Dir(pkgname)
 
-        for (cfiles, mode) in copyFiles:
-            instTargets.extend( copyFileNodes(env, self.prepareFileNodeTuples(cfiles, pkgdir, envconfigdir), destdir, mode=mode) )
+        for filetuple in copyFiles:
+            if len(filetuple) == 3:
+                files, mode, replaceDict = filetuple
+            else:
+                files, mode = filetuple
+                replaceDict = {}
+            instTargets.extend( copyFileNodes(env, self.prepareFileNodeTuples(files, pkgdir, envconfigdir), destdir, mode=mode, replaceDict=replaceDict) )
 
         return instTargets
 

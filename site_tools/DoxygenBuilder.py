@@ -601,6 +601,7 @@ def generate(env):
     """
     try:
         AddOption('--doxygen', dest='doxygen', action='store_true', default=False, help='Create module documentation')
+        AddOption('--doxygen-only', dest='doxygen-only', action='store_true', default=False, help='Same as --doxygen but skips all targets except doxygen')
     except optparse.OptionConflictError:
         raise DoxygenToolException("Only one Doxygen-Tool instance allowed")
 
@@ -624,16 +625,20 @@ def generate(env):
         doxyEnv.Alias("doxygen", doxyTarget)
 
     def addBuildTargetCallback(**kw):
-        SCons.Script.BUILD_TARGETS.append("doxygen")
+        if GetOption("doxygen-only"):
+            SCons.Script.BUILD_TARGETS = ["doxygen"]
+        else:
+            SCons.Script.BUILD_TARGETS.append("doxygen")
 
-    def addBuildAllTargetCallback(**kw):
-        doxyTarget = createDoxygenAllTarget(kw['registry'])
+    def addBuildAllTargetCallback(registry, **kw):
         doxyEnv = SConsider.cloneBaseEnv()
-        doxyEnv.Alias("all", doxyTarget)
+        doxyTarget = createDoxygenAllTarget(registry)
+        doxyEnv.Alias("doxygen", doxyTarget)
+        addBuildTargetCallback()
 
-    if GetOption("doxygen"):
+    if GetOption("doxygen") or GetOption("doxygen-only"):
         compilerDefines.update(determineCompilerDefines(env))
-        if 'all' in SCons.Script.BUILD_TARGETS:
+        if not SCons.Script.BUILD_TARGETS or 'all' in SCons.Script.BUILD_TARGETS:
             SConsider.registerCallback("PreBuild", addBuildAllTargetCallback)
         else:
             SConsider.registerCallback("PostCreatePackageTargets", createTargetCallback)

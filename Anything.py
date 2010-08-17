@@ -294,6 +294,10 @@ class TLS(threading.local):
 
 tls = TLS()
 def setLocalEnv(env=None, **kw):
+    """
+    Use env to set the entire env: setLocalEnv({'WD_ROOT': '/path/to/dir'})
+    Use kw to add/update single values: setLocalEnv(WD_PATH='.:config')
+    """
     if not env == None:
         tls.env = env
     tls.env.update(kw)
@@ -303,9 +307,9 @@ resolvers = [
              lambda key: os.environ.get(key, None)
             ]
 
-def first(funcs, *args):
+def first(funcs, *args, **kw):
     for func in funcs:
-        result = func(*args)
+        result = func(*args, **kw)
         if result:
             return result
     return None
@@ -347,7 +351,7 @@ def toNumber(string):
     except ValueError:
         return string
 
-def parseRef(refstring):
+def createAnythingReferenceGrammar():
     indexstart = Literal(':')
     keystart = Literal('.')
     key = Optional(~keystart) & ( Word(AnyBut(keystart | indexstart)) )
@@ -361,9 +365,13 @@ def parseRef(refstring):
     externalref = ( filedesc & Optional(~delimiter & internalref) ) >= reverse
 
     fullref = (~Literal('!') & externalref) | (~Literal('%') & internalref)
-    return AnythingReference(*fullref.parse(refstring))
+    return fullref
 
-def parse(anythingstring):
+refgrammar = createAnythingReferenceGrammar()
+def parseRef(refstring):
+    return AnythingReference(*refgrammar.parse(refstring))
+
+def createAnythingGrammar():
     commentstart = Literal('#')
     comment = ~commentstart & AnyBut(Newline())[:,...] & ~Newline()
     anystart = Literal('{')
@@ -381,4 +389,8 @@ def parse(anythingstring):
         anything += ~anystart & content[:] & ~anystop > Anything
     with Separator(~Star(AnyBut(anystart | anystop))):
         document = ~AnyBut(anystart)[:] & anything[:] & ~Any()[:]
-    return document.parse(anythingstring)
+    return document
+
+anygrammar = createAnythingGrammar()
+def parse(anythingstring):
+    return anygrammar.parse(anythingstring)

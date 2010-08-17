@@ -53,7 +53,7 @@ def findFiles( directories, extensions = [], matchfiles = [], direxcludes = [] )
     files.sort( cmp = FileNodeComparer )
     return files
 
-def copyFileNodes( env, nodetuples, destDir, stripRelDirs = [], mode = None ):
+def copyFileNodes( env, nodetuples, destDir, stripRelDirs = [], mode = None, replaceDict={} ):
     import SCons
     if not SCons.Util.is_List( stripRelDirs ):
         stripRelDirs = [stripRelDirs]
@@ -71,7 +71,11 @@ def copyFileNodes( env, nodetuples, destDir, stripRelDirs = [], mode = None ):
                 delprefix = os.path.commonprefix( [stripRelDir.split( os.sep ), relPathParts] )
             installRelPath = os.sep.join( relPathParts[len( delprefix ):] )
 
-        instTarg = env.Install( destDir.Dir( installRelPath ), file )
+        if replaceDict:
+            instTarg = env.SubstInFileBuilder( destDir.Dir( installRelPath ), file, SUBST_DICT=replaceDict )
+        else:
+            instTarg = env.Install( destDir.Dir( installRelPath ), file )
+        
         if mode:
             env.AddPostAction( instTarg, SCons.Defaults.Chmod( str( instTarg[0] ), mode ) )
         instTargs.extend( instTarg )
