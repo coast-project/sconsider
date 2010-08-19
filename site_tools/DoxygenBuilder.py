@@ -74,7 +74,7 @@ def getPackageInputDirs(registry, packagename, relativeTo=None):
         for sourcefile in settings.get("public", {}).get("includes", []):
             if isinstance(sourcefile, SCons.Node.FS.File):
                 sourceDirs.add(resolvePath(sourcefile.srcnode().dir.abspath, relativeTo))
-
+        
     return sourceDirs
 
 def getHeaderFiles(registry, packagename):
@@ -527,8 +527,15 @@ def createDoxygenAllTarget(registry):
     if not doxyData:
         doxyData = getDoxyfileTemplate()
         doxyData.update(getDoxyDefaults(env, registry))
+        
+    def isTestPackage(packagename):
+        for targetname, settings in registry.getBuildSettings(packagename).iteritems():
+            if settings.get('runConfig', {}).get('type', '') == 'test':
+                return True
+        return False
+    notIsTestPackage = lambda packagename: not isTestPackage(packagename)
     
-    allPackageNames = registry.getPackageNames()
+    allPackageNames = filter(notIsTestPackage, registry.getPackageNames())
     allInputDirs = set()
     allPackageFiles = []
 
