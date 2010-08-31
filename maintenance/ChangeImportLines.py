@@ -8,7 +8,7 @@ reCpp=re.compile(r'\.(cpp|C)$')
 reHeader=re.compile(r'\.(hp*|ip*)$')
 reLibPy=re.compile(r'\w+Lib\.py$')
 reScons=re.compile(r'SConscript$')
-reShell=re.compile(r'\.sh$')
+reShell=re.compile(r'\.(sh|awk)$')
 reAny=re.compile(r'\.any$')
 reMake=re.compile(r'Makefile.*$')
 reHtml=re.compile(r'\.html?$')
@@ -67,7 +67,7 @@ pragmaReplace=(strRePragma, "")
 # $RCSfile$: Main configuration for StressServer
 #
 #--------------------------------------------------------------------
-strReCopyrightAnyShell = re.compile(r"(^(\s*(#[-#]{2}).*$\s)^([ \t]*#[^#-]?.*$\s)+^([ \t]*#[-#]{2}.*$\s)\s*)",re.M)
+strReCopyrightAnyShell = re.compile(r"(^(\s*(#[-#]{2}).*$\s)^([ \t]*#[^#-]?.*$\s)+^([ \t]*#[-#]{2}.*$\s)?\s*)",re.M)
 
 headerTemplateAnyShell="""#-----------------------------------------------------------------------------------------------------
 # Copyright (c) 2005, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
