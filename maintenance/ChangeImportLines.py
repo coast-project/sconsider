@@ -266,7 +266,6 @@ if __name__ == "__main__":
     parser.add_option("-x", "--fileregex", action="append", dest="fileregex", help="process only files matching regular expression, like '"+reCpp.pattern+"'", default=[])
     parser.add_option("-f", "--filepattern", action="append", dest="filepattern", help="process only files matching glob spec, like '*.cpp'", default=[])
     parser.add_option("-d", "--dictfile", action="store", dest="dictfilename",help="write processed entries to FILE", metavar="FILE")
-    parser.add_option("-t", "--threadnum", action="store", dest="threadnum",help="use given number of threads to process files")
 
     (options, positionalArgs) = parser.parse_args()
     if not options.allfiles and len(positionalArgs) < 1:
@@ -290,37 +289,15 @@ if __name__ == "__main__":
     if options.allfiles and len(extensionReList):
         for dirpath, dirnames, filenames in os.walk('.'):
             dirnames[:] = [d for d in dirnames if not d in fgExcludeDirs]
-#            newfiles = [os.path.join(dirpath, name) for name in filenames if matchIt(name)]
             newfiles = [os.path.join(dirpath, name) for name in filenames]
             filesToProcess.extend(newfiles)
 
     end = time.clock()
     numFiles=len(filesToProcess)
     print "Time elapsed = ", end - start, "s for nfiles:",numFiles
-
     start = time.clock()
-    numthreads=None
-    if options.threadnum:
-        numthreads=int(options.threadnum)
     # check here to see why multi threading in python is not what we would expect -> http://www.dabeaz.com/python/GIL.pdf
-    if False or numthreads > 0:
-        replaceThreads=[]
-        filesPerThread=int(math.ceil(float(numFiles)/float(numthreads)))
-        nstart=0
-        nend=numthreads*filesPerThread
-        while nstart < numFiles:
-            t=replaceThread(replaceFuncs=fgReplaceFuncs, fileCopyrightDict=fileCopyrightDict, doAstyle=options.astyle, files=filesToProcess[nstart:nend])
-            t.start()
-            replaceThreads.append(t)
-            nstart+=filesPerThread
-            nend+=filesPerThread
-        for t in replaceThreads:
-            t.join()
-            # get dict from thread and update with current
-            fileCopyrightDict.update(t.fileCopyrightDict)
-    else:
-        processFiles(filesToProcess, fileCopyrightDict=fileCopyrightDict, extensionToReplaceFuncMap=fgExtensionToReplaceFuncMap, doAstyle=options.astyle)
-#        processFiles(filesToProcess, fgReplaceFuncs, fileCopyrightDict=fileCopyrightDict, extensionToReplaceFuncMap=fgExtensionToReplaceFuncMap, regexList=extensionReList, doAstyle=options.astyle)
+    processFiles(filesToProcess, fileCopyrightDict=fileCopyrightDict, extensionToReplaceFuncMap=fgExtensionToReplaceFuncMap, doAstyle=options.astyle)
     end = time.clock()
     chgElapsed=end-start
     print "Time elapsed = ", chgElapsed, "s for processing,",(chgElapsed/numFiles),"s per file"
