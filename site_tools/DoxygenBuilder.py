@@ -74,7 +74,7 @@ def getPackageInputDirs(registry, packagename, relativeTo=None):
         for sourcefile in settings.get("public", {}).get("includes", []):
             if isinstance(sourcefile, SCons.Node.FS.File):
                 sourceDirs.add(resolvePath(sourcefile.srcnode().dir.abspath, relativeTo))
-        
+
     return sourceDirs
 
 def getHeaderFiles(registry, packagename):
@@ -300,7 +300,7 @@ def buildDoxyfile(target, source, env):
 def openLogFiles(env):
     log_out = None
     log_err = None
-    
+
     logfilebasename = env.get('logname', '')
     if logfilebasename:
         logpath = env['BASEOUTDIR'].Dir(os.path.join(env['LOGDIR'])).get_abspath()
@@ -308,7 +308,7 @@ def openLogFiles(env):
             os.makedirs(logpath)
         log_out = open(os.path.join(logpath, logfilebasename + '.stdout'), 'w')
         log_err = open(os.path.join(logpath, logfilebasename + '.stderr'), 'w')
-    
+
     return (log_out, log_err)
 
 def closeLogFiles(log_out, log_err):
@@ -409,7 +409,7 @@ def getDoxyDefaults(env, registry, packagename=""):
         'REFERENCES_RELATION': 'YES',
         'ALPHABETICAL_INDEX': 'YES',
         'SEARCHENGINE': 'NO',
-        'SEARCH_INCLUDES': 'NO',
+        'SEARCH_INCLUDES': 'YES',
         'HIDE_UNDOC_RELATIONS': 'NO',
         'HAVE_DOT': 'YES',
         'TEMPLATE_RELATIONS': 'YES',
@@ -452,13 +452,13 @@ def createDoxygenTarget(env, registry, packagename):
     if not doxyData:
         doxyData = getDoxyfileTemplate()
         doxyData.update(getDoxyDefaults(env, registry, packagename))
-    
+
     doxyData["INPUT"] = set()
     doxyData["INCLUDE_PATH"] = set()
     doxyData["TAGFILES"] = []
 
     doxyData["INPUT"].update(getPackageInputDirs(registry, packagename))
-    
+
     if '3rdparty' in doxyfile.get_dir().get_abspath():
         doxyData['GENERATE_TAGFILE'] = os.path.join(doxyData.get('OUTPUT_DIRECTORY', ''), packagename + '.tag')
 
@@ -520,21 +520,21 @@ def createDoxygenAllTarget(registry):
     Wrapper for creating a doxygen target for coast.
     """
     env = SConsider.cloneBaseEnv()
-    
+
     doxyfile = env['BASEOUTDIR'].File('Doxyfile')
-    
+
     doxyData = getDoxyfileData(doxyfile, env)
     if not doxyData:
         doxyData = getDoxyfileTemplate()
         doxyData.update(getDoxyDefaults(env, registry))
-        
+
     def isTestPackage(packagename):
         for targetname, settings in registry.getBuildSettings(packagename).iteritems():
             if settings.get('runConfig', {}).get('type', '') == 'test':
                 return True
         return False
     notIsTestPackage = lambda packagename: not isTestPackage(packagename)
-    
+
     allPackageNames = filter(notIsTestPackage, registry.getPackageNames())
     allInputDirs = set()
     allPackageFiles = []
