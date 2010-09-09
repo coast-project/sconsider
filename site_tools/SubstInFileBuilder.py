@@ -37,7 +37,7 @@ def getData(keys, env):
         if key in subst_dict:
             value = subst_dict[key]
             if callable(value):
-                data[key] = env.subst(value())
+                data[key] = env.subst(value(env=env))
             else:
                 data[key] = env.subst(value)
     return data
