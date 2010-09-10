@@ -145,7 +145,7 @@ for v in baseEnv.get('VARIANT_SUFFIX', []):
 
 print "compilation variant [", variant, "]"
 
-ssfile = os.path.join(Dir('#').path, '.sconsign.' + variant)
+ssfile = os.path.join(baseoutdir.abspath, '.sconsign.' + variant)
 SConsignFile(ssfile)
 
 #########################
