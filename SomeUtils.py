@@ -10,7 +10,6 @@ def listFiles( files, **kw ):
     allFiles = []
     for file in files:
         globFiles = SCons.Script.Glob( file )
-        newFiles = []
         for globFile in globFiles:
             if 'recursive' in kw and kw.get( 'recursive' ) and os.path.isdir( globFile.srcnode().abspath ) and os.path.basename( globFile.srcnode().abspath ) != 'CVS':
                 allFiles += SConsider.listFiles( [str( SCons.Script.Dir( '.' ).srcnode().rel_path( globFile.srcnode() ) ) + "/*"], recursive = True )

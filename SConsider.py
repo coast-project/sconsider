@@ -534,9 +534,12 @@ class TargetMaker:
             # flags / settings used by this library and users of it
             env.AppendUnique(**appendUnique)
 
-            destIncludeDir = env['BASEOUTDIR'].Dir(os.path.join(env['INCDIR'], packagename))
+            destIncludeDir = env['BASEOUTDIR'].Dir(env['INCDIR']).Dir(packagename)
+            if not buildSettings['public'].get('stripSubdir', True):
+                destIncludeDir = destIncludeDir.Dir(buildSettings['public'].get('includeSubdir', ''))
+            
             srcIncludeDir = self.registry.getPackageDir(packagename).Dir(buildSettings['public'].get('includeSubdir', ''))
-
+            
             # destination dir if we have files to copy
             if buildSettings['public'].get('includes', []):
                 env.AppendUnique(CPPPATH=[destIncludeDir])
