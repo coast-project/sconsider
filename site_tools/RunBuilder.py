@@ -1,9 +1,8 @@
 from __future__ import with_statement
-import os, pdb, subprocess, optparse, sys
+import os, pdb, subprocess, optparse, sys, functools, re
 import SCons.Action, SCons.Builder, SCons.Script
 from SCons.Script import AddOption, GetOption
-import SConsider
-import Callback
+import SConsider, Callback
 Callback.addCallbackFeature(__name__)
 
 runtargets = {}
@@ -119,7 +118,7 @@ def addRunConfigHooks(env, source, runner, buildSettings):
     if callable(tearDown):
         registerCallback('__PostAction_'+str(id(runner[0])), lambda: tearDown(target=runner, source=source, env=env))
 
-def createTestTarget(env, source, registry, packagename, targetname, buildSettings, defaultRunParams='-- -all'):
+def createTestTarget(env, source, plainsource, registry, packagename, targetname, buildSettings, defaultRunParams='-- -all'):
     """Creates a target which runs a target given in parameter 'source'. If ran successfully a
     file is generated (name given in parameter 'target') which indicates that this runner-target
     doesn't need to be executed unless the dependencies changed. Command line parameters could be
@@ -138,7 +137,19 @@ def createTestTarget(env, source, registry, packagename, targetname, buildSettin
     runner = env.TestBuilder([], source, runParams=getRunParams(buildSettings, defaultRunParams), logfile=logfile)
     if GetOption('run-force'):
         env.AlwaysBuild(runner)
-
+    
+    isInBuilddir = functools.partial(SConsider.hasPathPart, pathpart=env['BUILDDIR'])
+    isCopiedInclude = lambda node: node.path.startswith(env['INCDIR'])
+    
+    funcs = [
+             SConsider.isFileNode,
+             SConsider.isDerivedNode,
+             lambda node: not isInBuilddir(node),
+             lambda node: not isCopiedInclude(node)
+             ]
+    
+    env.Depends(runner, sorted(SConsider.getNodeDependencies(runner[0], funcs)))
+    
     addRunConfigHooks(env, source, runner, buildSettings)
 
     registerCallback('__PostTestOrRun', lambda: runCallback('PostTest', target=source, registry=registry, packagename=packagename, targetname=targetname, logfile=logfile))
@@ -149,7 +160,7 @@ def createTestTarget(env, source, registry, packagename, targetname, buildSettin
     setTarget(packagename, targetname, runner)
     return runner
 
-def createRunTarget(env, source, registry, packagename, targetname, buildSettings, defaultRunParams=''):
+def createRunTarget(env, source, plainsource, registry, packagename, targetname, buildSettings, defaultRunParams=''):
     """Creates a target which runs a target given in parameter 'source'. Command line parameters could be
     handed over by using --runparams="..." or by setting buildSettings['runConfig']['runParams'].
     The Fields 'setUp' and 'tearDown' in 'runConfig' accept a string (executed as shell command),
@@ -197,14 +208,14 @@ def generate(env):
     env.AddMethod(createRunTarget, "RunTarget")
     SConsider.SkipTest = SkipTest
 
-    def createTargetCallback(env, target, registry, packagename, targetname, buildSettings, **kw):
+    def createTargetCallback(env, target, plaintarget, registry, packagename, targetname, buildSettings, **kw):
         runConfig = buildSettings.get('runConfig', {})
         if not runConfig:
             return None
         factory = createRunTarget
         if runConfig.get('type', 'run') == 'test':
             factory = createTestTarget
-        factory(env, target, registry, packagename, targetname, buildSettings, **kw)
+        factory(env, target, plaintarget, registry, packagename, targetname, buildSettings, **kw)
 
     def addBuildTargetCallback(**kw):
         for ftname in SCons.Script.COMMAND_LINE_TARGETS:

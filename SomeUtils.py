@@ -216,3 +216,34 @@ def getFlatENV(env):
         newENV[key] = env.subst(newENV[key])
 
     return newENV
+
+def isFileNode(node):
+    """No path means it is not a file."""
+    return hasattr(node, 'path')
+
+def isDerivedNode(node):
+    """Returns True if this node is built"""
+    return node.is_derived()
+
+def hasPathPart(node, pathpart):
+    """Checks if node's path has a given part"""
+    regex = '(^'+re.escape(pathpart+os.sep)+')'
+    regex += '|(.*'+re.escape(os.sep+pathpart+os.sep)+')'
+    regex += '|(.*'+re.escape(os.sep+pathpart)+'$)'
+    match = re.match(regex, node.path)
+    return match is not None
+
+def getNodeDependencies(target, filters=[]):
+    """Determines the recursive dependencies of a node.    
+    Specify node filters using 'filters'.
+    """
+    if not isinstance(filters, list):
+        filters = [filters]
+    
+    deps = set()
+    for t in target.sources + target.depends + target.prerequisites:
+        if allFuncs(filters, t):
+            deps.update( t.get_executor().get_all_targets() )
+        deps.update(getNodeDependencies(t, filters))
+
+    return deps

@@ -70,7 +70,6 @@ def programApp(env, name, sources, packagename, buildSettings, **kw):
     return (plaintarget, wrappers)
 
 def programTest(env, name, sources, packagename, targetname, buildSettings, **kw):
-    env.Decider(changed_timestamp_or_content)
     plaintarget = usedOrProgramTarget(env, name, sources, buildSettings)
     buildSettings.setdefault("runConfig", {}).setdefault("type", "test")
     return setupTargetDirAndWrapperScripts(env, name, packagename, plaintarget, 'tests')
@@ -472,7 +471,7 @@ class TargetMaker:
             if targetBuildSettings.get('runConfig', {}).get('type', '') == 'test':
                 targetEnv.Alias('tests', target)
 
-            runCallback("PostCreateTarget", env=targetEnv, target=target, registry=self.registry, packagename=pkgname, targetname=name, buildSettings=targetBuildSettings)
+            runCallback("PostCreateTarget", env=targetEnv, target=target, plaintarget=plaintarget, registry=self.registry, packagename=pkgname, targetname=name, buildSettings=targetBuildSettings)
 
             self.registry.setPackageTarget(pkgname, name, plaintarget, target)
         except PackageNotFound, e:

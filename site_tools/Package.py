@@ -22,13 +22,13 @@ def addPackageTarget(registry, buildTargets, env, destdir, **kw):
     buildTargets.append(packageAliasName)
 
 def makePackage(registry, buildTargets, env, destdir, **kw):
-    isInBuilddir = functools.partial(hasPathPart, pathpart=env['BUILDDIR'])
+    isInBuilddir = functools.partial(SomeUtils.hasPathPart, pathpart=env['BUILDDIR'])
     notInBuilddir = lambda target: not isInBuilddir(target)
     notCopiedInclude = lambda target: not target.path.startswith(env['INCDIR'])
     copyfilters = [filterTestsAppsGlobalsPath, filterVariantPath]
     for tn in buildTargets:
         if registry.isValidFulltargetname(tn):
-            tdeps = getTargetDependencies(env.Alias(tn)[0], [isDerivedDependency, notInBuilddir, notCopiedInclude])
+            tdeps = getTargetDependencies(env.Alias(tn)[0], [SomeUtils.isDerivedNode, notInBuilddir, notCopiedInclude])
             copyPackage(tn, tdeps, env, destdir, copyfilters)
 
 def copyPackage(name, deps, env, destdir, filters=[]):
@@ -38,7 +38,7 @@ def copyPackage(name, deps, env, destdir, filters=[]):
 def copyTarget(env, destdir, node):
     old = env.Alias(destdir.File(node.name))
     if len(old) and len(old[0].sources):
-        if isInstalledDependency(node, old[0].sources[0]) or isInstalledDependency(old[0].sources[0], node):
+        if isInstalledNode(node, old[0].sources[0]) or isInstalledNode(old[0].sources[0], node):
             return None
         else:
             print "Ambiguous target [%s] copied from [%s] and [%s]." % (old[0].path, node.path, old[0].sources[0].path)
@@ -47,14 +47,14 @@ def copyTarget(env, destdir, node):
     env.Alias(packageAliasName, target)
     return target
 
-def isInstalledDependency(testnode, node):
+def isInstalledNode(testnode, node):
     if testnode.path == node.path:
         return True
     if not hasattr(node, 'builder') or not hasattr(node.builder, 'name') or node.builder.name != 'InstallBuilder':
         return False
     if len(node.sources) < 1:
         return False
-    return isInstalledDependency(testnode, node.sources[0])
+    return isInstalledNode(testnode, node.sources[0])
 
 def filterTestsAppsGlobalsPath(path, **kw):
     replist = [('^tests'+os.sep+'[^'+os.sep+']*'+os.sep+'?', ''),
@@ -100,37 +100,19 @@ def generate(env):
 
 def exists(env):
     return 1
-
-def isFileDependency(target):
-    """No path means it is not a file."""
-    return hasattr(target, 'path')
-
-def isDerivedDependency(target):
-    """Returns True if this node is built"""
-    return target.is_derived()
-
-def hasPathPart(target, pathpart):
-    """Checks if target's path has a given part"""
-    regex = '(^'+re.escape(pathpart+os.sep)+')'
-    regex += '|(.*'+re.escape(os.sep+pathpart+os.sep)+')'
-    regex += '|(.*'+re.escape(os.sep+pathpart)+'$)'
-    match = re.match(regex, target.path)
-    return match is not None
         
-def getTargetDependencies(target, customfilters=[]):
+def getTargetDependencies(target, filters=[]):
     """Determines the recursive dependencies of a target (including itself).
     
-    Specify additional target filters using 'customfilters'.
+    Specify additional target filters using 'filters'.
     """
-    if not isinstance(customfilters, list):
-        customfilters = [customfilters]
-    filters = [isFileDependency] + customfilters
+    if not isinstance(filters, list):
+        filters = [filters]
+    filters = [SomeUtils.isFileNode] + filters
     
     deps = set()
     if SomeUtils.allFuncs(filters, target):
         deps.update( target.get_executor().get_all_targets() )
-
-    for t in target.sources + target.depends + target.prerequisites:
-        deps.update(getTargetDependencies(t, customfilters))
+    deps.update(SomeUtils.getNodeDependencies(target, filters))
 
     return deps
