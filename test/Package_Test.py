@@ -1,4 +1,4 @@
-import os, unittest, Package, functools
+import os, unittest, Package, functools, SomeUtils
 
 class UpdateableObject(object):
     def __init__(self, **kw):
@@ -31,56 +31,6 @@ class TargetStub(UpdateableObject):
         """
         return hasattr(self, 'builder') and not self.builder is None
 
-class TargetFilterTest(unittest.TestCase):  
-    def testIsFileDependencyTrue(self):
-        target = TargetStub(path = os.path.dirname(__file__))
-        self.assertTrue(Package.isFileDependency(target))
-        
-    def testIsFileDependencyFalse(self):
-        target = TargetStub()
-        self.assertFalse(Package.isFileDependency(target))
-    
-    def testIsDerivedDependencyTrue(self):
-        target = TargetStub(builder = object())
-        self.assertTrue(Package.isDerivedDependency(target))
-    
-    def testIsDerivedDependencyFalseNoBuilder(self):
-        target = TargetStub()
-        self.assertFalse(Package.isDerivedDependency(target))
-    
-    def testIsDerivedDependencyFalseBuilderNone(self):
-        target = TargetStub(builder = None)
-        self.assertFalse(Package.isDerivedDependency(target))
-
-class NotHasPathPartFilterTest(unittest.TestCase):
-    def hasPathPart(self, path, part):
-        target = TargetStub(path = path)
-        return Package.hasPathPart(target, part)
-    
-    def testNotHasPathPart(self):
-        self.assertFalse(self.hasPathPart('bla/blub/bloek', '.build'))
-    
-    def testHasPathPartFirst(self):
-        self.assertTrue(self.hasPathPart('.build/blub/bloek', '.build'))
-
-    def testHasPathPartMiddle(self):      
-        self.assertTrue(self.hasPathPart('bla/.build/bloek', '.build'))
-    
-    def testHasPathPartLast(self):
-        self.assertTrue(self.hasPathPart('bla/blub/.build', '.build'))
-
-    def testNotHasPathPartMulti(self):
-        self.assertFalse(self.hasPathPart('bla/.build/blub/bloek', '.build/bloek'))
-    
-    def testHasPathPartMultiFirst(self):
-        self.assertTrue(self.hasPathPart('bla/.build/blub/bloek', 'bla/.build/blub'))
-        
-    def testHasPathPartMultiMiddle(self):
-        self.assertTrue(self.hasPathPart('bla/.build/bloek/blim', '.build/bloek'))
-    
-    def testHasPathPartMultiLast(self):
-        self.assertTrue(self.hasPathPart('bla/blub/bloek/.build', 'bloek/.build'))
-
 class PackageToolTest(unittest.TestCase):
     def setUp(self):
         self.source1 = TargetStub(path = "source1")
@@ -98,22 +48,22 @@ class PackageToolTest(unittest.TestCase):
         self.assertEqual(len(deps), 6)
     
     def testDerivedTargetDependenciesZero(self):
-        deps = Package.getTargetDependencies(self.alias, Package.isDerivedDependency)
+        deps = Package.getTargetDependencies(self.alias, SomeUtils.isDerivedNode)
         self.assertEqual(len(deps), 0)
     
     def testDerivedTargetDependencies(self):
         self.blub.builder = object()
         self.bla.builder = object()
-        deps = Package.getTargetDependencies(self.alias, Package.isDerivedDependency)
+        deps = Package.getTargetDependencies(self.alias, SomeUtils.isDerivedNode)
         self.assertEqual(len(deps), 2)
 
     def testTargetDependenciesTarget(self):
         self.alias.path = "target1"
         self.alias.builder = object() 
-        deps = Package.getTargetDependencies(self.alias, Package.isDerivedDependency)
+        deps = Package.getTargetDependencies(self.alias, SomeUtils.isDerivedNode)
         self.assertEqual(len(deps), 1)
 
-class InstalledDependencyTest(unittest.TestCase):
+class InstalledNodeTest(unittest.TestCase):
     def setUp(self):
         self.node1 = TargetStub(path = "3rdparty/blub")
         self.node2 = TargetStub(path = "bin/blub",
@@ -124,12 +74,12 @@ class InstalledDependencyTest(unittest.TestCase):
                                 builder = UpdateableObject(name='InstallBuilder'))
         self.testnode = TargetStub(path = "bin/blub")
 
-    def testIsInstalledDependency(self):
-        self.assertTrue(Package.isInstalledDependency(self.testnode, self.node3))
+    def testIsInstalledNode(self):
+        self.assertTrue(Package.isInstalledNode(self.testnode, self.node3))
 
-    def testNotIsInstalledDependency(self):
+    def testNotIsInstalledNode(self):
         self.node3.builder.name = "BlaBuilder"
-        self.assertFalse(Package.isInstalledDependency(self.testnode, self.node3))
+        self.assertFalse(Package.isInstalledNode(self.testnode, self.node3))
 
 class PathFilterTest(unittest.TestCase):
     def setUp(self):
