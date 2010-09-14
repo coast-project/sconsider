@@ -416,21 +416,21 @@ class ResolvePathTest(unittest.TestCase):
         self.assertRaises(IOError, lambda: resolvePath("test4.any"))
 
     def testResolvePathEnv(self):
-        os.environ['WD_ROOT'] = self.tempdir
+        os.environ['COAST_ROOT'] = self.tempdir
         self.assertEqual(os.path.join(self.tempdir, 'test1.any'), resolvePath("test1.any"))
         self.assertEqual(os.path.join(self.tempdir, 'config', 'test2.any'), resolvePath("test2.any"))
         self.assertEqual(os.path.join(self.tempdir, 'src', 'test3.any'), resolvePath("test3.any"))
         self.assertRaises(IOError, lambda: resolvePath("test4.any"))
-        os.environ['WD_PATH'] = '.:config:src:test'
+        os.environ['COAST_PATH'] = '.:config:src:test'
         self.assertEqual(os.path.join(self.tempdir, 'test', 'test4.any'), resolvePath("test4.any"))
 
     def testResolvePathTLS(self):
-        setLocalEnv({'WD_ROOT': self.tempdir})
+        setLocalEnv({'COAST_ROOT': self.tempdir})
         self.assertEqual(os.path.join(self.tempdir, 'test1.any'), resolvePath("test1.any"))
         self.assertEqual(os.path.join(self.tempdir, 'config', 'test2.any'), resolvePath("test2.any"))
         self.assertEqual(os.path.join(self.tempdir, 'src', 'test3.any'), resolvePath("test3.any"))
         self.assertRaises(IOError, lambda: resolvePath("test4.any"))
-        setLocalEnv(WD_PATH='.:config:src:test')
+        setLocalEnv(COAST_PATH='.:config:src:test')
         self.assertEqual(os.path.join(self.tempdir, 'test', 'test4.any'), resolvePath("test4.any"))
 
     def testResolvePathPassed(self):
@@ -480,8 +480,8 @@ class AnythingReferenceTest(unittest.TestCase):
     def setUp(self):
         self.any1 = Anything([('a', 1), ('b', 2), 3, ('c', Anything([('a', Anything([1, 2, 3]))])), 5])
         self.savedEnviron = os.environ.copy()
-        os.environ['WD_ROOT'] = os.path.dirname(__file__)
-        os.environ['WD_PATH'] = '.:data'
+        os.environ['COAST_ROOT'] = os.path.dirname(__file__)
+        os.environ['COAST_PATH'] = '.:data'
 
     def tearDown(self):
         os.environ = self.savedEnviron

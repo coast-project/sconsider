@@ -295,8 +295,8 @@ class TLS(threading.local):
 tls = TLS()
 def setLocalEnv(env=None, **kw):
     """
-    Use env to set the entire env: setLocalEnv({'WD_ROOT': '/path/to/dir'})
-    Use kw to add/update single values: setLocalEnv(WD_PATH='.:config')
+    Use env to set the entire env: setLocalEnv({'COAST_ROOT': '/path/to/dir'})
+    Use kw to add/update single values: setLocalEnv(COAST_PATH='.:config')
     """
     if not env == None:
         tls.env = env
@@ -319,10 +319,10 @@ def resolvePath(filename, root=None, path=None):
         return filename
 
     if not root or not os.path.isdir(root):
-        root = first(resolvers+[lambda key: os.getcwd()], 'WD_ROOT')
+        root = first(resolvers+[lambda key: os.getcwd()], 'COAST_ROOT')
 
     if not path:
-        path = first(resolvers+[lambda key: ['.','config', 'src']], 'WD_PATH')
+        path = first(resolvers+[lambda key: ['.','config', 'src']], 'COAST_PATH')
     if isinstance(path, basestring):
         path = path.split(':')
 
