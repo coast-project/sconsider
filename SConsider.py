@@ -429,19 +429,20 @@ class TargetMaker:
         for targ in requiredTargets:
             env.Depends(target, env.Alias(targ)[0])
 
-    def doCreateTarget(self, pkgname, name, targetBuildSettings):
+    def doCreateTarget(self, packagename, targetname, targetBuildSettings):
         plaintarget = None
         target = None
         try:
             envVars = targetBuildSettings.get('appendUnique', {})
-            targetEnv = self.createTargetEnv(name, targetBuildSettings, envVars)
+            targetEnv = self.createTargetEnv(targetname, targetBuildSettings, envVars)
             func = getattr(targetEnv, targetBuildSettings.get('targetType', '__UNDEFINED_TARGETTYPE__'), None)
             if func:
                 kw = {}
-                kw['packagename'] = pkgname
-                kw['targetname'] = name
+                kw['packagename'] = packagename
+                kw['targetname'] = targetname
                 kw['buildSettings'] = targetBuildSettings
                 sources = targetBuildSettings.get('sourceFiles', [])
+                name = packagename + targetname if packagename != targetname else targetname
                 targets = apply(func, [name, sources], kw)
                 if isinstance(targets, tuple):
                     plaintarget, target = targets
@@ -449,33 +450,33 @@ class TargetMaker:
                     plaintarget = target = targets
 
             if plaintarget:
-                targetEnv.Depends(plaintarget, self.registry.getPackageFile(pkgname))
+                targetEnv.Depends(plaintarget, self.registry.getPackageFile(packagename))
             else:
                 # Actually includeOnlyTarget is obsolete, but we still need a (dummy) targetType in build settings to get in here!
                 # The following is a workaround, otherwise an alias won't get built in newer SCons versions (because it has depends but no sources)
-                plaintarget = target = targetEnv.Alias(pkgname+'.'+name, self.registry.getPackageFile(pkgname))
+                plaintarget = target = targetEnv.Alias(packagename+'.'+targetname, self.registry.getPackageFile(packagename))
 
             reqTargets = targetBuildSettings.get('linkDependencies', []) + targetBuildSettings.get('requires', [])
             self.requireTargets(targetEnv, target, reqTargets)
 
-            includeTargets = self.copyIncludeFiles(targetEnv, pkgname, targetBuildSettings)
+            includeTargets = self.copyIncludeFiles(targetEnv, packagename, targetBuildSettings)
             targetEnv.Depends(target, includeTargets)
             targetEnv.Alias('includes', includeTargets)
 
             if targetBuildSettings.has_key('copyFiles'):
-                copyTargets = self.copyFiles(targetEnv, targetEnv['BASEOUTDIR'].Dir(targetEnv['RELTARGETDIR']), pkgname, targetBuildSettings.get('copyFiles', []))
+                copyTargets = self.copyFiles(targetEnv, targetEnv['BASEOUTDIR'].Dir(targetEnv['RELTARGETDIR']), packagename, targetBuildSettings.get('copyFiles', []))
                 targetEnv.Depends(target, copyTargets)
 
-            targetEnv.Alias(pkgname, target)
+            targetEnv.Alias(packagename, target)
             targetEnv.Alias('all', target)
             if targetBuildSettings.get('runConfig', {}).get('type', '') == 'test':
                 targetEnv.Alias('tests', target)
 
-            runCallback("PostCreateTarget", env=targetEnv, target=target, plaintarget=plaintarget, registry=self.registry, packagename=pkgname, targetname=name, buildSettings=targetBuildSettings)
+            runCallback("PostCreateTarget", env=targetEnv, target=target, plaintarget=plaintarget, registry=self.registry, packagename=packagename, targetname=targetname, buildSettings=targetBuildSettings)
 
-            self.registry.setPackageTarget(pkgname, name, plaintarget, target)
+            self.registry.setPackageTarget(packagename, targetname, plaintarget, target)
         except PackageNotFound, e:
-            print 'package [%s] not found, ignoring target [%s]' % (str(e), pkgname+'.'+name)
+            print 'package [%s] not found, ignoring target [%s]' % (str(e), packagename+'.'+targetname)
 
     def createTargetEnv(self, targetname, targetBuildSettings, envVars={}):
         # create environment for target
