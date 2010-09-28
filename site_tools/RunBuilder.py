@@ -11,8 +11,14 @@ def setTarget(packagename, targetname, target):
         target = target[0]
     runtargets.setdefault(packagename, {})[targetname] = target
 
-def getTargets(packagename, targetname=None):
-    if not targetname:
+def getTargets(packagename=None, targetname=None):
+    if not packagename:
+        alltargets = []
+        for packagename in runtargets:
+            for tname, target in runtargets.get(packagename, {}).iteritems():
+                alltargets.append(target)
+        return alltargets
+    elif not targetname:
         return [target for tname, target in runtargets.get(packagename, {}).iteritems()]
     else:
         return filter(bool, [runtargets.get(packagename, {}).get(targetname, None)])
@@ -218,10 +224,8 @@ def generate(env):
         factory(env, target, plaintarget, registry, packagename, targetname, buildSettings, **kw)
 
     def addBuildTargetCallback(**kw):
-        for ftname in SCons.Script.COMMAND_LINE_TARGETS:
-            packagename, targetname = SConsider.splitTargetname(ftname)
-            for target in getTargets(packagename, targetname):
-                SCons.Script.BUILD_TARGETS.append(target)
+        if not 'tests' in SCons.Script.BUILD_TARGETS:
+            SCons.Script.BUILD_TARGETS.extend(getTargets())
 
     if GetOption("run") or GetOption("run-force"):
         SConsider.registerCallback("PostCreateTarget", createTargetCallback)
