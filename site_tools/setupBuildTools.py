@@ -35,6 +35,11 @@ def generate( env, **kw ):
         buildchoices = ['debug', 'optimized', 'profile']
         builddefault = 'optimized'
         AddOption( '--build-cfg', dest = 'buildcfg', action = 'store', nargs = 1, type = 'choice', choices = buildchoices, default = builddefault, metavar = 'OPTIONS', help = 'Select build configuration, ' + str( buildchoices ) + ', default=' + builddefault )
+
+        langchoices = ['c++0x', 'tr1']
+        langdefault = 'boost'
+        AddOption( '--use-lang-features', dest = 'whichlangfeat', action = 'store', nargs = 1, type = 'choice', choices = langchoices, default = langdefault, metavar = 'OPTIONS', help = 'Select which language features, ' + str( buildchoices ) + ', default=' + builddefault )
+
         warnchoices = ['none', 'medium', 'full']
         warndefault = 'medium'
         AddOption( '--warnlevel', dest = 'warnlevel', action = 'store', nargs = 1, type = 'choice', choices = warnchoices, default = warndefault, metavar = 'OPTIONS', help = 'Select compilation warning level, one of ' + str( warnchoices ) + ', default=' + warndefault )
@@ -61,6 +66,14 @@ def generate( env, **kw ):
     # if we are within cygwin and want to build a win32 target
     if "mingw" in GetOption( 'usetools' ):
         platf = "win32"
+
+    # select language features
+    langfeature = GetOption( 'whichlangfeat' )
+
+    if langfeature == 'c++0x':
+        env.AppendUnique( CPPDEFINES = ['USE_STD0X'] )
+    elif langfeature == 'tr1':
+        env.AppendUnique( CPPDEFINES = ['USE_TR1'] )
 
     # select target architecture bits
     bitwidth = GetOption( 'archbits' )
