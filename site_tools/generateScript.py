@@ -158,10 +158,9 @@ cat > ${outputfile} <<-EOF
     handle SIGTERM nostop pass
 #    handle SIGINT  nostop pass
     set environment PATH=${PATH}
-#    set environment WD_ROOT=${WD_ROOT}
-#    set environment WD_PATH=${WD_PATH}
+#    set environment COAST_ROOT=${COAST_ROOT}
+#    set environment COAST_PATH=${COAST_PATH}
     set environment LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
-#    set environment WD_LIBDIR=${WD_LIBDIR}
 #    set environment LOGDIR=${LOGDIR}
 #    set environment PID_FILE=${PID_FILE}
     set auto-solib-add 1
