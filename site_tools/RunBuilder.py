@@ -191,6 +191,14 @@ def createRunTarget(env, source, plainsource, registry, packagename, targetname,
     setTarget(packagename, targetname, runner)
     return runner
 
+def composeRunTargets(env, name, sources, **kw):
+    targets = []
+    for ftname in sources:
+        packagename, targetname = SConsider.splitTargetname(ftname)
+        SConsider.packageRegistry.loadPackage(packagename)
+        targets.extend(getTargets(packagename, targetname))
+    return env.Alias('dummyalias_'+name, targets)
+
 def generate(env):
     try:
         AddOption('--run', dest='run', action='store_true', default=False, help='Should we run the target')
@@ -212,6 +220,7 @@ def generate(env):
     env.Append(BUILDERS={ 'RunBuilder' : RunBuilder })
     env.AddMethod(createTestTarget, "TestTarget")
     env.AddMethod(createRunTarget, "RunTarget")
+    env.AddMethod(composeRunTargets, "ComposedRunner")
     SConsider.SkipTest = SkipTest
 
     def createTargetCallback(env, target, plaintarget, registry, packagename, targetname, buildSettings, **kw):
@@ -224,8 +233,10 @@ def generate(env):
         factory(env, target, plaintarget, registry, packagename, targetname, buildSettings, **kw)
 
     def addBuildTargetCallback(**kw):
-        if not 'tests' in SCons.Script.BUILD_TARGETS:
-            SCons.Script.BUILD_TARGETS.extend(getTargets())
+        for ftname in SCons.Script.COMMAND_LINE_TARGETS:
+            packagename, targetname = SConsider.splitTargetname(ftname)
+            for target in getTargets(packagename, targetname):
+                SCons.Script.BUILD_TARGETS.append(target)
 
     if GetOption("run") or GetOption("run-force"):
         SConsider.registerCallback("PostCreateTarget", createTargetCallback)
