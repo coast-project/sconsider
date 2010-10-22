@@ -4,32 +4,46 @@ from SCons.Script import Dir, AddOption, GetOption
 import SConsider
 from xml.etree.ElementTree import ElementTree, Element
 
-def determineProjectPath(path, topPath=None):
+def determineProjectFilePath(path, topPath=None):
     path = os.path.abspath(path)
     projectFile = os.path.join(path, '.project')
     if os.path.isfile(projectFile):
-        return path
+        return projectFile
     elif not topPath or path != os.path.abspath(topPath):
-        return determineProjectPath(os.path.join(path, '..'), topPath)
+        return determineProjectFilePath(os.path.join(path, '..'), topPath)
     return None
 
-def flattenDependencies(dependencyDict):
+def getProjectNameFromProjectFile(projectFile):
+    if not os.path.isfile(projectFile):
+        return None
+    
+    tree = ElementTree()
+    tree.parse(projectFile)
+    return tree.findtext('name')
+
+def determineProjectDependencies(dependencyDict, registry, topPath):   
     dependencies = set()
     for fulltargetname, depDict in dependencyDict.iteritems():
         packagename, targetname = SConsider.splitTargetname(fulltargetname)
-        dependencies.add(packagename)
-        dependencies.update(flattenDependencies(depDict))
+        packagePath = registry.getPackageDir(packagename).get_abspath()
+        projectFilePath = determineProjectFilePath(packagePath, topPath)
+        projectName = getProjectNameFromProjectFile(projectFilePath)
+        if projectName:
+            dependencies.add(projectName)
+        dependencies.update(determineProjectDependencies(depDict, registry, topPath))
     return dependencies
         
 dependencies = {}
 def rememberWorkingSet(registry, packagename, buildSettings, **kw):
-    dependencies[packagename] = flattenDependencies(registry.getPackageDependencies(packagename))
+    dependencyDict = registry.getPackageDependencies(packagename)
+    dependencies[packagename] = determineProjectDependencies(dependencyDict, registry,
+                                                             Dir('#').srcnode().get_abspath())
 
 def writeWorkingSets(**kw):
     workspacePath = os.path.abspath(GetOption("workspace"))
     workingsetsPath = os.path.join(workspacePath, '.metadata', '.plugins', 'org.eclipse.ui.workbench')
     if not os.path.isdir(workingsetsPath):
-       workingsetsPath = Dir('#').get_abspath()
+       workingsetsPath = Dir('#').srcnode().get_abspath()
     
     fname = os.path.join(workingsetsPath, 'workingsets.xml')
     xmldeps = fromXML(fname) 
