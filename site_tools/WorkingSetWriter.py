@@ -1,7 +1,6 @@
 from __future__ import with_statement
 import os, re, pdb, uuid, optparse
-from SCons.Script import Dir, AddOption, GetOption
-import SConsider
+import SomeUtils
 from xml.etree.ElementTree import ElementTree, Element
 
 def determineProjectFilePath(path, topPath=None):
@@ -24,7 +23,7 @@ def getProjectNameFromProjectFile(projectFile):
 def determineProjectDependencies(dependencyDict, registry, topPath):   
     dependencies = set()
     for fulltargetname, depDict in dependencyDict.iteritems():
-        packagename, targetname = SConsider.splitTargetname(fulltargetname)
+        packagename, targetname = SomeUtils.splitTargetname(fulltargetname)
         packagePath = registry.getPackageDir(packagename).get_abspath()
         projectFilePath = determineProjectFilePath(packagePath, topPath)
         projectName = getProjectNameFromProjectFile(projectFilePath)
@@ -34,16 +33,20 @@ def determineProjectDependencies(dependencyDict, registry, topPath):
     return dependencies
         
 dependencies = {}
-def rememberWorkingSet(registry, packagename, buildSettings, **kw):
+def rememberWorkingSet(registry, packagename, buildSettings, **kw):    
+    import SCons
+    
     dependencyDict = registry.getPackageDependencies(packagename)
     dependencies[packagename] = determineProjectDependencies(dependencyDict, registry,
-                                                             Dir('#').srcnode().get_abspath())
+                                                             SCons.Script.Dir('#').srcnode().get_abspath())
 
-def writeWorkingSets(**kw):
-    workspacePath = os.path.abspath(GetOption("workspace"))
+def writeWorkingSets(**kw): 
+    import SCons
+      
+    workspacePath = os.path.abspath(SCons.Script.GetOption("workspace"))
     workingsetsPath = os.path.join(workspacePath, '.metadata', '.plugins', 'org.eclipse.ui.workbench')
     if not os.path.isdir(workingsetsPath):
-       workingsetsPath = Dir('#').srcnode().get_abspath()
+       workingsetsPath = SCons.Script.Dir('#').srcnode().get_abspath()
     
     fname = os.path.join(workingsetsPath, 'workingsets.xml')
     xmldeps = fromXML(fname) 
@@ -89,8 +92,10 @@ def toXML(deps, file):
     ElementTree(workingSetManager).write(file, encoding="utf-8")
 
 def generate(env):
+    import SConsider, SCons
+    
     try:
-        AddOption('--workspace', dest='workspace', action='store', default='', help='Select workspace directory')
+        SCons.Script.AddOption('--workspace', dest='workspace', action='store', default='', help='Select workspace directory')
     except optparse.OptionConflictError:
         pass
     

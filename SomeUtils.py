@@ -246,3 +246,28 @@ def getNodeDependencies(target, filters=[]):
         deps.update(getNodeDependencies(t, filters))
 
     return deps
+
+def splitTargetname(fulltargetname, default=False):
+    """
+    Split fulltargetname into packagename and targetname.
+    """
+    parts = fulltargetname.split('.')
+    pkgname = parts[0]
+    targetname = None
+    if len(parts) > 1:
+        targetname = parts[1]
+    elif default:
+        targetname = pkgname
+    return (pkgname, targetname)
+
+def generateFulltargetname(packagename, targetname=None, default=False):
+    """
+    Generate fulltargetname using packagename and targetname.
+    """
+    if not targetname:
+        if default:
+            return packagename+"."+packagename
+        else:
+            return packagename
+    else:
+        return packagename+"."+targetname
