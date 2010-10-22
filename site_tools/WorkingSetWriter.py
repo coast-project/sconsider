@@ -2,7 +2,7 @@ from __future__ import with_statement
 import os, re, pdb, uuid, optparse
 from SCons.Script import Dir, AddOption, GetOption
 import SConsider
-from xmlbuilder import XMLBuilder
+from xml.etree.ElementTree import ElementTree, Element
 
 def determineProjectPath(path, topPath=None):
     path = os.path.abspath(path)
@@ -22,33 +22,57 @@ def flattenDependencies(dependencyDict):
     return dependencies
         
 dependencies = {}
-def createWorkingSet(registry, packagename, buildSettings, **kw):
+def rememberWorkingSet(registry, packagename, buildSettings, **kw):
     dependencies[packagename] = flattenDependencies(registry.getPackageDependencies(packagename))
-    
+
 def writeWorkingSets(**kw):
     workspacePath = os.path.abspath(GetOption("workspace"))
     workingsetsPath = os.path.join(workspacePath, '.metadata', '.plugins', 'org.eclipse.ui.workbench')
     if not os.path.isdir(workingsetsPath):
        workingsetsPath = Dir('#').get_abspath()
+    
     fname = os.path.join(workingsetsPath, 'workingsets.xml')
-    with open(fname, 'w') as wsfile:
-        print >>wsfile, '<?xml version="1.0" encoding="UTF-8"?>'
-        print >>wsfile, '<workingSetManager>'
-        for package, deps in dependencies.iteritems():
-            print >>wsfile, toXML(package, deps)
-        print >>wsfile, '</workingSetManager>'
-        
-def toXML(title, packages):
-    xml = XMLBuilder(format=True)
-    with xml.workingSet(editPageId='org.eclipse.cdt.ui.CElementWorkingSetPage',
-                       factoryID='org.eclipse.ui.internal.WorkingSetFactory',
-                       id=uuid.uuid1().int,
-                       label=title,
-                       name=title):
-        for package in packages:
-            xml << ('item', {'factoryID': 'org.eclipse.cdt.ui.PersistableCElementFactory', 'path': '/'+package, 'type': '4'})
-    etree_node = ~xml
-    return str(xml)
+    xmldeps = fromXML(fname) 
+    
+    for package, packagedeps in dependencies.iteritems():
+        if package not in xmldeps:
+            xmldeps[package] = {
+                                'attrs': {
+                                    'editPageId': 'org.eclipse.cdt.ui.CElementWorkingSetPage',
+                                    'factoryID': 'org.eclipse.ui.internal.WorkingSetFactory',
+                                    'id': str(uuid.uuid1().int),
+                                    'label': package,
+                                    'name': package
+                                    },
+                                'items': []
+                               }
+        xmldeps[package]['items'] = []
+        for dep in packagedeps:
+            xmldeps[package]['items'].append({'factoryID': 'org.eclipse.cdt.ui.PersistableCElementFactory', 'path': '/'+dep, 'type': '4'})
+            
+    toXML(xmldeps, fname)
+    
+def fromXML(file):
+    xmldeps = {}
+    if os.path.isfile(file):
+        tree = ElementTree()
+        tree.parse(file)
+        workingSetManager = tree.getroot()
+        for workingSet in workingSetManager:
+            items = []
+            for item in workingSet:
+                items.append(item.attrib)
+            xmldeps[workingSet.get('label')] = {'attrs': workingSet.attrib, 'items': items}
+    return xmldeps
+
+def toXML(deps, file):
+    workingSetManager = Element('workingSetManager')
+    for package in deps.itervalues():
+        workingSet = Element('workingSet', package['attrs'])
+        for packageitem in package['items']:
+            workingSet.append(Element('item', packageitem))
+        workingSetManager.append(workingSet)
+    ElementTree(workingSetManager).write(file, encoding="utf-8")
 
 def generate(env):
     try:
@@ -56,7 +80,7 @@ def generate(env):
     except optparse.OptionConflictError:
         pass
     
-    SConsider.registerCallback('PostCreatePackageTargets', createWorkingSet)
+    SConsider.registerCallback('PostCreatePackageTargets', rememberWorkingSet)
     SConsider.registerCallback('PreBuild', writeWorkingSets)
 
 def exists(env):
