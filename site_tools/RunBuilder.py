@@ -163,7 +163,6 @@ def createTestTarget(env, source, plainsource, registry, packagename, targetname
     env.Alias('tests', runner)
     env.Alias('all', runner)
 
-    setTarget(packagename, targetname, runner)
     return runner
 
 def createRunTarget(env, source, plainsource, registry, packagename, targetname, buildSettings, defaultRunParams=''):
@@ -180,7 +179,8 @@ def createRunTarget(env, source, plainsource, registry, packagename, targetname,
 
     logfile = env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['LOGDIR']).Dir(env['VARIANTDIR']).File(targetname+'.run.log')
 
-    runner = env.RunBuilder(['dummyfile_'+targetname], source, runParams=getRunParams(buildSettings, defaultRunParams), logfile=logfile)
+    runner = env.RunBuilder(['dummyRunner_'+SConsider.generateFulltargetname(packagename, targetname)],
+                            source, runParams=getRunParams(buildSettings, defaultRunParams), logfile=logfile)
 
     addRunConfigHooks(env, source, runner, buildSettings)
 
@@ -188,16 +188,14 @@ def createRunTarget(env, source, plainsource, registry, packagename, targetname,
 
     env.Alias('all', runner)
 
-    setTarget(packagename, targetname, runner)
     return runner
 
-def composeRunTargets(env, name, sources, **kw):
+def composeRunTargets(env, source, plainsource, registry, packagename, targetname, buildSettings, defaultRunParams=''):
     targets = []
-    for ftname in sources:
-        packagename, targetname = SConsider.splitTargetname(ftname)
-        SConsider.packageRegistry.loadPackage(packagename)
-        targets.extend(getTargets(packagename, targetname))
-    return env.Alias('dummyalias_'+name, targets)
+    for ftname in buildSettings.get('requires', []) + buildSettings.get('linkDependencies', []):
+        otherPackagename, otherTargetname = SConsider.splitTargetname(ftname)
+        targets.extend(getTargets(otherPackagename, otherTargetname))
+    return env.Alias('dummyRunner_'+SConsider.generateFulltargetname(packagename, targetname), targets)
 
 def generate(env):
     try:
@@ -220,23 +218,27 @@ def generate(env):
     env.Append(BUILDERS={ 'RunBuilder' : RunBuilder })
     env.AddMethod(createTestTarget, "TestTarget")
     env.AddMethod(createRunTarget, "RunTarget")
-    env.AddMethod(composeRunTargets, "ComposedRunner")
     SConsider.SkipTest = SkipTest
 
     def createTargetCallback(env, target, plaintarget, registry, packagename, targetname, buildSettings, **kw):
         runConfig = buildSettings.get('runConfig', {})
         if not runConfig:
             return None
+        
+        runType = runConfig.get('type', 'run')
+        
         factory = createRunTarget
-        if runConfig.get('type', 'run') == 'test':
+        if runType == 'test':
             factory = createTestTarget
-        factory(env, target, plaintarget, registry, packagename, targetname, buildSettings, **kw)
+        elif runType == 'composite':
+            factory = composeRunTargets
+        runner = factory(env, target, plaintarget, registry, packagename, targetname, buildSettings, **kw)
+        setTarget(packagename, targetname, runner)
 
     def addBuildTargetCallback(**kw):
         for ftname in SCons.Script.COMMAND_LINE_TARGETS:
             packagename, targetname = SConsider.splitTargetname(ftname)
-            for target in getTargets(packagename, targetname):
-                SCons.Script.BUILD_TARGETS.append(target)
+            SCons.Script.BUILD_TARGETS.extend(getTargets(packagename, targetname))
 
     if GetOption("run") or GetOption("run-force"):
         SConsider.registerCallback("PostCreateTarget", createTargetCallback)
