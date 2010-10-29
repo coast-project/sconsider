@@ -35,11 +35,9 @@ def generate( env, **kw ):
         buildchoices = ['debug', 'optimized', 'profile']
         builddefault = 'optimized'
         AddOption( '--build-cfg', dest = 'buildcfg', action = 'store', nargs = 1, type = 'choice', choices = buildchoices, default = builddefault, metavar = 'OPTIONS', help = 'Select build configuration, ' + str( buildchoices ) + ', default=' + builddefault )
-
-        langchoices = ['c++0x', 'tr1']
+        langchoices = ['boost', 'c++0x', 'tr1']
         langdefault = 'boost'
-        AddOption( '--use-lang-features', dest = 'whichlangfeat', action = 'store', nargs = 1, type = 'choice', choices = langchoices, default = langdefault, metavar = 'OPTIONS', help = 'Select which language features, ' + str( buildchoices ) + ', default=' + builddefault )
-
+        AddOption( '--use-lang-features', dest = 'whichlangfeat', action = 'store', nargs = 1, type = 'choice', choices = langchoices, default = langdefault, metavar = 'OPTIONS', help = 'Select which language features, ' + str( langchoices ) + ', default=' + langdefault )
         warnchoices = ['none', 'medium', 'full']
         warndefault = 'medium'
         AddOption( '--warnlevel', dest = 'warnlevel', action = 'store', nargs = 1, type = 'choice', choices = warnchoices, default = warndefault, metavar = 'OPTIONS', help = 'Select compilation warning level, one of ' + str( warnchoices ) + ', default=' + warndefault )
