@@ -478,7 +478,7 @@ class UtilsTest(unittest.TestCase):
 
 class AnythingReferenceTest(unittest.TestCase):
     def setUp(self):
-        self.any1 = Anything([('a', 1), ('b', 2), 3, ('c', Anything([('a', Anything([1, 2, 3]))])), 5])
+        self.any1 = Anything([('a', 1), ('b', 2), 3, ('c', Anything([('a', Anything([1, 2, 3]))])), 5, ('a.b:3', 'escaped')])
         self.savedEnviron = os.environ.copy()
         os.environ['COAST_ROOT'] = os.path.dirname(__file__)
         os.environ['COAST_PATH'] = '.:data'
@@ -497,6 +497,10 @@ class AnythingReferenceTest(unittest.TestCase):
     def testInternalCombined(self):
         anyref1 = parseRef('%c.a:0')
         self.assertEqual(1, anyref1.resolve(self.any1))
+
+    def testInternalEscaped(self):
+        anyref1 = parseRef('%a\.b\:3')
+        self.assertEqual('escaped', anyref1.resolve(self.any1))
 
     def testExternal(self):
         expected = 'include works'

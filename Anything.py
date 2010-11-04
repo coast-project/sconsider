@@ -354,7 +354,8 @@ def toNumber(string):
 def createAnythingReferenceGrammar():
     indexstart = Literal(':')
     keystart = Literal('.')
-    key = Optional(~keystart) & ( Word(AnyBut(keystart | indexstart)) )
+    escape = Literal('\\')
+    key = Optional(~keystart) & Word(And(~escape, keystart | indexstart) | AnyBut(keystart | indexstart))
     index = ~indexstart & Integer() >> int
     internalref = (key | index)[:] > list
 
