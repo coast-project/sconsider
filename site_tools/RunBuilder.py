@@ -40,8 +40,6 @@ class Tee(object):
 
 def run(cmd, logfile=None, **kw):
     """Run a Unix command and return the exit code."""
-    import shlex
-    command=shlex.split(cmd)
     tee = Tee()
     tee.add(sys.stdout, flush=True, close=False)
     rcode=99
@@ -50,7 +48,7 @@ def run(cmd, logfile=None, **kw):
             if not os.path.isdir(logfile.dir.abspath):
                 os.makedirs(logfile.dir.abspath)
             tee.add(open(logfile.abspath, 'w'))
-        proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **kw)
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **kw)
         while True:
             out = proc.stdout.readline()
             if out == '' and proc.poll() != None:
@@ -74,12 +72,21 @@ def emitPassedFile(target, source, env):
         target.append(env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['LOGDIR']).Dir(env['VARIANTDIR']).File(scriptname+'.passed'))
     return (target, source)
 
+def execute(command, env):
+    import shlex
+    args = shlex.split(command+" "+env.get('runParams', ''), posix=env["PLATFORM"]!='win32')
+
+    if 'mingw' in env["TOOLS"]:
+        args.insert(0, "sh.exe")
+
+    return run(args, env=SConsider.getFlatENV(env), logfile=env.get('logfile', None))
+
 def doTest(target, source, env):
     if '__SKIP_TEST__' in env:
         print 'Test skipped: '+str(env['__SKIP_TEST__'])
         return 0
 
-    res = run(source[0].abspath + ' ' + env.get('runParams', ''), env=SConsider.getFlatENV(env), logfile=env.get('logfile', None))
+    res = execute(source[0].abspath, env)
     if res == 0:
         with open(target[0].abspath, 'w') as file:
             file.write("PASSED\n")
@@ -88,7 +95,7 @@ def doTest(target, source, env):
     return res
 
 def doRun(target, source, env):
-    res = run(source[0].abspath + ' ' + env.get('runParams', ''), env=SConsider.getFlatENV(env), logfile=env.get('logfile', None))
+    res = execute(source[0].abspath, env)
     runCallback('__PostTestOrRun')
     runCallback('__PostAction_'+str(id(target[0])))
     return res

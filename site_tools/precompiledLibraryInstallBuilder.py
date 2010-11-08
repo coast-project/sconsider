@@ -20,9 +20,12 @@ def findPlatformTargets(env, basedir, targetname, prefixes=[], suffixes=[]):
     libRE += '(' + libSFX + ')(.*)'
     reLibname = re.compile(libRE)
     osStringSep = '[_-]'
-    if env['PLATFORM'] == "cygwin":
+    if env['PLATFORM'] in ['cygwin', 'win32']:
         variantdir = 'Win_i386'
-        osver = tuple([int(x) for x in platform.system().split('-')[1].split('.')])
+        if env['PLATFORM'] == 'cygwin':
+            osver = tuple([int(x) for x in platform.system().split('-')[1].split('.')])
+        else:
+            osver = tuple( [int( x ) for x in platform.version().split( '.' )] )
 #        dirRE = platform.system() + osStringSep + '([0-9]+(\.[0-9]+)*)'
         dirRE = 'Win' + osStringSep + 'i386'
         # re for architecture (i686, sparc, amd,...) - bitwidth (32,64)
@@ -104,7 +107,7 @@ def findLibrary(env, basedir, libname):
         return (entry['path'], entry['file'], entry['linkfile'], (entry['suffix'] == env.subst(env['LIBSUFFIX'])))
 
     print 'library [%s] not available for this platform [%s] and bitwidth[%s]' % (libname, env['PLATFORM'], env.get('ARCHBITS', '32'))
-    return (None, None)
+    return (None, None, None, None)
 
 def findBinary(env, basedir, binaryname):
     files = findPlatformTargets(env, basedir, binaryname, [env['PROGPREFIX']], [env['PROGSUFFIX']])
@@ -114,7 +117,7 @@ def findBinary(env, basedir, binaryname):
         return (entry['path'], entry['file'], entry['linkfile'])
 
     print 'binary [%s] not available for this platform [%s] and bitwidth[%s]' % (binaryname, env['PLATFORM'], env.get('ARCHBITS', '32'))
-    return (None, None)
+    return (None, None, None)
 
 def precompBinNamesEmitter(target, source, env):
     target = []

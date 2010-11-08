@@ -127,6 +127,8 @@ def generate( env, **kw ):
         osver = tuple( [int( x ) for x in platform.release().split( '.' )] )
     elif platform.system() == 'Linux':
         osver = tuple( [int( x ) for x in platform.release().split( '-' )[0].split( '.' )] )
+    elif str( platf ) == 'win32':
+        osver = tuple( [int( x ) for x in platform.version().split( '.' )] )
 
     for val, valname in zip( osver, ['OS_RELMAJOR', 'OS_RELMINOR', 'OS_RELMINSUB'] ):
         env.AppendUnique( CCFLAGS = ['-D' + valname + '=' + str( val )] )
@@ -144,6 +146,24 @@ def generate( env, **kw ):
         env.Append( VARIANT_SUFFIX = ['-' + bitwidth] )
         runCallback( 'VARIANT_SUFFIX', env = env )
     SConsider.registerCallback( 'VARIANT_SUFFIX', variantSuffix )
+
+    if "mingw" in env["TOOLS"]:
+        # mingw appends .exe if a Program target is given without extension but scons still
+        # returns the target without extension. Because depending targets therefore wouldn't
+        # find the target this emitter was created as a workaround.
+        # => see http://scons.tigris.org/issues/show_bug.cgi?id=2712
+        def appendexe(target, source, env):
+            newtgt = []
+            for t in target:
+                newtgt.append(SCons.Util.adjustixes(str(t), env.subst('$PROGPREFIX'), env.subst('$PROGSUFFIX')))
+            return newtgt, source
+        env["PROGEMITTER"] = appendexe
+
+        # find and append msys' bin path in order to execute shell scripts using subprocess.Popen
+        shexe = "sh.exe"
+        shpath = env.WhereIs(shexe) or SCons.Util.WhereIs(shexe)
+        msysdir = os.path.dirname(shpath)
+        env.PrependENVPath('PATH', msysdir)
 
 def exists( env ):
     return 1

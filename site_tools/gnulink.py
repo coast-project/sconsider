@@ -34,8 +34,15 @@ def generate( env ):
         SCons.Tool.DefaultToolpath = defaulttoolpath
 
     platf = env['PLATFORM']
-    setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LINKFLAGS = ['-nodefaultlibs'] ) )
-    setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LIBS = ['m', 'dl', 'c', 'gcc', 'gcc_s'] ) )
+    if str( platf ) not in ["cygwin", "win32"]:
+        setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LINKFLAGS = ['-nodefaultlibs'] ) )
+        setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LIBS = ['m', 'gcc', 'gcc_s'] ) )
+        setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LIBS = ['dl', 'c'] ) )
+        setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LIBS = ['nsl'] ) )
+    elif str( platf ) == "win32":
+        setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LINKFLAGS = ['-Wl,--enable-auto-import'] ) )
+        setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( SHLINKFLAGS = ['-Wl,--export-all-symbols'] ) )
+        setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LIBS = ['ws2_32'] ) )
     orig_smart_link = env['SMARTLINK']
     def smart_link(source, target, env, for_signature):
         try:
@@ -49,9 +56,8 @@ def generate( env ):
 
     setupBuildTools.registerCallback( 'BITWIDTH_OPTIONS', lambda env, bitwidth: env.AppendUnique( LINKFLAGS = '-m' + bitwidth ) )
 
-    if not str( platf ) == "cygwin":
+    if str( platf ) not in ["cygwin", "win32"]:
         setupBuildTools.registerCallback( 'LAZYLINK_OPTIONS', lambda env: env.Append( _NONLAZYLINKFLAGS = '-z defs -z now --no-undefined ' ) )
-        setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LIBS = ['nsl'] ) )
     if str( platf ) == "sunos":
         # this lib is needed when using sun-CC or gcc on sunos systems
         setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LIBS = ['socket', 'resolv', 'posix4', 'aio'] ) )

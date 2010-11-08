@@ -52,6 +52,7 @@ def usedOrProgramTarget(env, name, sources, buildSettings):
         # env.File is a workaround, otherwise if an Alias with the same 'name' is defined
         # arg2nodes (called from all builders) would return the Alias, but we would need a file node
         plaintarget = env.Program(env.File(name), sources)
+
     return plaintarget
 
 def setupTargetDirAndWrapperScripts(env, name, packagename, plaintarget, basetargetdir):
@@ -75,16 +76,33 @@ def programTest(env, name, sources, packagename, targetname, buildSettings, **kw
     return setupTargetDirAndWrapperScripts(env, name, packagename, plaintarget, 'tests')
 
 def sharedLibrary(env, name, sources, packagename, targetname, buildSettings, **kw):
+    libBuilder = env.SharedLibrary
+
     if buildSettings.get('lazylinking', False):
         env['_NONLAZYLINKFLAGS'] = ''
+        if env["PLATFORM"] == "win32":
+            libBuilder = env.StaticLibrary
 
-    plaintarget = env.SharedLibrary(name, sources)
+    plaintarget = libBuilder(name, sources)
 
     baseoutdir = env['BASEOUTDIR']
     instTarg = env.Install(baseoutdir.Dir(env['LIBDIR']).Dir(env['VARIANTDIR']), plaintarget)
     
     compLibs = env.InstallCompilerLibs(plaintarget)
-    env.Requires(instTarg, compLibs)
+    env.Requires(instTarg[0], compLibs) # the first target should be the library
+
+    return (plaintarget, instTarg)
+
+def staticLibrary(env, name, sources, packagename, targetname, buildSettings, **kw):
+    env['_NONLAZYLINKFLAGS'] = ''
+
+    plaintarget = env.StaticLibrary(name, sources)
+
+    baseoutdir = env['BASEOUTDIR']
+    instTarg = env.Install(baseoutdir.Dir(env['LIBDIR']).Dir(env['VARIANTDIR']), plaintarget)
+
+    compLibs = env.InstallCompilerLibs(plaintarget)
+    env.Requires(instTarg[0], compLibs)
 
     return (plaintarget, instTarg)
 
@@ -100,6 +118,7 @@ dEnv.AddMethod(programTest, "AppTest")	#@!FIXME: should use ProgramTest instead
 dEnv.AddMethod(programTest, "ProgramTest")
 dEnv.AddMethod(programApp, "ProgramApp")
 dEnv.AddMethod(sharedLibrary, "LibraryShared")
+dEnv.AddMethod(staticLibrary, "LibraryStatic")
 dEnv.AddMethod(installBinary, "PrecompiledBinary")
 
 if GetOption('prependPath'):
@@ -136,8 +155,8 @@ elif myplatf == "darwin":
 elif myplatf == "cygwin":
     variant = platform.system() + "-" + platform.machine()
 elif myplatf == "win32":
-    variant = platform.release() + "-" + platform.machine()
-
+    variant = platform.system() + "_" + platform.release() + "-" + platform.machine()
+    baseEnv.Append(WINDOWS_INSERT_DEF=1)
 runCallback('VARIANT_SUFFIX', env=baseEnv)
 for v in baseEnv.get('VARIANT_SUFFIX', []):
     variant += v
@@ -221,6 +240,8 @@ class PackageRegistry:
         if plaintarget and SCons.Util.is_List(plaintarget):
             plaintarget = plaintarget[0]
         if target and SCons.Util.is_List(target):
+            if len(target) > 1:
+                SCons.Script.Requires(target[0], target[1:])
             target = target[0]
         if not target:
             target = plaintarget
@@ -375,7 +396,9 @@ class TargetMaker:
             stripRelDirs = []
             if buildSettings['public'].get('stripSubdir', True):
                 stripRelDirs.append( buildSettings['public'].get('includeSubdir', '') )
-            mode = stat.S_IREAD | stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
+            mode = None
+            if str( env['PLATFORM'] ) not in ["cygwin", "win32"]:
+                mode = stat.S_IREAD | stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
             instTargets = copyFileNodes(env, self.prepareFileNodeTuples(ifiles, pkgdir), destdir, stripRelDirs=stripRelDirs, mode=mode)
         return instTargets
 
@@ -394,6 +417,8 @@ class TargetMaker:
             else:
                 files, mode = filetuple
                 replaceDict = {}
+            if str( env['PLATFORM'] ) in ["cygwin", "win32"]:
+                mode = None
             instTargets.extend( copyFileNodes(env, self.prepareFileNodeTuples(files, pkgdir, envconfigdir), destdir, mode=mode, replaceDict=replaceDict) )
 
         return instTargets
@@ -533,8 +558,13 @@ class TargetMaker:
             try:
                 strTargetType = plaintarget.builder.get_name(plaintarget.env)
                 if strTargetType.find('Library') != -1:
-                    tName = plaintarget.name
-                    env.AppendUnique(LIBS=[tName])
+                    libname = multiple_replace([
+                                      ('^'+re.escape(env.subst("$LIBPREFIX")), ''),
+                                      (re.escape(env.subst("$LIBSUFFIX"))+'$', ''),
+                                      ('^'+re.escape(env.subst("$SHLIBPREFIX")), ''),
+                                      (re.escape(env.subst("$SHLIBSUFFIX"))+'$', ''),
+                                      ], plaintarget.name)
+                    env.AppendUnique(LIBS=[libname])
             except:
                 pass
 
