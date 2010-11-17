@@ -78,7 +78,7 @@ def substInFiles(target, source, env):
             return marker
         if not key in data:
             return match.group(0)
-        return data[key]
+        return str(data[key])
     
     subfn = getSubFn(env, subFnDefault)
         
