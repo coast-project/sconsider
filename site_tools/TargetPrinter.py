@@ -1,6 +1,6 @@
 from __future__ import with_statement
 import os, pdb, subprocess, optparse, functools
-import SCons.Action, SCons.Builder
+import SCons.Action, SCons.Builder, SCons.Util
 from SCons.Script import AddOption, GetOption
 import SConsider, SomeUtils
 
@@ -33,12 +33,6 @@ def printTargets(registry, **kw):
     print "\nOption 'showtargets' active, exiting."
     exit()
 
-def printDependencies(deps, indent=0):
-    keys = sorted(deps.iterkeys(), key=str.lower)
-    for targetname in keys:
-        print ("  "*indent)+"+-"+targetname
-        printDependencies(deps[targetname], indent+1)
-
 def getDependencies(registry, packagename, targetname=None):
     if targetname:
         return registry.getPackageTargetDependencies(packagename, targetname)
@@ -49,6 +43,13 @@ def existsTarget(registry, packagename, targetname=None):
         return registry.hasPackageTarget(packagename, targetname)
     return registry.hasPackage(packagename)
 
+class Node(object):
+    def __init__(self, name, children):
+        self.name = name
+        self.children = [Node(k, v) for k,v in children.iteritems()]
+    def __str__(self):
+        return self.name
+
 def printTree(registry, buildTargets, **kw):
     targets = buildTargets
     if not targets:
@@ -58,9 +59,8 @@ def printTree(registry, buildTargets, **kw):
     for fulltargetname in targets:
         packagename, targetname = SConsider.splitTargetname(fulltargetname)
         if existsTarget(registry, packagename, targetname):
-            deps[SConsider.generateFulltargetname(packagename, targetname)] = getDependencies(registry, packagename, targetname)
- 
-    printDependencies(deps)
+            node = Node(SConsider.generateFulltargetname(packagename, targetname), getDependencies(registry, packagename, targetname))
+            print SCons.Util.render_tree(node, lambda node: node.children)
 
     print "\nOption 'showtree' active, exiting."
     exit()
