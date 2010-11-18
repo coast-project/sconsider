@@ -41,7 +41,6 @@ def generate( env, **kw ):
         warnchoices = ['none', 'medium', 'full']
         warndefault = 'medium'
         AddOption( '--warnlevel', dest = 'warnlevel', action = 'store', nargs = 1, type = 'choice', choices = warnchoices, default = warndefault, metavar = 'OPTIONS', help = 'Select compilation warning level, one of ' + str( warnchoices ) + ', default=' + warndefault )
-        AddOption( '--no-stdiostream', dest = 'no-stdiostream', action = 'store_true', help = 'Disable use of std libraries iostream headers' )
         AddOption( '--no-largefilesupport', dest = 'no-largefilesupport', action = 'store_true', help = 'Disable use of std libraries iostream headers' )
 
     platf = env['PLATFORM']
@@ -104,9 +103,6 @@ def generate( env, **kw ):
     runCallback( 'STL_OPTIONS', env = env )
     if not GetOption( 'no-largefilesupport' ):
         runCallback( 'LARGEFILE_OPTIONS', env = env )
-    if not GetOption( 'no-stdiostream' ):
-        env.AppendUnique( CPPDEFINES = ['ONLY_STD_IOSTREAM'] )
-    runCallback( 'IOSTREAM_OPTIONS', env = env, usestdiostream = ( not GetOption( 'no-stdiostream' ) ) )
     runCallback( 'WARN_OPTIONS', env = env, warnlevel = GetOption( 'warnlevel' ) )
 
     buildmode = GetOption( 'buildcfg' )

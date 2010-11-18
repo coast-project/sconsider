@@ -94,12 +94,6 @@ def generate( env ):
     setupBuildTools.registerCallback( 'BITWIDTH_OPTIONS', lambda env, bitwidth: env.AppendUnique( SHLINKFLAGS = bwopt( bitwidth ) ) )
     setupBuildTools.registerCallback( 'STL_OPTIONS', lambda env: env.AppendUnique( SHLINKFLAGS = '-library=stlport4' ) )
 
-    def iostreamOpt( env, usestdiostream ):
-        ## iostream library means "classic", but we want to use the std
-        if usestdiostream:
-            env.AppendUnique( SHLINKFLAGS = '-library=no%iostream' )
-    setupBuildTools.registerCallback( 'IOSTREAM_OPTIONS', iostreamOpt )
-
     setupBuildTools.registerCallback( 'DEBUG_OPTIONS', lambda env: env.AppendUnique( LINKFLAGS = ['-v'] ) )
     setupBuildTools.registerCallback( 'DEBUG_OPTIONS', lambda env: env.AppendUnique( SHLINKFLAGS = ['-v'] ) )
 

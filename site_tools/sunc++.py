@@ -77,11 +77,6 @@ def generate( env ):
     setupBuildTools.registerCallback( 'BITWIDTH_OPTIONS', lambda env, bitwidth: env.AppendUnique( CXXFLAGS = bwopt( bitwidth ) ) )
     setupBuildTools.registerCallback( 'STL_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = '-library=stlport4' ) )
 
-    def iostreamOpt( env, usestdiostream ):
-        ## iostream library means "classic", but we want to use the std
-        if usestdiostream:
-            env.AppendUnique( CXXFLAGS = '-library=no%iostream' )
-    setupBuildTools.registerCallback( 'IOSTREAM_OPTIONS', iostreamOpt )
     setupBuildTools.registerCallback( 'LARGEFILE_OPTIONS', lambda env: env.AppendUnique( CPPDEFINES = ['_LARGEFILE64_SOURCE'] ) )
 
     setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = ['-fast'] ) )
