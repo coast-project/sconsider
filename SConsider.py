@@ -87,6 +87,8 @@ def sharedLibrary(env, name, sources, packagename, targetname, buildSettings, **
 
     baseoutdir = env['BASEOUTDIR']
     instTarg = env.Install(baseoutdir.Dir(env['LIBDIR']).Dir(env['VARIANTDIR']), plaintarget)
+    if len(instTarg) > 1:
+        env.Requires(instTarg[0], instTarg[1:])
     
     compLibs = env.InstallCompilerLibs(plaintarget)
     env.Requires(instTarg[0], compLibs) # the first target should be the library
@@ -100,6 +102,8 @@ def staticLibrary(env, name, sources, packagename, targetname, buildSettings, **
 
     baseoutdir = env['BASEOUTDIR']
     instTarg = env.Install(baseoutdir.Dir(env['LIBDIR']).Dir(env['VARIANTDIR']), plaintarget)
+    if len(instTarg) > 1:
+        env.Requires(instTarg[0], instTarg[1:])
 
     compLibs = env.InstallCompilerLibs(plaintarget)
     env.Requires(instTarg[0], compLibs)
@@ -240,8 +244,6 @@ class PackageRegistry:
         if plaintarget and SCons.Util.is_List(plaintarget):
             plaintarget = plaintarget[0]
         if target and SCons.Util.is_List(target):
-            if len(target) > 1:
-                SCons.Script.Requires(target[0], target[1:])
             target = target[0]
         if not target:
             target = plaintarget
