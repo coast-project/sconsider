@@ -196,7 +196,7 @@ def dependsOnTestfw(target, registry):
     if SCons.Util.is_List(target):
         target = target[0]
     plaintarget = registry.getPackageTarget('testfw', 'testfw')['plaintarget']
-    return plaintarget.name in target.get_env()['LIBS']
+    return 'testfw' in target.get_env()['LIBS'] or plaintarget.name in target.get_env()['LIBS']
 
 def callPostTest(target, registry, packagename, targetname, logfile, **kw):
     if dependsOnTestfw(target, registry):
