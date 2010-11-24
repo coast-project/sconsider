@@ -602,6 +602,8 @@ runCallback("PreBuild", registry=packageRegistry, buildTargets=SCons.Script.BUIL
 
 print "BUILD_TARGETS is ", map(str, SCons.Script.BUILD_TARGETS)
 
+SCons.Script.Default(baseoutdir)
+
 def print_build_failures():
     if SCons.Script.GetBuildFailures():
         print "scons: printing failed nodes"
