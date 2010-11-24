@@ -60,7 +60,7 @@ def printTree(registry, buildTargets, **kw):
         packagename, targetname = SConsider.splitTargetname(fulltargetname)
         if existsTarget(registry, packagename, targetname):
             node = Node(SConsider.generateFulltargetname(packagename, targetname), getDependencies(registry, packagename, targetname))
-            print SCons.Util.render_tree(node, lambda node: node.children)
+            SCons.Util.print_tree(node, lambda node: node.children)
 
     print "\nOption 'showtree' active, exiting."
     exit()
