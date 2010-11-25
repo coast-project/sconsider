@@ -579,7 +579,7 @@ def createTargets(packagename, buildSettings):
     packageRegistry.setBuildSettings(packagename, buildSettings)
     tmk = TargetMaker(packagename, buildSettings, packageRegistry)
     tmk.createTargets()
-
+    SCons.Script.Default(packagename)
     runCallback("PostCreatePackageTargets", registry=packageRegistry, packagename=packagename, buildSettings=buildSettings)
 
 baseEnv.lookup_list.append(packageRegistry.lookup)
@@ -588,10 +588,24 @@ baseEnv.lookup_list.append(packageRegistry.lookup)
 try:
     buildtargets = SCons.Script.BUILD_TARGETS
     if not buildtargets:
-        buildtargets = packageRegistry.getPackageNames()
+        if GetOption("climb_up") in [1, 3]: # 1: -u, 3: -U
+            launchDir = Dir(SCons.Script.GetLaunchDir())
+            if GetOption("climb_up") == 1:
+                dirfilter = lambda directory: directory.is_under(launchDir)
+            else:
+                dirfilter = lambda directory: directory == launchDir
+
+            def namefilter(packagename):
+                return dirfilter(packageRegistry.getPackageDir(packagename))
+
+            buildtargets = filter(namefilter, packageRegistry.getPackageNames())
+        else:
+            buildtargets = packageRegistry.getPackageNames()
+
     for ftname in buildtargets:
         packagename, targetname = splitTargetname(ftname)
         packageRegistry.loadPackage(packagename)
+
 except PackageNotFound, e:
     print 'package [%s] not found' % str(e)
     print 'loading all SConscript files to find target'
@@ -600,9 +614,9 @@ except PackageNotFound, e:
 
 runCallback("PreBuild", registry=packageRegistry, buildTargets=SCons.Script.BUILD_TARGETS)
 
-print "BUILD_TARGETS is ", map(str, SCons.Script.BUILD_TARGETS)
-
 SCons.Script.Default(baseoutdir)
+
+print "BUILD_TARGETS is", map(str, SCons.Script.BUILD_TARGETS)
 
 def print_build_failures():
     if SCons.Script.GetBuildFailures():
