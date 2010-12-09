@@ -89,7 +89,7 @@ def sharedLibrary(env, name, sources, packagename, targetname, buildSettings, **
     instTarg = env.Install(baseoutdir.Dir(env['LIBDIR']).Dir(env['VARIANTDIR']), plaintarget)
     if len(instTarg) > 1:
         env.Requires(instTarg[0], instTarg[1:])
-    
+
     compLibs = env.InstallCompilerLibs(plaintarget)
     env.Requires(instTarg[0], compLibs) # the first target should be the library
 
@@ -190,7 +190,7 @@ baseEnv.Append(BUILDDIR='.build')
 baseEnv.Append(RELTARGETDIR='')
 
 # TODO: we should differentiate between absolute output dirs and relative dirnames
-# TODO: why aren't those two rooted in baseoutdir? 
+# TODO: why aren't those two rooted in baseoutdir?
 baseEnv.Append(DATADIR=Dir('data'))
 baseEnv.Append(XMLDIR=Dir('xml'))
 # TODO: what are those three for??? And why are they rooted in baseoutdir?
@@ -213,9 +213,9 @@ class PackageRegistry:
     def collectPackages(self, directory, direxcludes=[]):
         """
         Recursively collects SConsider packages.
-        
+
         Walks recursively through 'directory' (without 'direxcludes')
-        and collects found packages. 
+        and collects found packages.
         """
         packages = {}
         rePackage = re.compile('^(.*).sconsider$')
@@ -274,7 +274,7 @@ class PackageRegistry:
     def hasPackage(self, packagename):
         """
         Check if packagename is found in list of packages.
-        
+
         This solely relies on directories and <packagename>.sconscript files found
         """
         return self.packages.has_key(packagename)
@@ -296,7 +296,7 @@ class PackageRegistry:
 
     def getPackageTargetNames(self, packagename):
         return self.packages.get(packagename, {}).get('targets', {}).keys()
-    
+
     def getPackageNames(self):
         return self.packages.keys()
 
@@ -540,9 +540,9 @@ class TargetMaker:
             destIncludeDir = env['BASEOUTDIR'].Dir(env['INCDIR']).Dir(packagename)
             if not buildSettings['public'].get('stripSubdir', True):
                 destIncludeDir = destIncludeDir.Dir(buildSettings['public'].get('includeSubdir', ''))
-            
+
             srcIncludeDir = self.registry.getPackageDir(packagename).Dir(buildSettings['public'].get('includeSubdir', ''))
-            
+
             # destination dir if we have files to copy
             if buildSettings['public'].get('includes', []):
                 env.AppendUnique(CPPPATH=[destIncludeDir])
@@ -573,7 +573,7 @@ class TargetMaker:
 def createTargets(packagename, buildSettings):
     """
     Creates the targets for the package 'packagename' which are defined in 'buildSettings'.
-    
+
     This is a helper function which must be called from SConscript to create the targets.
     """
     packageRegistry.setBuildSettings(packagename, buildSettings)
@@ -614,7 +614,8 @@ except PackageNotFound, e:
 
 runCallback("PreBuild", registry=packageRegistry, buildTargets=SCons.Script.BUILD_TARGETS)
 
-SCons.Script.Default(baseoutdir)
+if not len(SCons.Script.BUILD_TARGETS):
+    SCons.Script.Default(baseoutdir)
 
 print "BUILD_TARGETS is", map(str, SCons.Script.BUILD_TARGETS)
 
