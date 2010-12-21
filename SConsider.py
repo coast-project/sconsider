@@ -614,9 +614,6 @@ except PackageNotFound, e:
 
 runCallback("PreBuild", registry=packageRegistry, buildTargets=SCons.Script.BUILD_TARGETS)
 
-if not len(SCons.Script.BUILD_TARGETS):
-    SCons.Script.Default(baseoutdir)
-
 print "BUILD_TARGETS is", map(str, SCons.Script.BUILD_TARGETS)
 
 def print_build_failures():
