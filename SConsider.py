@@ -488,8 +488,6 @@ class TargetMaker:
         includeSubdir = Dir(targetBuildSettings.get('includeSubdir', '')).srcnode()
         includePublicSubdir = Dir(targetBuildSettings.get('public', {}).get('includeSubdir', '')).srcnode()
         targetEnv.AppendUnique(CPPPATH=[includeSubdir, includePublicSubdir])
-        # just for info (p.e. scb-files)
-        targetEnv.AppendUnique(CPPPATH_ORIGIN=[includeSubdir, includePublicSubdir])
 
         # update environment by adding dependencies to used modules
         linkDependencies = targetBuildSettings.get('linkDependencies', [])
@@ -537,20 +535,8 @@ class TargetMaker:
             # flags / settings used by this library and users of it
             env.AppendUnique(**appendUnique)
 
-            destIncludeDir = env['BASEOUTDIR'].Dir(env['INCDIR']).Dir(packagename)
-            if not buildSettings['public'].get('stripSubdir', True):
-                destIncludeDir = destIncludeDir.Dir(buildSettings['public'].get('includeSubdir', ''))
-
-            srcIncludeDir = self.registry.getPackageDir(packagename).Dir(buildSettings['public'].get('includeSubdir', ''))
-
-            # destination dir if we have files to copy
-            if buildSettings['public'].get('includes', []):
-                env.AppendUnique(CPPPATH=[destIncludeDir])
-            else:
-                env.AppendUnique(CPPPATH=[srcIncludeDir])
-
-            # just for info (p.e. scb-files)
-            env.AppendUnique(CPPPATH_ORIGIN=[srcIncludeDir])
+            includeDir = self.registry.getPackageDir(packagename).Dir(buildSettings['public'].get('includeSubdir', ''))
+            env.AppendUnique(CPPPATH=[includeDir])
 
         # this libraries dependencies
         self.setModuleDependencies(env, linkDependencies)
