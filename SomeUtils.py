@@ -74,7 +74,7 @@ def copyFileNodes( env, nodetuples, destDir, stripRelDirs = [], mode = None, rep
             instTarg = env.SubstInFileBuilder( destDir.Dir( installRelPath ), file, SUBST_DICT=replaceDict )
         else:
             instTarg = env.Install( destDir.Dir( installRelPath ), file )
-        
+
         if mode:
             env.AddPostAction( instTarg, SCons.Defaults.Chmod( str( instTarg[0] ), mode ) )
         instTargs.extend( instTarg )
@@ -233,12 +233,12 @@ def hasPathPart(node, pathpart):
     return match is not None
 
 def getNodeDependencies(target, filters=[]):
-    """Determines the recursive dependencies of a node.    
+    """Determines the recursive dependencies of a node.
     Specify node filters using 'filters'.
     """
     if not isinstance(filters, list):
         filters = [filters]
-    
+
     deps = set()
     for t in target.sources + target.depends + target.prerequisites:
         if allFuncs(filters, t):
@@ -271,3 +271,22 @@ def generateFulltargetname(packagename, targetname=None, default=False):
             return packagename
     else:
         return packagename+"."+targetname
+
+def getfqdn():
+    import socket
+    hostonly = 'localhost'
+    fqdn = hostonly
+    domain = ''
+    try:
+        # structure of return value: (2, 0, 0, '', ('152.96.80.40', 0))
+        family, socktype, proto, canonname, sockaddr = socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET)[0]
+        # structure of return value: ('sifs-coast1', ['sifs-coast1.hsr.ch', 'loghost'], ['152.96.80.40'])
+        hostonly, aliaslist, ipaddrlist = socket.gethostbyaddr(sockaddr[0])
+        if aliaslist:
+            fqdn = aliaslist[0]
+            domain = '.'.join(fqdn.split('.')[1:])
+        else:
+            fqdn = hostonly
+    except: pass
+    return (hostonly, domain, fqdn)
+
