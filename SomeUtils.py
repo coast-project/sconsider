@@ -290,16 +290,17 @@ def getfqdn():
     except: pass
     return (hostonly, domain, fqdn)
 
-def runCommandWithFile(command, filename, logpath, filter=None, **kw):
+def runCommand(args, logpath='', filename=None, stdincontent=None, filter=None, **kw):
     import subprocess
     res = 1
-    content=None
-    with open(filename) as file:
-        content = file.read()
-        if callable(filter):
-            content = filter(content)
+    if filename:
+        with open(filename) as file:
+            stdincontent = file.read()
 
-    popenObject = subprocess.Popen(command,
+    if callable(filter):
+        stdincontent = filter(stdincontent)
+
+    popenObject = subprocess.Popen(args,
                                 stdin=subprocess.PIPE,
                                 stderr=subprocess.PIPE,
                                 stdout=subprocess.PIPE,
@@ -307,11 +308,13 @@ def runCommandWithFile(command, filename, logpath, filter=None, **kw):
 
     if not os.path.isdir(logpath):
         os.makedirs(logpath)
-    logfilebasename = os.path.basename(command[0]) + '.' + os.path.basename(filename)
+    logfilebasename = os.path.basename(args[0])
+    if filename:
+        logfilebasename = logfilebasename + '.' + os.path.basename(filename)
     errfilename = os.path.join(logpath, logfilebasename + '.stderr')
     outfilename = os.path.join(logpath, logfilebasename + '.stdout')
     try:
-        popen_out, popen_err = popenObject.communicate(content)
+        popen_out, popen_err = popenObject.communicate(stdincontent)
         if popen_err:
             with open(errfilename, 'w') as errfile:
                 errfile.write(popen_err)
@@ -325,24 +328,3 @@ def runCommandWithFile(command, filename, logpath, filter=None, **kw):
             for line in popenObject.stderr:
                 print >>errfile, line
     return res
-
-def runCommandWithInput(args, logpath, stdincontent=None, useShell=False, cwd=None):
-    import subprocess
-    theCommand = subprocess.Popen(args, stdin=subprocess.PIPE,
-                                 stderr=subprocess.PIPE,
-                                 stdout=subprocess.PIPE,
-                                 shell=useShell,
-                                 cwd=cwd)
-
-    theCommand_out, theCommand_err = theCommand.communicate(stdincontent)
-
-    if not os.path.isdir(logpath):
-        os.makedirs(logpath)
-    logfilebasename=os.path.basename(args[0])
-    if theCommand_err:
-        with open(os.path.join(logpath, logfilebasename + '.stderr'), 'w') as errfile:
-            errfile.write(theCommand_err)
-    if theCommand_out:
-        with open(os.path.join(logpath, logfilebasename + '.stdout'), 'w') as outfile:
-            outfile.write(theCommand_out)
-    return theCommand.returncode
