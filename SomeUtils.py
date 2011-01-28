@@ -247,11 +247,13 @@ def getNodeDependencies(target, filters=[]):
 
     return deps
 
+targetnameseparator = '.'
+
 def splitTargetname(fulltargetname, default=False):
     """
     Split fulltargetname into packagename and targetname.
     """
-    parts = fulltargetname.split('.')
+    parts = fulltargetname.split(targetnameseparator)
     pkgname = parts[0]
     targetname = None
     if len(parts) > 1:
@@ -266,11 +268,14 @@ def generateFulltargetname(packagename, targetname=None, default=False):
     """
     if not targetname:
         if default:
-            return packagename+"."+packagename
+            return packagename+targetnameseparator+packagename
         else:
             return packagename
     else:
-        return packagename+"."+targetname
+        return packagename+targetnameseparator+targetname
+
+def createUniqueTargetname(packagename, targetname):
+    return packagename + targetname if packagename != targetname else targetname
 
 def getfqdn():
     import socket

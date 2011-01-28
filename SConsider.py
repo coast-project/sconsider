@@ -355,7 +355,7 @@ class TargetMaker:
                 v = self.targetlist.pop(k)
             else:
                 k, v = self.targetlist.popitem()
-            depList = [item for item in v.get('requires', []) + v.get('linkDependencies', []) + [v.get('usedTarget', '')] if item.startswith(self.packagename + '.')]
+            depList = [item for item in v.get('requires', []) + v.get('linkDependencies', []) + [v.get('usedTarget', '')] if item.startswith(self.packagename + targetnameseparator)]
             for ftn in depList:
                 pkgname, tname = splitTargetname(ftn)
                 if self.packagename == pkgname and self.targetlist.has_key(tname):
@@ -444,7 +444,7 @@ class TargetMaker:
                 kw['targetname'] = targetname
                 kw['buildSettings'] = targetBuildSettings
                 sources = targetBuildSettings.get('sourceFiles', [])
-                name = packagename + targetname if packagename != targetname else targetname
+                name = createUniqueTargetname(packagename, targetname)
                 targets = apply(func, [name, sources], kw)
                 if isinstance(targets, tuple):
                     plaintarget, target = targets
@@ -456,7 +456,7 @@ class TargetMaker:
             else:
                 # Actually includeOnlyTarget is obsolete, but we still need a (dummy) targetType in build settings to get in here!
                 # The following is a workaround, otherwise an alias won't get built in newer SCons versions (because it has depends but no sources)
-                plaintarget = target = targetEnv.Alias(packagename+'.'+targetname, self.registry.getPackageFile(packagename))
+                plaintarget = target = targetEnv.Alias(packagename+targetnameseparator+targetname, self.registry.getPackageFile(packagename))
 
             reqTargets = targetBuildSettings.get('linkDependencies', []) + targetBuildSettings.get('requires', [])
             self.requireTargets(targetEnv, target, reqTargets)
@@ -478,7 +478,7 @@ class TargetMaker:
 
             self.registry.setPackageTarget(packagename, targetname, plaintarget, target)
         except PackageNotFound, e:
-            print 'package [%s] not found, ignoring target [%s]' % (str(e), packagename+'.'+targetname)
+            print 'package [%s] not found, ignoring target [%s]' % (str(e), packagename+targetnameseparator+targetname)
 
     def createTargetEnv(self, targetname, targetBuildSettings, envVars={}):
         # create environment for target
