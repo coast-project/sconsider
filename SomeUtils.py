@@ -7,13 +7,14 @@ def FileNodeComparer( left, right ):
 
 def listFiles( files, **kw ):
     import SCons, SConsider
+    
     allFiles = []
     for file in files:
         globFiles = SCons.Script.Glob( file )
         for globFile in globFiles:
-            if 'recursive' in kw and kw.get( 'recursive' ) and os.path.isdir( globFile.srcnode().abspath ) and os.path.basename( globFile.srcnode().abspath ) != 'CVS':
+            if kw.get('recursive', False) and isinstance(globFile, SCons.Node.FS.Dir):
                 allFiles += SConsider.listFiles( [str( SCons.Script.Dir( '.' ).srcnode().rel_path( globFile.srcnode() ) ) + "/*"], recursive = True )
-            if os.path.isfile( globFile.srcnode().abspath ):
+            else:
                 allFiles.append( globFile )
     allFiles.sort( cmp = FileNodeComparer )
     return allFiles

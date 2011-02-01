@@ -1,0 +1,67 @@
+import SConsider, ThirdParty, SCons, os, pdb
+from SCons.Script import GetOption
+
+Import('*')
+
+def configure():
+    if GetOption('clean') or GetOption('help'):
+        return True
+       
+    env = SConsider.cloneBaseEnv()
+    conf = Configure(env)
+    if not conf.CheckCHeader('zlib.h') or not conf.CheckCHeader('gzio.h'):
+        print 'Did not find header for '+packagename
+        return False
+    if not conf.CheckLib('z'):
+        print 'Did not find library for '+packagename
+        return False
+    if not conf.CheckDeclaration('ZLIB_VERSION', includes='#include "zlib.h"'):
+        print 'Did not find declaration for '+packagename
+        return False
+    env = conf.Finish()
+    
+    return True
+
+if ThirdParty.hasBinaryDist(packagename):
+    print '--with-zlib not implemented!'
+    Exit(1)
+elif ThirdParty.hasSourceDist(packagename):
+    buildSettings = {
+        packagename : {
+            'sourceFiles' : [
+                File('adler32.c'),
+                File('compress.c'),
+                File('crc32.c'),
+                File('deflate.c'),
+                File('gzio.c'),
+                File('infback.c'),
+                File('inffast.c'),
+                File('inflate.c'),
+                File('inftrees.c'),
+                File('trees.c'),
+                File('uncompr.c'),
+                File('zutil.c'),
+            ],
+            'targetType'       : 'LibraryShared',
+            'appendUnique'     : {
+            },
+            'public' : {
+                'includeSubdir' : '',
+            }
+        }
+    }
+else:
+    if not configure():
+        Exit(1)
+    
+    buildSettings = {
+        packagename : {    
+            'public' : {
+                'appendUnique'     : {
+                    'LIBS'         : ['z'],
+                },
+            },
+        }
+    }
+
+SConsider.createTargets(packagename, buildSettings)

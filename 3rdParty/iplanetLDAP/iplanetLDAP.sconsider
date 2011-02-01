@@ -1,0 +1,43 @@
+import SConsider, ThirdParty, pdb
+
+Import('*')
+
+if ThirdParty.hasBinaryDist(packagename):
+    buildSettings = {
+        packagename : {
+            'linkDependencies' : [packagename + '.ldap50'],
+            'targetType'       : 'IncludeOnly',
+            'public' : {
+                'includeSubdir': 'include',
+            }
+        },
+        'ldap50' : {
+            'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('ldap50')],
+            'targetType'       : 'PrecompiledLibraryInstallBuilder',
+        }
+    }
+elif ThirdParty.hasSourceDist(packagename):
+    print '--with-src-'+packagename+' not implemented!'
+    Exit(1)
+else:
+    env = SConsider.cloneBaseEnv()
+    conf = Configure(env)
+    if not conf.CheckLibWithHeader('ldap50', 'ldap.h', 'C'):
+        print 'Did not find library or header for iplanetLDAP'
+        Exit(1)
+    env = conf.Finish()
+
+    buildSettings = {
+        packagename : {
+            'linkDependencies' : [packagename + '.ldap50'],
+        },
+        'ldap50' : {
+            'public' : {
+                'appendUnique'     : {
+                    'LIBS'         : ['ldap50'],
+                },
+            },
+        }
+    }
+
+SConsider.createTargets(packagename, buildSettings)

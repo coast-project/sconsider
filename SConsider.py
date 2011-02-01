@@ -116,6 +116,11 @@ def installBinary(env, name, sources, packagename, targetname, buildSettings, **
 
     return (plaintarget, plaintarget)
 
+def pseudoFile(env, name, sources, packagename, targetname, buildSettings, **kw):
+    plaintarget = env.File(sources[0])
+
+    return (plaintarget, plaintarget)
+
 dEnv = DefaultEnvironment()
 
 dEnv.AddMethod(programTest, "AppTest")	#@!FIXME: should use ProgramTest instead
@@ -124,6 +129,7 @@ dEnv.AddMethod(programApp, "ProgramApp")
 dEnv.AddMethod(sharedLibrary, "LibraryShared")
 dEnv.AddMethod(staticLibrary, "LibraryStatic")
 dEnv.AddMethod(installBinary, "PrecompiledBinary")
+dEnv.AddMethod(pseudoFile, "PseudoFile")
 
 if GetOption('prependPath'):
     dEnv.PrependENVPath('PATH', GetOption('prependPath'))
@@ -206,10 +212,14 @@ class PackageNotFound(Exception):
     pass
 
 class PackageRegistry:
-    def __init__(self, env, scandir, scanexcludes=[]):
+    def __init__(self, env, scandirs, scanexcludes=[]):
         self.env = env
-        self.packages = self.collectPackages(scandir, scanexcludes)
-
+        self.packages = packages = {}
+        if not SCons.Util.is_List(scandirs):
+            scandirs = [scandirs]
+        for scandir in scandirs:
+            self.collectPackages(scandir, scanexcludes)
+    
     def collectPackages(self, directory, direxcludes=[]):
         """
         Recursively collects SConsider packages.
@@ -217,7 +227,6 @@ class PackageRegistry:
         Walks recursively through 'directory' (without 'direxcludes')
         and collects found packages.
         """
-        packages = {}
         rePackage = re.compile('^(.*).sconsider$')
         followlinks = False
         if sys.version_info[:2] >= (2, 6):
@@ -228,13 +237,9 @@ class PackageRegistry:
                 rmatch = rePackage.match(name)
                 if rmatch:
                     pkgname = rmatch.group(1)
-                    if not packages.has_key(pkgname):
-                        packages[pkgname] = {}
                     thePath = os.path.abspath(dirpath)
-                    packages[pkgname]['packagepath'] = Dir(thePath)
-                    packages[pkgname]['packagefile'] = Dir(thePath).File(name)
                     print 'found package [%s] in [%s]' % (pkgname, thePath)
-        return packages
+                    self.setPackage(pkgname, Dir(thePath).File(name), Dir(thePath)) 
 
     def setPackageTarget(self, packagename, targetname, plaintarget, target):
         if not self.hasPackage(packagename):
@@ -271,6 +276,9 @@ class PackageRegistry:
                 deps[generateFulltargetname(dep_packagename, dep_targetname)] = self.getPackageTargetDependencies(dep_packagename, dep_targetname)
         return deps
 
+    def setPackage(self, packagename, packagefile, packagedir, duplicate=False):
+        self.packages[packagename] = {'packagefile': packagefile, 'packagedir': packagedir, 'duplicate': duplicate}
+
     def hasPackage(self, packagename):
         """
         Check if packagename is found in list of packages.
@@ -288,11 +296,22 @@ class PackageRegistry:
         packagename, targetname = splitTargetname(str(fulltargetname))
         return self.hasPackageTarget(packagename, targetname)
 
+    def setPackageDir(self, packagename, dir):
+        if self.hasPackage(packagename):
+            self.packages[packagename]['packagedir'] = dir
+
     def getPackageDir(self, packagename):
-        return self.packages.get(packagename, {}).get('packagepath', '')
+        return self.packages.get(packagename, {}).get('packagedir', '')
 
     def getPackageFile(self, packagename):
         return self.packages.get(packagename, {}).get('packagefile', '')
+    
+    def getPackageDuplicate(self, packagename):
+        return self.packages.get(packagename, {}).get('duplicate', False)
+    
+    def setPackageDuplicate(self, packagename, duplicate=True):
+        if self.hasPackage(packagename):
+            self.packages[packagename]['duplicate'] = duplicate
 
     def getPackageTargetNames(self, packagename):
         return self.packages.get(packagename, {}).get('targets', {}).keys()
@@ -326,17 +345,19 @@ class PackageRegistry:
                 self.packages[packagename]['loaded'] = True
                 packagedir = self.getPackageDir(packagename)
                 packagefile = self.getPackageFile(packagename)
-                builddir = os.path.join(self.env['BASEOUTDIR'].abspath, packagedir.path, self.env['BUILDDIR'], self.env['VARIANTDIR'])
+                builddir = self.env['BASEOUTDIR'].Dir(packagedir.path).Dir(self.env['BUILDDIR']).Dir(self.env['VARIANTDIR'])
                 print 'executing [%s] as SConscript for package [%s]' % (packagefile.path, packagename)
-                self.env.SConscript(packagefile, variant_dir=builddir, duplicate=0, exports=['packagename'])
+                self.env.SConscript(packagefile, variant_dir=builddir, duplicate=self.getPackageDuplicate(packagename), exports=['packagename'])
             if targetname:
                 return self.getPackageTarget(packagename, targetname)['target']
         return None
 
-direxcludes = [baseEnv['BUILDDIR'], 'CVS', '.git', '.gitmodules', 'doc']
-direxcludes.extend(baseEnv.GetOption('exclude'))
-direxcludes.extend([baseEnv[varname] for varname in ['BINDIR', 'LIBDIR', 'LOGDIR', 'CONFIGDIR']])
-packageRegistry = PackageRegistry(baseEnv, Dir('#').path, direxcludes)
+dirExcludes = [baseEnv['BUILDDIR'], 'CVS', '.git', '.gitmodules', 'doc']
+dirExcludes.extend(baseEnv.GetOption('exclude'))
+dirExcludesTop = dirExcludes + ['site_scons'] + [baseEnv[varname] for varname in ['BINDIR', 'LIBDIR', 'LOGDIR', 'CONFIGDIR']]
+scanDirs = ['site_scons'] + filter(lambda dir: os.path.isdir(dir) and dir not in dirExcludesTop, os.listdir(Dir('#').path))
+packageRegistry = PackageRegistry(baseEnv, scanDirs, dirExcludes)
+runCallback('PackagesCollected', registry=packageRegistry)
 
 class TargetMaker:
     def __init__(self, packagename, tlist, registry):
@@ -364,7 +385,7 @@ class TargetMaker:
 
     def prepareFileNodeTuples(self, nodes, baseDir, alternativeDir=None):
         nodetuples = []
-
+        
         for node in nodes:
             currentFile = node
             if isinstance( currentFile, str ):
@@ -487,7 +508,8 @@ class TargetMaker:
         # maybe we need to add this library's local include path when building it (if different from .)
         includeSubdir = Dir(targetBuildSettings.get('includeSubdir', '')).srcnode()
         includePublicSubdir = Dir(targetBuildSettings.get('public', {}).get('includeSubdir', '')).srcnode()
-        targetEnv.AppendUnique(CPPPATH=[includeSubdir, includePublicSubdir])
+        for incdir in includeSubdir.get_all_rdirs() + includePublicSubdir.get_all_rdirs():
+            targetEnv.AppendUnique(CPPPATH=[incdir])
 
         # update environment by adding dependencies to used modules
         linkDependencies = targetBuildSettings.get('linkDependencies', [])
@@ -535,8 +557,12 @@ class TargetMaker:
             # flags / settings used by this library and users of it
             env.AppendUnique(**appendUnique)
 
-            includeDir = self.registry.getPackageDir(packagename).Dir(buildSettings['public'].get('includeSubdir', ''))
-            env.AppendUnique(CPPPATH=[includeDir])
+            includePublicSubdir = buildSettings['public'].get('includeSubdir', '')
+            if SCons.Util.is_String(includePublicSubdir):
+                includePublicSubdir = self.registry.getPackageDir(packagename).Dir(includePublicSubdir)
+
+            for incdir in includePublicSubdir.get_all_rdirs():
+                env.AppendUnique(CPPPATH=[incdir])
 
         # this libraries dependencies
         self.setModuleDependencies(env, linkDependencies)

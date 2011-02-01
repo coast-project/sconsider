@@ -1,0 +1,47 @@
+import SConsider, ThirdParty
+
+Import('*')
+
+def configure():
+    if GetOption('clean') or GetOption('help'):
+        return True 
+       
+    env = SConsider.cloneBaseEnv()
+    conf = Configure(env)
+    if not conf.CheckCHeader('cute.h'):
+        print 'Did not find cute headers'
+        return False
+    env = conf.Finish()
+    
+    return True
+
+if ThirdParty.hasBinaryDist(packagename):
+    print '--with-cute not implemented!'
+    Exit(1)
+elif ThirdParty.hasSourceDist(packagename):
+    buildSettings = {
+        'include' : {
+            'public' : {
+                'includeSubdir': 'cute_lib',
+            },
+        },
+        'tests' : {
+            'targetType'       : 'ProgramTest',
+            'linkDependencies' : [
+                SConsider.generateFulltargetname(packagename, 'include'),
+                SConsider.generateFulltargetname('boost','include'),
+            ],
+            'includeSubdir'    : 'cute_tests',
+            'sourceFiles'      : SConsider.listFiles(['cute_tests/*.cpp']),
+        },
+    }
+else:
+    if not configure():
+        Exit(1)
+    
+    buildSettings = {
+        'include' : {
+        },
+    }
+
+SConsider.createTargets(packagename, buildSettings)
