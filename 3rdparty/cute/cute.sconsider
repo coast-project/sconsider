@@ -2,6 +2,8 @@ import SConsider, ThirdParty
 
 Import('*')
 
+buildSettings = {}
+
 def configure():
     if GetOption('clean') or GetOption('help'):
         return True 
@@ -36,12 +38,10 @@ elif ThirdParty.hasSourceDist(packagename):
         },
     }
 else:
-    if not configure():
-        Exit(1)
-    
-    buildSettings = {
-        'include' : {
-        },
-    }
+    if configure():   
+        buildSettings = {
+            'include' : {
+            },
+        }
 
 SConsider.createTargets(packagename, buildSettings)

@@ -2,6 +2,8 @@ import SConsider, ThirdParty, pdb
 
 Import('*')
 
+buildSettings = {}
+
 def configure():
     if GetOption('clean') or GetOption('help'):
         return True 
@@ -41,19 +43,17 @@ elif ThirdParty.hasSourceDist(packagename):
         },
     }
 else:
-    if not configure():
-        Exit(1)
-    
-    buildSettings = {
-        'include' : {
-        },
-        'regex' : {
-            'public' : {
-                'appendUnique'     : {
-                    'LIBS'         : ['boost_regex'],
+    if configure():
+        buildSettings = {
+            'include' : {
+            },
+            'regex' : {
+                'public' : {
+                    'appendUnique'     : {
+                        'LIBS'         : ['boost_regex'],
+                    },
                 },
             },
-        },
-    }
+        }
 
 SConsider.createTargets(packagename, buildSettings)

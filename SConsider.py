@@ -27,6 +27,7 @@ AddOption('--exclude', dest='exclude', action='append', nargs=1, type='string', 
 AddOption('--usetool', dest='usetools', action='append', nargs=1, type='string', default=[], metavar='VAR', help='tools to use when constructing default environment')
 AddOption('--appendPath', dest='appendPath', action='append', nargs=1, type='string', metavar='DIR', help='Directory to append to PATH environment variable.')
 AddOption('--prependPath', dest='prependPath', action='append', nargs=1, type='string', metavar='DIR', help='Directory to prepend to PATH environment variable.')
+AddOption('--ignore-missing', dest='ignore-missing', action='store_true', help='Ignore missing dependencies instead of failing the whole build.')
 
 baseoutdir = Dir(GetOption('baseoutdir'))
 print 'base output dir [%s]' % baseoutdir.abspath
@@ -209,7 +210,17 @@ def cloneBaseEnv():
     return baseEnv.Clone()
 
 class PackageNotFound(Exception):
-    pass
+    def __init__(self, package):
+        self.package = package
+    def __str__(self):
+        return 'Package [{0}] not found'.format(self.package)
+    
+
+class PackageTargetNotFound(Exception):
+    def __init__(self, target):
+        self.target = target
+    def __str__(self):
+        return 'Target [{0}] not found'.format(self.target)
 
 class PackageRegistry:
     def __init__(self, env, scandirs, scanexcludes=[]):
@@ -323,6 +334,12 @@ class PackageRegistry:
         if self.hasPackage(packagename):
             self.packages[packagename]['buildsettings'] = buildSettings
 
+    def hasBuildSettings(self, packagename, targetname=None):
+        if not targetname:
+            return self.packages.get(packagename, {}).has_key('buildsettings')
+        else:
+            return self.packages.get(packagename, {}).get('buildsettings', {}).has_key(targetname)
+
     def getBuildSettings(self, packagename, targetname=None):
         if not targetname:
             return self.packages.get(packagename, {}).get('buildsettings', {})
@@ -354,7 +371,7 @@ class PackageRegistry:
 
 dirExcludes = [baseEnv['BUILDDIR'], 'CVS', '.git', '.gitmodules', 'doc']
 dirExcludes.extend(baseEnv.GetOption('exclude'))
-dirExcludesTop = dirExcludes + [baseEnv[varname] for varname in ['BINDIR', 'LIBDIR', 'LOGDIR', 'CONFIGDIR']]
+dirExcludesTop = dirExcludes + ['3rdparty'] + [baseEnv[varname] for varname in ['BINDIR', 'LIBDIR', 'LOGDIR', 'CONFIGDIR']]
 scanDirs = filter(lambda dir: os.path.isdir(dir) and dir not in dirExcludesTop, os.listdir(Dir('#').path))
 packageRegistry = PackageRegistry(baseEnv, scanDirs, dirExcludes)
 runCallback('PackagesCollected', env=baseEnv, registry=packageRegistry)
@@ -498,8 +515,10 @@ class TargetMaker:
             runCallback("PostCreateTarget", env=targetEnv, target=target, plaintarget=plaintarget, registry=self.registry, packagename=packagename, targetname=targetname, buildSettings=targetBuildSettings)
 
             self.registry.setPackageTarget(packagename, targetname, plaintarget, target)
-        except PackageNotFound, e:
-            print 'package [%s] not found, ignoring target [%s]' % (str(e), packagename+targetnameseparator+targetname)
+        except (PackageNotFound, PackageTargetNotFound) as e:
+            if not GetOption('ignore-missing'):
+                raise
+            print str(e)+', ignoring target [{0}]'.format(generateFulltargetname(packagename, targetname))
 
     def createTargetEnv(self, targetname, targetBuildSettings, envVars={}):
         # create environment for target
@@ -526,18 +545,16 @@ class TargetMaker:
 
     def setModuleDependencies(self, env, modules, **kw):
         for fulltargetname in modules:
-            packagename, targetname = splitTargetname(fulltargetname)
+            packagename, targetname = splitTargetname(fulltargetname, default=True)
+            
             self.registry.loadPackage(packagename)
-            buildSettings = self.registry.getBuildSettings(packagename)
-            if not buildSettings:
-                print 'Warning: buildSettings dictionary in module %s not defined!' % packagename
-                return None
+            
+            if not self.registry.hasBuildSettings(packagename, targetname):
+                raise PackageTargetNotFound(generateFulltargetname(packagename, targetname))
 
-            # get default target name if not set already
-            if not targetname:
-                targetname = packagename
+            buildSettings = self.registry.getBuildSettings(packagename, targetname)
             targets = self.registry.getPackageTarget(packagename, targetname)
-            self.setExternalDependencies(env, packagename, buildSettings.get(targetname, {}), plaintarget=targets['plaintarget'], **kw)
+            self.setExternalDependencies(env, packagename, buildSettings, plaintarget=targets['plaintarget'], **kw)
 
     def setExecEnv(self, env, requiredTargets):
         for targ in requiredTargets:
@@ -598,31 +615,37 @@ baseEnv.lookup_list.append(packageRegistry.lookup)
 
 # we need to define the targets before entering the build phase:
 try:
-    buildtargets = SCons.Script.BUILD_TARGETS
-    if not buildtargets:
-        if GetOption("climb_up") in [1, 3]: # 1: -u, 3: -U
-            launchDir = Dir(SCons.Script.GetLaunchDir())
-            if GetOption("climb_up") == 1:
-                dirfilter = lambda directory: directory.is_under(launchDir)
+    try:
+        buildtargets = SCons.Script.BUILD_TARGETS
+        if not buildtargets:
+            if GetOption("climb_up") in [1, 3]: # 1: -u, 3: -U
+                launchDir = Dir(SCons.Script.GetLaunchDir())
+                if GetOption("climb_up") == 1:
+                    dirfilter = lambda directory: directory.is_under(launchDir)
+                else:
+                    dirfilter = lambda directory: directory == launchDir
+    
+                def namefilter(packagename):
+                    return dirfilter(packageRegistry.getPackageDir(packagename))
+    
+                buildtargets = filter(namefilter, packageRegistry.getPackageNames())
             else:
-                dirfilter = lambda directory: directory == launchDir
+                buildtargets = packageRegistry.getPackageNames()
+    
+        for ftname in buildtargets:
+            packagename, targetname = splitTargetname(ftname)
+            packageRegistry.loadPackage(packagename)
+    
+    except PackageNotFound as e:
+        print e
+        print 'loading all SConscript files to find target'
+        for packagename in packageRegistry.getPackageNames():
+            packageRegistry.loadPackage(packagename)
 
-            def namefilter(packagename):
-                return dirfilter(packageRegistry.getPackageDir(packagename))
-
-            buildtargets = filter(namefilter, packageRegistry.getPackageNames())
-        else:
-            buildtargets = packageRegistry.getPackageNames()
-
-    for ftname in buildtargets:
-        packagename, targetname = splitTargetname(ftname)
-        packageRegistry.loadPackage(packagename)
-
-except PackageNotFound, e:
-    print 'package [%s] not found' % str(e)
-    print 'loading all SConscript files to find target'
-    for packagename in packageRegistry.getPackageNames():
-        packageRegistry.loadPackage(packagename)
+except (PackageNotFound, PackageTargetNotFound) as e:
+    print e
+    print 'Build aborted, missing dependency!'
+    exit(1)
 
 runCallback("PreBuild", registry=packageRegistry, buildTargets=SCons.Script.BUILD_TARGETS)
 

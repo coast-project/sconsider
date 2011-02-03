@@ -16,7 +16,7 @@ def getBinaryDistDir(packagename):
     return thirdDartyPackages.get(packagename, {}).get('binarydistdir', '')
 
 def prepareLibraries(env, registry, **kw):
-    SCons.Script.AddOption('--3rdparty', dest='3rdparty', action='store', default='site_scons/3rdParty', help='Specify the 3rdparty directory')
+    SCons.Script.AddOption('--3rdparty', dest='3rdparty', action='store', default='site_scons/3rdparty', help='Specify the 3rdparty directory')
     thirdPartyPath = SCons.Script.GetOption('3rdparty')
     for root, dirnames, filenames in os.walk(thirdPartyPath):
         dirnames[:] = [dir for dir in dirnames if dir != env.get('BUILDDIR', '')]
@@ -42,21 +42,8 @@ def generate(env):
     
     try:
         SConsider.registerCallback('PackagesCollected', prepareLibraries)
-        
-
-                     
-        
-#        SCons.Script.AddOption('--package', dest='package', action='store', default='', help='Specify the destination directory')
     except optparse.OptionConflictError:
-#        raise PackageToolException("Only one Package-Tool instance allowed")
         pass
-    
-#    destination = SCons.Script.GetOption('package')
-#    if destination:
-#        if not os.path.isdir(destination):
-#            SCons.Script.Main.OptionsParser.error("given package destination path doesn't exist")
-#        else:
-#            SConsider.registerCallback("PreBuild", addPackageTarget, env=env, destdir=SCons.Script.Dir(destination))
 
 def exists(env):
     return 1

@@ -3,6 +3,8 @@ from SCons.Script import GetOption
 
 Import('*')
 
+buildSettings = {}
+
 def configure():
     if GetOption('clean') or GetOption('help'):
         return True
@@ -51,17 +53,15 @@ elif ThirdParty.hasSourceDist(packagename):
         }
     }
 else:
-    if not configure():
-        Exit(1)
-    
-    buildSettings = {
-        packagename : {    
-            'public' : {
-                'appendUnique'     : {
-                    'LIBS'         : ['z'],
+    if configure():
+        buildSettings = {
+            packagename : {    
+                'public' : {
+                    'appendUnique'     : {
+                        'LIBS'         : ['z'],
+                    },
                 },
-            },
+            }
         }
-    }
 
 SConsider.createTargets(packagename, buildSettings)
