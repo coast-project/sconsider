@@ -15,8 +15,11 @@ def hasBinaryDist(packagename):
 def getBinaryDistDir(packagename):
     return thirdDartyPackages.get(packagename, {}).get('binarydistdir', '')
 
+def addScanDir(env, directories):
+    thirdPartyPath = SCons.Script.GetOption('3rdparty')
+    directories.insert(0, thirdPartyPath)
+
 def prepareLibraries(env, registry, **kw):
-    SCons.Script.AddOption('--3rdparty', dest='3rdparty', action='store', default='site_scons/3rdparty', help='Specify the 3rdparty directory')
     thirdPartyPath = SCons.Script.GetOption('3rdparty')
     for root, dirnames, filenames in os.walk(thirdPartyPath):
         dirnames[:] = [dir for dir in dirnames if dir != env.get('BUILDDIR', '')]
@@ -39,11 +42,9 @@ def prepareLibraries(env, registry, **kw):
 
 def generate(env):
     import SCons.Script, SConsider
-    
-    try:
-        SConsider.registerCallback('PackagesCollected', prepareLibraries)
-    except optparse.OptionConflictError:
-        pass
+    SCons.Script.AddOption('--3rdparty', dest='3rdparty', action='store', default='site_scons/3rdparty', help='Specify the 3rdparty directory')    
+    SConsider.registerCallback('PrePackageCollection', addScanDir)
+    SConsider.registerCallback('PostPackageCollection', prepareLibraries)
 
 def exists(env):
     return 1

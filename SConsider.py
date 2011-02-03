@@ -371,10 +371,11 @@ class PackageRegistry:
 
 dirExcludes = [baseEnv['BUILDDIR'], 'CVS', '.git', '.gitmodules', 'doc']
 dirExcludes.extend(baseEnv.GetOption('exclude'))
-dirExcludesTop = dirExcludes + ['3rdparty'] + [baseEnv[varname] for varname in ['BINDIR', 'LIBDIR', 'LOGDIR', 'CONFIGDIR']]
+dirExcludesTop = dirExcludes + ['site_scons', '3rdparty'] + [baseEnv[varname] for varname in ['BINDIR', 'LIBDIR', 'LOGDIR', 'CONFIGDIR']]
 scanDirs = filter(lambda dir: os.path.isdir(dir) and dir not in dirExcludesTop, os.listdir(Dir('#').path))
+runCallback('PrePackageCollection', env=baseEnv, directories=scanDirs)
 packageRegistry = PackageRegistry(baseEnv, scanDirs, dirExcludes)
-runCallback('PackagesCollected', env=baseEnv, registry=packageRegistry)
+runCallback('PostPackageCollection', env=baseEnv, registry=packageRegistry)
 
 class TargetMaker:
     def __init__(self, packagename, tlist, registry):
