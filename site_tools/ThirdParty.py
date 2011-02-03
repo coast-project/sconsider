@@ -15,7 +15,7 @@ def hasBinaryDist(packagename):
 def getBinaryDistDir(packagename):
     return thirdDartyPackages.get(packagename, {}).get('binarydistdir', '')
 
-def blub(env, registry, **kw):
+def prepareLibraries(env, registry, **kw):
     SCons.Script.AddOption('--3rdparty', dest='3rdparty', action='store', default='site_scons/3rdParty', help='Specify the 3rdparty directory')
     thirdPartyPath = SCons.Script.GetOption('3rdparty')
     for root, dirnames, filenames in os.walk(thirdPartyPath):
@@ -41,7 +41,7 @@ def generate(env):
     import SCons.Script, SConsider
     
     try:
-        SConsider.registerCallback('PackagesCollected', blub)
+        SConsider.registerCallback('PackagesCollected', prepareLibraries)
         
 
                      
