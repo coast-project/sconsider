@@ -15,35 +15,35 @@ def hasBinaryDist(packagename):
 def getBinaryDistDir(packagename):
     return thirdDartyPackages.get(packagename, {}).get('binarydistdir', '')
 
+def blub(env, registry, **kw):
+    SCons.Script.AddOption('--3rdparty', dest='3rdparty', action='store', default='site_scons/3rdParty', help='Specify the 3rdparty directory')
+    thirdPartyPath = SCons.Script.GetOption('3rdparty')
+    for root, dirnames, filenames in os.walk(thirdPartyPath):
+        dirnames[:] = [dir for dir in dirnames if dir != env.get('BUILDDIR', '')]
+        for filename in fnmatch.filter(filenames, '*.sconsider'):
+            packagename, _ = os.path.splitext(filename)
+            SCons.Script.AddOption('--with-src-'+packagename, dest='with-src-'+packagename, action='store', default='', metavar=packagename+'_SOURCEDIR', help='Specify the '+packagename+' source directory')               
+            libpath = SCons.Script.GetOption('with-src-'+packagename)
+            if libpath:
+                libDir = env.Dir(libpath)
+                env.Dir(thirdPartyPath).Dir(packagename).addRepository(libDir)
+                registry.setPackageDuplicate(packagename, True)
+                thirdDartyPackages.setdefault(packagename, {})['sourcedistdir'] = libDir
+            
+            SCons.Script.AddOption('--with-'+packagename, dest='with-'+packagename, action='store', default='', metavar=packagename+'_DIR', help='Specify the '+packagename+' binary directory')
+            distpath = SCons.Script.GetOption('with-'+packagename)
+            if distpath:
+                distDir = env.Dir(distpath)
+                env.Dir(thirdPartyPath).Dir(packagename).addRepository(distDir)
+                thirdDartyPackages.setdefault(packagename, {})['binarydistdir'] = distDir
+
 def generate(env):
     import SCons.Script, SConsider
     
     try:
-        SCons.Script.AddOption('--3rdparty', dest='3rdparty', action='store', default='site_scons/3rdParty', help='Specify the 3rdparty directory')
-        thirdPartyPath = SCons.Script.GetOption('3rdparty')
-        for root, dirnames, filenames in os.walk(thirdPartyPath):
-            dirnames[:] = [dir for dir in dirnames if dir != '.build']
-            for filename in fnmatch.filter(filenames, '*.sconsider'):
-                library, _ = os.path.splitext(filename)
-                SCons.Script.AddOption('--with-src-'+library, dest='with-src-'+library, action='store', default='', metavar=library+'_SOURCEDIR', help='Specify the '+library+' source directory')               
-                libpath = SCons.Script.GetOption('with-src-'+library)
-                if libpath:
-                    libDir = env.Dir(libpath)
-                    env.Dir(thirdPartyPath).Dir(library).addRepository(libDir)
-                    
-                    def createCallback(packagename):
-                        return lambda registry: registry.setPackageDuplicate(packagename, True)                    
-                    SConsider.registerCallback('PackagesCollected', createCallback(library))
-                     
-                    thirdDartyPackages.setdefault(library, {})['sourcedistdir'] = libDir
-                
-                SCons.Script.AddOption('--with-'+library, dest='with-'+library, action='store', default='', metavar=library+'_DIR', help='Specify the '+library+' binary directory')
-                distpath = SCons.Script.GetOption('with-'+library)
-                if distpath:
-                    distDir = env.Dir(distpath)
-                    env.Dir(thirdPartyPath).Dir(library).addRepository(distDir)
+        SConsider.registerCallback('PackagesCollected', blub)
+        
 
-                    thirdDartyPackages.setdefault(library, {})['binarydistdir'] = distDir
                      
         
 #        SCons.Script.AddOption('--package', dest='package', action='store', default='', help='Specify the destination directory')
