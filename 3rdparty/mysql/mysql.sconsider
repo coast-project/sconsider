@@ -7,6 +7,12 @@ buildSettings = {}
 def configure():
     if GetOption('clean') or GetOption('help'):
         return True 
+
+    def CheckExecutable(context, executable):
+        context.Message('Checking for executable {0}... '.format(executable))
+        result = WhereIs(executable)
+        context.Result(bool(result))
+        return result
     
     env = SConsider.cloneBaseEnv()
     conf = Configure(env, custom_tests = {'CheckExecutable' : CheckExecutable})
@@ -50,12 +56,6 @@ elif ThirdParty.hasSourceDist(packagename):
     print '--with-src-'+packagename+' not implemented!'
     Exit(1)
 else:
-    def CheckExecutable(context, executable):
-        context.Message('Checking for executable {0}... '.format(executable))       
-        result = WhereIs(executable)
-        context.Result(bool(result))
-        return result
-    
     if configure():
         buildSettings = {
             packagename : {
