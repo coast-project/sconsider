@@ -1,4 +1,4 @@
-import os, glob, string, re
+import os, glob, string, re, contextlib
 import pdb
 
 def FileNodeComparer( left, right ):
@@ -334,3 +334,16 @@ def runCommand(args, logpath='', filename=None, stdincontent=None, filter=None, 
             for line in popenObject.stderr:
                 print >>errfile, line
     return res
+
+def CheckExecutable(context, executable):
+    context.Message('Checking for executable {0}... '.format(executable))
+    result = WhereIs(executable)
+    context.Result(bool(result))
+    return result
+
+@contextlib.contextmanager
+def ConfigureContext(env, *args, **kw):
+    kw.setdefault('custom_tests', {})['CheckExecutable'] = CheckExecutable
+    conf = env.Configure(*args, **kw)
+    yield conf
+    conf.Finish()

@@ -1,0 +1,24 @@
+import SConsider, ThirdParty, pdb
+
+Import('*')
+
+buildSettings = {
+    'include' : {
+        'public' : {
+            'includeSubdir': '',
+        },
+    },
+    'regex' : {
+        'targetType'       : 'LibraryShared',
+        'linkDependencies' : [
+            SConsider.generateFulltargetname(packagename, 'include'),  # used to pass public include dirs of boost
+        ],
+        'sourceFiles'      : SConsider.listFiles(['libs/regex/src/*.cpp']),
+#        'appendUnique'     : {
+#            'CPPDEFINES'   : ['BOOST_HAS_ICU=1'],
+#            'LIBS'         : ['icui18n','icuuc'],
+#        },
+    },
+}
+
+SConsider.createTargets(packagename, buildSettings)

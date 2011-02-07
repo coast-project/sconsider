@@ -1,0 +1,34 @@
+import SConsider, ThirdParty
+
+Import('*')
+
+buildSettings = {}
+
+def configure():
+    if GetOption('clean') or GetOption('help'):
+        return True 
+    
+    env = SConsider.cloneBaseEnv()
+    conf = Configure(env)
+    if not conf.CheckLibWithHeader('loki', 'loki/SmartPtr.h', 'CXX'):
+        print 'Did not find library or header for '+packagename
+        env = conf.Finish()
+        return False
+    env = conf.Finish()
+    return True
+
+if configure():
+    buildSettings = {
+        'include' : {
+        },
+        'lokiObjects' : {
+            'public' : {
+                'appendUnique'     : {
+                    'LIBS'         : ['loki'],
+                },
+            },
+            
+        },
+    }
+
+SConsider.createTargets(packagename, buildSettings)

@@ -1,0 +1,41 @@
+import SConsider, ThirdParty, SCons, os, pdb
+from SCons.Script import GetOption
+
+Import('*')
+
+buildSettings = {}
+
+def configure():
+    if GetOption('clean') or GetOption('help'):
+        return True
+       
+    env = SConsider.cloneBaseEnv()
+    conf = Configure(env)
+    if not conf.CheckCHeader('zlib.h') or not conf.CheckCHeader('gzio.h'):
+        print 'Did not find header for '+packagename
+        env = conf.Finish()
+        return False
+    if not conf.CheckLib('z'):
+        print 'Did not find library for '+packagename
+        env = conf.Finish()
+        return False
+    if not conf.CheckDeclaration('ZLIB_VERSION', includes='#include "zlib.h"'):
+        print 'Did not find declaration for '+packagename
+        env = conf.Finish()
+        return False
+    env = conf.Finish()
+    
+    return True
+
+if configure():
+    buildSettings = {
+        packagename : {    
+            'public' : {
+                'appendUnique'     : {
+                    'LIBS'         : ['z'],
+                },
+            },
+        }
+    }
+
+SConsider.createTargets(packagename, buildSettings)

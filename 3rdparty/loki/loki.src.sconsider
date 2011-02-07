@@ -1,0 +1,20 @@
+import SConsider, ThirdParty
+
+Import('*')
+
+buildSettings = {
+    'include' : {
+        'public' : {
+            'includeSubdir': 'include',
+        }
+    },
+    'objects' : {
+        'targetType'       : 'LibraryShared',
+        'linkDependencies' : [
+            SConsider.generateFulltargetname(packagename, 'include'),
+        ],
+        'sourceFiles'      : SConsider.listFiles( ['src/*.cpp'] ),
+    },
+}
+
+SConsider.createTargets(packagename, buildSettings)

@@ -1,0 +1,71 @@
+import SConsider, ThirdParty, os
+from stat import *
+
+Import('*')
+
+buildSettings = {
+    packagename : {
+        'linkDependencies' : [
+            packagename + '.sybunic',
+            packagename + '.sybcs',
+            packagename + '.sybct',
+            packagename + '.sybintl',
+            packagename + '.sybtcl',
+            packagename + '.sybcomn',
+        ],
+        'requires'         : [packagename + '.config'],
+        'targetType'       : 'IncludeOnly',
+        'public' : {
+            'includeSubdir': 'include',
+        }
+    },
+    'config': {
+        'targetType'       : 'CopyFiles',
+        'copyFiles' : [
+            (SConsider.listFiles(['config/*',
+                                  'charsets/*',
+                                  'locales/*'],
+                                  recursive=True), S_IRUSR|S_IRGRP|S_IROTH),
+        ],
+        'appendUnique'     : { 'RELTARGETDIR' : os.path.join('globals', packagename) },
+        'public': {
+            'execEnv' : {
+                'SYBASE': os.path.join('$BASEOUTDIR', '$RELTARGETDIR'),
+                'LANG'  : 'C',
+            },
+        },
+    },
+    'sybunic' : {
+        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('sybunic')],
+        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    },
+    'sybcs' : {
+        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('sybcs')],
+        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    },
+    'sybct' : {
+        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('sybct')],
+        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    },
+    'sybintl' : {
+        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('sybintl')],
+        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    },
+    'sybtcl' : {
+        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('sybtcl')],
+        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    },
+    'sybcomn' : {
+        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('sybcomn')],
+        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    },
+    'isql': {
+        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('isql')],
+        'requires' : [
+            SConsider.generateFulltargetname(packagename,'config'),
+        ],
+        'targetType'       : 'PrecompiledBinary',
+    },
+}
+
+SConsider.createTargets(packagename, buildSettings)

@@ -1,0 +1,19 @@
+import SConsider, ThirdParty, pdb
+
+Import('*')
+
+buildSettings = {
+    packagename : {
+        'linkDependencies' : [packagename + '.ldap50'],
+        'targetType'       : 'IncludeOnly',
+        'public' : {
+            'includeSubdir': 'include',
+        }
+    },
+    'ldap50' : {
+        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('ldap50')],
+        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    }
+}
+
+SConsider.createTargets(packagename, buildSettings)

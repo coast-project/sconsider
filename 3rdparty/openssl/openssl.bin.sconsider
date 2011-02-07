@@ -1,0 +1,40 @@
+import SConsider, ThirdParty, pdb
+
+Import('*')
+
+buildSettings = {
+    packagename : {
+        'linkDependencies' : [
+            packagename + '.ssl',
+            packagename + '.crypto',
+        ],
+        'targetType'       : 'IncludeOnly',
+        'public' : {
+            'includeSubdir': 'include',
+        }
+    },
+    'ssl' : {
+        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('ssl')],
+        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    },
+    'crypto' : {
+        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('crypto')],
+        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    },
+    'opensslbin' : {
+        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('openssl')],
+        'targetType'       : 'PrecompiledBinary',
+    },
+    'openSSL' : {
+        'targetType'       : 'ProgramApp',
+        'runConfig' : {
+        },
+        'requires' : [
+            packagename + '.ssl',
+            packagename + '.crypto',
+        ],
+        'usedTarget'       : packagename + '.opensslbin',
+    }
+}
+
+SConsider.createTargets(packagename, buildSettings)

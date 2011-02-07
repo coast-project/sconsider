@@ -1,0 +1,25 @@
+import SConsider, ThirdParty, os, pdb
+
+Import('*')
+
+buildSettings = {
+    packagename : {
+        'linkDependencies' : [
+            packagename+'.mysqlclient',
+        ],
+        'targetType'       : 'IncludeOnly',
+        'public' : {
+            'includeSubdir': 'include',
+        },
+    },
+    'mysqlclient' : {
+        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('mysqlclient')],
+        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    },
+    'mysqlbin' : {
+        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('mysql')],
+        'targetType'       : 'PrecompiledBinaryInstallBuilder',
+    }
+}
+
+SConsider.createTargets(packagename, buildSettings)

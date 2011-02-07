@@ -1,0 +1,22 @@
+import SConsider, ThirdParty
+
+Import('*')
+
+buildSettings = {
+    'include' : {
+        'public' : {
+            'includeSubdir': 'cute_lib',
+        },
+    },
+    'tests' : {
+        'targetType'       : 'ProgramTest',
+        'linkDependencies' : [
+            SConsider.generateFulltargetname(packagename, 'include'),
+            SConsider.generateFulltargetname('boost','include'),
+        ],
+        'includeSubdir'    : 'cute_tests',
+        'sourceFiles'      : SConsider.listFiles(['cute_tests/*.cpp']),
+    },
+}
+
+SConsider.createTargets(packagename, buildSettings)

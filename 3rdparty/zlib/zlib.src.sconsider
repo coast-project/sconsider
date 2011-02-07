@@ -1,0 +1,31 @@
+import SConsider, ThirdParty, SCons, os, pdb
+from SCons.Script import GetOption
+
+Import('*')
+
+buildSettings = {
+    packagename : {
+        'sourceFiles' : [
+            File('adler32.c'),
+            File('compress.c'),
+            File('crc32.c'),
+            File('deflate.c'),
+            File('gzio.c'),
+            File('infback.c'),
+            File('inffast.c'),
+            File('inflate.c'),
+            File('inftrees.c'),
+            File('trees.c'),
+            File('uncompr.c'),
+            File('zutil.c'),
+        ],
+        'targetType'       : 'LibraryShared',
+        'appendUnique'     : {
+        },
+        'public' : {
+            'includeSubdir' : '',
+        }
+    }
+}
+
+SConsider.createTargets(packagename, buildSettings)

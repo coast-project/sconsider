@@ -1,0 +1,27 @@
+import SConsider, ThirdParty
+
+Import('*')
+
+buildSettings = {}
+
+def configure():
+    if GetOption('clean') or GetOption('help'):
+        return True 
+       
+    env = SConsider.cloneBaseEnv()
+    conf = Configure(env)
+    if not conf.CheckCHeader('cute.h'):
+        print 'Did not find cute headers'
+        env = conf.Finish()
+        return False
+    env = conf.Finish()
+    
+    return True
+
+if configure():   
+    buildSettings = {
+        'include' : {
+        },
+    }
+
+SConsider.createTargets(packagename, buildSettings)

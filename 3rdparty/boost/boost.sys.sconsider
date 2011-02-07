@@ -1,0 +1,38 @@
+import SConsider, ThirdParty, pdb
+
+Import('*')
+
+buildSettings = {}
+
+def configure():
+    if GetOption('clean') or GetOption('help'):
+        return True
+       
+    env = SConsider.cloneBaseEnv()
+    conf = env.Configure()
+    if not conf.CheckCXXHeader('boost/version.hpp'):
+        print 'Did not find headers for '+packagename
+        env = conf.Finish()
+        return False
+    if not conf.CheckLibWithHeader('boost_regex', 'boost/regex.h', 'CXX'):
+        print 'Did not find library or header for '+packagename
+        env = conf.Finish()
+        return False
+    env = conf.Finish()
+    
+    return True
+
+if configure():
+    buildSettings = {
+        'include' : {
+        },
+        'regex' : {
+            'public' : {
+                'appendUnique'     : {
+                    'LIBS'         : ['boost_regex'],
+                },
+            },
+        },
+    }
+
+SConsider.createTargets(packagename, buildSettings)
