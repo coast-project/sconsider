@@ -1,46 +1,32 @@
-import SConsider, ThirdParty, os, pdb
+import SConsider, os, pdb
 
 Import('*')
 
+env = SConsider.cloneBaseEnv()
+conf = SConsider.Configure(env)
+if conf.CheckLibWithHeader('mysqlclient', 'mysql/mysql.h', 'C'):
+    conf.env.Append(CPPDEFINES='HAS_MYSQL')
+mysqlbin = conf.CheckExecutable('mysql')
+env = conf.Finish()
+
 buildSettings = {}
-
-mysqlbin = ''
-
-def configure():
-    global mysqlbin
-    
-    if GetOption('clean') or GetOption('help'):
-        return True
-    
-    env = SConsider.cloneBaseEnv()
-    with SConsider.ConfigureContext(env) as conf:
-        if not conf.CheckLibWithHeader('mysqlclient', 'mysql/mysql.h', 'C'):
-            print 'Did not find library or header for '+packagename
-            return False
-        mysqlbin = conf.CheckExecutable('mysql')
-        if not mysqlbin:
-            print 'Did not find executable for '+packagename
-            return False
-    return True
-
-if configure():
-    buildSettings = {
-        packagename : {
-            'linkDependencies' : [
-                packagename+'.mysqlclient',
-            ],
-        },
-        'mysqlclient' : {
-            'public' : {
-                'appendUnique'     : {
-                    'LIBS'         : ['mysqlclient'],
-                },
+if 'HAS_MYSQL' in env['CPPDEFINES']:
+    buildSettings[packagename] = {
+        'linkDependencies' : [
+            packagename+'.mysqlclient',
+        ],
+    }
+    buildSettings['mysqlclient'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['mysqlclient'],
             },
         },
-        'mysqlbin' : {
+    }
+    if mysqlbin:
+        buildSettings['mysqlbin'] = {
             'sourceFiles'      : [mysqlbin],
             'targetType'       : 'PseudoFile',
         }
-    }
 
 SConsider.createTargets(packagename, buildSettings)

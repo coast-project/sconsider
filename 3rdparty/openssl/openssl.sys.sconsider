@@ -1,78 +1,42 @@
-import SConsider, ThirdParty, pdb
+import SConsider, pdb
 
 Import('*')
 
+env = SConsider.cloneBaseEnv()
+conf = SConsider.Configure(env)
+if conf.CheckLibWithHeader('ssl', 'openssl/ssl.h', 'C') and conf.CheckLib('crypto'):
+    conf.env.Append(CPPDEFINES='HAS_OPENSSL')
+opensslbin = conf.CheckExecutable('openssl')
+env = conf.Finish()
+
 buildSettings = {}
-
-opensslbin = ''
-
-def configure():
-    global opensslbin
-    
-    if GetOption('clean') or GetOption('help'):
-        return True
-
-    def CheckExecutable(context, executable):
-        context.Message('Checking for executable {0}... '.format(executable))
-        result = WhereIs(executable)
-        context.Result(bool(result))
-        return result
-    
-    env = SConsider.cloneBaseEnv()
-    conf = Configure(env, custom_tests = {'CheckExecutable' : CheckExecutable})
-    if not conf.CheckCHeader('openssl/ssl.h'):
-        print 'Did not find header for '+packagename
-        env = conf.Finish()
-        return False
-    if not conf.CheckLib('ssl'):
-        print 'Did not find library for '+packagename
-        env = conf.Finish()
-        return False
-    if not conf.CheckLib('crypto'):
-        print 'Did not find library for '+packagename
-        env = conf.Finish()
-        return False
-    opensslbin = conf.CheckExecutable('openssl')
-    if not opensslbin:
-        print 'Did not find executable for '+packagename
-        env = conf.Finish()
-        return False
-    env = conf.Finish()
-    return True
-
-def CheckExecutable(context, executable):
-    context.Message('Checking for executable {0}... '.format(executable))
-    result = WhereIs(executable)
-    context.Result(bool(result))
-    return result
-
-if configure():
-    buildSettings = {
-        packagename : {
-            'linkDependencies' : [
-                packagename + '.ssl',
-                packagename + '.crypto',
-            ],
-        },
-        'ssl' : {
-            'public' : {
-                'appendUnique'     : {
-                    'LIBS'         : ['ssl'],
-                },
+if 'HAS_OPENSSL' in env['CPPDEFINES']:
+    buildSettings[packagename] = {
+        'linkDependencies' : [
+            packagename + '.ssl',
+            packagename + '.crypto',
+        ],
+    }
+    buildSettings['ssl'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['ssl'],
             },
         },
-        'crypto' : {
-            'public' : {
-                'appendUnique'     : {
-                    'LIBS'         : ['crypto'],
-                },
+    }
+    buildSettings['crypto'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['crypto'],
             },
         },
-        'opensslbin' : {
+    }
+    if opensslbin:
+        buildSettings['opensslbin'] = {
             'sourceFiles'      : [opensslbin],
             'targetType'       : 'PseudoFile',
-        },
-        'openSSL' : {
+        }
+        buildSettings['openSSL'] = {
             'targetType'       : 'ProgramApp',
             'runConfig' : {
             },
@@ -82,6 +46,5 @@ if configure():
             ],
             'usedTarget'       : packagename + '.opensslbin',
         }
-    }
 
 SConsider.createTargets(packagename, buildSettings)

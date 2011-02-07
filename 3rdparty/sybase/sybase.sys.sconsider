@@ -1,65 +1,18 @@
-import SConsider, ThirdParty, os
+import SConsider, os
 from stat import *
 
 Import('*')
 
+env = SConsider.cloneBaseEnv()
+conf = SConsider.Configure(env)
+if conf.CheckCHeader('sybdb.h') and conf.CheckMultipleLibs(['sybunic', 'sybcs', 'sybct', 'sybintl', 'sybtcl', 'sybcomn']):
+    conf.env.Append(CPPDEFINES='HAS_SYBASE')
+isqlbin = conf.CheckExecutable('isql')
+env = conf.Finish()
+
 buildSettings = {}
-
-isqlbin = ''
-
-def configure():
-    global isqlbin
-    
-    if GetOption('clean') or GetOption('help'):
-        return True
-    
-    def CheckExecutable(context, executable):
-        context.Message('Checking for executable {0}... '.format(executable))
-        result = WhereIs(executable)
-        context.Result(bool(result))
-        return result
-    
-    env = SConsider.cloneBaseEnv()
-    conf = env.Configure(custom_tests = {'CheckExecutable' : CheckExecutable})
-    if not conf.CheckCHeader('sybdb.h'):
-        print 'Did not find header for '+packagename
-        env = conf.Finish()
-        return False
-    if not conf.CheckLib('sybunic'):
-        print 'Did not find library for '+packagename
-        env = conf.Finish()
-        return False
-    if not conf.CheckLib('sybcs'):
-        print 'Did not find library for '+packagename
-        env = conf.Finish()
-        return False
-    if not conf.CheckLib('sybct'):
-        print 'Did not find library for '+packagename
-        env = conf.Finish()
-        return False
-    if not conf.CheckLib('sybintl'):
-        print 'Did not find library for '+packagename
-        env = conf.Finish()
-        return False
-    if not conf.CheckLib('sybtcl'):
-        print 'Did not find library for '+packagename
-        env = conf.Finish()
-        return False
-    if not conf.CheckLib('sybcomn'):
-        print 'Did not find library for '+packagename
-        env = conf.Finish()
-        return False
-    isqlbin = conf.CheckExecutable('isql')
-    if not isqlbin:
-        print 'Did not find executable for '+packagename
-        env = conf.Finish()
-        return False
-    env = conf.Finish()
-    return True
-
-if configure():
-    buildSettings = {
-        packagename : {
+if 'HAS_SYBASE' in env['CPPDEFINES']:
+    buildSettings[packagename] = {
             'linkDependencies' : [
                 packagename + '.sybunic',
                 packagename + '.sybcs',
@@ -70,69 +23,69 @@ if configure():
             ],
             'requires'         : [packagename + '.config'],
             'targetType'       : 'IncludeOnly',
-        },
-        'config': {
-            'targetType'       : 'CopyFiles',
-            'copyFiles' : [
-                (SConsider.listFiles(['config/*','charsets/*','locales/*'], recursive=True), S_IRUSR|S_IRGRP|S_IROTH),
-            ],
-            'appendUnique'     : { 'RELTARGETDIR' : os.path.join('globals', packagename) },
-            'public': {
-                'execEnv' : {
-                    'SYBASE': os.path.join('$BASEOUTDIR', '$RELTARGETDIR'),
-                    'LANG'  : 'C',
-                },
+    }
+    buildSettings['config'] = {
+        'targetType'       : 'CopyFiles',
+        'copyFiles' : [
+            (SConsider.listFiles(['config/*','charsets/*','locales/*'], recursive=True), S_IRUSR|S_IRGRP|S_IROTH),
+        ],
+        'appendUnique'     : { 'RELTARGETDIR' : os.path.join('globals', packagename) },
+        'public': {
+            'execEnv' : {
+                'SYBASE': os.path.join('$BASEOUTDIR', '$RELTARGETDIR'),
+                'LANG'  : 'C',
             },
         },
-        'sybunic' : {
-            'public' : {
-                'appendUnique'     : {
-                    'LIBS'         : ['sybunic'],
-                },
+    }
+    buildSettings['sybunic'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['sybunic'],
             },
         },
-        'sybcs' : {
-            'public' : {
-                'appendUnique'     : {
-                    'LIBS'         : ['sybcs'],
-                },
+    }
+    buildSettings['sybcs'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['sybcs'],
             },
         },
-        'sybct' : {
-            'public' : {
-                'appendUnique'     : {
-                    'LIBS'         : ['sybct'],
-                },
+    }
+    buildSettings['sybct'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['sybct'],
             },
         },
-        'sybintl' : {
-            'public' : {
-                'appendUnique'     : {
-                    'LIBS'         : ['sybintl'],
-                },
+    }
+    buildSettings['sybintl'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['sybintl'],
             },
         },
-        'sybtcl' : {
-            'public' : {
-                'appendUnique'     : {
-                    'LIBS'         : ['sybtcl'],
-                },
+    }
+    buildSettings['sybtcl'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['sybtcl'],
             },
         },
-        'sybcomn' : {
-            'public' : {
-                'appendUnique'     : {
-                    'LIBS'         : ['sybcomn'],
-                },
+    }
+    buildSettings['sybcomn'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['sybcomn'],
             },
         },
-        'isql': {
+    }
+    if isqlbin:
+        buildSettings['isql'] = {
             'sourceFiles'      : [isqlbin],
             'requires' : [
                 SConsider.generateFulltargetname(packagename,'config'),
             ],
             'targetType'       : 'PseudoFile',
-        },
-    }
+        }
 
 SConsider.createTargets(packagename, buildSettings)

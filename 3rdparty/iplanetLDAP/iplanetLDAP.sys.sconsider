@@ -1,33 +1,24 @@
-import SConsider, ThirdParty, pdb
+import SConsider, pdb
 
 Import('*')
 
+env = SConsider.cloneBaseEnv()
+conf = SConsider.Configure(env)
+if conf.CheckLibWithHeader('ldap50', 'ldap.h', 'C'):
+    conf.env.Append(CPPDEFINES='HAS_IPLANETLDAP')
+env = conf.Finish()
+
 buildSettings = {}
-
-def configure():
-    if GetOption('clean') or GetOption('help'):
-        return True 
-    
-    env = SConsider.cloneBaseEnv()
-    conf = Configure(env)
-    if not conf.CheckLibWithHeader('ldap50', 'ldap.h', 'C'):
-        print 'Did not find library or header for iplanetLDAP'
-        return False
-    env = conf.Finish()
-    return True
-
-if configure():
-    buildSettings = {
-        packagename : {
-            'linkDependencies' : [packagename + '.ldap50'],
-        },
-        'ldap50' : {
-            'public' : {
-                'appendUnique'     : {
-                    'LIBS'         : ['ldap50'],
-                },
+if 'HAS_IPLANETLDAP' in env['CPPDEFINES']:
+    buildSettings[packagename] = {
+        'linkDependencies' : [packagename + '.ldap50'],
+    }
+    buildSettings['ldap50'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['ldap50'],
             },
-        }
+        },
     }
 
 SConsider.createTargets(packagename, buildSettings)

@@ -1,130 +1,80 @@
-import SConsider, ThirdParty, os, pdb
+import SConsider, os, pdb
 
 Import('*')
 
+env = SConsider.cloneBaseEnv()
+conf = SConsider.Configure(env)
+if conf.CheckCHeader('oci.h') and conf.CheckMultipleLibs(['occi', 'clntsh', 'nnz11', 'ociicus', 'ociei', 'sqlplus', 'sqlplusic']):
+    conf.env.Append(CPPDEFINES='HAS_ORACLE')
+sqlplusbin = conf.CheckExecutable('sqlplus')
+env = conf.Finish()
+
 buildSettings = {}
-
-sqlplusbin = ''
-
-def configure():
-    global sqlplusbin
-    
-    if GetOption('clean') or GetOption('help'):
-        return True
-    
-    def CheckExecutable(context, executable):
-        context.Message('Checking for executable {0}... '.format(executable))
-        result = WhereIs(executable)
-        context.Result(bool(result))
-        return result
-    
-    env = SConsider.cloneBaseEnv()
-    conf = Configure(env, custom_tests = {'CheckExecutable' : CheckExecutable})
-    if not conf.CheckCHeader('oci.h'):
-        print 'Did not find header for '+packagename
-        env = conf.Finish()
-        return False
-    if not conf.CheckLib('occi'):
-        print 'Did not find library for '+packagename
-        env = conf.Finish()
-        return False
-    if not conf.CheckLib('clntsh'):
-        print 'Did not find library for '+packagename
-        env = conf.Finish()
-        return False
-    if not conf.CheckLib('nnz11'):
-        print 'Did not find library for '+packagename
-        env = conf.Finish()
-        return False
-    if not conf.CheckLib('ociicus'):
-        print 'Did not find library for '+packagename
-        env = conf.Finish()
-        return False
-    if not conf.CheckLib('ociei'):
-        print 'Did not find library for '+packagename
-        env = conf.Finish()
-        return False
-    if not conf.CheckLib('sqlplus'):
-        print 'Did not find library for '+packagename
-        env = conf.Finish()
-        return False
-    if not conf.CheckLib('sqlplusic'):
-        print 'Did not find library for '+packagename
-        env = conf.Finish()
-        return False
-    sqlplusbin = conf.CheckExecutable('sqlplus')
-    if not sqlplusbin:
-        print 'Did not find executable for '+packagename
-        env = conf.Finish()
-        return False
-    env = conf.Finish()
-    return True
-
-if configure():
-    buildSettings = {
-        packagename : {
-            'linkDependencies' : [
-                packagename + '.nnz',
-                packagename + '.clntsh',
-            ],
-            'requires' : [
-                packagename + '.ociicus',
-            ],
-        },
-        'occi' : {
-            'public' : {
-                'appendUnique'     : {
-                    'LIBS'         : ['occi'],
-                },
+if 'HAS_ORACLE' in env['CPPDEFINES']:
+    buildSettings[packagename] = {
+        'linkDependencies' : [
+            packagename + '.nnz',
+            packagename + '.clntsh',
+        ],
+        'requires' : [
+            packagename + '.ociicus',
+        ],
+    }
+    buildSettings['occi'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['occi'],
             },
         },
-        'clntsh' : {
-            'public' : {
-                'appendUnique'     : {
-                    'LIBS'         : ['clntsh'],
-                },
+    }
+    buildSettings['clntsh'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['clntsh'],
             },
         },
-        'nnz' : {
-            'public' : {
-                'appendUnique'     : {
-                    'LIBS'         : ['nnz11'],
-                },
+    }
+    buildSettings['nnz'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['nnz11'],
             },
         },
-        'ociicus' : {  # us language support library
-            'public' : {
-                'appendUnique'     : {
-                    'LIBS'         : ['ociicus'],
-                },
+    }
+    buildSettings['ociicus'] = { # us language support library
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['ociicus'],
             },
         },
-        'ociei' : {  # oci library supporting all character sets
-            'public' : {
-                'appendUnique'     : {
-                    'LIBS'         : ['ociei'],
-                },
+    }
+    buildSettings['ociei'] = {  # oci library supporting all character sets
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['ociei'],
             },
         },
-        'libsqlplus' : {
-            'public' : {
-                'appendUnique'     : {
-                    'LIBS'         : ['sqlplus'],
-                },
+    }
+    buildSettings['libsqlplus'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['sqlplus'],
             },
         },
-        'libsqlplusic' : {
-            'public' : {
-                'appendUnique'     : {
-                    'LIBS'         : ['sqlplusic'],
-                },
+    }
+    buildSettings['libsqlplusic'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['sqlplusic'],
             },
         },
-        'sqlplusbin' : {
+    }
+    if sqlplusbin:
+        buildSettings['sqlplusbin'] = {
             'sourceFiles'      : [sqlplusbin],
             'targetType'       : 'PseudoFile',
-        },
-        'sqlplus' : {
+        }
+        buildSettings['sqlplus'] = {
             'targetType'       : 'ProgramApp',
             'runConfig' : {
             },
@@ -135,6 +85,5 @@ if configure():
             ],
             'usedTarget'       : packagename + '.sqlplusbin',
         }
-    }
 
 SConsider.createTargets(packagename, buildSettings)
