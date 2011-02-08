@@ -91,7 +91,7 @@ def sharedLibrary(env, name, sources, packagename, targetname, buildSettings, **
     if len(instTarg) > 1:
         env.Requires(instTarg[0], instTarg[1:])
 
-    compLibs = env.InstallCompilerLibs(plaintarget)
+    compLibs = env.InstallSystemLibs(plaintarget)
     env.Requires(instTarg[0], compLibs) # the first target should be the library
 
     return (plaintarget, instTarg)
@@ -106,7 +106,7 @@ def staticLibrary(env, name, sources, packagename, targetname, buildSettings, **
     if len(instTarg) > 1:
         env.Requires(instTarg[0], instTarg[1:])
 
-    compLibs = env.InstallCompilerLibs(plaintarget)
+    compLibs = env.InstallSystemLibs(plaintarget)
     env.Requires(instTarg[0], compLibs)
 
     return (plaintarget, instTarg)
@@ -141,7 +141,7 @@ if GetOption('appendPath'):
 
 globaltools = ["setupBuildTools", "coast_options", "SCBWriter", "TargetPrinter",
                "precompiledLibraryInstallBuilder", "RunBuilder", "DoxygenBuilder",
-               "CompilerLibsInstallBuilder", "Package", "SubstInFileBuilder"]
+               "SystemLibsInstallBuilder", "Package", "SubstInFileBuilder", "ThirdParty"]
 usetools = globaltools + GetOption('usetools')
 print 'tools to use %s' % Flatten(usetools)
 

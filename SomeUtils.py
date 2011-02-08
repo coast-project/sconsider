@@ -337,7 +337,7 @@ def runCommand(args, logpath='', filename=None, stdincontent=None, filter=None, 
 
 def CheckExecutable(context, executable):
     context.Message('Checking for executable {0}... '.format(executable))
-    result = WhereIs(executable)
+    result = context.env.WhereIs(executable)
     context.Result(bool(result))
     return result
 

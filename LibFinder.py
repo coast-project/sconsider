@@ -1,4 +1,4 @@
-import os, re, subprocess, functools, itertools
+import os, re, subprocess, functools, itertools, operator, pdb
 import SomeUtils
 
 def uniquelist(iterable):
@@ -24,10 +24,10 @@ class FinderFactory(object):
         return UnixFinder()
 
 class LibFinder(object):
-    def getLibs(self, env, source, libdirs, libnames):
+    def getLibs(self, env, source, libnames=None, libdirs=None):
         raise NotImplementedError()
 
-    def getSystemLibDirs(self, env, source):
+    def getSystemLibDirs(self, env):
         raise NotImplementedError()
 
 class UnixFinder(LibFinder):
@@ -37,15 +37,20 @@ class UnixFinder(LibFinder):
         match = re.match(r'^'+re.escape(env.subst('$SHLIBPREFIX'))+libNamesStr+re.escape(env.subst('$SHLIBSUFFIX')), basename)
         return bool(match)
 
-    def getLibs(self, env, source, libdirs, libnames):
+    def getLibs(self, env, source, libnames=None, libdirs=None):
+        if not libdirs:
+            libdirs = self.getSystemLibDirs(env)
         env['ENV']['LD_LIBRARY_PATH'] = libdirs
         ldd = subprocess.Popen(['ldd', source[0].abspath], stdout=subprocess.PIPE, env=SomeUtils.getFlatENV(env))
         out, err = ldd.communicate()
-        return filter(functools.partial(self.__filterLibs, env, libnames=libnames), re.findall('^.*=>\s*([^\s^\(]*)', out, re.MULTILINE))
+        libs = filter(functools.partial(operator.ne, 'not found'), re.findall('^.*=>\s*(not found|[^\s^\(]+)', out, re.MULTILINE))
+        if libnames:
+            libs = filter(functools.partial(self.__filterLibs, env, libnames=libnames), libs)
+        return libs
 
-    def getSystemLibDirs(self, env, source):
+    def getSystemLibDirs(self, env):
         libdirs = []
-        linkercmd = env.subst('$LINK', target=source, source=source[0].sources)
+        linkercmd = env.subst('$LINK')
         cmdargs = [linkercmd, '-print-search-dirs'] + env.subst('$LINKFLAGS').split(' ')
         linker = subprocess.Popen(cmdargs, stdout=subprocess.PIPE, env=SomeUtils.getFlatENV(env))
         out, err = linker.communicate()
@@ -67,11 +72,15 @@ class Win32Finder(LibFinder):
                 return os.path.abspath(os.path.join(path, filename))
         return None
 
-    def getLibs(self, env, source, libdirs, libnames):
+    def getLibs(self, env, source, libnames=None, libdirs=None):
+        if not libdirs:
+            libdirs = self.getSystemLibDirs(env)
         ldd = subprocess.Popen(['objdump', '-p', source[0].abspath], stdout=subprocess.PIPE, env=SomeUtils.getFlatENV(env))
         out, err = ldd.communicate()
-        deplibs = filter(functools.partial(self.__filterLibs, env, libnames=libnames), re.findall('DLL Name:\s*(\S*)', out, re.MULTILINE))
+        deplibs = re.findall('DLL Name:\s*(\S*)', out, re.MULTILINE)
+        if libnames:
+            deplibs = filter(functools.partial(self.__filterLibs, env, libnames=libnames), deplibs)
         return filter(lambda val: bool(val), itertools.imap(functools.partial(self.__findFileInPath, paths=libdirs), deplibs))
 
-    def getSystemLibDirs(self, env, source):
+    def getSystemLibDirs(self, env):
         return os.environ['PATH'].split(os.pathsep)
