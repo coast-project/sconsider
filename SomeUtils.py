@@ -335,10 +335,6 @@ def runCommand(args, logpath='', filename=None, stdincontent=None, filter=None, 
                 print >>errfile, line
     return res
 
-def needsConfiguration():
-    from SCons.Script import GetOption
-    return GetOption('clean') or GetOption('help')
-
 def CheckExecutable(context, executable):
     context.Message('Checking for executable {0}... '.format(executable))
     result = WhereIs(executable)
