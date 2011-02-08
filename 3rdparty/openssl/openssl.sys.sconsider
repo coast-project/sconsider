@@ -34,7 +34,7 @@ if 'HAS_OPENSSL' in env['CPPDEFINES']:
     if opensslbin:
         buildSettings['opensslbin'] = {
             'sourceFiles'      : [opensslbin],
-            'targetType'       : 'PseudoFile',
+            'targetType'       : 'InstallBinary',
         }
         buildSettings['openSSL'] = {
             'targetType'       : 'ProgramApp',

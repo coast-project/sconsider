@@ -26,7 +26,7 @@ if 'HAS_MYSQL' in env['CPPDEFINES']:
     if mysqlbin:
         buildSettings['mysqlbin'] = {
             'sourceFiles'      : [mysqlbin],
-            'targetType'       : 'PseudoFile',
+            'targetType'       : 'InstallBinary',
         }
 
 SConsider.createTargets(packagename, buildSettings)

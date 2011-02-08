@@ -72,7 +72,7 @@ if 'HAS_ORACLE' in env['CPPDEFINES']:
     if sqlplusbin:
         buildSettings['sqlplusbin'] = {
             'sourceFiles'      : [sqlplusbin],
-            'targetType'       : 'PseudoFile',
+            'targetType'       : 'InstallBinary',
         }
         buildSettings['sqlplus'] = {
             'targetType'       : 'ProgramApp',

@@ -88,8 +88,7 @@ def sharedLibrary(env, name, sources, packagename, targetname, buildSettings, **
 
     baseoutdir = env['BASEOUTDIR']
     instTarg = env.Install(baseoutdir.Dir(env['LIBDIR']).Dir(env['VARIANTDIR']), plaintarget)
-    if len(instTarg) > 1:
-        env.Requires(instTarg[0], instTarg[1:])
+    env.Requires(instTarg[0], instTarg[1:])
 
     compLibs = env.InstallSystemLibs(plaintarget)
     env.Requires(instTarg[0], compLibs) # the first target should be the library
@@ -103,24 +102,26 @@ def staticLibrary(env, name, sources, packagename, targetname, buildSettings, **
 
     baseoutdir = env['BASEOUTDIR']
     instTarg = env.Install(baseoutdir.Dir(env['LIBDIR']).Dir(env['VARIANTDIR']), plaintarget)
-    if len(instTarg) > 1:
-        env.Requires(instTarg[0], instTarg[1:])
+    env.Requires(instTarg[0], instTarg[1:])
 
     compLibs = env.InstallSystemLibs(plaintarget)
     env.Requires(instTarg[0], compLibs)
 
     return (plaintarget, instTarg)
 
-def installBinary(env, name, sources, packagename, targetname, buildSettings, **kw):
+def installPrecompiledBinary(env, name, sources, packagename, targetname, buildSettings, **kw):
     env['RELTARGETDIR'] = os.path.join('globals', packagename)
     plaintarget = env.PrecompiledBinaryInstallBuilder(name, sources)
 
     return (plaintarget, plaintarget)
 
-def pseudoFile(env, name, sources, packagename, targetname, buildSettings, **kw):
-    plaintarget = env.File(sources[0])
+def installBinary(env, name, sources, packagename, targetname, buildSettings, **kw):
+    env['RELTARGETDIR'] = os.path.join('globals', packagename)
+    installDir = env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['BINDIR']).Dir(env['VARIANTDIR'])
+    instTarg = env.Install(installDir, sources)
+    env.Requires(instTarg[0], instTarg[1:])
 
-    return (plaintarget, plaintarget)
+    return (instTarg, instTarg)
 
 dEnv = DefaultEnvironment()
 
@@ -129,8 +130,8 @@ dEnv.AddMethod(programTest, "ProgramTest")
 dEnv.AddMethod(programApp, "ProgramApp")
 dEnv.AddMethod(sharedLibrary, "LibraryShared")
 dEnv.AddMethod(staticLibrary, "LibraryStatic")
-dEnv.AddMethod(installBinary, "PrecompiledBinary")
-dEnv.AddMethod(pseudoFile, "PseudoFile")
+dEnv.AddMethod(installPrecompiledBinary, "PrecompiledBinary")
+dEnv.AddMethod(installBinary, "InstallBinary")
 
 if GetOption('prependPath'):
     dEnv.PrependENVPath('PATH', GetOption('prependPath'))

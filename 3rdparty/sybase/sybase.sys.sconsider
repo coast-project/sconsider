@@ -85,7 +85,7 @@ if 'HAS_SYBASE' in env['CPPDEFINES']:
             'requires' : [
                 SConsider.generateFulltargetname(packagename,'config'),
             ],
-            'targetType'       : 'PseudoFile',
+            'targetType'       : 'InstallBinary',
         }
 
 SConsider.createTargets(packagename, buildSettings)
