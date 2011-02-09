@@ -40,12 +40,8 @@ def getUsedTarget(env, buildSettings):
     plaintarget = None
     usedFullTargetname = buildSettings.get('usedTarget', None)
     if usedFullTargetname:
-        usedPackagename, usedTargetname = splitTargetname(usedFullTargetname)
-        packageRegistry.loadPackage(usedPackagename)
-        # get default target name if not set already
-        if not usedTargetname:
-            usedTargetname = usedPackagename
-        plaintarget = packageRegistry.getPackageTarget(usedPackagename, usedTargetname)['plaintarget']
+        usedPackagename, usedTargetname = splitTargetname(usedFullTargetname, default=True)
+        plaintarget = packageRegistry.loadPackagePlaintarget(usedPackagename, usedTargetname)
     return plaintarget
 
 def usedOrProgramTarget(env, name, sources, buildSettings):
@@ -267,10 +263,16 @@ class PackageRegistry:
             target = plaintarget
         theTargets[targetname] = {'plaintarget':plaintarget, 'target':target}
 
-    def getPackageTarget(self, packagename, targetname):
+    def getPackageTargetTargets(self, packagename, targetname):
         if not self.hasPackage(packagename):
             print 'tried to access target [%s] of non existent package [%s]' % (targetname, packagename)
         return self.packages.get(packagename, {}).get('targets', {}).get(targetname, {'plaintarget':None, 'target':None})
+
+    def getPackageTarget(self, packagename, targetname):
+        return self.getPackageTargetTargets(packagename, targetname).get('target', None)
+
+    def getPackagePlaintarget(self, packagename, targetname):
+        return self.getPackageTargetTargets(packagename, targetname).get('plaintarget', None)
 
     def getPackageDependencies(self, packagename):
         deps = dict()
@@ -352,6 +354,19 @@ class PackageRegistry:
         if not self.hasPackage(packagename):
             raise PackageNotFound(packagename)
         self.lookup(packagename)
+        
+    def __loadPackageTarget(self, loadfunc, packagename, targetname):
+        self.loadPackage(packagename)
+        target = loadfunc(packagename, targetname)
+        if not target:
+            raise PackageTargetNotFound(generateFulltargetname(packagename, targetname))
+        return target
+        
+    def loadPackageTarget(self, packagename, targetname):
+        return self.__loadPackageTarget(self.getPackageTarget, packagename, targetname)
+
+    def loadPackagePlaintarget(self, packagename, targetname):
+        return self.__loadPackageTarget(self.getPackagePlaintarget, packagename, targetname)
 
     def isPackageLoaded(self, packagename):
         return self.packages.get(packagename, {}).has_key('loaded')
@@ -368,7 +383,7 @@ class PackageRegistry:
                 print 'executing [%s] as SConscript for package [%s]' % (packagefile.path, packagename)
                 self.env.SConscript(packagefile, variant_dir=builddir, duplicate=self.getPackageDuplicate(packagename), exports=['packagename'])
             if targetname:
-                return self.getPackageTarget(packagename, targetname)['target']
+                return self.getPackageTarget(packagename, targetname)
         return None
 
 dirExcludes = [baseEnv['BUILDDIR'], 'CVS', '.git', '.gitmodules', 'doc']
@@ -470,7 +485,7 @@ class TargetMaker:
         if not SCons.Util.is_List(requiredTargets):
             requiredTargets = [requiredTargets]
         for targ in requiredTargets:
-            env.Depends(target, env.Alias(targ)[0])
+            env.Depends(target, self.registry.loadPackageTarget(*splitTargetname(targ, default=True)))
 
     def doCreateTarget(self, packagename, targetname, targetBuildSettings):
         plaintarget = None
@@ -549,22 +564,16 @@ class TargetMaker:
     def setModuleDependencies(self, env, modules, **kw):
         for fulltargetname in modules:
             packagename, targetname = splitTargetname(fulltargetname, default=True)
-            
-            self.registry.loadPackage(packagename)
-            
-            if not self.registry.hasBuildSettings(packagename, targetname):
-                raise PackageTargetNotFound(generateFulltargetname(packagename, targetname))
-
+            plaintarget = self.registry.loadPackagePlaintarget(packagename, targetname)
             buildSettings = self.registry.getBuildSettings(packagename, targetname)
-            targets = self.registry.getPackageTarget(packagename, targetname)
-            self.setExternalDependencies(env, packagename, buildSettings, plaintarget=targets['plaintarget'], **kw)
+            self.setExternalDependencies(env, packagename, buildSettings, plaintarget=plaintarget, **kw)
 
     def setExecEnv(self, env, requiredTargets):
         for targ in requiredTargets:
             packagename, targetname = splitTargetname(targ, default=True)
             if self.registry.hasPackageTarget(packagename, targetname):
                 settings = self.registry.getBuildSettings(packagename, targetname)
-                target = self.registry.getPackageTarget(packagename, targetname)['plaintarget']
+                target = self.registry.getPackagePlaintarget(packagename, targetname)
                 for key, value in settings.get('public', {}).get('execEnv', {}).iteritems():
                     env['ENV'][key] = target.env.subst(value)
                 reqTargets = settings.get('linkDependencies', []) + settings.get('requires', [])

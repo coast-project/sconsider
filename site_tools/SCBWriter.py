@@ -7,7 +7,7 @@ def writeSCB(registry, packagename, buildSettings, **kw):
     includeDirs = set()
     sysIncludes = set()
     for targetname, settings in buildSettings.items():
-        target = registry.getPackageTarget(packagename, targetname)["plaintarget"]
+        target = registry.getPackagePlaintarget(packagename, targetname)
         if target and target.has_builder():
             for incpath in target.env.get("CPPPATH", []):
                 includeDirs.add(incpath.srcnode().abspath)
