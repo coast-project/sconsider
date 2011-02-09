@@ -1,5 +1,5 @@
 import pdb
-import subprocess, re, os, functools, itertools, threading
+import subprocess, re, os, functools, itertools, operator, threading
 import SCons, SConsider, LibFinder
 
 systemLibTargets = {} # needs locking because it is manipulated during multi-threaded build phase
@@ -18,9 +18,11 @@ def installSystemLibs(source):
 
     env = source[0].get_env()
     ownlibdir = env['BASEOUTDIR'].Dir(env['LIBDIR']).Dir(env['VARIANTDIR'])
+    libdirs = filter(functools.partial(operator.ne, ownlibdir), env['LIBPATH'])
     
     finder = LibFinder.FinderFactory.getForPlatform(env["PLATFORM"])
-    deplibs = finder.getLibs(env, source)
+    deplibs = finder.getLibs(env, source, libdirs=libdirs)
+    
     target = []
     
     # build phase could be multi-threaded

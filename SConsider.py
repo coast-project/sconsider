@@ -4,6 +4,7 @@ import SomeUtils
 
 from SCons.Script import AddOption, GetOption, Dir, File, DefaultEnvironment, Split, Flatten, SConsignFile
 from SomeUtils import *
+from ConfigureHelper import *
 
 SCons.Script.EnsureSConsVersion(1, 3, 0)
 SCons.Script.EnsurePythonVersion(2, 6)
@@ -646,8 +647,8 @@ try:
 
 except (PackageNotFound, PackageTargetNotFound) as e:
     print e
-    print 'Build aborted, missing dependency!'
-    exit(1)
+    if not GetOption('help'):
+        raise SCons.Errors.UserError('Build aborted, missing dependency!')
 
 runCallback("PreBuild", registry=packageRegistry, buildTargets=SCons.Script.BUILD_TARGETS)
 

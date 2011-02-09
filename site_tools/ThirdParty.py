@@ -38,6 +38,7 @@ def prepareLibraries(env, registry, **kw):
     
     for packagename, package in packages.iteritems(): 
         SCons.Script.AddOption('--with-src-'+packagename, dest='with-src-'+packagename, action='store', default='', metavar=packagename+'_SOURCEDIR', help='Specify the '+packagename+' source directory')
+        SCons.Script.AddOption('--with-bin-'+packagename, dest='with-bin-'+packagename, action='store', default='', metavar=packagename+'_DIR', help='Specify the '+packagename+' legacy binary directory')
         SCons.Script.AddOption('--with-'+packagename, dest='with-'+packagename, action='store', default='', metavar=packagename+'_DIR', help='Specify the '+packagename+' binary directory')
                           
         libpath = SCons.Script.GetOption('with-src-'+packagename)
@@ -47,7 +48,7 @@ def prepareLibraries(env, registry, **kw):
                 SCons.Script.Exit(1)
             registerDist(registry, packagename, package, 'src', env.Dir(libpath), True)
         else:
-            distpath = SCons.Script.GetOption('with-'+packagename)
+            distpath = SCons.Script.GetOption('with-bin-'+packagename)
             if distpath:
                 if not package.has_key('bin'):
                     print 'Third party binary distribution definition for {0} not found, aborting!'.format(packagename)
@@ -57,6 +58,10 @@ def prepareLibraries(env, registry, **kw):
                 if not package.has_key('sys'):
                     print 'Third party system definition for {0} not found, aborting!'.format(packagename)
                     SCons.Script.Exit(1)
+                path = SCons.Script.GetOption('with-'+packagename)
+                if path:
+                    env.AppendUnique(LIBPATH=env.Dir(path).Dir('lib'))
+                    env.PrependENVPath('PATH', env.Dir(path).Dir('bin'))
                 registry.setPackage(packagename, package['sys'], package['sys'].get_dir(), False)
 
 def generate(env):

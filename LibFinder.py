@@ -38,9 +38,8 @@ class UnixFinder(LibFinder):
         return bool(match)
 
     def getLibs(self, env, source, libnames=None, libdirs=None):
-        if not libdirs:
-            libdirs = self.getSystemLibDirs(env)
-        env['ENV']['LD_LIBRARY_PATH'] = libdirs
+        if libdirs:
+            env.AppendENVPath('LD_LIBRARY_PATH', libdirs)
         ldd = subprocess.Popen(['ldd', source[0].abspath], stdout=subprocess.PIPE, env=SomeUtils.getFlatENV(env))
         out, err = ldd.communicate()
         libs = filter(functools.partial(operator.ne, 'not found'), re.findall('^.*=>\s*(not found|[^\s^\(]+)', out, re.MULTILINE))
@@ -73,11 +72,11 @@ class Win32Finder(LibFinder):
         return None
 
     def getLibs(self, env, source, libnames=None, libdirs=None):
-        if not libdirs:
-            libdirs = self.getSystemLibDirs(env)
         ldd = subprocess.Popen(['objdump', '-p', source[0].abspath], stdout=subprocess.PIPE, env=SomeUtils.getFlatENV(env))
         out, err = ldd.communicate()
         deplibs = re.findall('DLL Name:\s*(\S*)', out, re.MULTILINE)
+        if not libdirs:
+            libdirs = self.getSystemLibDirs(env)
         if libnames:
             deplibs = filter(functools.partial(self.__filterLibs, env, libnames=libnames), deplibs)
         return filter(lambda val: bool(val), itertools.imap(functools.partial(self.__findFileInPath, paths=libdirs), deplibs))

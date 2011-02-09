@@ -1,4 +1,4 @@
-import os, glob, string, re, contextlib
+import os, glob, string, re
 import pdb
 
 def FileNodeComparer( left, right ):
@@ -334,31 +334,3 @@ def runCommand(args, logpath='', filename=None, stdincontent=None, filter=None, 
             for line in popenObject.stderr:
                 print >>errfile, line
     return res
-
-def CheckExecutable(context, executable):
-    context.Message('Checking for executable {0}... '.format(executable))
-    result = context.env.WhereIs(executable)
-    context.Result(bool(result))
-    return result
-
-def CheckMultipleLibs(context, libraries = None, **kw):
-    import SCons, functools
-
-    if not SCons.Util.is_List(libraries):
-        libraries = [libraries]
-    
-    return functools.reduce(lambda x,y: SCons.SConf.CheckLib(context, y, **kw) and x, libraries, True)
-
-def Configure(env, *args, **kw):
-    kw.setdefault('custom_tests', {})['CheckExecutable'] = CheckExecutable
-    kw.setdefault('custom_tests', {})['CheckMultipleLibs'] = CheckMultipleLibs
-    kw.setdefault('help', False)
-    kw.setdefault('clean', False)
-    conf = env.Configure(*args, **kw)
-    return conf
-    
-@contextlib.contextmanager
-def ConfigureContext(env, *args, **kw):
-    conf = Configure(env, *args, **kw)
-    yield conf
-    conf.Finish()
