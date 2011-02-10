@@ -78,22 +78,30 @@ def generate( env ):
             gccfss=True
 
         ## own extension to detect system include paths
-        tFile = os.path.join( SCons.Script.Dir( '.' ).abspath, '.x1y2' )
-        outFile = os.path.join( SCons.Script.Dir( '.' ).abspath, '.gugus' )
+        fName = '.code2Compile'
+        tFile = os.path.join( SCons.Script.Dir( '.' ).abspath, fName )
+        outFile = os.path.join( SCons.Script.Dir( '.' ).abspath, fName+'.o' )
         try:
             outf = open( tFile, 'w' )
-            outf.write( '#include <stdlib.h>\nint main(){}' )
+            outf.write( '#include <stdlib.h>\nint main(){return 0;}' )
             outf.close()
-        except: pass
+        except:
+            print "failed to create compiler input file, check folder permissions and retry"
+            return
         pipe = SCons.Action._subproc( env, [env['CC'], '-v', '-xc', tFile, '-o', outFile, '-m'+env['ARCHBITS']],
                                      stdin = 'devnull',
                                      stderr = subprocess.PIPE,
                                      stdout = subprocess.PIPE )
         pRet = pipe.wait()
         os.remove( tFile )
-        os.remove( outFile )
+        try: os.remove( outFile )
+        except: print outFile,"could not be deleted, check compiler output"
         if pRet != 0:
-            print "pipe error:", pRet
+            print "---- stdout ----"
+            print pipe.stdout.read()
+            print "---- stderr ----"
+            print pipe.stderr.read()
+            print "failed to compile object, return code:", pRet
             return
         pout = pipe.stderr.read()
         reIncl = re.compile( '#include <\.\.\.>.*:$\s((^ .*\s)*)', re.M )
