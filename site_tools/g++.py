@@ -37,7 +37,6 @@ import subprocess
 
 import SCons.Util
 import SCons.Tool
-import setupBuildTools
 
 compilers = ['g++']
 
@@ -121,53 +120,50 @@ def generate( env ):
             env.AppendUnique( SYSINCLUDES = sysincludes )
 
     platf = env['PLATFORM']
-    setupBuildTools.registerCallback( 'MT_OPTIONS', lambda env: env.AppendUnique( CPPDEFINES = ['_POSIX_PTHREAD_SEMANTICS'] ) )
-    setupBuildTools.registerCallback( 'MT_OPTIONS', lambda env: env.AppendUnique( CPPDEFINES = ['_REENTRANT'] ) )
+    env.AppendUnique( CPPDEFINES = ['_POSIX_PTHREAD_SEMANTICS', '_REENTRANT'] )
 
-    setupBuildTools.registerCallback( 'BITWIDTH_OPTIONS', lambda env, bitwidth: env.AppendUnique( CCFLAGS = '-m' + bitwidth ) )
-    setupBuildTools.registerCallback( 'LARGEFILE_OPTIONS', lambda env: env.AppendUnique( CPPDEFINES = ['_LARGEFILE64_SOURCE'] ) )
+    env.AppendUnique( CCFLAGS = '-m' + env['ARCHBITS'] )
+    if not SCons.Script.GetOption( 'no-largefilesupport' ):
+        env.AppendUnique( CPPDEFINES = ['_LARGEFILE64_SOURCE'] )
 
-    if str( platf ) == "sunos":
-        setupBuildTools.registerCallback( 'DEBUG_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = ['-ggdb3'] ) )
-    else:
-        setupBuildTools.registerCallback( 'DEBUG_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = ['-g'] ) )
-
-    if str( platf ) == "sunos":
-        if gccfss:
-            # at least until g++ 4.3.3 (gccfss), there is a bug #100 when using optimization levels above -O1
-            # -> -fast option breaks creation of correct static initialization sequence
-            setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = ['-O1'] ) )
+    buildmode = SCons.Script.GetOption( 'buildcfg' )
+    if buildmode == 'debug':
+        env.AppendUnique( CXXFLAGS = [ '-ggdb3' if str( platf ) == 'sunos' else '-g'] )
+    elif buildmode == 'optimized':
+        if str( platf ) == 'sunos':
+            if gccfss:
+                # at least until g++ 4.3.3 (gccfss), there is a bug #100 when using optimization levels above -O1
+                # -> -fast option breaks creation of correct static initialization sequence
+                env.AppendUnique( CXXFLAGS = ['-O1'] )
+            else:
+                env.AppendUnique( CXXFLAGS = ['-O3'] )
         else:
-            setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = ['-O3'] ) )
-    else:
-        setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = ['-O3'] ) )
+            env.AppendUnique( CXXFLAGS = ['-O3'] )
+    elif buildmode == 'profile':
+        env.AppendUnique( CXXFLAGS = ['-fprofile'] )
 
-    setupBuildTools.registerCallback( 'PROFILE_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = ['-fprofile'] ) )
-
-    def setupWarnings( env, warnlevel ):
-        if warnlevel == 'medium' or warnlevel == 'full':
-            env.AppendUnique( CXXFLAGS = [
-                '-Waddress',                #<! Warn about suspicious uses of memory addresses
-                '-Wall',                    #<! Enable most warning messages
-                '-Wdeprecated',
-                '-Wendif-labels',
-                '-Wno-system-headers',
-                '-Woverloaded-virtual',
-                '-Wpointer-arith',          #<! Warn about function pointer arithmetic
-                '-Wreturn-type',
-                '-Wshadow',
-                '-Wundef',                  #<! Warn if an undefined macro is used in an #if directive
-            ] )
-        if warnlevel == 'full':
-            env.AppendUnique( CXXFLAGS = [
-                '-Wcast-qual',              #<! Warn about casts which discard qualifiers
-                '-Wconversion',             #<! Warn for implicit type conversions that may change a value
-                '-Weffc++',                 #<! Warn about violations of Effective C++ style rules
-                '-Wignored-qualifiers',     #<! Warn whenever type qualifiers are ignored.
-                '-Wold-style-cast',         #<! Warn if a C-style cast is used in a program
-            ] )
-
-    setupBuildTools.registerCallback( 'WARN_OPTIONS', setupWarnings )
+    warnlevel = SCons.Script.GetOption( 'warnlevel' )
+    if warnlevel == 'medium' or warnlevel == 'full':
+        env.AppendUnique( CXXFLAGS = [
+            '-Waddress',                #<! Warn about suspicious uses of memory addresses
+            '-Wall',                    #<! Enable most warning messages
+            '-Wdeprecated',
+            '-Wendif-labels',
+            '-Wno-system-headers',
+            '-Woverloaded-virtual',
+            '-Wpointer-arith',          #<! Warn about function pointer arithmetic
+            '-Wreturn-type',
+            '-Wshadow',
+            '-Wundef',                  #<! Warn if an undefined macro is used in an #if directive
+        ] )
+    if warnlevel == 'full':
+        env.AppendUnique( CXXFLAGS = [
+            '-Wcast-qual',              #<! Warn about casts which discard qualifiers
+            '-Wconversion',             #<! Warn for implicit type conversions that may change a value
+            '-Weffc++',                 #<! Warn about violations of Effective C++ style rules
+            '-Wignored-qualifiers',     #<! Warn whenever type qualifiers are ignored.
+            '-Wold-style-cast',         #<! Warn if a C-style cast is used in a program
+        ] )
 
 def exists( env ):
     if env.get( '_CXXPREPEND_' ):

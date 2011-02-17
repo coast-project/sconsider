@@ -1,4 +1,4 @@
-import pdb, os, platform
+import os, platform
 import SCons.Tool
 import SCons.Script
 from SCons.Script import AddOption, Dir, GetOption
@@ -90,31 +90,6 @@ def generate( env, **kw ):
     ##  because LINKFLAGS='-z defs' would lead to a string'ified "-z defs" in the linker command line
     env.Append( LINKFLAGS = ['$_NONLAZYLINKFLAGS'] )
 
-#    elif str(platf) == "win32":
-#        env.AppendUnique(CPPDEFINES=['WIN32', '_WIN32_WINNT=0x400'])
-#        env.AppendUnique(CPPDEFINES=['_MSC_VER=$MSVC_VER'])
-
-    # flags which influence compilation
-    runCallback( 'MT_OPTIONS', env = env )
-    runCallback( 'RPATH_OPTIONS', env = env )
-    runCallback( 'LAZYLINK_OPTIONS', env = env )
-    runCallback( 'LINKLIBS', env = env )
-    runCallback( 'BITWIDTH_OPTIONS', env = env, bitwidth = bitwidth )
-    runCallback( 'STL_OPTIONS', env = env )
-    if not GetOption( 'no-largefilesupport' ):
-        runCallback( 'LARGEFILE_OPTIONS', env = env )
-    runCallback( 'WARN_OPTIONS', env = env, warnlevel = GetOption( 'warnlevel' ) )
-
-    buildmode = GetOption( 'buildcfg' )
-    if buildmode == 'debug':
-        env.AppendUnique( CPPDEFINES = ['DEBUG'] )
-        runCallback( 'DEBUG_OPTIONS', env = env )
-        registerCallback( 'VARIANT_SUFFIX', lambda env: env.Append( VARIANT_SUFFIX = ['_dbg'] ) )
-    elif buildmode == 'optimized':
-        runCallback( 'OPTIMIZE_OPTIONS', env = env )
-    elif buildmode == 'profile':
-        runCallback( 'PROFILE_OPTIONS', env = env )
-
     if str( platf ) == "cygwin":
         osver = tuple( [int( x ) for x in platform.system().split( '-' )[1].split( '.' )] )
     elif str( platf ) == 'sunos':
@@ -138,10 +113,7 @@ def generate( env, **kw ):
         env.AppendUnique( CCFLAGS = ['-DOS_SYSV'] )
         env.AppendUnique( CCFLAGS = ['-DOS_LINUX'] )
 
-    def variantSuffix( env ):
-        env.Append( VARIANT_SUFFIX = ['-' + bitwidth] )
-        runCallback( 'VARIANT_SUFFIX', env = env )
-    SConsider.registerCallback( 'VARIANT_SUFFIX', variantSuffix )
+    env.Append( VARIANT_SUFFIX = ['-' + bitwidth] )
 
     if "mingw" in env["TOOLS"]:
         # mingw appends .exe if a Program target is given without extension but scons still

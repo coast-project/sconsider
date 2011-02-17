@@ -12,7 +12,6 @@ selection method.
 import os.path
 
 import SCons
-import setupBuildTools
 
 # use the package installer tool lslpp to figure out where cppc and what
 # version of it is installed
@@ -66,7 +65,7 @@ def generate( env ):
     env['SHOBJPREFIX'] = 'so_'
     env['SHOBJSUFFIX'] = '.o'
 
-    setupBuildTools.registerCallback( 'MT_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = '-mt' ) )
+    env.AppendUnique( CXXFLAGS = '-mt' )
     def bwopt( bitwidth ):
         bitwoption = '-xtarget=native'
         if bitwidth == '32':
@@ -74,23 +73,25 @@ def generate( env ):
             bitwidth = ''
         return bitwoption + bitwidth
 
-    setupBuildTools.registerCallback( 'BITWIDTH_OPTIONS', lambda env, bitwidth: env.AppendUnique( CXXFLAGS = bwopt( bitwidth ) ) )
-    setupBuildTools.registerCallback( 'STL_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = '-library=stlport4' ) )
+    env.AppendUnique( CXXFLAGS = bwopt( env['ARCHBITS'] ) )
+    env.AppendUnique( CXXFLAGS = '-library=stlport4' )
 
-    setupBuildTools.registerCallback( 'LARGEFILE_OPTIONS', lambda env: env.AppendUnique( CPPDEFINES = ['_LARGEFILE64_SOURCE'] ) )
+    if not SCons.Script.GetOption( 'no-largefilesupport' ):
+        env.AppendUnique( CPPDEFINES = ['_LARGEFILE64_SOURCE'] )
 
-    setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = ['-fast'] ) )
-    setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = ['-xbinopt=prepare'] ) )
+    buildmode = SCons.Script.GetOption( 'buildcfg' )
+    if buildmode == 'debug':
+        pass
+    elif buildmode == 'optimized':
+        env.AppendUnique( CXXFLAGS = ['-fast', '-xbinopt=prepare'] )
+    elif buildmode == 'profile':
+        env.AppendUnique( CXXFLAGS = ['-xpg'] )
 
-    setupBuildTools.registerCallback( 'PROFILE_OPTIONS', lambda env: env.AppendUnique( CXXFLAGS = ['-xpg'] ) )
-
-    def setupWarnings( env, warnlevel ):
-        if warnlevel == 'medium' or warnlevel == 'full':
-            env.AppendUnique( CXXFLAGS = ['+w', '-xport64=implicit'] )
-        if warnlevel == 'full':
-            env.AppendUnique( CXXFLAGS = [] )
-
-    setupBuildTools.registerCallback( 'WARN_OPTIONS', setupWarnings )
+    warnlevel = SCons.Script.GetOption( 'warnlevel' )
+    if warnlevel == 'medium' or warnlevel == 'full':
+        env.AppendUnique( CXXFLAGS = ['+w', '-xport64=implicit'] )
+    if warnlevel == 'full':
+        env.AppendUnique( CXXFLAGS = [] )
 
 def exists( env ):
     path, cxx, shcxx, version = get_cppc( env )

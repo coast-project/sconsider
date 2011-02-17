@@ -37,7 +37,6 @@ import subprocess
 
 import SCons.Util
 import SCons.Tool
-import setupBuildTools
 
 compilers = ['gcc', 'cc']
 
@@ -114,31 +113,27 @@ def generate( env ):
             env.AppendUnique( SYSINCLUDES = sysincludes )
 
     platf = env['PLATFORM']
-    setupBuildTools.registerCallback( 'MT_OPTIONS', lambda env: env.AppendUnique( CPPDEFINES = ['_POSIX_PTHREAD_SEMANTICS'] ) )
-    setupBuildTools.registerCallback( 'MT_OPTIONS', lambda env: env.AppendUnique( CPPDEFINES = ['_REENTRANT'] ) )
+    env.AppendUnique( CPPDEFINES = ['_POSIX_PTHREAD_SEMANTICS', '_REENTRANT'] )
+    env.AppendUnique( CCFLAGS = '-m' + env['ARCHBITS'] )
+    if not SCons.Script.GetOption( 'no-largefilesupport' ):
+        env.AppendUnique( CPPDEFINES = ['_LARGEFILE64_SOURCE'] )
 
-    setupBuildTools.registerCallback( 'BITWIDTH_OPTIONS', lambda env, bitwidth: env.AppendUnique( CCFLAGS = '-m' + bitwidth ) )
-    setupBuildTools.registerCallback( 'LARGEFILE_OPTIONS', lambda env: env.AppendUnique( CPPDEFINES = ['_LARGEFILE64_SOURCE'] ) )
+    buildmode = SCons.Script.GetOption( 'buildcfg' )
+    if buildmode == 'debug':
+        env.AppendUnique( CFLAGS = [ '-ggdb3' if str( platf ) == 'sunos' else '-g'] )
+    elif buildmode == 'optimized':
+        if str( platf ) == 'sunos':
+            env.AppendUnique( CFLAGS = ['-O0'] )
+        else:
+            env.AppendUnique( CFLAGS = ['-O0', '-fdefer-pop', '-fmerge-constants', '-fthread-jumps', '-fguess-branch-probability', '-fcprop-registers'] )
+    elif buildmode == 'profile':
+        env.AppendUnique( CFLAGS = ['-fprofile'] )
 
-    if str( platf ) == "sunos":
-        setupBuildTools.registerCallback( 'DEBUG_OPTIONS', lambda env: env.AppendUnique( CFLAGS = ['-ggdb3'] ) )
-    else:
-        setupBuildTools.registerCallback( 'DEBUG_OPTIONS', lambda env: env.AppendUnique( CFLAGS = ['-g'] ) )
-
-    if str( platf ) == "sunos":
-        setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( CFLAGS = ['-O0'] ) )
-    else:
-        setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( CFLAGS = ['-O0', '-fdefer-pop', '-fmerge-constants', '-fthread-jumps', '-fguess-branch-probability', '-fcprop-registers'] ) )
-
-    setupBuildTools.registerCallback( 'PROFILE_OPTIONS', lambda env: env.AppendUnique( CFLAGS = ['-fprofile'] ) )
-
-    def setupWarnings( env, warnlevel ):
-        if warnlevel == 'medium' or warnlevel == 'full':
-            env.AppendUnique( CFLAGS = ['-Wall', '-Wunused', '-Wno-system-headers', '-Wreturn-type'] )
-        if warnlevel == 'full':
-            env.AppendUnique( CFLAGS = ['-Wconversion', '-Wundef', '-Wwrite-strings'] )
-
-    setupBuildTools.registerCallback( 'WARN_OPTIONS', setupWarnings )
+    warnlevel = SCons.Script.GetOption( 'warnlevel' )
+    if warnlevel == 'medium' or warnlevel == 'full':
+        env.AppendUnique( CFLAGS = ['-Wall', '-Wunused', '-Wno-system-headers', '-Wreturn-type'] )
+    if warnlevel == 'full':
+        env.AppendUnique( CFLAGS = ['-Wconversion', '-Wundef', '-Wwrite-strings'] )
 
 def exists( env ):
     if env.get( '_CCPREPEND_' ):

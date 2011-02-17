@@ -166,9 +166,8 @@ elif myplatf == "cygwin":
 elif myplatf == "win32":
     variant = platform.system() + "_" + platform.release() + "-" + platform.machine()
     baseEnv.Append(WINDOWS_INSERT_DEF=1)
-runCallback('VARIANT_SUFFIX', env=baseEnv)
-for v in baseEnv.get('VARIANT_SUFFIX', []):
-    variant += v
+
+variant += ''.join(baseEnv.get('VARIANT_SUFFIX', []))
 
 print "compilation variant [", variant, "]"
 
@@ -212,7 +211,7 @@ class PackageNotFound(Exception):
         self.package = package
     def __str__(self):
         return 'Package [{0}] not found'.format(self.package)
-    
+
 
 class PackageTargetNotFound(Exception):
     def __init__(self, target):
@@ -228,7 +227,7 @@ class PackageRegistry:
             scandirs = [scandirs]
         for scandir in scandirs:
             self.collectPackages(scandir, scanexcludes)
-    
+
     def collectPackages(self, directory, direxcludes=[]):
         """
         Recursively collects SConsider packages.
@@ -248,7 +247,7 @@ class PackageRegistry:
                     pkgname = rmatch.group(1)
                     thePath = os.path.abspath(dirpath)
                     print 'found package [%s] in [%s]' % (pkgname, thePath)
-                    self.setPackage(pkgname, Dir(thePath).File(name), Dir(thePath)) 
+                    self.setPackage(pkgname, Dir(thePath).File(name), Dir(thePath))
 
     def setPackageTarget(self, packagename, targetname, plaintarget, target):
         if not self.hasPackage(packagename):
@@ -320,10 +319,10 @@ class PackageRegistry:
 
     def getPackageFile(self, packagename):
         return self.packages.get(packagename, {}).get('packagefile', '')
-    
+
     def getPackageDuplicate(self, packagename):
         return self.packages.get(packagename, {}).get('duplicate', False)
-    
+
     def setPackageDuplicate(self, packagename, duplicate=True):
         if self.hasPackage(packagename):
             self.packages[packagename]['duplicate'] = duplicate
@@ -354,14 +353,14 @@ class PackageRegistry:
         if not self.hasPackage(packagename):
             raise PackageNotFound(packagename)
         self.lookup(packagename)
-        
+
     def __loadPackageTarget(self, loadfunc, packagename, targetname):
         self.loadPackage(packagename)
         target = loadfunc(packagename, targetname)
         if not target:
             raise PackageTargetNotFound(generateFulltargetname(packagename, targetname))
         return target
-        
+
     def loadPackageTarget(self, packagename, targetname):
         return self.__loadPackageTarget(self.getPackageTarget, packagename, targetname)
 
@@ -420,7 +419,7 @@ class TargetMaker:
 
     def prepareFileNodeTuples(self, nodes, baseDir, alternativeDir=None):
         nodetuples = []
-        
+
         for node in nodes:
             currentFile = node
             if isinstance( currentFile, str ):
@@ -636,18 +635,18 @@ try:
                     dirfilter = lambda directory: directory.is_under(launchDir)
                 else:
                     dirfilter = lambda directory: directory == launchDir
-    
+
                 def namefilter(packagename):
                     return dirfilter(packageRegistry.getPackageDir(packagename))
-    
+
                 buildtargets = filter(namefilter, packageRegistry.getPackageNames())
             else:
                 buildtargets = packageRegistry.getPackageNames()
-    
+
         for ftname in buildtargets:
             packagename, targetname = splitTargetname(ftname)
             packageRegistry.loadPackage(packagename)
-    
+
     except PackageNotFound as e:
         print e
         print 'loading all SConscript files to find target'

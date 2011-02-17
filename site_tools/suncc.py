@@ -9,7 +9,6 @@ selection method.
 
 import SCons.Util
 import SCons.Tool
-import setupBuildTools
 
 def generate( env ):
     """
@@ -24,7 +23,7 @@ def generate( env ):
     env['SHOBJPREFIX'] = 'so_'
     env['SHOBJSUFFIX'] = '.o'
 
-    setupBuildTools.registerCallback( 'MT_OPTIONS', lambda env: env.AppendUnique( CFLAGS = '-mt' ) )
+    env.AppendUnique( CFLAGS = '-mt' )
     def bwopt( bitwidth ):
         bitwoption = '-xtarget=native'
         if bitwidth == '32':
@@ -32,21 +31,24 @@ def generate( env ):
             bitwidth = ''
         return bitwoption + bitwidth
 
-    setupBuildTools.registerCallback( 'BITWIDTH_OPTIONS', lambda env, bitwidth: env.AppendUnique( CFLAGS = bwopt( bitwidth ) ) )
-    setupBuildTools.registerCallback( 'LARGEFILE_OPTIONS', lambda env: env.AppendUnique( CPPDEFINES = ['_LARGEFILE64_SOURCE'] ) )
+    env.AppendUnique( CFLAGS = bwopt( env['ARCHBITS'] ) )
 
-    setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( CFLAGS = ['-fast'] ) )
-    setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( CFLAGS = ['-xbinopt=prepare'] ) )
+    if not SCons.Script.GetOption( 'no-largefilesupport' ):
+        env.AppendUnique( CPPDEFINES = ['_LARGEFILE64_SOURCE'] )
 
-    setupBuildTools.registerCallback( 'PROFILE_OPTIONS', lambda env: env.AppendUnique( CFLAGS = ['-xpg'] ) )
+    buildmode = SCons.Script.GetOption( 'buildcfg' )
+    if buildmode == 'debug':
+        pass
+    elif buildmode == 'optimized':
+        env.AppendUnique( CFLAGS = ['-fast', '-xbinopt=prepare'] )
+    elif buildmode == 'profile':
+        env.AppendUnique( CFLAGS = ['-xpg'] )
 
-    def setupWarnings( env, warnlevel ):
-        if warnlevel == 'medium' or warnlevel == 'full':
-            env.AppendUnique( CFLAGS = ['+w', '-xport64=implicit'] )
-        if warnlevel == 'full':
-            env.AppendUnique( CFLAGS = [] )
-
-    setupBuildTools.registerCallback( 'WARN_OPTIONS', setupWarnings )
+    warnlevel = SCons.Script.GetOption( 'warnlevel' )
+    if warnlevel == 'medium' or warnlevel == 'full':
+        env.AppendUnique( CFLAGS = ['+w', '-xport64=implicit'] )
+    if warnlevel == 'full':
+        env.AppendUnique( CFLAGS = [] )
 
 def exists( env ):
     return env.Detect( 'CC' )

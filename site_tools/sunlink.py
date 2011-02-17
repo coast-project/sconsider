@@ -34,7 +34,6 @@ import sys, os
 import SCons.Util
 import SCons.Tool
 import SomeUtils
-import setupBuildTools
 
 def FileNodeComparer( left, right ):
     """Specialized implementation of file node sorting
@@ -77,11 +76,11 @@ def generate( env ):
 
     platf = env['PLATFORM']
 
-    setupBuildTools.registerCallback( 'MT_OPTIONS', lambda env: env.AppendUnique( LINKFLAGS = '-mt' ) )
-    setupBuildTools.registerCallback( 'MT_OPTIONS', lambda env: env.AppendUnique( SHLINKFLAGS = '-mt' ) )
+    env.AppendUnique( LINKFLAGS = '-mt' )
+    env.AppendUnique( SHLINKFLAGS = '-mt' )
     # do not use rpath
-    setupBuildTools.registerCallback( 'RPATH_OPTIONS', lambda env: env.AppendUnique( SHLINKFLAGS = '-norunpath' ) )
-    setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LIBS = ['socket', 'resolv', 'nsl', 'posix4', 'aio'] ) )
+    env.AppendUnique( SHLINKFLAGS = '-norunpath' )
+    env.AppendUnique( LIBS = ['socket', 'resolv', 'nsl', 'posix4', 'aio'] )
 
     def bwopt( bitwidth ):
         bitwoption = '-xtarget=native'
@@ -90,19 +89,21 @@ def generate( env ):
             bitwidth = ''
         return bitwoption + bitwidth
 
-    setupBuildTools.registerCallback( 'BITWIDTH_OPTIONS', lambda env, bitwidth: env.AppendUnique( LINKFLAGS = bwopt( bitwidth ) ) )
-    setupBuildTools.registerCallback( 'BITWIDTH_OPTIONS', lambda env, bitwidth: env.AppendUnique( SHLINKFLAGS = bwopt( bitwidth ) ) )
-    setupBuildTools.registerCallback( 'STL_OPTIONS', lambda env: env.AppendUnique( SHLINKFLAGS = '-library=stlport4' ) )
+    bitwidth = env['ARCHBITS']
+    env.AppendUnique( LINKFLAGS = bwopt( bitwidth ) )
+    env.AppendUnique( SHLINKFLAGS = bwopt( bitwidth ) )
+    env.AppendUnique( SHLINKFLAGS = '-library=stlport4' )
 
-    setupBuildTools.registerCallback( 'DEBUG_OPTIONS', lambda env: env.AppendUnique( LINKFLAGS = ['-v'] ) )
-    setupBuildTools.registerCallback( 'DEBUG_OPTIONS', lambda env: env.AppendUnique( SHLINKFLAGS = ['-v'] ) )
-
-    setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( LINKFLAGS = ['-xbinopt=prepare'] ) )
-    setupBuildTools.registerCallback( 'OPTIMIZE_OPTIONS', lambda env: env.AppendUnique( SHLINKFLAGS = ['-xbinopt=prepare'] ) )
-
-    setupBuildTools.registerCallback( 'PROFILE_OPTIONS', lambda env: env.AppendUnique( LINKFLAGS = ['-xpg'] ) )
-    setupBuildTools.registerCallback( 'PROFILE_OPTIONS', lambda env: env.AppendUnique( SHLINKFLAGS = ['-xpg'] ) )
-
+    buildmode = SCons.Script.GetOption( 'buildcfg' )
+    if buildmode == 'debug':
+        env.AppendUnique( LINKFLAGS = ['-v'] )
+        env.AppendUnique( SHLINKFLAGS = ['-v'] )
+    elif buildmode == 'optimized':
+        env.AppendUnique( LINKFLAGS = ['-xbinopt=prepare'] )
+        env.AppendUnique( SHLINKFLAGS = ['-xbinopt=prepare'] )
+    elif buildmode == 'profile':
+        env.AppendUnique( LINKFLAGS = ['-xpg'] )
+        env.AppendUnique( SHLINKFLAGS = ['-xpg'] )
 
 def exists( env ):
     return None

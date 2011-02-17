@@ -4,7 +4,6 @@ import sys, pdb, os
 import SCons.Util
 import SCons.Tool
 import SomeUtils
-import setupBuildTools
 
 def FileNodeComparer( left, right ):
     """Specialized implementation of file node sorting
@@ -35,14 +34,14 @@ def generate( env ):
 
     platf = env['PLATFORM']
     if str( platf ) not in ["cygwin", "win32"]:
-        setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LINKFLAGS = ['-nodefaultlibs'] ) )
-        setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LIBS = ['m', 'gcc', 'gcc_s'] ) )
-        setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LIBS = ['dl', 'c'] ) )
-        setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LIBS = ['nsl'] ) )
+        env.AppendUnique( LINKFLAGS = ['-nodefaultlibs'] )
+        env.AppendUnique( LIBS = ['m', 'gcc', 'gcc_s'] )
+        env.AppendUnique( LIBS = ['dl', 'c'] )
+        env.AppendUnique( LIBS = ['nsl'] )
     elif str( platf ) == "win32":
-        setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LINKFLAGS = ['-Wl,--enable-auto-import'] ) )
-        setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( SHLINKFLAGS = ['-Wl,--export-all-symbols'] ) )
-        setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LIBS = ['ws2_32'] ) )
+        env.AppendUnique( LINKFLAGS = ['-Wl,--enable-auto-import'] )
+        env.AppendUnique( SHLINKFLAGS = ['-Wl,--export-all-symbols'] )
+        env.AppendUnique( LIBS = ['ws2_32'] )
     orig_smart_link = env['SMARTLINK']
     def smart_link(source, target, env, for_signature):
         try:
@@ -52,26 +51,26 @@ def generate( env ):
         except:
             pass
         return orig_smart_link(source, target, env, for_signature)
-    setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.Replace(SMARTLINK = smart_link))
+    env.Replace(SMARTLINK = smart_link)
 
-    setupBuildTools.registerCallback( 'BITWIDTH_OPTIONS', lambda env, bitwidth: env.AppendUnique( LINKFLAGS = '-m' + bitwidth ) )
+    env.AppendUnique( LINKFLAGS = '-m' + env['ARCHBITS'] )
 
     if str( platf ) not in ["cygwin", "win32"]:
-        setupBuildTools.registerCallback( 'LAZYLINK_OPTIONS', lambda env: env.Append( _NONLAZYLINKFLAGS = '-z defs -z now --no-undefined ' ) )
+        env.Append( _NONLAZYLINKFLAGS = '-z defs -z now --no-undefined ' )
     if str( platf ) == "sunos":
         # this lib is needed when using sun-CC or gcc on sunos systems
-        setupBuildTools.registerCallback( 'LINKLIBS', lambda env: env.AppendUnique( LIBS = ['socket', 'resolv', 'posix4', 'aio'] ) )
+        env.AppendUnique( LIBS = ['socket', 'resolv', 'posix4', 'aio'] )
 
-    setupBuildTools.registerCallback( 'DEBUG_OPTIONS', lambda env: env.AppendUnique( LINKFLAGS = ['-v'] ) )
-    setupBuildTools.registerCallback( 'DEBUG_OPTIONS', lambda env: env.AppendUnique( SHLINKFLAGS = ['-v'] ) )
-
-    if str( platf ) == "sunos":
-        setupBuildTools.registerCallback( 'DEBUG_OPTIONS', lambda env: env.AppendUnique( SHLINKFLAGS = ['-ggdb3'] ) )
-    else:
-        setupBuildTools.registerCallback( 'DEBUG_OPTIONS', lambda env: env.AppendUnique( SHLINKFLAGS = ['-g'] ) )
-
-    setupBuildTools.registerCallback( 'PROFILE_OPTIONS', lambda env: env.AppendUnique( LINKFLAGS = ['-fprofile'] ) )
-    setupBuildTools.registerCallback( 'PROFILE_OPTIONS', lambda env: env.AppendUnique( SHLINKFLAGS = ['-fprofile'] ) )
+    buildmode = SCons.Script.GetOption( 'buildcfg' )
+    if buildmode == 'debug':
+        env.AppendUnique( SHLINKFLAGS = ['-v'] )
+        env.AppendUnique( SHLINKFLAGS = ['-ggdb3' if str( platf ) == 'sunos' else '-g'] )
+        env.AppendUnique( LINKFLAGS = ['-v'] )
+    elif buildmode == 'optimized':
+        pass
+    elif buildmode == 'profile':
+        env.AppendUnique( LINKFLAGS = ['-fprofile'] )
+        env.AppendUnique( SHLINKFLAGS = ['-fprofile'] )
 
 def exists( env ):
     return None
