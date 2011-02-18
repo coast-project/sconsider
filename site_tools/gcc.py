@@ -77,7 +77,8 @@ def generate( env ):
             gccfss=True
 
         ## own extension to detect system include paths
-        fName = '.code2Compile'
+        import time
+        fName = '.code2Compile.' + str(time.time())
         tFile = os.path.join( SCons.Script.Dir( '.' ).abspath, fName )
         outFile = os.path.join( SCons.Script.Dir( '.' ).abspath, fName+'.o' )
         try:
