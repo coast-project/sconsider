@@ -74,7 +74,8 @@ def emitPassedFile(target, source, env):
 
 def execute(command, env):
     import shlex
-    args = shlex.split(command+" "+env.get('runParams', ''), posix=env["PLATFORM"]!='win32')
+    args = [command]
+    args.extend(shlex.split(env.get('runParams', ''), posix=env["PLATFORM"]!='win32'))
 
     if 'mingw' in env["TOOLS"]:
         args.insert(0, "sh.exe")

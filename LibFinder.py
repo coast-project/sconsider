@@ -40,7 +40,7 @@ class UnixFinder(LibFinder):
     def getLibs(self, env, source, libnames=None, libdirs=None):
         if libdirs:
             env.AppendENVPath('LD_LIBRARY_PATH', libdirs)
-        ldd = subprocess.Popen(['ldd', source[0].abspath], stdout=subprocess.PIPE, env=SomeUtils.getFlatENV(env))
+        ldd = subprocess.Popen(['ldd', os.path.basename(source[0].abspath)], stdout=subprocess.PIPE, cwd=os.path.dirname(source[0].abspath), env=SomeUtils.getFlatENV(env))
         out, err = ldd.communicate()
         libs = filter(functools.partial(operator.ne, 'not found'), re.findall('^.*=>\s*(not found|[^\s^\(]+)', out, re.MULTILINE))
         if libnames:
@@ -72,7 +72,7 @@ class Win32Finder(LibFinder):
         return None
 
     def getLibs(self, env, source, libnames=None, libdirs=None):
-        ldd = subprocess.Popen(['objdump', '-p', source[0].abspath], stdout=subprocess.PIPE, env=SomeUtils.getFlatENV(env))
+        ldd = subprocess.Popen(['objdump', '-p', os.path.basename(source[0].abspath)], stdout=subprocess.PIPE, cwd=os.path.dirname(source[0].abspath), env=SomeUtils.getFlatENV(env))
         out, err = ldd.communicate()
         deplibs = re.findall('DLL Name:\s*(\S*)', out, re.MULTILINE)
         if not libdirs:
