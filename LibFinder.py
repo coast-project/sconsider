@@ -37,9 +37,15 @@ class UnixFinder(LibFinder):
         match = re.match(r'^'+re.escape(env.subst('$SHLIBPREFIX'))+libNamesStr+re.escape(env.subst('$SHLIBSUFFIX')), basename)
         return bool(match)
 
+    @staticmethod
+    def absolutify(pathOrNode):
+        if hasattr(pathOrNode, 'get_abspath'):
+            return pathOrNode.get_abspath()
+        return pathOrNode
+
     def getLibs(self, env, source, libnames=None, libdirs=None):
         if libdirs:
-            env.AppendENVPath('LD_LIBRARY_PATH', libdirs)
+            env.AppendENVPath('LD_LIBRARY_PATH', map(self.absolutify, libdirs))
         ldd = subprocess.Popen(['ldd', os.path.basename(source[0].abspath)], stdout=subprocess.PIPE, cwd=os.path.dirname(source[0].abspath), env=SomeUtils.getFlatENV(env))
         out, err = ldd.communicate()
         libs = filter(functools.partial(operator.ne, 'not found'), re.findall('^.*=>\s*(not found|[^\s^\(]+)', out, re.MULTILINE))

@@ -1,9 +1,12 @@
-import subprocess, re, os, functools, itertools, operator, threading
+import subprocess, re, os, functools, itertools, operator, threading, pdb
 import SCons, SConsider, LibFinder
 
 systemLibTargets = {} # needs locking because it is manipulated during multi-threaded build phase
 systemLibTargetsRLock = threading.RLock()
 aliasPrefix = '__SystemLibs_'
+
+def notInDir(env, dir, path):
+    return not env.File(path).is_under(dir)
 
 def installSystemLibs(source):
     """
@@ -16,11 +19,16 @@ def installSystemLibs(source):
         return None
 
     env = source[0].get_env()
-    ownlibdir = env['BASEOUTDIR'].Dir(env['LIBDIR']).Dir(env['VARIANTDIR'])
-    libdirs = filter(functools.partial(operator.ne, ownlibdir), env['LIBPATH'])
     finder = LibFinder.FinderFactory.getForPlatform(env["PLATFORM"])
+    libdirs = env['LIBPATH']
     libdirs.extend(finder.getSystemLibDirs(env))
     deplibs = finder.getLibs(env, source, libdirs=libdirs)
+    
+    ownlibDir = env['BASEOUTDIR'].Dir(env['LIBDIR']).Dir(env['VARIANTDIR'])
+    
+    # don't create cycles by copying our own libs
+    deplibs = filter(functools.partial(notInDir, env, ownlibDir), deplibs)
+    
     target = []
     
     # build phase could be multi-threaded
@@ -30,7 +38,7 @@ def installSystemLibs(source):
             if deplib in systemLibTargets:
                 libtarget = systemLibTargets[deplib]
             else:
-                libtarget = env.Install(ownlibdir, env.File(deplib))
+                libtarget = env.Install(ownlibDir, env.File(deplib))
                 systemLibTargets[deplib] = libtarget
             target.extend(libtarget)
     
