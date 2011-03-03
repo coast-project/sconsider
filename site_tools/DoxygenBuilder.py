@@ -274,7 +274,6 @@ def buildDoxyfile(target, source, env):
 
     with open(str(target[0]), 'a') as doxyfile:
         doxyfile.write("PREDEFINED = \\\n")
-
         defines = {}
         defines.update(compilerDefines)
         for define in env.get('CPPDEFINES', []):
@@ -322,7 +321,6 @@ def callDoxygen(target, source, env):
     Creates the output directory (doxygen can't do that recursively) and calls doxygen.
     The first source must be the Doxyfile, the other sources are used for dependency tracking only.
     """
-
     data = env.get('data', {})
     outputpath = data.get("OUTPUT_DIRECTORY", '')
     if not os.path.isabs(outputpath):
@@ -519,6 +517,7 @@ def createDoxygenAllTarget(registry):
     """
     Wrapper for creating a doxygen target for coast.
     """
+
     env = SConsider.cloneBaseEnv()
 
     doxyfile = env['BASEOUTDIR'].File('Doxyfile')
@@ -528,14 +527,18 @@ def createDoxygenAllTarget(registry):
         doxyData = getDoxyfileTemplate()
         doxyData.update(getDoxyDefaults(env, registry))
 
-    def isTestPackage(packagename):
+    #FIX temporary hack to get rid of doxygen problems with 3rdparty packages
+    thirdparty = ['openssl','boost', 'oracle', 'mysql', 'sybase', 'zlib', 'cute', 'iplanetLDAP']
+    def isExcludedPackage(packagename):
+        if packagename in thirdparty:
+            return True
         for targetname, settings in registry.getBuildSettings(packagename).iteritems():
             if settings.get('runConfig', {}).get('type', '') == 'test':
                 return True
         return False
-    notIsTestPackage = lambda packagename: not isTestPackage(packagename)
 
-    allPackageNames = filter(notIsTestPackage, registry.getPackageNames())
+    documentPackage = lambda packagename: not isExcludedPackage(packagename)
+    allPackageNames = filter(documentPackage, registry.getPackageNames())
     allInputDirs = set()
     allPackageFiles = []
 
@@ -562,7 +565,6 @@ def createDoxygenAllTarget(registry):
     for package_name in allPackageNames:
         doxySources.extend(getSourceFiles(registry, package_name))
         doxySources.extend(getHeaderFiles(registry, package_name))
-
     doxyTarget = env.DoxygenBuilder(source=doxySources,
                                     data=doxyData,
                                     logname='doxygen_coast')
