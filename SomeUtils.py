@@ -334,3 +334,19 @@ def runCommand(args, logpath='', filename=None, stdincontent=None, filter=None, 
             for line in popenObject.stderr:
                 print >>errfile, line
     return res
+
+def getLibCVersion(bits='32'):
+    import os,platform
+    libcnames=[]
+    for directory in ['/lib'+bits,'lib','/lib32','/lib64']:
+        for dirpath, dirnames, filenames in os.walk( directory ):
+            filenames[:]=[f for f in filenames if f == 'libc.so.6']
+            for f in filenames:
+                libcnames.append(os.path.join(dirpath,f))
+    libcver=('dummy','0.0')
+    for libcn in libcnames:
+        try:
+            libcver = platform.libc_ver(executable=libcn)
+            break
+        except: continue
+    return libcver

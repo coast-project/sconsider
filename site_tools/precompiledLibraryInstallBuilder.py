@@ -1,9 +1,10 @@
-import os, pdb, re, platform, shutil, stat
+import os, re, platform, shutil, stat
 import SCons.Action
 import SCons.Builder
 
 def findPlatformTargets(env, basedir, targetname, prefixes=[], suffixes=[]):
     variantdir = ''
+    bitwidth = env.get('ARCHBITS', '32')
     libRE = ''
     for pre in prefixes:
         if libRE:
@@ -36,7 +37,8 @@ def findPlatformTargets(env, basedir, targetname, prefixes=[], suffixes=[]):
         # re for architecture (i686, sparc, amd,...) - bitwidth (32,64)
         dirRE += osStringSep + '?(.*)'
     else:
-        osver = tuple([int(x) for x in platform.libc_ver(executable='/lib/libc.so.6')[1].split('.')])
+        import SomeUtils
+        osver = tuple([int(x) for x in SomeUtils.getLibCVersion(bitwidth)[1].split('.')])
         dirRE = platform.system() + osStringSep + 'glibc' + osStringSep + '([0-9]+(\.[0-9]+)*)'
         # re for architecture (i686, sparc, amd,...) - bitwidth (32,64)
         dirRE += osStringSep + '?(.*)'
@@ -66,7 +68,7 @@ def findPlatformTargets(env, basedir, targetname, prefixes=[], suffixes=[]):
     # find best matching library
     # dirmatch: (xxver[1]:'2.9', xxx[2]:'.9', arch-bits[3]:'i686-32')
     # libmatch: ([1]:'lib', sufx[2]:'.so',vers[3]:'.0.9.7')
-    bitwidth = env.get('ARCHBITS', '32')
+
     # filter out wrong bit sizes
     files = [entry for entry in files if entry['bits'] == bitwidth]
 

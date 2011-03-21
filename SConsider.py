@@ -149,7 +149,9 @@ variant = "Unknown"
 myplatf = str(SCons.Platform.Platform())
 
 if myplatf == "posix":
-    libcver = platform.libc_ver(executable='/lib/libc.so.6')
+    import SomeUtils
+    bitwidth = baseEnv.get('ARCHBITS', '32')
+    libcver=SomeUtils.getLibCVersion(bitwidth)
     variant = platform.system() + "_" + libcver[0] + "_" + libcver[1] + "-" + platform.machine()
 elif myplatf == "sunos":
     variant = platform.system() + "_" + platform.release() + "-" + platform.processor()
