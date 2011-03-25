@@ -421,7 +421,6 @@ class TargetMaker:
 
     def prepareFileNodeTuples(self, nodes, baseDir, alternativeDir=None):
         nodetuples = []
-
         for node in nodes:
             currentFile = node
             if isinstance( currentFile, str ):

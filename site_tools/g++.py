@@ -164,6 +164,7 @@ def generate( env ):
             '-Weffc++',                 #<! Warn about violations of Effective C++ style rules
             '-Wignored-qualifiers',     #<! Warn whenever type qualifiers are ignored.
             '-Wold-style-cast',         #<! Warn if a C-style cast is used in a program
+            '-Wextra',                  #<! Warn about some extra warning flags that are not enabled by -Wall.
         ] )
 
 def exists( env ):
