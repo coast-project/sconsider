@@ -114,6 +114,7 @@ def generate( env, **kw ):
         env.AppendUnique( CCFLAGS = ['-DOS_LINUX'] )
 
     env.Append( VARIANT_SUFFIX = ['-' + bitwidth] )
+    env.Append( VARIANT_SUFFIX = ['_' + GetOption( 'buildcfg' )] )
 
     if "mingw" in env["TOOLS"]:
         # mingw appends .exe if a Program target is given without extension but scons still
