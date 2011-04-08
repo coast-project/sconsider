@@ -116,6 +116,11 @@ def generate( env ):
     platf = env['PLATFORM']
     env.AppendUnique( CPPDEFINES = ['_POSIX_PTHREAD_SEMANTICS', '_REENTRANT'] )
     env.AppendUnique( CCFLAGS = '-m' + env['ARCHBITS'] )
+    if str( platf ) == 'darwin':
+        if env['ARCHBITS'] == '32':
+            env.AppendUnique( CCFLAGS = ['-arch', 'i386'] )
+        else:
+            env.AppendUnique( CCFLAGS = ['-arch', 'x86_64'] )
     if not SCons.Script.GetOption( 'no-largefilesupport' ):
         env.AppendUnique( CPPDEFINES = ['_LARGEFILE64_SOURCE'] )
 
