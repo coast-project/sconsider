@@ -54,11 +54,6 @@ def generate( env ):
     env.Replace(SMARTLINK = smart_link)
 
     env.AppendUnique( LINKFLAGS = '-m' + env['ARCHBITS'] )
-    if str( platf ) == 'darwin':
-        if env['ARCHBITS'] == '32':
-            env.AppendUnique( LINKFLAGS = ['-arch', 'i386'] )
-        else:
-            env.AppendUnique( LINKFLAGS = ['-arch', 'x86_64'] )
 
     if str( platf ) not in ["cygwin", "win32"]:
         env.Append( _NONLAZYLINKFLAGS = '-z defs -z now --no-undefined ' )
