@@ -1,4 +1,16 @@
-import os, re, subprocess, functools, itertools, operator, pdb
+"""site_scons.LibFinder
+
+Utility to find depending libraries of a target.
+
+"""
+#-----------------------------------------------------------------------------------------------------
+# Copyright (c) 2010, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# All rights reserved.
+#
+# This library/application is free software; you can redistribute and/or modify it under the terms of
+# the license that is included with this library/application in the file license.txt.
+#-----------------------------------------------------------------------------------------------------
+import os, re, subprocess, functools, itertools, operator
 import SomeUtils
 
 def uniquelist(iterable):
@@ -9,7 +21,7 @@ def uniquelist(iterable):
 
 def unique(iterable):
     """
-    Generates an iterator over an order preserved list with unique items 
+    Generates an iterator over an order preserved list with unique items
     """
     seen = set()
     for element in itertools.ifilterfalse(seen.__contains__, iterable):

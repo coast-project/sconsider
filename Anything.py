@@ -1,3 +1,15 @@
+"""site_scons.Anything
+
+Utility module to parse Anything files and provide a python, dict-based, equivalent
+
+"""
+#-----------------------------------------------------------------------------------------------------
+# Copyright (c) 2010, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# All rights reserved.
+#
+# This library/application is free software; you can redistribute and/or modify it under the terms of
+# the license that is included with this library/application in the file license.txt.
+#-----------------------------------------------------------------------------------------------------
 import collections, operator, threading, os
 from lepl import *
 
@@ -212,7 +224,7 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
             else:
                 content += str(value)+'\n'
         return '{\n'+content+('\t'*(level-1))+'}'
-        
+
     def __str__(self):
         return self.__pprint()
 
@@ -237,7 +249,7 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 
     def __iadd__(self, other):
         return self.extend(other)
-    
+
     def sort(self):
         self.__data.sort(key=operator.attrgetter('value', 'key'))
         self.__updateKeys()

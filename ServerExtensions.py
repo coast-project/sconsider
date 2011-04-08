@@ -1,3 +1,15 @@
+"""site_scons.ServerExtensions
+
+Collection of slightly extended or tailored *Servers mainly used for testing
+
+"""
+#-----------------------------------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# All rights reserved.
+#
+# This library/application is free software; you can redistribute and/or modify it under the terms of
+# the license that is included with this library/application in the file license.txt.
+#-----------------------------------------------------------------------------------------------------
 import socket, os
 from SocketServer import BaseServer, TCPServer, BaseRequestHandler
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler

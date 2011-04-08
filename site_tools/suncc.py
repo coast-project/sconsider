@@ -1,11 +1,16 @@
-"""SCons.Tool.suncc
+"""site_scons.site_tools.suncc
 
-Tool-specific initialization for Sun Solaris (Forte) CC and cc.
+SConsider-specific suncc tool initialization
 
-There normally shouldn't be any need to import this module directly.
-It will usually be imported through the generic SCons.Tool.Tool()
-selection method.
 """
+
+#-----------------------------------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# All rights reserved.
+#
+# This library/application is free software; you can redistribute and/or modify it under the terms of
+# the license that is included with this library/application in the file license.txt.
+#-----------------------------------------------------------------------------------------------------
 
 import SCons.Util
 import SCons.Tool

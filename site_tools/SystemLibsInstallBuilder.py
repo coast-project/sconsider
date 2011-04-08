@@ -1,4 +1,18 @@
-import subprocess, re, os, functools, itertools, operator, threading, pdb
+"""site_scons.site_tools.SystemLibsInstallBuilder
+
+Tool to collect system libraries needed by an executable/shared library
+
+"""
+
+#-----------------------------------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# All rights reserved.
+#
+# This library/application is free software; you can redistribute and/or modify it under the terms of
+# the license that is included with this library/application in the file license.txt.
+#-----------------------------------------------------------------------------------------------------
+
+import subprocess, re, os, functools, itertools, operator, threading
 import SCons, SConsider, LibFinder
 
 systemLibTargets = {} # needs locking because it is manipulated during multi-threaded build phase
@@ -14,7 +28,7 @@ def installSystemLibs(source):
     """
     if not SCons.Util.is_List(source):
         source = [source]
-    
+
     if len(source) < 1:
         return None
 
@@ -23,25 +37,25 @@ def installSystemLibs(source):
     libdirs = env['LIBPATH']
     libdirs.extend(finder.getSystemLibDirs(env))
     deplibs = finder.getLibs(env, source, libdirs=libdirs)
-    
+
     ownlibDir = env['BASEOUTDIR'].Dir(env['LIBDIR']).Dir(env['VARIANTDIR'])
-    
+
     # don't create cycles by copying our own libs
     deplibs = filter(functools.partial(notInDir, env, ownlibDir), deplibs)
-    
+
     target = []
-    
+
     # build phase could be multi-threaded
     with systemLibTargetsRLock:
         for deplib in deplibs:
-            # take care of already created targets otherwise we would have multiple ways to build the same target 
+            # take care of already created targets otherwise we would have multiple ways to build the same target
             if deplib in systemLibTargets:
                 libtarget = systemLibTargets[deplib]
             else:
                 libtarget = env.Install(ownlibDir, env.File(deplib))
                 systemLibTargets[deplib] = libtarget
             target.extend(libtarget)
-    
+
     # add targets as dependency of the intermediate target
     env.Depends(aliasPrefix+source[0].name, target)
 

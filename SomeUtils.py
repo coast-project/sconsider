@@ -1,5 +1,16 @@
+"""site_scons.SomeUtils
+
+Collection of helper functions
+
+"""
+#-----------------------------------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# All rights reserved.
+#
+# This library/application is free software; you can redistribute and/or modify it under the terms of
+# the license that is included with this library/application in the file license.txt.
+#-----------------------------------------------------------------------------------------------------
 import os, glob, string, re
-import pdb
 
 def FileNodeComparer( left, right ):
     """Default implementation for sorting File nodes according to their lexicographical order"""
@@ -7,7 +18,7 @@ def FileNodeComparer( left, right ):
 
 def listFiles( files, **kw ):
     import SCons, SConsider
-    
+
     allFiles = []
     for file in files:
         globFiles = SCons.Script.Glob( file )

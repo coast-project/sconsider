@@ -1,4 +1,18 @@
-import re, os, optparse, functools, pdb
+"""site_scons.site_tools.Package
+
+SConsider-specific tool to create a distributable package  from compiled sources
+
+"""
+
+#-----------------------------------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# All rights reserved.
+#
+# This library/application is free software; you can redistribute and/or modify it under the terms of
+# the license that is included with this library/application in the file license.txt.
+#-----------------------------------------------------------------------------------------------------
+
+import re, os, optparse, functools
 import SomeUtils
 
 packageAliasName = 'makepackage'
@@ -6,7 +20,7 @@ packageAliasName = 'makepackage'
 def addPackageTarget(registry, buildTargets, env, destdir, **kw):
     import SCons
     createDeferredAction = SCons.Action.ActionFactory(makePackage, lambda *args, **kw: '')
-    
+
     sources = []
     for tn in buildTargets:
         if registry.isValidFulltargetname(tn):
@@ -80,17 +94,17 @@ def determineDirInPackage(name, env, destdir, target, filters=[]):
 
     copydir = destdir.Dir(name)
     return copydir.Dir(path)
-    
+
 class PackageToolException(Exception):
     pass
-    
+
 def generate(env):
     import SCons.Script, SCons.Script.Main, SConsider
     try:
         SCons.Script.AddOption('--package', dest='package', action='store', default='', help='Specify the destination directory')
     except optparse.OptionConflictError:
         raise PackageToolException("Only one Package-Tool instance allowed")
-    
+
     destination = SCons.Script.GetOption('package')
     if destination:
         if not os.path.isdir(destination):
@@ -100,16 +114,16 @@ def generate(env):
 
 def exists(env):
     return 1
-        
+
 def getTargetDependencies(target, filters=[]):
     """Determines the recursive dependencies of a target (including itself).
-    
+
     Specify additional target filters using 'filters'.
     """
     if not isinstance(filters, list):
         filters = [filters]
     filters = [SomeUtils.isFileNode] + filters
-    
+
     deps = set()
     if SomeUtils.allFuncs(filters, target):
         deps.update( target.get_executor().get_all_targets() )

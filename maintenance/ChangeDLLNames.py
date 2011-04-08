@@ -1,4 +1,18 @@
-import os, pdb, re
+"""site_scons.maintenance.ChangeDLLNames
+
+Simple helper tool to replace old WebDisplay2 dll names with new coast shared library names
+
+Usually it will be applied to Config.any and test configuration files using dynamic library loading
+
+"""
+#-----------------------------------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# All rights reserved.
+#
+# This library/application is free software; you can redistribute and/or modify it under the terms of
+# the license that is included with this library/application in the file license.txt.
+#-----------------------------------------------------------------------------------------------------
+import os, re
 
 excludelist = ['build', 'CVS', 'data', 'xml', 'doc', 'bin', 'lib', '.git', '.gitmodules']
 list2 = []

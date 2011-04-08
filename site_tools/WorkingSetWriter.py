@@ -1,5 +1,22 @@
+"""site_scons.site_tools.workingSetWriter
+
+Eclipse-SConsider-specific tool to create an eclipse working set filter file.
+
+Each directory containing an eclipse .project file is scanned for its dependencies to other
+'eclipse' project files.
+
+"""
+
+#-----------------------------------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# All rights reserved.
+#
+# This library/application is free software; you can redistribute and/or modify it under the terms of
+# the license that is included with this library/application in the file license.txt.
+#-----------------------------------------------------------------------------------------------------
+
 from __future__ import with_statement
-import os, re, pdb, uuid, optparse
+import os, re, uuid, optparse
 import SomeUtils
 from xml.etree.ElementTree import ElementTree, Element
 
@@ -15,12 +32,12 @@ def determineProjectFilePath(path, topPath=None):
 def getProjectNameFromProjectFile(projectFile):
     if not os.path.isfile(projectFile):
         return None
-    
+
     tree = ElementTree()
     tree.parse(projectFile)
     return tree.findtext('name')
 
-def determineProjectDependencies(dependencyDict, registry, topPath):   
+def determineProjectDependencies(dependencyDict, registry, topPath):
     dependencies = set()
     for fulltargetname, depDict in dependencyDict.iteritems():
         packagename, targetname = SomeUtils.splitTargetname(fulltargetname)
@@ -31,26 +48,26 @@ def determineProjectDependencies(dependencyDict, registry, topPath):
             dependencies.add(projectName)
         dependencies.update(determineProjectDependencies(depDict, registry, topPath))
     return dependencies
-        
+
 dependencies = {}
-def rememberWorkingSet(registry, packagename, buildSettings, **kw):    
+def rememberWorkingSet(registry, packagename, buildSettings, **kw):
     import SCons
-    
+
     dependencyDict = registry.getPackageDependencies(packagename)
     dependencies[packagename] = determineProjectDependencies(dependencyDict, registry,
                                                              SCons.Script.Dir('#').srcnode().get_abspath())
 
-def writeWorkingSets(**kw): 
+def writeWorkingSets(**kw):
     import SCons
-      
+
     workspacePath = os.path.abspath(SCons.Script.GetOption("workspace"))
     workingsetsPath = os.path.join(workspacePath, '.metadata', '.plugins', 'org.eclipse.ui.workbench')
     if not os.path.isdir(workingsetsPath):
        workingsetsPath = SCons.Script.Dir('#').srcnode().get_abspath()
-    
+
     fname = os.path.join(workingsetsPath, 'workingsets.xml')
-    xmldeps = fromXML(fname) 
-    
+    xmldeps = fromXML(fname)
+
     for package, packagedeps in dependencies.iteritems():
         if package not in xmldeps:
             xmldeps[package] = {
@@ -66,9 +83,9 @@ def writeWorkingSets(**kw):
         xmldeps[package]['items'] = []
         for dep in packagedeps:
             xmldeps[package]['items'].append({'factoryID': 'org.eclipse.cdt.ui.PersistableCElementFactory', 'path': '/'+dep, 'type': '4'})
-            
+
     toXML(xmldeps, fname)
-    
+
 def fromXML(file):
     xmldeps = {}
     if os.path.isfile(file):
@@ -93,12 +110,12 @@ def toXML(deps, file):
 
 def generate(env):
     import SConsider, SCons
-    
+
     try:
         SCons.Script.AddOption('--workspace', dest='workspace', action='store', default='', help='Select workspace directory')
     except optparse.OptionConflictError:
         pass
-    
+
     SConsider.registerCallback('PostCreatePackageTargets', rememberWorkingSet)
     SConsider.registerCallback('PreBuild', writeWorkingSets)
 

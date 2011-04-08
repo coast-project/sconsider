@@ -1,4 +1,18 @@
-import os, pdb, optparse, datetime, re, tempfile
+"""site_scons.site_tools.generateScript
+
+SConsider-specific stand alone script to execute programs
+
+"""
+
+#-----------------------------------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# All rights reserved.
+#
+# This library/application is free software; you can redistribute and/or modify it under the terms of
+# the license that is included with this library/application in the file license.txt.
+#-----------------------------------------------------------------------------------------------------
+
+import os, optparse, datetime, re, tempfile
 import SCons.Action
 import SCons.Builder
 from SCons.Script import AddOption, GetOption

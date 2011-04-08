@@ -1,3 +1,21 @@
+"""site_scons.site_tools.RunBuilder
+
+This tool adds --run, --run-force and --runparams to the list of SCons options.
+
+After successful creation of an executable target, it tries to execute it with
+the possibility to add program options. Further it allows to specify specific
+setup/teardown functions executed before and after running the program.
+
+"""
+
+#-----------------------------------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# All rights reserved.
+#
+# This library/application is free software; you can redistribute and/or modify it under the terms of
+# the license that is included with this library/application in the file license.txt.
+#-----------------------------------------------------------------------------------------------------
+
 from __future__ import with_statement
 import os, pdb, subprocess, optparse, sys, functools, re
 import SCons.Action, SCons.Builder, SCons.Script
@@ -151,19 +169,19 @@ def createTestTarget(env, source, plainsource, registry, packagename, targetname
     runner = env.TestBuilder([], source, runParams=getRunParams(buildSettings, defaultRunParams), logfile=logfile)
     if GetOption('run-force'):
         env.AlwaysBuild(runner)
-    
+
     isInBuilddir = functools.partial(SConsider.hasPathPart, pathpart=env['BUILDDIR'])
     isCopiedInclude = lambda node: node.path.startswith(env['INCDIR'])
-    
+
     funcs = [
              SConsider.isFileNode,
              SConsider.isDerivedNode,
              lambda node: not isInBuilddir(node),
              lambda node: not isCopiedInclude(node)
              ]
-    
+
     env.Depends(runner, sorted(SConsider.getNodeDependencies(runner[0], funcs)))
-    
+
     addRunConfigHooks(env, source, runner, buildSettings)
 
     registerCallback('__PostTestOrRun', lambda: runCallback('PostTest', target=source, registry=registry, packagename=packagename, targetname=targetname, logfile=logfile))
@@ -232,9 +250,9 @@ def generate(env):
         runConfig = buildSettings.get('runConfig', {})
         if not runConfig:
             return None
-        
+
         runType = runConfig.get('type', 'run')
-        
+
         factory = createRunTarget
         if runType == 'test':
             factory = createTestTarget

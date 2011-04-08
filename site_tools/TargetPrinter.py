@@ -1,5 +1,19 @@
+"""site_scons.site_tools.TargetPrinter
+
+Tool to collect available targets for building
+
+"""
+
+#-----------------------------------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# All rights reserved.
+#
+# This library/application is free software; you can redistribute and/or modify it under the terms of
+# the license that is included with this library/application in the file license.txt.
+#-----------------------------------------------------------------------------------------------------
+
 from __future__ import with_statement
-import os, pdb, subprocess, optparse, functools
+import os, subprocess, optparse, functools
 import SCons.Action, SCons.Builder, SCons.Util
 from SCons.Script import AddOption, GetOption
 import SConsider, SomeUtils

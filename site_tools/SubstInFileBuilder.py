@@ -1,4 +1,18 @@
-import re, pdb
+"""site_scons.site_tools.SubstInFileBuilder
+
+Builder used to search/replace content in Files using regular expression syntax
+
+"""
+
+#-----------------------------------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# All rights reserved.
+#
+# This library/application is free software; you can redistribute and/or modify it under the terms of
+# the license that is included with this library/application in the file license.txt.
+#-----------------------------------------------------------------------------------------------------
+
+import re
 
 from SCons.Script import *
 
@@ -31,7 +45,7 @@ def getKeysFromString(content, searchre):
 
 def getData(keys, env):
     subst_dict = env.get('SUBST_DICT', env)
-    
+
     data = {}
     for key in keys:
         if key in subst_dict:
@@ -79,9 +93,9 @@ def substInFiles(target, source, env):
         if not key in data:
             return match.group(0)
         return str(data[key])
-    
+
     subfn = getSubFn(env, subFnDefault)
-        
+
     keys = set()
     for s in source:
         keys.update(getKeysFromFile(str(s), searchre))
@@ -97,4 +111,4 @@ def generate(env):
 
 def exists(env):
     return 1;
-    
+

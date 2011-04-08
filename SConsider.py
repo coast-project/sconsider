@@ -1,5 +1,17 @@
+"""site_scons.SConsider
+
+SCons build tool extension allowing automatic target finding within a directoy tree.
+
+"""
+#-----------------------------------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# All rights reserved.
+#
+# This library/application is free software; you can redistribute and/or modify it under the terms of
+# the license that is included with this library/application in the file license.txt.
+#-----------------------------------------------------------------------------------------------------
 from __future__ import with_statement
-import os, platform, SCons, glob, re, atexit, sys, traceback, commands, pdb, dircache, stat
+import os, platform, SCons, glob, re, atexit, sys, traceback, commands, dircache, stat
 import SomeUtils
 
 from SCons.Script import AddOption, GetOption, Dir, File, DefaultEnvironment, Split, Flatten, SConsignFile
@@ -137,7 +149,7 @@ if GetOption('appendPath'):
     dEnv.AppendENVPath('PATH', GetOption('appendPath'))
     print 'appended path is [%s]' % dEnv['ENV']['PATH']
 
-globaltools = ["setupBuildTools", "coast_options", "SCBWriter", "TargetPrinter",
+globaltools = ["setupBuildTools", "coast_options", "TargetPrinter",
                "precompiledLibraryInstallBuilder", "RunBuilder", "DoxygenBuilder",
                "SystemLibsInstallBuilder", "Package", "SubstInFileBuilder", "ThirdParty"]
 usetools = globaltools + GetOption('usetools')

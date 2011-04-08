@@ -1,7 +1,18 @@
+"""site_scons.KillableThreads
+
+Class and functions intended to be used when wanting to terminate asynchronous background tasks.
+
+"""
+#-----------------------------------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# All rights reserved.
+#
+# This library/application is free software; you can redistribute and/or modify it under the terms of
+# the license that is included with this library/application in the file license.txt.
+#-----------------------------------------------------------------------------------------------------
 import threading
 import inspect
 import ctypes
-
 
 def _async_raise( tid, exctype ):
     """raises the exception, performs cleanup if needed"""

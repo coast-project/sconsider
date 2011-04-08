@@ -1,5 +1,19 @@
+"""site_scons.site_tools.TestfwTransformer
+
+Tool to adapt output of coast-testfw to xUnit xml output parseable by most programs
+
+"""
+
+#-----------------------------------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# All rights reserved.
+#
+# This library/application is free software; you can redistribute and/or modify it under the terms of
+# the license that is included with this library/application in the file license.txt.
+#-----------------------------------------------------------------------------------------------------
+
 from __future__ import with_statement
-import os, pdb, subprocess, optparse, re, socket, time, math
+import os, subprocess, optparse, re, socket, time, math
 from xmlbuilder import XMLBuilder
 
 class Result(object):
@@ -7,7 +21,7 @@ class Result(object):
         self.sections = []
         self.currentSection = None
         self.total = {}
-    
+
     def newSection(self, name):
         self.currentSection = {'name': name, 'time': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), 'hostname': socket.gethostname(), 'testcases': {}}
     def setSectionData(self, name, value):
@@ -15,7 +29,7 @@ class Result(object):
     def appendSectionData(self, name, value):
         self.currentSection.setdefault(name, '')
         self.currentSection[name] += value
-        
+
     def addTest(self, name):
         self.currentSection['testcases'][name] = {'passed': True, 'message': ''}
     def setTestData(self, name, key, value):
@@ -24,17 +38,17 @@ class Result(object):
     def appendTestData(self, name, key, value):
         self.currentSection['testcases'][name].setdefault(key, '')
         self.currentSection['testcases'][name][key] += value
-        
+
     def setTotal(self, name, value):
         self.total[name] = value
     def storeSection(self):
         self.sections.append(self.currentSection)
-    
+
     def getTotal(self):
         return self.total
     def getSections(self):
         return self.sections
-    
+
     def toXML(self, package=''):
         xml = XMLBuilder(format=True)
         with xml.testsuites():
@@ -62,7 +76,7 @@ class State(object):
     def __init__(self, context):
         self.context = context
         self.result = context.result
-    
+
     def __getattr__(self, attr):
         def method_missing(*args, **kw):
             pass
@@ -75,15 +89,15 @@ class StartedState(State):
         self.result.setSectionData('msecs', msecs)
         self.result.storeSection()
         return 'ended'
-    
+
     def fail(self, **kw):
         return 'failed'
-    
+
     def test(self, name, line, **kw):
         self.result.addTest(name)
         self.current_testcase = name
         self.handle(line)
-    
+
     def stop(self, assertions, msecs, failures, **kw):
         self.result.setTotal('assertions', assertions)
         self.result.setTotal('msecs', msecs)
@@ -101,13 +115,13 @@ class EndedState(State):
         self.result.newSection(name)
         return 'started'
 
-class FailedState(State):    
+class FailedState(State):
     def start(self, name, **kw):
         self.result.storeSection()
         self.result.newSection(name)
         self.current_testcase = None
         return 'started'
-    
+
     def stop(self, assertions, msecs, failures, **kw):
         self.result.setTotal('assertions', assertions)
         self.result.setTotal('msecs', msecs)
@@ -115,21 +129,21 @@ class FailedState(State):
         self.result.storeSection()
         self.current_testcase = None
         return 'ended'
-    
+
     def handle(self, line, **kw):
         if isinstance(self.current_testcase, str):
             self.result.appendTestData(self.current_testcase, 'message', line)
         self.result.appendSectionData('content', line)
-    
+
     def failResult(self, runs, failures, errors, **kw):
         self.result.setSectionData('tests', runs)
         self.result.setSectionData('failures', failures)
         self.result.setSectionData('errors', errors)
-    
+
     def failSuccess(self, assertions, msecs, **kw):
         self.result.setSectionData('assertions', assertions)
         self.result.setSectionData('msecs', msecs)
-    
+
     def failStartFailure(self, testcase, message, line, cause, **kw):
         self.result.setTestData(testcase, 'passed', False)
         self.result.setTestData(testcase, 'cause', cause)
@@ -163,7 +177,7 @@ class Parser(object):
                         ( re.compile('^\d+\)\s+([^\s]+):\s*(.*:\d+:\s*(.*))'),
                           lambda line, match: self.state.failStartFailure(line=line, testcase=match.group(1), message=match.group(2), cause=match.group(3)) )
                         ]
-    
+
     def setState(self, state):
         if isinstance(state, str):
             if self.states.has_key(state):
@@ -172,7 +186,7 @@ class Parser(object):
             self.state = state
         else:
             raise TypeError('parameter has wrong type')
-    
+
     def parseLine(self, line):
         found = False
         for pattern, event in self.patterns:
@@ -184,7 +198,7 @@ class Parser(object):
                 found = True
         if not found:
             self.state.handle(line)
-    
+
     def parse(self, content):
         self.setState('ended')
         for line in content:
@@ -206,7 +220,7 @@ def callPostTest(target, registry, packagename, targetname, logfile, **kw):
                 result = parser.parse(file)
                 with open(logfile.dir.File(targetname+'.test.xml').abspath, 'w') as xmlfile:
                     xmlfile.write(result.toXML(packagename+'.'+targetname))
-                
+
 def generate(env):
     import RunBuilder
     RunBuilder.registerCallback("PostTest", callPostTest)

@@ -1,16 +1,18 @@
-"""SCons.Tool.sunc++
+"""site_scons.site_tools.sunc++
 
-Tool-specific initialization for C++ on SunOS / Solaris.
-
-There normally shouldn't be any need to import this module directly.
-It will usually be imported through the generic SCons.Tool.Tool()
-selection method.
+SConsider-specific sunc++ tool initialization
 
 """
 
+#-----------------------------------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# All rights reserved.
+#
+# This library/application is free software; you can redistribute and/or modify it under the terms of
+# the license that is included with this library/application in the file license.txt.
+#-----------------------------------------------------------------------------------------------------
 
 import os.path
-
 import SCons
 
 # use the package installer tool lslpp to figure out where cppc and what
