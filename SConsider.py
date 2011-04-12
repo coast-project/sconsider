@@ -157,7 +157,7 @@ print 'tools to use %s' % Flatten(usetools)
 
 baseEnv = dEnv.Clone(tools=usetools)
 
-variant = "Unknown"
+variant = "Unknown-"
 myplatf = str(SCons.Platform.Platform())
 
 if myplatf == "posix":
@@ -170,9 +170,13 @@ elif myplatf == "sunos":
 elif myplatf == "darwin":
     version = commands.getoutput("sw_vers -productVersion")
     cpu = commands.getoutput("arch")
-    if version.startswith("10.5"):
+    if version.startswith("10.7"):
+        variant = "lion-"
+    elif version.startswith("10.6"):
+        variant = "snowleopard-"
+    elif version.startswith("10.5"):
         variant = "leopard-"
-    if version.startswith("10.4"):
+    elif version.startswith("10.4"):
         variant = "tiger-"
     variant += cpu
 elif myplatf == "cygwin":
