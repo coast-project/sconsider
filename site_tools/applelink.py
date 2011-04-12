@@ -33,6 +33,9 @@ def generate( env ):
         env.AppendUnique( SHLINKFLAGS = ['-fprofile'] )
 
     env.AppendUnique( LINKFLAGS = '-m' + env['ARCHBITS'] )
+    #FIXME: only append to SHLINKFLAGS if we do not require all symbols resolved!
+    env.Append( SHLINKFLAGS = ['-undefined', 'dynamic_lookup'] )
+
     if env['ARCHBITS'] == '32':
         env.Append(LINKFLAGS=['-arch', 'i386'])
     elif env['ARCHBITS'] == '64':
@@ -40,7 +43,7 @@ def generate( env ):
     orig_smart_link = env['SMARTLINK']
     def smart_link(source, target, env, for_signature):
         import os
-        env.AppendUnique( SHLINKFLAGS = ['-install_name', os.path.basename(str(target))] )
+        env.Append( SHLINKFLAGS = ['-install_name', os.path.basename(str(target))] )
         return orig_smart_link(source, target, env, for_signature)
     env.Replace(SMARTLINK = smart_link)
 
