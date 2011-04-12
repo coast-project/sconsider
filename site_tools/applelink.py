@@ -37,6 +37,12 @@ def generate( env ):
         env.Append(LINKFLAGS=['-arch', 'i386'])
     elif env['ARCHBITS'] == '64':
         env.Append(LINKFLAGS=['-arch', 'x86_64'])
+    orig_smart_link = env['SMARTLINK']
+    def smart_link(source, target, env, for_signature):
+        import os
+        env.AppendUnique( SHLINKFLAGS = ['-install_name', os.path.basename(str(target))] )
+        return orig_smart_link(source, target, env, for_signature)
+    env.Replace(SMARTLINK = smart_link)
 
 def exists(env):
     return env['PLATFORM'] == 'darwin'

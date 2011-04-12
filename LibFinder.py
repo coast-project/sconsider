@@ -33,6 +33,8 @@ class FinderFactory(object):
     def getForPlatform(platform):
         if platform == 'win32':
             return Win32Finder()
+        elif platform == 'darwin':
+            return MacFinder()
         return UnixFinder()
 
 class LibFinder(object):
@@ -59,6 +61,40 @@ class UnixFinder(LibFinder):
         if libdirs:
             env.AppendENVPath('LD_LIBRARY_PATH', map(self.absolutify, libdirs))
         ldd = subprocess.Popen(['ldd', os.path.basename(source[0].abspath)], stdout=subprocess.PIPE, cwd=os.path.dirname(source[0].abspath), env=SomeUtils.getFlatENV(env))
+        out, err = ldd.communicate()
+        libs = filter(functools.partial(operator.ne, 'not found'), re.findall('^.*=>\s*(not found|[^\s^\(]+)', out, re.MULTILINE))
+        if libnames:
+            libs = filter(functools.partial(self.__filterLibs, env, libnames=libnames), libs)
+        return libs
+
+    def getSystemLibDirs(self, env):
+        libdirs = []
+        linkercmd = env.subst('$LINK')
+        cmdargs = [linkercmd, '-print-search-dirs'] + env.subst('$LINKFLAGS').split(' ')
+        linker = subprocess.Popen(cmdargs, stdout=subprocess.PIPE, env=SomeUtils.getFlatENV(env))
+        out, err = linker.communicate()
+        match = re.search('^libraries.*=(.*)$', out, re.MULTILINE)
+        if match:
+            libdirs.extend( unique(filter(os.path.exists, map(os.path.abspath, match.group(1).split(os.pathsep)))) )
+        return libdirs
+
+class MacFinder(LibFinder):
+    def __filterLibs(self, env, filename, libnames):
+        basename = os.path.basename(filename)
+        libNamesStr = '('+'|'.join(map(re.escape, libnames))+')'
+        match = re.match(r'^'+re.escape(env.subst('$SHLIBPREFIX'))+libNamesStr+re.escape(env.subst('$SHLIBSUFFIX')), basename)
+        return bool(match)
+
+    @staticmethod
+    def absolutify(pathOrNode):
+        if hasattr(pathOrNode, 'get_abspath'):
+            return pathOrNode.get_abspath()
+        return pathOrNode
+
+    def getLibs(self, env, source, libnames=None, libdirs=None):
+        if libdirs:
+            env.AppendENVPath('DYLD_LIBRARY_PATH', map(self.absolutify, libdirs))
+        ldd = subprocess.Popen(['otool', '-L', os.path.basename(source[0].abspath)], stdout=subprocess.PIPE, cwd=os.path.dirname(source[0].abspath), env=SomeUtils.getFlatENV(env))
         out, err = ldd.communicate()
         libs = filter(functools.partial(operator.ne, 'not found'), re.findall('^.*=>\s*(not found|[^\s^\(]+)', out, re.MULTILINE))
         if libnames:
