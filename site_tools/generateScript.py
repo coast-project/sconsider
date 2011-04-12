@@ -20,7 +20,10 @@ import SomeUtils
 
 def generateShellScript(scriptFile, env, binpath):
     pwd = 'pwd -P'
-    libpathvariable = 'LD_LIBRARY_PATH'
+    if env['PLATFORM'] == 'darwin':
+        libpathvariable = 'DYLD_LIBRARY_PATH'
+    else:
+        libpathvariable = 'LD_LIBRARY_PATH'
     if 'mingw' in env['TOOLS']:
         pwd = 'pwd'
         libpathvariable = 'PATH'
@@ -151,7 +154,7 @@ cat > ${outputfile} <<-EOF
     set environment PATH=${PATH}
 #    set environment COAST_ROOT=${COAST_ROOT}
 #    set environment COAST_PATH=${COAST_PATH}
-    set environment LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+    set environment """+libpathvariable+"""=${"""+libpathvariable+"""}
 #    set environment LOGDIR=${LOGDIR}
 #    set environment PID_FILE=${PID_FILE}
     set auto-solib-add 1
