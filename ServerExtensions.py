@@ -14,15 +14,13 @@ import socket, os
 from SocketServer import BaseServer, TCPServer, BaseRequestHandler
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 from SimpleHTTPServer import SimpleHTTPRequestHandler
-from OpenSSL import crypto, SSL
+from OpenSSL import SSL, crypto
 from smtpd import SMTPServer
-
 ## creating an SSL enabled HTTPServer
 ## see http://code.activestate.com/recipes/442473/
 
 class SecureHTTPServer(HTTPServer):
     allow_reuse_address = True
-#    def __init__(self, server_address, HandlerClass, certFile=None, keyFile=None, caChainFile=None, sslContextMethod=ssl.PROTOCOL_SSLv23):
     def __init__(self, server_address, HandlerClass, certFile=None, keyFile=None, caChainFile=None, sslContextMethod=SSL.SSLv23_METHOD):
         BaseServer.__init__(self, server_address, HandlerClass)
         ctx = SSL.Context(sslContextMethod)
@@ -36,28 +34,18 @@ class SecureHTTPServer(HTTPServer):
         if caChainFile:
             ctx.load_verify_locations(caChainFile)
         self.socket = SSL.Connection(ctx, socket.socket(self.address_family,self.socket_type))
-#        sock = socket.socket(self.address_family,self.socket_type)
-#        self.socket = ssl.wrap_socket(sock,
-#                                      keyfile=keyFile,
-#                                      certfile=certFile,
-#                                      server_side=True,
-#                                      cert_reqs=ssl.CERT_OPTIONAL, # ssl.CERT_NONE
-#                                      ssl_version=sslContextMethod,
-#                                      ca_certs=caChainFile,
-#                                      do_handshake_on_connect=True,
-#                                      suppress_ragged_eofs=True,
-#                                      ciphers=None)
         self.server_bind()
         self.server_activate()
-#    def shutdown_request(self, request):
-#        """Called to shutdown and close an individual request."""
-#        try:
-#            #explicitly shutdown.  socket.close() merely releases
-#            #the socket and waits for GC to perform the actual close.
-#            request.shutdown(socket.SHUT_WR)
-#        except socket.error:
-#            pass #some platforms may raise ENOTCONN here
-#        self.close_request(request)
+        import sys, OpenSSL
+        if sys.version_info >= (2,7) and float(OpenSSL.__version__) <= 0.12:
+            # beginning with python 2.7, shutdown does not take an argument anymore
+            # as pyopenssl <= 0.12 is currently not aware of this, we must catch it here
+            self.shutdown_request = self.shutdown_request_fix
+
+    def shutdown_request_fix(self, request):
+        """Called to shutdown and close an individual request."""
+        try: request.shutdown()
+        except: pass
 
 class SecureHTTPRequestHandler(SimpleHTTPRequestHandler):
     def setup(self):
