@@ -37,10 +37,27 @@ class SecureHTTPServer(HTTPServer):
         self.server_bind()
         self.server_activate()
         import sys, OpenSSL
-        if sys.version_info >= (2,7) and float(OpenSSL.__version__) <= 0.12:
-            # beginning with python 2.7, shutdown does not take an argument anymore
-            # as pyopenssl <= 0.12 is currently not aware of this, we must catch it here
-            self.shutdown_request = self.shutdown_request_fix
+        if sys.version_info >= (2,7):
+            pyOpensslVersion = float(OpenSSL.__version__)
+            noMemoryViewsBelow = 0.12
+            # this number is guessed, as it is currently not known (to me) when the interfaces match again
+            fixedInterfacesVersion = 0.13
+            if pyOpensslVersion <= noMemoryViewsBelow:
+                raise SystemError(
+"""Please upgrade your pyopenssl version to at least 0.12
+ as python2.7 is neither interface nor memory view compatible with older pyopenssl versions
+Checkout sources and install: bzr branch lp:pyopenssl pyopenssl/
+Check https://launchpad.net/pyopenssl for updates
+
+Hint: Check your system for already installed python OpenSSL modules and rename/delete to use the newly installed one
+ - known locations (ubuntu): /usr/lib/pyshared/python2.7/OpenSSL, /usr/lib/pyshared/python2.7/OpenSSL
+
+Aborting!""" )
+
+            elif pyOpensslVersion >= noMemoryViewsBelow and pyOpensslVersion <= fixedInterfacesVersion:
+                # beginning with python 2.7, shutdown does not take an argument anymore
+                # override the default for now
+                self.shutdown_request = self.shutdown_request_fix
 
     def shutdown_request_fix(self, request):
         """Called to shutdown and close an individual request."""
