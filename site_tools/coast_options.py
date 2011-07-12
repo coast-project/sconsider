@@ -22,7 +22,7 @@ def generate( env, **kw ):
     global added
     if not added:
         added = 1
-        AddOption( '--enable-Trace', dest = 'Trace', action = 'store_true', help = 'Compile enabling trace support, (StartTrace, Trace,...), see Dbg.h for details' )
+        AddOption( '--enable-Trace', dest = 'Trace', action = 'store_true', help = 'Compile enabling trace support, (StartTrace, Trace,...), see Tracer.h for details' )
         import socket
         envconfigdir_default = socket.gethostname()
         AddOption( '--env-cfg', dest = 'envconfigdir', action = 'store', nargs = 1, type = 'string', default = envconfigdir_default, help = 'Define directory name to use for location dependent files, default [' + envconfigdir_default + ']. When a config file gets copied and a corresponding file exists below this directory, it will get used instead of the original one. This allows to define configuration settings appropriate for the current environment.' )
