@@ -89,6 +89,7 @@ def generate( env, **kw ):
     # select target architecture bits
     bitwidth = GetOption( 'archbits' )
     env['ARCHBITS'] = bitwidth
+    env.AppendUnique( CCFLAGS = ['-DARCHBITS=' + str( bitwidth )] )
 
     # tool initialization, previously done in <scons>/Tool/default.py
     for t in SCons.Tool.tool_list( platf, env ):
