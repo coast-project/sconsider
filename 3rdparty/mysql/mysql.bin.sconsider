@@ -20,7 +20,7 @@ buildSettings = {
         },
     },
     'mysqlclient' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('mysqlclient')],
+        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('mysql')],
         'targetType'       : 'PrecompiledLibraryInstallBuilder',
     },
     'mysqlbin' : {
