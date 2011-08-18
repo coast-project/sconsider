@@ -280,13 +280,13 @@ class AnythingReference(object):
         for key in self.keys:
             if isinstance(key, int):
                 keystr += ':'
-            elif len(keystr) > 0:
+            elif keystr:
                 keystr += '.'
             keystr += str(key)
 
         if self.file:
             result = '!'+self.file
-            if len(keystr) > 0:
+            if keystr:
                 result += '?'
         else:
             result = '%'
@@ -310,7 +310,7 @@ def setLocalEnv(env=None, **kw):
     Use env to set the entire env: setLocalEnv({'COAST_ROOT': '/path/to/dir'})
     Use kw to add/update single values: setLocalEnv(COAST_PATH='.:config')
     """
-    if not env == None:
+    if env is not None:
         tls.env = env
     tls.env.update(kw)
 

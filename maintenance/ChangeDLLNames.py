@@ -51,7 +51,7 @@ for dirpath, dirnames, filenames in os.walk('.'):
                         strGroup = mo.group(1)
                         strout = ''
                         for it in re.finditer(r"^([^#\S]+)(\"?(lib)?(\w+)(\.so)?\"?)([\s]*)$", strGroup, re.M):
-                            if len(strout):
+                            if strout:
                                 strout += '\n'
                             g = it.groups()
                             lname = g[3]
@@ -65,7 +65,7 @@ for dirpath, dirnames, filenames in os.walk('.'):
                             else:
                                 print lname, "MISSING"
                                 strout += it.string[it.start(0):it.end(0)]
-                        if len(strout):
+                        if strout:
                             outstr += strout
                         else:
                             outstr += strGroup

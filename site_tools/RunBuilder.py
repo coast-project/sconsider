@@ -69,14 +69,14 @@ def run(cmd, logfile=None, **kw):
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **kw)
         while True:
             out = proc.stdout.readline()
-            if out == '' and proc.poll() != None:
+            if out == '' and proc.poll() is not None:
                 break
             tee.write(out)
         rcode=proc.returncode
     finally:
         while True:
             out = proc.stdout.readline()
-            if out == '' and proc.poll() != None:
+            if out == '' and proc.poll() is not None:
                 break
             tee.write(out)
         tee.close()

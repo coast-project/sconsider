@@ -29,7 +29,7 @@ def installSystemLibs(source):
     if not SCons.Util.is_List(source):
         source = [source]
 
-    if len(source) < 1:
+    if not source:
         return None
 
     env = source[0].get_env()

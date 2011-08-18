@@ -51,7 +51,7 @@ def copyPackage(name, deps, env, destdir, filters=[]):
 
 def copyTarget(env, destdir, node):
     old = env.Alias(destdir.File(node.name))
-    if len(old) and len(old[0].sources):
+    if old and old[0].sources:
         if isInstalledNode(node, old[0].sources[0]) or isInstalledNode(old[0].sources[0], node):
             return None
         else:

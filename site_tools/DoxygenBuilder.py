@@ -162,7 +162,7 @@ def parseDoxyfileContent(file_content, env, include_basepath=None):
                 token = ""
             # Convert space-separated list to actual list
             token = token.split()
-            if len(token):
+            if token:
                 append_data(data, key, new_data, token[0])
                 for i in token[1:]:
                     append_data(data, key, True, i)
@@ -211,7 +211,7 @@ def parseDoxyfileContent(file_content, env, include_basepath=None):
 
     # compress lists of len 1 into single strings
     for (k, v) in data.items():
-        if len(v) == 0:
+        if not v:
             data.pop(k)
 
         # items in the following list will be kept as lists and not converted to strings
