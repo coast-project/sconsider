@@ -39,7 +39,7 @@ def makePackage(registry, buildTargets, env, destdir, **kw):
     isInBuilddir = functools.partial(SomeUtils.hasPathPart, pathpart=env['BUILDDIR'])
     notInBuilddir = lambda target: not isInBuilddir(target)
     notCopiedInclude = lambda target: not target.path.startswith(env['INCDIR'])
-    copyfilters = [filterTestsAppsGlobalsPath, filterVariantPath]
+    copyfilters = [filterBaseOutDir, filterTestsAppsGlobalsPath, filterVariantPath]
     for tn in buildTargets:
         if registry.isValidFulltargetname(tn):
             tdeps = getTargetDependencies(env.Alias(tn)[0], [SomeUtils.isDerivedNode, notInBuilddir, notCopiedInclude])
@@ -69,6 +69,14 @@ def isInstalledNode(testnode, node):
     if len(node.sources) < 1:
         return False
     return isInstalledNode(testnode, node.sources[0])
+
+def filterBaseOutDir(path, **kw):
+    if not path.startswith(os.sep):
+        return
+    basedirprefix = kw.get('env', {}).get('BASEOUTDIR', False).abspath
+    replist = [('^'+basedirprefix+os.sep+'?', ''),
+               ]
+    return SomeUtils.multiple_replace(replist, path)
 
 def filterTestsAppsGlobalsPath(path, **kw):
     replist = [('^tests'+os.sep+'[^'+os.sep+']*'+os.sep+'?', ''),
