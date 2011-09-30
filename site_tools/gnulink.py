@@ -68,7 +68,7 @@ def generate( env ):
     env.AppendUnique( LINKFLAGS = '-m' + env['ARCHBITS'] )
 
     if str( platf ) not in ["cygwin", "win32"]:
-        env.Append( _NONLAZYLINKFLAGS = '-z defs -z now --no-undefined ' )
+        env.Append( _NONLAZYLINKFLAGS = '-z defs -z now ' )
     if str( platf ) == "sunos":
         # this lib is needed when using sun-CC or gcc on sunos systems
         env.AppendUnique( LIBS = ['socket', 'resolv', 'posix4', 'aio'] )
