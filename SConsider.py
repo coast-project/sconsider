@@ -87,7 +87,7 @@ def programTest(env, name, sources, packagename, targetname, buildSettings, **kw
 
 def sharedLibrary(env, name, sources, packagename, targetname, buildSettings, **kw):
     libBuilder = env.SharedLibrary
-
+    #DIXME: we should move this section out to the libraries needing it
     if buildSettings.get('lazylinking', False):
         env['_NONLAZYLINKFLAGS'] = ''
         if env["PLATFORM"] == "win32":
