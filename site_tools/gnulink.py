@@ -47,7 +47,7 @@ def generate( env ):
     platf = env['PLATFORM']
     if str( platf ) not in ["cygwin", "win32"]:
         env.AppendUnique( LINKFLAGS = ['-nodefaultlibs'] )
-        env.AppendUnique( LIBS = ['m', 'gcc', 'gcc_s'] )
+        env.AppendUnique( LIBS = ['rt', 'm', 'gcc', 'gcc_s'] )
         env.AppendUnique( LIBS = ['dl', 'c'] )
         env.AppendUnique( LIBS = ['nsl'] )
     elif str( platf ) == "win32":
