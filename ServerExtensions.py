@@ -40,8 +40,8 @@ class SecureHTTPServer(HTTPServer):
         if sys.version_info >= (2,7):
             pyOpensslVersion = float(OpenSSL.__version__)
             noMemoryViewsBelow = 0.12
-            # this number is guessed, as it is currently not known (to me) when the interfaces match again
-            fixedInterfacesVersion = 0.13
+            import inspect
+
             if pyOpensslVersion < noMemoryViewsBelow:
                 raise SystemError(
 """Please upgrade your pyopenssl version to at least 0.12
@@ -54,21 +54,39 @@ Hint: Check your system for already installed python OpenSSL modules and rename/
 
 Aborting!""" )
 
-            elif pyOpensslVersion < fixedInterfacesVersion:
-                # beginning with python 2.7, shutdown does not take an argument anymore
-                # override the default for now
-                self.shutdown_request = self.shutdown_request_fix
+    def shutdown_request(self, request): # request is of type OpenSSL.SSL.Connection
+        #(Pdb) inspect.getargspec(OpenSSL.SSL.Connection.shutdown)
+        #*** TypeError: <method 'shutdown' of 'OpenSSL.SSL.Connection' objects> is not a Python function
+        # it doesn't work for C functions! see http://bugs.python.org/issue1748064
+        # only with python 2.7 this function gets called!
+        request.shutdown()
 
-    def shutdown_request_fix(self, request):
-        """Called to shutdown and close an individual request."""
-        try: request.shutdown()
-        except: pass
+    def process_request(self, request, client_address):
+        try:
+            self.finish_request(request, client_address)
+        except:
+            pass
+
+        try:
+            self.shutdown_request(request)
+        except:
+            pass
+        finally:
+            try:
+                self.close_request(request)
+            except:
+                pass
+
+    def handle_error(self, request, client_address):
+        pass
+
 
 class SecureHTTPRequestHandler(SimpleHTTPRequestHandler):
     def setup(self):
         self.connection = self.request
         self.rfile = socket._fileobject(self.request, "rb", self.rbufsize)
         self.wfile = socket._fileobject(self.request, "wb", self.wbufsize)
+
 
 class SMTPFileSinkServer(SMTPServer):
 

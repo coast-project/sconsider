@@ -672,8 +672,8 @@ try:
 
 except (PackageNotFound, PackageTargetNotFound) as e:
     print e
-    if not GetOption('help'):
-        raise SCons.Errors.UserError('Build aborted, missing dependency!')
+#    if not GetOption('help'):
+#        raise SCons.Errors.UserError('Build aborted, missing dependency!')
 
 runCallback("PreBuild", registry=packageRegistry, buildTargets=SCons.Script.BUILD_TARGETS)
 
