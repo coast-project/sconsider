@@ -45,7 +45,7 @@ def findFiles( directories, extensions = [], matchfiles = [], direxcludes = [] )
     baseDir=SCons.Script.Dir('.').srcnode()
     basepathabs=baseDir.abspath
     for directory in directories:
-        directory = SCons.Script.Dir( directory ).srcnode().abspath
+        directory = baseDir.Dir( directory ).abspath
         for dirpath, dirnames, filenames in os.walk( directory ):
             try:
                 # the following call fails if the relative directory evaluates to a target...
