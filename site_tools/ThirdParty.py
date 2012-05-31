@@ -47,8 +47,10 @@ def registerDist(registry, packagename, package, distType, distDir, duplicate):
     thirdDartyPackages.setdefault(packagename, {})[distType] = distDir
 
 def prepareLibraries(env, registry, **kw):
-    thirdPartyPath = SCons.Script.GetOption('3rdparty')
-    packages = collectPackages(thirdPartyPath, [env.get('BUILDDIR', '')])
+    thirdPartyPathList = SCons.Script.GetOption('3rdparty')
+    packages={}
+    for packageDir in thirdPartyPathList:
+        packages.update(collectPackages(packageDir, [env.get('BUILDDIR', '')]))
 
     for packagename, package in packages.iteritems():
         SCons.Script.AddOption('--with-src-'+packagename, dest='with-src-'+packagename, action='store', default='', metavar=packagename+'_SOURCEDIR', help='Specify the '+packagename+' source directory')
@@ -80,7 +82,8 @@ def prepareLibraries(env, registry, **kw):
 
 def generate(env):
     import SCons.Script, SConsider
-    SCons.Script.AddOption('--3rdparty', dest='3rdparty', action='store', default='site_scons/3rdparty', help='Specify the 3rdparty directory')
+    siteDefault3rdparty='site_scons/3rdparty'
+    SCons.Script.AddOption('--3rdparty', dest='3rdparty', action='append', default=[siteDefault3rdparty], help='Specify base directory containing package files for third party libraries, default=["'+siteDefault3rdparty+'"]')
     SConsider.registerCallback('PostPackageCollection', prepareLibraries)
 
 def exists(env):
