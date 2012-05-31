@@ -24,19 +24,79 @@ libdict = {'renderers':'CoastRenderers',
            'stddataaccess':'CoastStdDataAccess',
            'security':'CoastSecurity',
            'SSL':'CoastSSL',
+           'ITOSSL':'CoastSSL',
            'ldapdataaccess':'CoastLDAPDataAccess',
            'ldapdataaccess2':'CoastLDAP',
            'dataaccess':'CoastDataAccess',
            'perftest':'CoastPerfTest',
+           'perftesttest':'CoastPerfTestTest',
            'applog':'CoastAppLog',
            'TKFFunctionalRenderers':'CoastFunctionalRenderers',
-           'perftesttest':'PerfTestTest',
-           'radiusdataaccess':'CoastRadiusDataAccess',
-           'workerpoolmanagermodule':'CoastWorkerPoolManager'}
+           'TKFFunctionalActions':'CoastFunctionalActions',
+           'TKFHTMLRenderers':'CoastHTMLRenderers',
+           'TKFStringRenderers':'CoastStringRenderers',
+           'TKFAppAndUserRights':'AppAndUserRights',
+           'TKSAppLog':'TKSAppLog',
+           'EDICommon':'EDICommon',
+           'Queueing':'CoastQueueing',
+           'sybaseCT':'CoastSybaseCT',
+           'radiusdataaccess':'RadiusDataAccess',
+           'workerpoolmanagermodule':'CoastWorkerPoolManager',
+           'fdcore':'fdCore',
+           'dnscachemodule':'DNSCacheModule',
+           'rsamodule':'RSAModule',
+           'dataserver':'HIKUDataServer',
+           'DataServer':'HIKUDataServer',
+           'HIKUDataServer':'KFF_DataServer',
+           'DataServerPerfTest':'HIKUDataServerPerfTest',
+           'HIKUDataServerPerfTest':'KFF_DataServerPerfTest',
+           'calcserver':'HIKUCalcServer',
+           'CalcServer':'HIKUCalcServer',
+           'HIKUCalcServer':'KFF_CalcServer',
+           'HPSComm':'HIKUHPSComm',
+           'HIKUHPSComm':'KFF_HPSMessage',
+           'HPSPerfTest':'HIKUHPSCommPerfTest',
+           'HIKUHPSCommPerfTest':'KFF_HPSMessagePerfTest',
+           'SystemFunctions':'CoastSystemFunctions',
+           'wdbase':'CoastWDBase',
+           'mtfoundation':'CoastMTFoundation',
+           'regex':'CoastRegex',
+           'foundation':'CoastFoundation',
+           'testbases':'testfwWDBase',
+           'EBCDIC':'CoastEBCDIC',
+           'TestLib':'CoastWDBaseTestTestLib',
+           'compress':'CoastCompress',
+           'MySQL':'CoastMySQL',
+           'SynMySQL':'CoastMySQL',
+           'NTLMAuth':'CoastNTLMAuth',
+           'accesscontrol':'CoastAccessControl',
+           'cachehandler':'CoastCacheHandler',
+           'HTTP':'CoastHTTP',
+           'ldapdaicachehdlr':'CoastLDAPDAICacheHandler',
+           'cachehdlr':'CoastCacheHandler',
+           'CoastOracle':'CoastOracle',
+           'HIKU_common':'HIKUCommon',
+           'HIKU_ChunkHandling':'HIKUChunkHandling',
+           'BPL':'HIKUBPL',
+           'DCD':'HIKUDCD',
+           'HIKU':'HIKUPflegeSystem',
+           'PoolFiller':'HIKUPoolFiller',
+           'momsmsg':'MomsMsg',
+           'deliverer':'HIKUDeliverer',
+           'dsverifier':'HIKUDSVerifier',
+           'helloworld':'Helloworld',
+           'loki':'lokiObjects',
+           'Topic':'HIKUTopic',
+#           '':'',
+#           '':'',
+#           '':'',
+           }
 for dirpath, dirnames, filenames in os.walk('.'):
     dirnames[:] = [d for d in dirnames if not d in excludelist]
     reDLL = re.compile(r"^[\s]*/DLL\s*{([^}]+)}[\s]*$", re.M)
+    reLibTarget = re.compile(r"^\s+LibTarget\s+:\s*\"([^\"]+)\",\s*$", re.M)
     reAny = re.compile('^.*.any$')
+    reShared = re.compile('^.*.shared$')
     for name in filenames:
         if reAny.match(name):
             fname = os.path.join(dirpath, name)
@@ -51,7 +111,7 @@ for dirpath, dirnames, filenames in os.walk('.'):
                         strGroup = mo.group(1)
                         strout = ''
                         for it in re.finditer(r"^([^#\S]+)(\"?(lib)?(\w+)(\.so)?\"?)([\s]*)$", strGroup, re.M):
-                            if strout:
+                            if len(strout):
                                 strout += '\n'
                             g = it.groups()
                             lname = g[3]
@@ -65,7 +125,49 @@ for dirpath, dirnames, filenames in os.walk('.'):
                             else:
                                 print lname, "MISSING"
                                 strout += it.string[it.start(0):it.end(0)]
-                        if strout:
+                        if len(strout):
+                            if outstr[len(outstr)-1] != '\n' and strout[0] != '\n':
+                                outstr += '\n'
+                            outstr += strout
+                        else:
+                            outstr += strGroup
+                        outstr += mo.string[mo.end(1):]
+                        if fstr != outstr:
+                            print "matches in file:", fname
+                            try:
+                                of = open(fname, 'w+')
+                                of.write(outstr)
+                                of.close()
+                            except:
+                                pass
+            except IOError:
+                pass
+        if reShared.match(name):
+            fname = os.path.join(dirpath, name)
+            try:
+                fo = open(fname)
+                if fo:
+                    fstr = fo.read()
+                    fo.close()
+                    mo = reLibTarget.search(fstr)
+                    if mo:
+                        outstr = mo.string[:mo.start(1)]
+                        strGroup = mo.group(1)
+                        strout = ''
+                        for it in re.finditer(r"^lib(\w+)$", strGroup):
+                            g = it.groups()
+                            lname = g[0]
+                            if lname in libdict:
+                                kval = libdict.get(lname)
+                                strout += it.string[it.start(0):it.start(1)]
+                                strout += kval
+                                strout += it.string[it.end(1):it.end(0)]
+                            elif lname in libdict.itervalues():
+                                strout += it.string[it.start(0):it.end(0)]
+                            else:
+                                print lname, "MISSING in file ", fname
+                                strout += it.string[it.start(0):it.end(0)]
+                        if len(strout):
                             outstr += strout
                         else:
                             outstr += strGroup
