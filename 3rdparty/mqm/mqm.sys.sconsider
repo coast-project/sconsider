@@ -1,0 +1,49 @@
+#-----------------------------------------------------------------------------------------------------
+# Copyright (c) 2012, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# All rights reserved.
+#
+# This library/application is free software; you can redistribute and/or modify it under the terms of
+# the license that is included with this library/application in the file license.txt.
+#-----------------------------------------------------------------------------------------------------
+import SConsider, os
+
+Import('*')
+
+env = SConsider.cloneBaseEnv()
+conf = SConsider.Configure(env)
+if conf.CheckCHeader('cmqc.h') and conf.CheckMultipleLibs(['mqic', 'mqiz', 'mqmcs']):
+    conf.env.Append(CPPDEFINES='HAS_MQM')
+env = conf.Finish()
+
+buildSettings = {}
+if 'HAS_MQM' in env['CPPDEFINES']:
+    buildSettings[packagename] = {
+        'linkDependencies' : [
+            packagename+'.mqic',
+            packagename+'.mqiz',
+            packagename+'.mqmcs',
+        ],
+    }
+    buildSettings['mqic'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['mqic'],
+            },
+        },
+    },
+    buildSettings['mqiz'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['mqiz'],
+            },
+        },
+    },
+    buildSettings['mqmcs'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['mqmcs'],
+            },
+        },
+    },
+
+SConsider.createTargets(packagename, buildSettings)

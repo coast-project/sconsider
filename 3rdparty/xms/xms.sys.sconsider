@@ -1,0 +1,107 @@
+#-----------------------------------------------------------------------------------------------------
+# Copyright (c) 2012, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# All rights reserved.
+#
+# This library/application is free software; you can redistribute and/or modify it under the terms of
+# the license that is included with this library/application in the file license.txt.
+#-----------------------------------------------------------------------------------------------------
+import SConsider, os
+from stat import *
+
+Import('*')
+
+env = SConsider.cloneBaseEnv()
+conf = SConsider.Configure(env)
+if conf.CheckCHeader('xms.h') and conf.CheckMultipleLibs(['gxi','gxibasicmatch','gxical','gxiosa','gxiplugin','gxiwmqprot','gxiwmqmsg','gxixil','icudata','icuuc']):
+    conf.env.Append(CPPDEFINES='HAS_XMS')
+env = conf.Finish()
+
+buildSettings = {}
+if 'HAS_XMS' in env['CPPDEFINES']:
+    buildSettings[packagename] = {
+        'linkDependencies' : [
+            packagename+'.gxi',
+            packagename+'.gxibasicmatch',
+            packagename+'.gxical',
+            packagename+'.gxiosa',
+            packagename+'.gxiplugin',
+            packagename+'.gxiwmqmsg',
+            packagename+'.gxiwmqprot',
+            packagename+'.gxixil',
+            packagename+'.icudata',
+            packagename+'.icuuc',
+        ],
+        'targetType'       : 'IncludeOnly',
+    }
+    buildSettings['gxi'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['gxi'],
+            },
+        },
+    }
+    buildSettings['gxibasicmatch'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['gxibasicmatch'],
+            },
+        },
+    }
+    buildSettings['gxical'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['gxical'],
+            },
+        },
+    }
+    buildSettings['gxiosa'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['gxiosa'],
+            },
+        },
+    }
+    buildSettings['gxiplugin'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['gxiplugin'],
+            },
+        },
+    }
+    buildSettings['gxiwmqprot'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['gxiwmqprot'],
+            },
+        },
+    }
+    buildSettings['gxiwmqmsg'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['gxiwmqmsg'],
+            },
+        },
+    }
+    buildSettings['gxixil'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['gxixil'],
+            },
+        },
+    }
+    buildSettings['icudata'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['icudata'],
+            },
+        },
+    }
+    buildSettings['icuuc'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['icuuc'],
+            },
+        },
+    }
+
+SConsider.createTargets(packagename, buildSettings)
