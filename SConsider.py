@@ -44,6 +44,16 @@ AddOption('--ignore-missing', dest='ignore-missing', action='store_true', help='
 
 baseoutdir = Dir(GetOption('baseoutdir'))
 print 'base output dir [%s]' % baseoutdir.abspath
+try:
+    if not os.path.isdir(baseoutdir.abspath):
+        os.makedirs(baseoutdir.abspath)
+    # test if we are able to create a file
+    testfile=os.path.join(baseoutdir.abspath,'.writefiletest')
+    fp = open(testfile,'w+')
+    fp.close()
+except (os.error, IOError) as e:
+    print e
+    raise SCons.Errors.UserError('Build aborted, baseoutdir [' + baseoutdir.abspath + '] not writable for us!')
 
 def changed_timestamp_or_content(dependency, target, prev_ni):
     return dependency.changed_content(target, prev_ni) or dependency.changed_timestamp_newer(target, prev_ni)
@@ -210,15 +220,6 @@ baseEnv.Append(BUILDDIR='.build')
 # directory relative to BASEOUTDIR where we are going to install target specific files
 # mainly used to rebase/group test or app specific target files
 baseEnv.Append(RELTARGETDIR='')
-
-# TODO: we should differentiate between absolute output dirs and relative dirnames
-# TODO: why aren't those two rooted in baseoutdir?
-baseEnv.Append(DATADIR=Dir('data'))
-baseEnv.Append(XMLDIR=Dir('xml'))
-# TODO: what are those three for??? And why are they rooted in baseoutdir?
-baseEnv.Append(PYTHONDIR=Dir(baseoutdir).Dir('python'))
-baseEnv['CONFIGURELOG'] = str(Dir(baseoutdir).File("config.log"))
-baseEnv['CONFIGUREDIR'] = str(Dir(baseoutdir).Dir(".sconf_temp"))
 baseEnv.AppendUnique(LIBPATH=[baseoutdir.Dir(baseEnv['LIBDIR']).Dir(baseEnv['VARIANTDIR'])])
 
 def cloneBaseEnv():
@@ -672,8 +673,8 @@ try:
 
 except (PackageNotFound, PackageTargetNotFound) as e:
     print e
-#    if not GetOption('help'):
-#        raise SCons.Errors.UserError('Build aborted, missing dependency!')
+    if not GetOption('help'):
+        raise SCons.Errors.UserError('Build aborted, missing dependency!')
 
 runCallback("PreBuild", registry=packageRegistry, buildTargets=SCons.Script.BUILD_TARGETS)
 
