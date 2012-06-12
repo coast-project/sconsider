@@ -21,7 +21,7 @@ from smtpd import SMTPServer
 
 class SecureHTTPServer(HTTPServer):
     allow_reuse_address = True
-    def __init__(self, server_address, HandlerClass, certFile=None, keyFile=None, caChainFile=None, sslContextMethod=SSL.SSLv23_METHOD):
+    def __init__(self, server_address, HandlerClass, certFile=None, keyFile=None, caChainFile=None, sslContextMethod=SSL.SSLv23_METHOD, ciphers="ALL"):
         BaseServer.__init__(self, server_address, HandlerClass)
         ctx = SSL.Context(sslContextMethod)
         if keyFile:
@@ -30,6 +30,8 @@ class SecureHTTPServer(HTTPServer):
             ctx.use_certificate_file(certFile)
         if certFile and keyFile:
             ctx.check_privatekey()
+        if ciphers:
+            ctx.set_cipher_list(ciphers)
         ctx.set_timeout(60)
         if caChainFile:
             ctx.load_verify_locations(caChainFile)
