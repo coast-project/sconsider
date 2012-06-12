@@ -300,10 +300,11 @@ def getfqdn():
         # structure of return value: ('sifs-coast1', ['sifs-coast1.hsr.ch', 'loghost'], ['152.96.80.40'])
         hostonly, aliaslist, ipaddrlist = socket.gethostbyaddr(sockaddr[0])
         if aliaslist:
-            fqdn = aliaslist[0]
-            domain = '.'.join(fqdn.split('.')[1:])
+            fqdn = aliaslist[0].lower()
         else:
-            fqdn = hostonly
+            fqdn = hostonly.lower()
+        hostonly = fqdn.split('.')[0]
+        domain = '.'.join(fqdn.split('.')[1:])
     except: pass
     return (hostonly, domain, fqdn)
 
