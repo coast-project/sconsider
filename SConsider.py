@@ -55,9 +55,6 @@ except (os.error, IOError) as e:
     print e
     raise SCons.Errors.UserError('Build aborted, baseoutdir [' + baseoutdir.abspath + '] not writable for us!')
 
-def changed_timestamp_or_content(dependency, target, prev_ni):
-    return dependency.changed_content(target, prev_ni) or dependency.changed_timestamp_newer(target, prev_ni)
-
 def getUsedTarget(env, buildSettings):
     plaintarget = None
     usedFullTargetname = buildSettings.get('usedTarget', None)
