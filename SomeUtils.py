@@ -291,22 +291,10 @@ def createUniqueTargetname(packagename, targetname):
 
 def getfqdn():
     import socket
-    hostonly = 'localhost'
-    fqdn = hostonly
-    domain = ''
-    try:
-        # structure of return value: (2, 0, 0, '', ('152.96.80.40', 0))
-        family, socktype, proto, canonname, sockaddr = socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET)[0]
-        # structure of return value: ('sifs-coast1', ['sifs-coast1.hsr.ch', 'loghost'], ['152.96.80.40'])
-        hostonly, aliaslist, ipaddrlist = socket.gethostbyaddr(sockaddr[0])
-        if aliaslist:
-            fqdn = aliaslist[0].lower()
-        else:
-            fqdn = hostonly.lower()
-        hostonly = fqdn.split('.')[0]
-        domain = '.'.join(fqdn.split('.')[1:])
-    except: pass
-    return (hostonly, domain, fqdn)
+    hostname = socket.gethostname()
+    fqdn = socket.getfqdn()
+    domain = '.'.join(fqdn.split('.')[1:])
+    return (hostname, domain, fqdn)
 
 def runCommand(args, logpath='', filename=None, stdincontent=None, filter=None, **kw):
     import subprocess
