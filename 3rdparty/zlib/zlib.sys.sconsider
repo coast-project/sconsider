@@ -11,7 +11,7 @@ Import('*')
 
 env = SConsider.cloneBaseEnv()
 conf = SConsider.Configure(env)
-if conf.CheckLibWithHeader('z', 'zlib.h', 'C') and conf.CheckCHeader('gzio.h'):
+if conf.CheckLibWithHeader('z', 'zlib.h', 'C'):
     conf.env.Append(CPPDEFINES='HAS_ZLIB')
 env = conf.Finish()
 
