@@ -1,0 +1,4 @@
+lepl
+nose
+mockito
+pyopenssl
