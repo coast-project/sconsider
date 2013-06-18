@@ -291,8 +291,8 @@ def createUniqueTargetname(packagename, targetname):
 
 def getfqdn():
     import socket
-    hostname = socket.gethostname()
-    fqdn = socket.getfqdn()
+    hostname = socket.gethostname().lower()
+    fqdn = socket.getfqdn().lower()
     domain = '.'.join(fqdn.split('.')[1:])
     return (hostname, domain, fqdn)
 
