@@ -17,7 +17,7 @@ setup/teardown functions executed before and after running the program.
 #-----------------------------------------------------------------------------------------------------
 
 from __future__ import with_statement
-import os, pdb, subprocess, optparse, sys, functools, re
+import os, subprocess, optparse, sys, functools, re
 import SCons.Action, SCons.Builder, SCons.Script
 from SCons.Script import AddOption, GetOption
 import SConsider, Callback

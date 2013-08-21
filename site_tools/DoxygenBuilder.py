@@ -1,9 +1,5 @@
 from __future__ import with_statement
-import os, pdb, subprocess, optparse, re, collections
-import SCons.Action, SCons.Builder
-from SCons.Script import AddOption, GetOption
-import SConsider, SomeUtils
-
+import os, subprocess, re
 
 def __getDependencies(registry, packagename, fnobj, recursive=False):
     dependencies = set()
@@ -16,6 +12,7 @@ def __getDependencies(registry, packagename, fnobj, recursive=False):
             deps.append(usedTarget)
 
         for ftn in deps:
+            import SConsider
             depPkgname, depTname = SConsider.splitTargetname(ftn)
             if not depPkgname == packagename:
                 value = fnobj(depPkgname)
@@ -57,6 +54,7 @@ def getPackageInputDirs(registry, packagename, relativeTo=None):
             return abspath
 
     for targetname, settings in buildSettings.items():
+        import SCons
         # directories of own cpp files
         for sourcefile in settings.get("sourceFiles", []):
             if isinstance(sourcefile, SCons.Node.FS.File):
@@ -85,6 +83,7 @@ def getHeaderFiles(registry, packagename):
     buildSettings = registry.getBuildSettings(packagename)
     for targetname, settings in buildSettings.items():
         for headerFile in settings.get("public", {}).get("includes", []):
+            import SCons
             if isinstance(headerFile, SCons.Node.FS.File):
                 headers.append(headerFile.srcnode().get_abspath())
 
@@ -98,6 +97,7 @@ def getSourceFiles(registry, packagename):
     buildSettings = registry.getBuildSettings(packagename)
     for targetname, settings in buildSettings.items():
         for sourcefile in settings.get("sourceFiles", []):
+            import SCons
             if isinstance(sourcefile, SCons.Node.FS.File):
                 sources.append(sourcefile.srcnode().get_abspath())
     # headers are appended through CPPScanner
@@ -144,11 +144,10 @@ def parseDoxyfileContent(file_content, env, include_basepath=None):
     lex = shlex.shlex(instream=file_content, posix=True)
     lex.wordchars += "*+./-:@$()"
     lex.whitespace = lex.whitespace.replace("\n", "")
-    lex.escape = ""
 
     lineno = lex.lineno
     token = lex.get_token()
-    key = token   # the first token should be a key
+    key = token  # the first token should be a key
     last_token = ""
     key_token = True
     new_data = True
@@ -382,13 +381,12 @@ def getDoxyDefaults(env, registry, packagename=""):
     """
     if not packagename:
         packagename = 'Coast'
-        basepathrel = os.path.relpath(env['BASEOUTDIR'].get_abspath())
+        basepathrel = os.path.relpath(os.path.curdir, env['BASEOUTDIR'].get_abspath())
         outputpath = os.path.relpath(env['BASEOUTDIR'].Dir(env['DOCDIR']).Dir(packagename).get_abspath(), env['BASEOUTDIR'].get_abspath())
     else:
         basepathrel = os.path.relpath(env['BASEOUTDIR'].get_abspath(), registry.getPackageDir(packagename).get_abspath())
         outputpath = os.path.relpath(env['BASEOUTDIR'].Dir(env['DOCDIR']).Dir(packagename).get_abspath(),
                                                 registry.getPackageDir(packagename).get_abspath())
-
     file_patterns = '*.c *.cc *.cxx *.cpp *.c++ *.java *.ii *.ixx *.ipp *.i++ *.inl *.h *.hh *.hxx *.hpp *.h++ *.idl *.odl *.cs *.php *.php3 *.inc *.m *.mm *.py *.f90'.split(' ') + ['*.sh', '*.any', '*.sconsider']
     include_file_patterns = '*.h *.hh *.hxx *.hpp *.h++'.split(' ')
 
@@ -402,7 +400,6 @@ def getDoxyDefaults(env, registry, packagename=""):
         'EXTRACT_ALL': 'YES',
         'EXTRACT_STATIC': 'YES',
         'EXTRACT_LOCAL_METHODS': 'YES',
-        'SHOW_DIRECTORIES': 'YES',
         'SOURCE_BROWSER': 'YES',
         'REFERENCES_RELATION': 'YES',
         'ALPHABETICAL_INDEX': 'YES',
@@ -435,7 +432,6 @@ def getDoxyDefaults(env, registry, packagename=""):
         'LATEX_HIDE_INDICES': 'YES',
         'ALIASES': '"FIXME=\\xrefitem FIXME \\"Fixme\\" \\"Locations to fix when possible\\" "',
     }
-
     return doxyDefaults
 
 
@@ -507,6 +503,7 @@ def createDoxygenTarget(env, registry, packagename):
     doxygenTarget = env.DoxygenBuilder(source=doxygenSources, data=doxyData,
                                     logname='doxygen_' + packagename)
 
+    import SomeUtils
     env.Depends(doxyfileTarget, SomeUtils.getPyFilename(__file__))
     env.Depends(doxygenTarget, SomeUtils.getPyFilename(__file__))
     env.Depends(doxygenTarget, doxyfileTarget)
@@ -518,6 +515,7 @@ def createDoxygenAllTarget(registry):
     Wrapper for creating a doxygen target for coast.
     """
 
+    import SConsider
     env = SConsider.cloneBaseEnv()
 
     doxyfile = env['BASEOUTDIR'].File('Doxyfile')
@@ -527,8 +525,8 @@ def createDoxygenAllTarget(registry):
         doxyData = getDoxyfileTemplate()
         doxyData.update(getDoxyDefaults(env, registry))
 
-    #FIX temporary hack to get rid of doxygen problems with 3rdparty packages
-    thirdparty = ['openssl','boost', 'oracle', 'mysql', 'sybase', 'zlib', 'cute', 'iplanetLDAP']
+    # FIX temporary hack to get rid of doxygen problems with 3rdparty packages
+    thirdparty = ['openssl', 'boost', 'oracle', 'mysql', 'sybase', 'zlib', 'cute', 'iplanetLDAP']
     def isExcludedPackage(packagename):
         if packagename in thirdparty:
             return True
@@ -550,7 +548,6 @@ def createDoxygenAllTarget(registry):
     doxyData["INPUT"].extend(allInputDirs)
 
     # DoxyFileTarget: Dependent on all package sconsider files
-    defaults = getDoxyDefaults(SConsider.cloneBaseEnv(), registry)
     doxyfileTarget = env.DoxyfileBuilder(target=doxyfile,
                                          source=allPackageFiles,
                                          data=doxyData,
@@ -570,6 +567,7 @@ def createDoxygenAllTarget(registry):
                                     logname='doxygen_coast')
 
     # DoxyFileTarget and DoxyTarget depend on this python file
+    import SomeUtils
     env.Depends(doxyfileTarget, SomeUtils.getPyFilename(__file__))
     env.Depends(doxyTarget, SomeUtils.getPyFilename(__file__))
 
@@ -608,20 +606,24 @@ def generate(env):
     """
     Add the options, builders and wrappers to the current Environment.
     """
+    from SCons.Script import AddOption, GetOption
+    import SConsider, optparse
     try:
         AddOption('--doxygen', dest='doxygen', action='store_true', default=False, help='Create module documentation')
         AddOption('--doxygen-only', dest='doxygen-only', action='store_true', default=False, help='Same as --doxygen but skips all targets except doxygen')
     except optparse.OptionConflictError:
         raise DoxygenToolException("Only one Doxygen-Tool instance allowed")
 
+    import SCons.Action, SCons.Builder
+
     doxyfileAction = SCons.Action.Action(buildDoxyfile, "Creating Doxygen config file '$TARGET'")
     doxyfileBuilder = SCons.Builder.Builder(action=doxyfileAction,
-                                            source_scanner=SCons.Scanner.C.CScanner()) # adds headers as dependencies
+                                            source_scanner=SCons.Scanner.C.CScanner())  # adds headers as dependencies
 
     doxygenAction = SCons.Action.Action(callDoxygen, "Creating documentation using '$SOURCE'")
     doxygenBuilder = SCons.Builder.Builder(action=doxygenAction,
                                            emitter=emitDoxygen,
-                                           source_scanner=SCons.Scanner.C.CScanner()) # adds headers as dependencies)
+                                           source_scanner=SCons.Scanner.C.CScanner())  # adds headers as dependencies)
 
     env.Append(BUILDERS={ 'DoxyfileBuilder' : doxyfileBuilder })
     env.Append(BUILDERS={ 'DoxygenBuilder' : doxygenBuilder })
