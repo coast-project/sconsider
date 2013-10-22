@@ -15,6 +15,8 @@ if conf.CheckCXXHeader('boost/version.hpp'):
     conf.env.Append(CPPDEFINES='HAS_BOOST')
 if conf.CheckLibWithHeader('boost_regex', 'boost/regex.h', 'CXX'):
     conf.env.Append(CPPDEFINES='HAS_BOOST_REGEX')
+if conf.CheckLibWithHeader('boost_system', 'boost/system/error_code.hpp', 'CXX'):
+    conf.env.Append(CPPDEFINES='HAS_BOOST_SYSTEM')
 env = conf.Finish()
 
 buildSettings = {}
@@ -27,6 +29,15 @@ if 'HAS_BOOST_REGEX' in env['CPPDEFINES']:
         'public' : {
             'appendUnique'     : {
                 'LIBS'         : ['boost_regex'],
+            },
+        },
+    }
+
+if 'HAS_BOOST_SYSTEM' in env['CPPDEFINES']:
+    buildSettings['system'] = {
+        'public' : {
+            'appendUnique'     : {
+                'LIBS'         : ['boost_system'],
             },
         },
     }

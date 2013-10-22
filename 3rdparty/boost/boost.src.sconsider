@@ -26,6 +26,13 @@ buildSettings = {
 #            'LIBS'         : ['icui18n','icuuc'],
 #        },
     },
+    'system' : {
+        'targetType'       : 'LibraryShared',
+        'linkDependencies' : [
+            SConsider.generateFulltargetname(packagename, 'include'),  # used to pass public include dirs of boost
+        ],
+        'sourceFiles'      : SConsider.listFiles(['libs/system/src/*.cpp']),
+    },
 }
 
 SConsider.createTargets(packagename, buildSettings)
