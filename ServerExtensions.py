@@ -40,8 +40,8 @@ class SecureHTTPServer(HTTPServer):
         self.server_activate()
         import sys, OpenSSL
         if sys.version_info >= (2,7):
-            pyOpensslVersion = float(OpenSSL.__version__)
-            noMemoryViewsBelow = 0.12
+            pyOpensslVersion = tuple(int(t) for t in OpenSSL.__version__.split('.'))
+            noMemoryViewsBelow = (0,12)
             import inspect
 
             if pyOpensslVersion < noMemoryViewsBelow:
