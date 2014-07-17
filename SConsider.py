@@ -514,7 +514,7 @@ class TargetMaker:
                 kw['targetname'] = targetname
                 kw['buildSettings'] = targetBuildSettings
                 sources = targetBuildSettings.get('sourceFiles', [])
-                name = createUniqueTargetname(packagename, targetname)
+                name = targetBuildSettings.get('targetName', createUniqueTargetname(packagename, targetname))
                 targets = apply(func, [name, sources], kw)
                 if isinstance(targets, tuple):
                     plaintarget, target = targets
