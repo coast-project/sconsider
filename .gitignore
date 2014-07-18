@@ -1,0 +1,4 @@
+*.pyc
+.build/
+.settings/
+nosetests.xml

@@ -10,14 +10,14 @@ Collection of slightly extended or tailored *Servers mainly used for testing
 # This library/application is free software; you can redistribute and/or modify it under the terms of
 # the license that is included with this library/application in the file license.txt.
 #-----------------------------------------------------------------------------------------------------
-import socket, os
+import socket, os, logging
 from SocketServer import BaseServer, TCPServer, BaseRequestHandler
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 from OpenSSL import SSL, crypto
 from smtpd import SMTPServer
-## creating an SSL enabled HTTPServer
-## see http://code.activestate.com/recipes/442473/
+# # creating an SSL enabled HTTPServer
+# # see http://code.activestate.com/recipes/442473/
 
 class SecureHTTPServer(HTTPServer):
     allow_reuse_address = True
@@ -35,13 +35,13 @@ class SecureHTTPServer(HTTPServer):
         ctx.set_timeout(60)
         if caChainFile:
             ctx.load_verify_locations(caChainFile)
-        self.socket = SSL.Connection(ctx, socket.socket(self.address_family,self.socket_type))
+        self.socket = SSL.Connection(ctx, socket.socket(self.address_family, self.socket_type))
         self.server_bind()
         self.server_activate()
         import sys, OpenSSL
-        if sys.version_info >= (2,7):
+        if sys.version_info >= (2, 7):
             pyOpensslVersion = tuple(int(t) for t in OpenSSL.__version__.split('.'))
-            noMemoryViewsBelow = (0,12)
+            noMemoryViewsBelow = (0, 12)
             import inspect
 
             if pyOpensslVersion < noMemoryViewsBelow:
@@ -54,10 +54,10 @@ Check https://launchpad.net/pyopenssl for updates
 Hint: Check your system for already installed python OpenSSL modules and rename/delete to use the newly installed one
  - known locations (ubuntu): /usr/[lib|share]/pyshared/python2.7/OpenSSL and /usr/lib/python2.7/dist-packages/OpenSSL
 
-Aborting!""" )
+Aborting!""")
 
-    def shutdown_request(self, request): # request is of type OpenSSL.SSL.Connection
-        #(Pdb) inspect.getargspec(OpenSSL.SSL.Connection.shutdown)
+    def shutdown_request(self, request):  # request is of type OpenSSL.SSL.Connection
+        # (Pdb) inspect.getargspec(OpenSSL.SSL.Connection.shutdown)
         #*** TypeError: <method 'shutdown' of 'OpenSSL.SSL.Connection' objects> is not a Python function
         # it doesn't work for C functions! see http://bugs.python.org/issue1748064
         # only with python 2.7 this function gets called!
@@ -97,7 +97,7 @@ class SMTPFileSinkServer(SMTPServer):
     def __init__(self, localaddr, remoteaddr, path, logfile=None):
         SMTPServer.__init__(self, localaddr, remoteaddr)
         self.path = path
-        self.log_file=logfile
+        self.log_file = logfile
 
     def process_message(self, peer, mailfrom, rcpttos, data):
         self.message("Incoming mail")
@@ -115,8 +115,8 @@ class SMTPFileSinkServer(SMTPServer):
 
     def message(self, text):
         if self.log_file is not None:
-            f = file(os.path.join(self.path,self.log_file), "a")
+            f = file(os.path.join(self.path, self.log_file), "a")
             f.write(text + "\n")
             f.close()
         else:
-            print text
+            logging.info(text)

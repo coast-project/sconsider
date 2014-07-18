@@ -16,7 +16,7 @@ The tool tries to find the 'best matching' library, with the possibility of a do
 # the license that is included with this library/application in the file license.txt.
 #-----------------------------------------------------------------------------------------------------
 
-import os, re, platform, shutil, stat
+import os, re, platform, shutil, stat, logging
 import SCons.Action
 import SCons.Builder
 
@@ -44,7 +44,7 @@ def findPlatformTargets(env, basedir, targetname, prefixes=[], suffixes=[]):
         if env['PLATFORM'] == 'cygwin':
             osver = tuple([int(x) for x in platform.system().split('-')[1].split('.')])
         else:
-            osver = tuple( [int( x ) for x in platform.version().split( '.' )] )
+            osver = tuple([int(x) for x in platform.version().split('.')])
 #        dirRE = platform.system() + osStringSep + '([0-9]+(\.[0-9]+)*)'
         dirRE = 'Win' + osStringSep + 'i386'
         # re for architecture (i686, sparc, amd,...) - bitwidth (32,64)
@@ -126,7 +126,7 @@ def findLibrary(env, basedir, libname):
         entry = allLibs[0]
         return (entry['path'], entry['file'], entry['linkfile'], (entry['suffix'] == env.subst(env['LIBSUFFIX'])))
 
-    print 'library [%s] not available for this platform [%s] and bitwidth[%s]' % (libname, env['PLATFORM'], env.get('ARCHBITS', '32'))
+    logging.error('library [%s] not available for this platform [%s] and bitwidth[%s]', libname, env['PLATFORM'], env.get('ARCHBITS', '32'))
     return (None, None, None, None)
 
 def findBinary(env, basedir, binaryname):
@@ -136,7 +136,7 @@ def findBinary(env, basedir, binaryname):
         entry = files[0]
         return (entry['path'], entry['file'], entry['linkfile'])
 
-    print 'binary [%s] not available for this platform [%s] and bitwidth[%s]' % (binaryname, env['PLATFORM'], env.get('ARCHBITS', '32'))
+    logging.error('binary [%s] not available for this platform [%s] and bitwidth[%s]', binaryname, env['PLATFORM'], env.get('ARCHBITS', '32'))
     return (None, None, None)
 
 def precompBinNamesEmitter(target, source, env):
@@ -144,8 +144,8 @@ def precompBinNamesEmitter(target, source, env):
     newsource = []
     for src in source:
         # catch misleading alias nodes with the same name as the binary to search for
-        if not hasattr( src, 'srcnode' ):
-            src=env.File(str(src))
+        if not hasattr(src, 'srcnode'):
+            src = env.File(str(src))
         path, binaryname = os.path.split(src.srcnode().abspath)
         srcpath, srcfile, linkfile = findBinary(env, path, binaryname)
         if srcfile:
@@ -161,8 +161,8 @@ def precompLibNamesEmitter(target, source, env):
     newsource = []
     for src in source:
         # catch misleading alias nodes with the same name as the library to search for
-        if not hasattr( src, 'srcnode' ):
-            src=env.File(str(src))
+        if not hasattr(src, 'srcnode'):
+            src = env.File(str(src))
         path, libname = os.path.split(src.srcnode().abspath)
         srcpath, srcfile, linkfile, isStaticLib = findLibrary(env, path, libname)
         if srcfile:

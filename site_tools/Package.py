@@ -12,7 +12,7 @@ SConsider-specific tool to create a distributable package  from compiled sources
 # the license that is included with this library/application in the file license.txt.
 #-----------------------------------------------------------------------------------------------------
 
-import re, os, optparse, functools
+import re, os, optparse, functools, logging
 import SomeUtils
 
 packageAliasName = 'makepackage'
@@ -24,7 +24,7 @@ def addPackageTarget(registry, buildTargets, env, destdir, **kw):
     sources = []
     for tn in buildTargets:
         if registry.isValidFulltargetname(tn):
-            sources.extend( env.Alias(tn) )
+            sources.extend(env.Alias(tn))
 
     # bind parameters to an Action which is called in the build phase
     # '$__env__' is used to supply the caller's environment to the action (see SCons -> Action.py -> ActionCaller)
@@ -55,8 +55,7 @@ def copyTarget(env, destdir, node):
         if isInstalledNode(node, old[0].sources[0]) or isInstalledNode(old[0].sources[0], node):
             return None
         else:
-            print "Ambiguous target [%s] copied from [%s] and [%s]." % (old[0].path, node.path, old[0].sources[0].path)
-            print "Can't create package! See errors below..."
+            logging.error("Ambiguous target [%s] copied from [%s] and [%s].\nCan't create package! See errors below...", old[0].path, node.path, old[0].sources[0].path)
     target = env.Install(destdir, node)
     env.Alias(packageAliasName, target)
     return target
@@ -74,14 +73,14 @@ def filterBaseOutDir(path, **kw):
     if not path.startswith(os.sep):
         return
     basedirprefix = kw.get('env', {}).get('BASEOUTDIR', False).abspath
-    replist = [('^'+basedirprefix+os.sep+'?', ''),
+    replist = [('^' + basedirprefix + os.sep + '?', ''),
                ]
     return SomeUtils.multiple_replace(replist, path)
 
 def filterTestsAppsGlobalsPath(path, **kw):
-    replist = [('^tests'+os.sep+'[^'+os.sep+']*'+os.sep+'?', ''),
-               ('^apps'+os.sep+'[^'+os.sep+']*'+os.sep+'?', ''),
-               ('^globals'+os.sep+'[^'+os.sep+']*'+os.sep+'?', '')]
+    replist = [('^tests' + os.sep + '[^' + os.sep + ']*' + os.sep + '?', ''),
+               ('^apps' + os.sep + '[^' + os.sep + ']*' + os.sep + '?', ''),
+               ('^globals' + os.sep + '[^' + os.sep + ']*' + os.sep + '?', '')]
     return SomeUtils.multiple_replace(replist, path)
 
 def filterVariantPath(path, **kw):
@@ -89,7 +88,7 @@ def filterVariantPath(path, **kw):
     if not variant:
         return path
 
-    return re.sub(re.escape(variant)+os.sep+'?', '', path)
+    return re.sub(re.escape(variant) + os.sep + '?', '', path)
 
 def determineDirInPackage(name, env, destdir, target, filters=[]):
     path = target.get_dir().path
@@ -134,7 +133,7 @@ def getTargetDependencies(target, filters=[]):
 
     deps = set()
     if SomeUtils.allFuncs(filters, target):
-        deps.update( target.get_executor().get_all_targets() )
+        deps.update(target.get_executor().get_all_targets())
     deps.update(SomeUtils.getNodeDependencies(target, filters))
 
     return deps

@@ -1,5 +1,5 @@
 from __future__ import with_statement
-import os, subprocess, re
+import os, subprocess, re, logging
 
 def __getDependencies(registry, packagename, fnobj, recursive=False):
     dependencies = set()
@@ -157,7 +157,7 @@ def parseDoxyfileContent(file_content, env, include_basepath=None):
             try:
                 token = env[token[2:token.find(")")]]
             except KeyError:
-                print "ERROR: Variable %s used in Doxygen file is not in environment!" % token
+                logging.error("Variable %s used in Doxygen file is not in environment!", token)
                 token = ""
             # Convert space-separated list to actual list
             token = token.split()

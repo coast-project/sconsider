@@ -11,29 +11,44 @@ SCons build tool extension allowing automatic target finding within a directoy t
 # the license that is included with this library/application in the file license.txt.
 #-----------------------------------------------------------------------------------------------------
 from __future__ import with_statement
-import os, platform, SCons, glob, re, atexit, sys, traceback, commands, dircache, stat
-import SomeUtils
-
+import os
+import platform
+import glob
+import re
+import atexit
+import sys
+import traceback
+import commands
+import dircache
+import stat
+import SCons
 from SCons.Script import AddOption, GetOption, Dir, File, DefaultEnvironment, Split, Flatten, SConsignFile
 from SomeUtils import *
 from ConfigureHelper import *
+from Callback import addCallbackFeature
+from Logging import setup_logging
+from logging import getLogger
+
+setup_logging(os.path.join(os.path.dirname(__file__), 'logging.yaml'))
+logger = getLogger(__name__)
+
+addCallbackFeature(__name__)
 
 SCons.Script.EnsureSConsVersion(1, 3, 0)
 SCons.Script.EnsurePythonVersion(2, 6)
 
-import Callback
-Callback.addCallbackFeature(__name__)
-
-if False:
-    print "platform.dist:", platform.dist()
-    print "platform.arch:", platform.architecture()
-    print "platform.machine:", platform.machine()
-    print "platform.libc:", platform.libc_ver()
-    print "platform.release:", platform.release()
-    print "platform.version:", platform.version()
-    print "platform.proc:", platform.processor()
-    print "platform.system:", platform.system()
-    print "platform.uname:", platform.uname()
+for platform_func in [platform.dist,
+                      platform.architecture,
+                      platform.machine,
+                      platform.libc_ver,
+                      platform.release,
+                      platform.version,
+                      platform.processor,
+                      platform.system,
+                      platform.uname]:
+    func_value = platform_func()
+    if func_value:
+        logger.debug("platform.%s: %s", platform_func.__name__, func_value)
 
 AddOption('--baseoutdir', dest='baseoutdir', action='store', nargs=1, type='string', default='#', metavar='DIR', help='Directory containing packages superseding installed ones. Relative paths not supported!')
 AddOption('--exclude', dest='exclude', action='append', nargs=1, type='string', default=[], metavar='DIR', help='Directory containing a SConscript file that should be ignored.')
@@ -43,16 +58,17 @@ AddOption('--prependPath', dest='prependPath', action='append', nargs=1, type='s
 AddOption('--ignore-missing', dest='ignore-missing', action='store_true', help='Ignore missing dependencies instead of failing the whole build.')
 
 baseoutdir = Dir(GetOption('baseoutdir'))
-print 'base output dir [%s]' % baseoutdir.abspath
+logger.info('base output dir [%s]', baseoutdir.abspath)
 try:
     if not os.path.isdir(baseoutdir.abspath):
         os.makedirs(baseoutdir.abspath)
     # test if we are able to create a file
-    testfile=os.path.join(baseoutdir.abspath,'.writefiletest')
-    fp = open(testfile,'w+')
+    testfile = os.path.join(baseoutdir.abspath, '.writefiletest')
+    fp = open(testfile, 'w+')
     fp.close()
+    os.remove(testfile)
 except (os.error, IOError) as e:
-    print e
+    logger.error('Output directory [%s] not writable', baseoutdir.abspath, exc_info=True)
     raise SCons.Errors.UserError('Build aborted, baseoutdir [' + baseoutdir.abspath + '] not writable for us!')
 
 def getUsedTarget(env, buildSettings):
@@ -94,7 +110,7 @@ def programTest(env, name, sources, packagename, targetname, buildSettings, **kw
 
 def sharedLibrary(env, name, sources, packagename, targetname, buildSettings, **kw):
     libBuilder = env.SharedLibrary
-    #DIXME: we should move this section out to the libraries needing it
+    # @!FIXME: we should move this section out to the libraries needing it
     if buildSettings.get('lazylinking', False):
         env['_NONLAZYLINKFLAGS'] = ''
         if env["PLATFORM"] == "win32":
@@ -107,7 +123,7 @@ def sharedLibrary(env, name, sources, packagename, targetname, buildSettings, **
     env.Requires(instTarg[0], instTarg[1:])
 
     compLibs = env.InstallSystemLibs(plaintarget)
-    env.Requires(instTarg[0], compLibs) # the first target should be the library
+    env.Requires(instTarg[0], compLibs)  # the first target should be the library
 
     return (plaintarget, instTarg)
 
@@ -141,7 +157,7 @@ def installBinary(env, name, sources, packagename, targetname, buildSettings, **
 
 dEnv = DefaultEnvironment()
 
-dEnv.AddMethod(programTest, "AppTest")	#@!FIXME: should use ProgramTest instead
+dEnv.AddMethod(programTest, "AppTest")  # @!FIXME: should use ProgramTest instead
 dEnv.AddMethod(programTest, "ProgramTest")
 dEnv.AddMethod(programApp, "ProgramApp")
 dEnv.AddMethod(sharedLibrary, "LibraryShared")
@@ -151,16 +167,16 @@ dEnv.AddMethod(installBinary, "InstallBinary")
 
 if GetOption('prependPath'):
     dEnv.PrependENVPath('PATH', GetOption('prependPath'))
-    print 'prepended path is [%s]' % dEnv['ENV']['PATH']
+    logger.debug('prepended path is [%s]', dEnv['ENV']['PATH'])
 if GetOption('appendPath'):
     dEnv.AppendENVPath('PATH', GetOption('appendPath'))
-    print 'appended path is [%s]' % dEnv['ENV']['PATH']
+    logger.debug('appended path is [%s]' % dEnv['ENV']['PATH'])
 
 globaltools = ["setupBuildTools", "coast_options", "TargetPrinter",
                "precompiledLibraryInstallBuilder", "RunBuilder", "DoxygenBuilder",
                "SystemLibsInstallBuilder", "Package", "SubstInFileBuilder", "ThirdParty"]
 usetools = globaltools + GetOption('usetools')
-print 'tools to use %s' % Flatten(usetools)
+logger.debug('tools to use %s', Flatten(usetools))
 
 baseEnv = dEnv.Clone(tools=usetools)
 
@@ -170,7 +186,7 @@ myplatf = str(SCons.Platform.Platform())
 if myplatf == "posix":
     import SomeUtils
     bitwidth = baseEnv.get('ARCHBITS', '32')
-    libcver=SomeUtils.getLibCVersion(bitwidth)
+    libcver = SomeUtils.getLibCVersion(bitwidth)
     variant = platform.system() + "_" + libcver[0] + "_" + libcver[1] + "-" + platform.machine()
 elif myplatf == "sunos":
     variant = platform.system() + "_" + platform.release() + "-" + platform.processor()
@@ -194,7 +210,7 @@ elif myplatf == "win32":
 
 variant += ''.join(baseEnv.get('VARIANT_SUFFIX', []))
 
-print "compilation variant [", variant, "]"
+logger.debug("compilation variant [%s]", variant)
 
 ssfile = os.path.join(baseoutdir.abspath, '.sconsign.' + variant)
 SConsignFile(ssfile)
@@ -262,12 +278,12 @@ class PackageRegistry:
                 if rmatch:
                     pkgname = rmatch.group(1)
                     thePath = os.path.abspath(dirpath)
-                    print 'found package [%s] in [%s]' % (pkgname, thePath)
+                    logger.debug('found package [%s] in [%s]', pkgname, thePath)
                     self.setPackage(pkgname, Dir(thePath).File(name), Dir(thePath))
 
     def setPackageTarget(self, packagename, targetname, plaintarget, target):
         if not self.hasPackage(packagename):
-            print 'tried to register target [%s] for non existent package [%s]' % (targetname, packagename)
+            logger.warning('tried to register target [%s] for non existent package [%s]', targetname, packagename)
             return
         theTargets = self.packages[packagename].setdefault('targets', {})
         if plaintarget and SCons.Util.is_List(plaintarget):
@@ -280,7 +296,7 @@ class PackageRegistry:
 
     def getPackageTargetTargets(self, packagename, targetname):
         if not self.hasPackage(packagename):
-            print 'tried to access target [%s] of non existent package [%s]' % (targetname, packagename)
+            logger.warning('tried to access target [%s] of non existent package [%s]', targetname, packagename)
         return self.packages.get(packagename, {}).get('targets', {}).get(targetname, {'plaintarget':None, 'target':None})
 
     def getPackageTarget(self, packagename, targetname):
@@ -388,14 +404,14 @@ class PackageRegistry:
 
     def lookup(self, fulltargetname, **kw):
         packagename, targetname = splitTargetname(fulltargetname)
-        #print 'looking up [%s]' % fulltargetname
+        logger.debug('looking up [%s]', fulltargetname)
         if self.hasPackage(packagename):
             if not self.isPackageLoaded(packagename):
                 self.packages[packagename]['loaded'] = True
                 packagedir = self.getPackageDir(packagename)
                 packagefile = self.getPackageFile(packagename)
                 builddir = self.env['BASEOUTDIR'].Dir(packagedir.path).Dir(self.env['BUILDDIR']).Dir(self.env['VARIANTDIR'])
-                print 'executing [%s] as SConscript for package [%s]' % (packagefile.path, packagename)
+                logger.info('executing [%s] as SConscript for package [%s]', packagefile.path, packagename)
                 self.env.SConscript(packagefile, variant_dir=builddir, duplicate=self.getPackageDuplicate(packagename), exports=['packagename'])
             if targetname:
                 return self.getPackageTarget(packagename, targetname)
@@ -437,13 +453,13 @@ class TargetMaker:
         nodetuples = []
         for node in nodes:
             currentFile = node
-            if isinstance( currentFile, str ):
+            if isinstance(currentFile, str):
                currentFile = SCons.Script.File(currentFile)
-            if hasattr( currentFile, 'srcnode' ):
+            if hasattr(currentFile, 'srcnode'):
                 currentFile = currentFile.srcnode()
 
             currentBaseDir = baseDir
-            if hasattr( currentBaseDir, 'srcnode' ):
+            if hasattr(currentBaseDir, 'srcnode'):
                 currentBaseDir = currentBaseDir.srcnode()
 
             if alternativeDir:
@@ -467,9 +483,9 @@ class TargetMaker:
             pkgdir = self.registry.getPackageDir(pkgname)
             stripRelDirs = []
             if buildSettings['public'].get('stripSubdir', True):
-                stripRelDirs.append( buildSettings['public'].get('includeSubdir', '') )
+                stripRelDirs.append(buildSettings['public'].get('includeSubdir', ''))
             mode = None
-            if str( env['PLATFORM'] ) not in ["cygwin", "win32"]:
+            if str(env['PLATFORM']) not in ["cygwin", "win32"]:
                 mode = stat.S_IREAD | stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
             instTargets = copyFileNodes(env, self.prepareFileNodeTuples(ifiles, pkgdir), destdir, stripRelDirs=stripRelDirs, mode=mode)
         return instTargets
@@ -489,9 +505,9 @@ class TargetMaker:
             else:
                 files, mode = filetuple
                 replaceDict = {}
-            if str( env['PLATFORM'] ) in ["cygwin", "win32"]:
+            if str(env['PLATFORM']) in ["cygwin", "win32"]:
                 mode = None
-            instTargets.extend( copyFileNodes(env, self.prepareFileNodeTuples(files, pkgdir, envconfigdir), destdir, mode=mode, replaceDict=replaceDict) )
+            instTargets.extend(copyFileNodes(env, self.prepareFileNodeTuples(files, pkgdir, envconfigdir), destdir, mode=mode, replaceDict=replaceDict))
 
         return instTargets
 
@@ -526,7 +542,7 @@ class TargetMaker:
             else:
                 # Actually includeOnlyTarget is obsolete, but we still need a (dummy) targetType in build settings to get in here!
                 # The following is a workaround, otherwise an alias won't get built in newer SCons versions (because it has depends but no sources)
-                plaintarget = target = targetEnv.Alias(packagename+targetnameseparator+targetname, self.registry.getPackageFile(packagename))
+                plaintarget = target = targetEnv.Alias(packagename + targetnameseparator + targetname, self.registry.getPackageFile(packagename))
 
             reqTargets = targetBuildSettings.get('linkDependencies', []) + targetBuildSettings.get('requires', [])
             self.requireTargets(targetEnv, target, reqTargets)
@@ -550,7 +566,7 @@ class TargetMaker:
         except (PackageNotFound, PackageTargetNotFound) as e:
             if not GetOption('ignore-missing'):
                 raise
-            print str(e)+', ignoring target [{0}]'.format(generateFulltargetname(packagename, targetname))
+            logger.warning('ignoring target [{0}]'.format(generateFulltargetname(packagename, targetname)), exc_info=True)
 
     def createTargetEnv(self, targetname, targetBuildSettings, envVars={}):
         # create environment for target
@@ -616,10 +632,10 @@ class TargetMaker:
                 strTargetType = plaintarget.builder.get_name(plaintarget.env)
                 if strTargetType.find('Library') != -1:
                     libname = multiple_replace([
-                                      ('^'+re.escape(env.subst("$LIBPREFIX")), ''),
-                                      (re.escape(env.subst("$LIBSUFFIX"))+'$', ''),
-                                      ('^'+re.escape(env.subst("$SHLIBPREFIX")), ''),
-                                      (re.escape(env.subst("$SHLIBSUFFIX"))+'$', ''),
+                                      ('^' + re.escape(env.subst("$LIBPREFIX")), ''),
+                                      (re.escape(env.subst("$LIBSUFFIX")) + '$', ''),
+                                      ('^' + re.escape(env.subst("$SHLIBPREFIX")), ''),
+                                      (re.escape(env.subst("$SHLIBSUFFIX")) + '$', ''),
                                       ], plaintarget.name)
                     env.AppendUnique(LIBS=[libname])
             except:
@@ -644,7 +660,7 @@ try:
     try:
         buildtargets = SCons.Script.BUILD_TARGETS
         if not buildtargets:
-            if GetOption("climb_up") in [1, 3]: # 1: -u, 3: -U
+            if GetOption("climb_up") in [1, 3]:  # 1: -u, 3: -U
                 launchDir = Dir(SCons.Script.GetLaunchDir())
                 if GetOption("climb_up") == 1:
                     dirfilter = lambda directory: directory.is_under(launchDir)
@@ -663,26 +679,26 @@ try:
             packageRegistry.loadPackage(packagename)
 
     except PackageNotFound as e:
-        print e
-        print 'loading all SConscript files to find target'
+        logger.info('loading all SConscript files to find target', exc_info=True)
         for packagename in packageRegistry.getPackageNames():
             packageRegistry.loadPackage(packagename)
 
 except (PackageNotFound, PackageTargetNotFound) as e:
-    print e
+    logger.error('Missing target or package', exc_info=True)
     if not GetOption('help'):
         raise SCons.Errors.UserError('Build aborted, missing dependency!')
 
 runCallback("PreBuild", registry=packageRegistry, buildTargets=SCons.Script.BUILD_TARGETS)
 
-print "BUILD_TARGETS is", map(str, SCons.Script.BUILD_TARGETS)
+logger.info("BUILD_TARGETS is %s", map(str, SCons.Script.BUILD_TARGETS))
 
 def print_build_failures():
     if SCons.Script.GetBuildFailures():
-        print "scons: printing failed nodes"
+        failednodes = ['scons: printing failed nodes']
         for bf in SCons.Script.GetBuildFailures():
             if str(bf.action) != "installFunc(target, source, env)":
-                print bf.node
-        print "scons: done printing failed nodes"
+                failednodes.append(str(bf.node))
+        failednodes.append('scons: done printing failed nodes')
+        logger.warning('\n'.join(failednodes))
 
 atexit.register(print_build_failures)

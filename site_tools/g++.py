@@ -12,12 +12,10 @@ SConsider-specific g++ tool initialization
 # the license that is included with this library/application in the file license.txt.
 #-----------------------------------------------------------------------------------------------------
 
-import os.path
-import re
-import subprocess
-
-import SCons.Util
-import SCons.Tool
+import os, re, subprocess
+import SCons.Util, SCons.Tool
+from logging import getLogger
+logger = getLogger(__name__)
 
 compilers = ['g++']
 
@@ -29,7 +27,7 @@ def generate(env):
 
     if env.get('_CXXPREPEND_'):
         compilers.insert(0, env.get('_CXXPREPEND_'))
-    env['CXX'] = env.Detect(compilers)
+    env['CXX'] = compiler_subject = env.Detect(compilers)
 
     # platform specific settings
     if env['PLATFORM'] == 'aix':
@@ -42,9 +40,9 @@ def generate(env):
         env['SHOBJSUFFIX'] = '.pic.o'
     # determine compiler version
     gccfss = False
-    if env['CXX']:
-        # pipe = SCons.Action._subproc(env, [env['CXX'], '-dumpversion'],
-        pipe = SCons.Action._subproc(env, [env['CXX'], '--version'],
+    if compiler_subject:
+        # pipe = SCons.Action._subproc(env, [compiler_subject, '-dumpversion'],
+        pipe = SCons.Action._subproc(env, [compiler_subject, '--version'],
                                      stdin='devnull',
                                      stderr='devnull',
                                      stdout=subprocess.PIPE)
@@ -74,23 +72,31 @@ def generate(env):
             outf.write('#include <cstdlib>\nint main(){return 0;}')
             outf.close()
         except:
-            print "failed to create compiler input file, check folder permissions and retry"
+            logger.error("failed to create compiler input file, check folder permissions and retry", exc_info=True)
             return
-        pipe = SCons.Action._subproc(env, [env['CXX'], '-v', '-xc++', tFile, '-o', outFile, '-m' + env['ARCHBITS']],
+        pipe = SCons.Action._subproc(env, [compiler_subject, '-v', '-xc++', tFile, '-o', outFile, '-m' + env['ARCHBITS']],
                                      stdin='devnull',
                                      stderr=subprocess.PIPE,
                                      stdout=subprocess.PIPE)
         pRet = pipe.wait()
         os.remove(tFile)
-        try: os.remove(outFile)
-        except: print outFile, "could not be deleted, check compiler output"
+        def formattedStdOutAndStdErr(the_pipe, prefix_text=None):
+            text_to_join = ['---- stdout ----',
+                            the_pipe.stdout.read(),
+                            '---- stderr ----',
+                            the_pipe.stderr.read()]
+            if prefix_text:
+                text_to_join[:0] = [prefix_text]
+            return os.linesep.join(text_to_join)
+        try:
+            os.remove(outFile)
+        except:
+            logger.error(formattedStdOutAndStdErr(pipe, prefix_text="{0} {1}, check compiler output for errors:".format(outFile, 'could not be deleted' if os.path.exists(outFile) else 'was not created')),
+                         exc_info=True)
+            raise SCons.Errors.UserError('Build aborted, {0} compiler detection failed!'.format(compiler_subject))
         if pRet != 0:
-            print "---- stdout ----"
-            print pipe.stdout.read()
-            print "---- stderr ----"
-            print pipe.stderr.read()
-            print "failed to compile object, return code:", pRet
-            return
+            logger.error(formattedStdOutAndStdErr(pipe, prefix_text="compile command failed with return code {0}:".format(pRet)))
+            raise SCons.Errors.UserError('Build aborted, {0} compiler detection failed!'.format(compiler_subject))
         pout = pipe.stderr.read()
         reIncl = re.compile('#include <\.\.\.>.*:$\s((^ .*\s)*)', re.M)
         match = reIncl.search(pout)

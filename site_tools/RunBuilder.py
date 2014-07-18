@@ -17,7 +17,7 @@ setup/teardown functions executed before and after running the program.
 #-----------------------------------------------------------------------------------------------------
 
 from __future__ import with_statement
-import os, subprocess, optparse, sys, functools, re
+import os, subprocess, optparse, sys, functools, re, logging
 import SCons.Action, SCons.Builder, SCons.Script
 from SCons.Script import AddOption, GetOption
 import SConsider, Callback
@@ -60,7 +60,7 @@ def run(cmd, logfile=None, **kw):
     """Run a Unix command and return the exit code."""
     tee = Tee()
     tee.add(sys.stdout, flush=True, close=False)
-    rcode=99
+    rcode = 99
     try:
         if logfile:
             if not os.path.isdir(logfile.dir.abspath):
@@ -72,7 +72,7 @@ def run(cmd, logfile=None, **kw):
             if out == '' and proc.poll() is not None:
                 break
             tee.write(out)
-        rcode=proc.returncode
+        rcode = proc.returncode
     finally:
         while True:
             out = proc.stdout.readline()
@@ -87,13 +87,13 @@ def emitPassedFile(target, source, env):
     target = []
     for src in source:
         path, scriptname = os.path.split(src.abspath)
-        target.append(env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['LOGDIR']).Dir(env['VARIANTDIR']).File(scriptname+'.passed'))
+        target.append(env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['LOGDIR']).Dir(env['VARIANTDIR']).File(scriptname + '.passed'))
     return (target, source)
 
 def execute(command, env):
     import shlex
     args = [command]
-    args.extend(shlex.split(env.get('runParams', ''), posix=env["PLATFORM"]!='win32'))
+    args.extend(shlex.split(env.get('runParams', ''), posix=env["PLATFORM"] != 'win32'))
 
     if 'mingw' in env["TOOLS"]:
         args.insert(0, "sh.exe")
@@ -102,7 +102,7 @@ def execute(command, env):
 
 def doTest(target, source, env):
     if '__SKIP_TEST__' in env:
-        print 'Test skipped: '+str(env['__SKIP_TEST__'])
+        logging.info('Test skipped: %s', str(env['__SKIP_TEST__']))
         return 0
 
     res = execute(source[0].abspath, env)
@@ -110,13 +110,13 @@ def doTest(target, source, env):
         with open(target[0].abspath, 'w') as file:
             file.write("PASSED\n")
     runCallback('__PostTestOrRun')
-    runCallback('__PostAction_'+str(id(target[0])))
+    runCallback('__PostAction_' + str(id(target[0])))
     return res
 
 def doRun(target, source, env):
     res = execute(source[0].abspath, env)
     runCallback('__PostTestOrRun')
-    runCallback('__PostAction_'+str(id(target[0])))
+    runCallback('__PostAction_' + str(id(target[0])))
     return res
 
 def getRunParams(buildSettings, defaultRunParams):
@@ -148,7 +148,7 @@ def addRunConfigHooks(env, source, runner, buildSettings):
     if callable(setUp):
         env.AddPreAction(runner, SCons.Action.Action(wrapSetUp(setUp), lambda *args, **kw: ''))
     if callable(tearDown):
-        registerCallback('__PostAction_'+str(id(runner[0])), lambda: tearDown(target=runner, source=source, env=env))
+        registerCallback('__PostAction_' + str(id(runner[0])), lambda: tearDown(target=runner, source=source, env=env))
 
 def createTestTarget(env, source, plainsource, registry, packagename, targetname, buildSettings, defaultRunParams='-- -all'):
     """Creates a target which runs a target given in parameter 'source'. If ran successfully a
@@ -164,7 +164,7 @@ def createTestTarget(env, source, plainsource, registry, packagename, targetname
     if not SCons.Util.is_List(source):
         source = [source]
 
-    logfile = env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['LOGDIR']).Dir(env['VARIANTDIR']).File(targetname+'.test.log')
+    logfile = env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['LOGDIR']).Dir(env['VARIANTDIR']).File(targetname + '.test.log')
 
     runner = env.TestBuilder([], source, runParams=getRunParams(buildSettings, defaultRunParams), logfile=logfile)
     if GetOption('run-force'):
@@ -203,9 +203,9 @@ def createRunTarget(env, source, plainsource, registry, packagename, targetname,
     if not SCons.Util.is_List(source):
         source = [source]
 
-    logfile = env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['LOGDIR']).Dir(env['VARIANTDIR']).File(targetname+'.run.log')
+    logfile = env['BASEOUTDIR'].Dir(env['RELTARGETDIR']).Dir(env['LOGDIR']).Dir(env['VARIANTDIR']).File(targetname + '.run.log')
 
-    runner = env.RunBuilder(['dummyRunner_'+SConsider.generateFulltargetname(packagename, targetname)],
+    runner = env.RunBuilder(['dummyRunner_' + SConsider.generateFulltargetname(packagename, targetname)],
                             source, runParams=getRunParams(buildSettings, defaultRunParams), logfile=logfile)
 
     addRunConfigHooks(env, source, runner, buildSettings)
@@ -221,7 +221,7 @@ def composeRunTargets(env, source, plainsource, registry, packagename, targetnam
     for ftname in buildSettings.get('requires', []) + buildSettings.get('linkDependencies', []):
         otherPackagename, otherTargetname = SConsider.splitTargetname(ftname)
         targets.extend(getTargets(otherPackagename, otherTargetname))
-    return env.Alias('dummyRunner_'+SConsider.generateFulltargetname(packagename, targetname), targets)
+    return env.Alias('dummyRunner_' + SConsider.generateFulltargetname(packagename, targetname), targets)
 
 def generate(env):
     try:

@@ -1,3 +1,4 @@
+pyaml
 lepl
 nose
 mockito
