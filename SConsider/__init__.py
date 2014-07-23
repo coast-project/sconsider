@@ -28,6 +28,9 @@ from ConfigureHelper import *
 from Callback import addCallbackFeature
 from Logging import setup_logging
 from logging import getLogger
+from SCons.Tool import DefaultToolpath
+
+sys.path[:0]=[os.path.dirname(__file__)]
 
 setup_logging(os.path.join(os.path.dirname(__file__), 'logging.yaml'))
 logger = getLogger(__name__)
@@ -178,6 +181,8 @@ globaltools = ["setupBuildTools", "coast_options", "TargetPrinter",
 usetools = globaltools + GetOption('usetools')
 logger.debug('tools to use %s', Flatten(usetools))
 
+# insert the site_tools path for our own tools
+DefaultToolpath.insert(0, os.path.join(os.path.dirname(__file__), 'site_tools'))
 baseEnv = dEnv.Clone(tools=usetools)
 
 variant = "Unknown-"
@@ -566,7 +571,12 @@ class TargetMaker:
         except (PackageNotFound, PackageTargetNotFound) as e:
             if not GetOption('ignore-missing'):
                 raise
-            logger.warning('ignoring target [{0}]'.format(generateFulltargetname(packagename, targetname)), exc_info=True)
+            logger.warning(
+                'ignoring target [{0}]'.format(
+                    generateFulltargetname(
+                        packagename,
+                        targetname)),
+                exc_info=False)
 
     def createTargetEnv(self, targetname, targetBuildSettings, envVars={}):
         # create environment for target
@@ -679,7 +689,9 @@ try:
             packageRegistry.loadPackage(packagename)
 
     except PackageNotFound as e:
-        logger.info('loading all SConscript files to find target', exc_info=True)
+        logger.info(
+            'loading all SConscript files to find target',
+            exc_info=False)
         for packagename in packageRegistry.getPackageNames():
             packageRegistry.loadPackage(packagename)
 

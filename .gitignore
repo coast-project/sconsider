@@ -2,3 +2,6 @@
 .build/
 .settings/
 nosetests.xml
+SConsider.egg-info/
+build/
+dist/
