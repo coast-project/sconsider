@@ -1,5 +1,0 @@
-pyaml
-lepl
-nose
-mockito
-pyopenssl

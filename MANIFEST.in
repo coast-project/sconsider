@@ -1,0 +1,6 @@
+include SConsider/*.yaml *.txt
+recursive-include SConsider/3rdparty *.sconsider
+include SConsider/maintenance/*.py
+include SConsider/xmlbuilder/LICENSE
+include SConsider/site_tools/*.sh
+prune SConsider/3rdparty/*/.build
