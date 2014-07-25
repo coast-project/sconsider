@@ -16,8 +16,6 @@ SConsider-specific default initialization tool - postpones SCons.Tool.default lo
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
 
-import SCons.Tool
-
 
 def generate(env):
     """Postpone adding default tools, see setupBuildTools for
@@ -26,4 +24,4 @@ def generate(env):
 
 
 def exists(env):
-    return 1
+    return True

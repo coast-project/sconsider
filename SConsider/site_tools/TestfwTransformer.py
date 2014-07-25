@@ -16,12 +16,9 @@ Tool to adapt output of coast-testfw to xUnit xml output parseable by most progr
 
 from __future__ import with_statement
 import os
-import subprocess
-import optparse
 import re
 import socket
 import time
-import math
 from xmlbuilder import XMLBuilder
 
 
@@ -105,7 +102,6 @@ class Result(object):
                                             'cause', ''), 'type': 'Assertion'})
                     xml << ('system-out', section.get('content', '').strip())
                     xml << ('system-err', '')
-        etree_node = ~xml
         return str(xml)
 
 

@@ -24,7 +24,6 @@ import subprocess
 import optparse
 import sys
 import functools
-import re
 import SCons.Action
 import SCons.Builder
 import SCons.Script

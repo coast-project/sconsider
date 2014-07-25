@@ -180,7 +180,6 @@ def parseDoxyfileContent(file_content, env, include_basepath=None):
     lex.wordchars += "*+./-:@$()"
     lex.whitespace = lex.whitespace.replace("\n", "")
 
-    lineno = lex.lineno
     token = lex.get_token()
     key = token  # the first token should be a key
     last_token = ""
@@ -357,7 +356,7 @@ def buildDoxyfile(target, source, env):
         proc = subprocess.Popen(
             ["doxygen", "-s", "-u", target[0].get_abspath()],
             stdout=log_out, stderr=log_err)
-        res = proc.wait()
+        proc.wait()
     finally:
         closeLogFiles(log_out, log_err)
 
@@ -413,7 +412,7 @@ def callDoxygen(target, source, env):
             shell=True,
             stdout=log_out,
             stderr=log_err)
-        res = proc.wait()
+        proc.wait()
     finally:
         closeLogFiles(log_out, log_err)
 

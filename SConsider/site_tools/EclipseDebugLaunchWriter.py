@@ -20,7 +20,6 @@ from __future__ import with_statement
 import os
 import optparse
 import SCons
-import SConsider
 
 
 def generateLaunchConfigFile(launchConfigFile, env, binpath):

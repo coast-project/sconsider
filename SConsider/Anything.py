@@ -16,7 +16,11 @@ import collections
 import operator
 import threading
 import os
-from lepl import *
+from lepl.matchers.core import Literal, Regexp, Delayed, Any
+from lepl.matchers.derived import Optional, Word, AnyBut, Integer, Newline,\
+    Whitespace, String, Star
+from lepl.matchers.combine import And
+from lepl.matchers.operators import Separator
 
 
 class AnythingEntry(object):

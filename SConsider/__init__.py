@@ -16,19 +16,15 @@ directoy tree.
 from __future__ import with_statement
 import os
 import platform
-import glob
 import re
 import atexit
 import sys
-import traceback
 import commands
-import dircache
 import stat
 import SCons
 from SCons.Script import AddOption, GetOption, Dir, File, DefaultEnvironment,\
-    Split, Flatten, SConsignFile
+    Flatten, SConsignFile
 from SomeUtils import *
-from ConfigureHelper import *
 from Callback import addCallbackFeature
 from Logging import setup_logging
 from logging import getLogger
@@ -173,8 +169,8 @@ def setupTargetDirAndWrapperScripts(
     instApps = env.InstallAs(
         baseoutdir.Dir(
             env['RELTARGETDIR']).Dir(
-            env['BINDIR']).Dir(
-                env['VARIANTDIR']).File(name),
+                env['BINDIR']).Dir(
+                    env['VARIANTDIR']).File(name),
         plaintarget)
     env.Tool('generateScript')
     wrappers = env.GenerateWrapperScript(instApps)
@@ -229,7 +225,7 @@ def sharedLibrary(
     instTarg = env.Install(
         baseoutdir.Dir(
             env['LIBDIR']).Dir(
-            env['VARIANTDIR']),
+                env['VARIANTDIR']),
         plaintarget)
     env.Requires(instTarg[0], instTarg[1:])
 
@@ -256,7 +252,7 @@ def staticLibrary(
     instTarg = env.Install(
         baseoutdir.Dir(
             env['LIBDIR']).Dir(
-            env['VARIANTDIR']),
+                env['VARIANTDIR']),
         plaintarget)
     env.Requires(instTarg[0], instTarg[1:])
 
@@ -291,8 +287,8 @@ def installBinary(
     env['RELTARGETDIR'] = os.path.join('globals', packagename)
     installDir = env['BASEOUTDIR'].Dir(
         env['RELTARGETDIR']).Dir(
-        env['BINDIR']).Dir(
-        env['VARIANTDIR'])
+            env['BINDIR']).Dir(
+                env['VARIANTDIR'])
     instTarg = env.Install(installDir, sources)
     env.Requires(instTarg[0], instTarg[1:])
 
@@ -427,7 +423,7 @@ class PackageRegistry:
 
     def __init__(self, env, scandirs, scanexcludes=[]):
         self.env = env
-        self.packages = packages = {}
+        self.packages = {}
         if not SCons.Util.is_List(scandirs):
             scandirs = [scandirs]
         for scandir in scandirs:
@@ -485,23 +481,23 @@ class PackageRegistry:
                 packagename)
         return self.packages.get(
             packagename, {}).get(
-            'targets', {}).get(
-            targetname, {
-                'plaintarget': None, 'target': None})
+                'targets', {}).get(
+                    targetname, {
+                        'plaintarget': None, 'target': None})
 
     def getPackageTarget(self, packagename, targetname):
         return self.getPackageTargetTargets(
             packagename,
             targetname).get(
-            'target',
-            None)
+                'target',
+                None)
 
     def getPackagePlaintarget(self, packagename, targetname):
         return self.getPackageTargetTargets(
             packagename,
             targetname).get(
-            'plaintarget',
-            None)
+                'plaintarget',
+                None)
 
     def getPackageDependencies(self, packagename):
         deps = dict()
@@ -510,8 +506,8 @@ class PackageRegistry:
                 generateFulltargetname(
                     packagename,
                     targetname)] = self.getPackageTargetDependencies(
-                packagename,
-                targetname)
+                        packagename,
+                        targetname)
         return deps
 
     def getPackageTargetDependencies(self, packagename, targetname):
@@ -531,8 +527,8 @@ class PackageRegistry:
                     generateFulltargetname(
                         dep_packagename,
                         dep_targetname)] = self.getPackageTargetDependencies(
-                    dep_packagename,
-                    dep_targetname)
+                            dep_packagename,
+                            dep_targetname)
         return deps
 
     def setPackage(
@@ -916,10 +912,7 @@ class TargetMaker:
             if not GetOption('ignore-missing'):
                 raise
             logger.warning(
-                'ignoring target [{0}]'.format(
-                    generateFulltargetname(
-                        packagename,
-                        targetname)),
+                '{0}, ignoring...'.format(e),
                 exc_info=False)
 
     def createTargetEnv(self, targetname, targetBuildSettings, envVars={}):
@@ -1111,10 +1104,10 @@ try:
             tryLoadPackage(packagename)
 
 except (PackageNotFound, PackageTargetNotFound) as e:
-    logger.error('Missing target or package', exc_info=True)
+    logger.error('{0}'.format(e), exc_info=True)
     if not GetOption('help'):
         raise SCons.Errors.UserError(
-            'Build aborted, missing target or dependency!')
+            '{0}, build aborted!'.format(e))
 
 runCallback(
     "PreBuild",

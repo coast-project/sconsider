@@ -14,15 +14,9 @@ Tool to collect system libraries needed by an executable/shared library
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
 
-import subprocess
-import re
-import os
 import functools
-import itertools
-import operator
 import threading
 import SCons
-import SConsider
 import LibFinder
 
 # needs locking because it is manipulated during multi-threaded build phase

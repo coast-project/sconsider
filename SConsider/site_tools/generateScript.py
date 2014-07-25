@@ -15,13 +15,10 @@ SConsider-specific stand alone script to execute programs
 # -------------------------------------------------------------------------
 
 import os
-import optparse
 import datetime
-import re
 import tempfile
 import SCons.Action
 import SCons.Builder
-from SCons.Script import AddOption, GetOption
 import SomeUtils
 
 

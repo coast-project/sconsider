@@ -15,8 +15,6 @@ Tool to collect available targets for building
 # -------------------------------------------------------------------------
 
 from __future__ import with_statement
-import os
-import subprocess
 import optparse
 import functools
 import SCons.Action
@@ -84,7 +82,6 @@ def printTree(registry, buildTargets, **kw):
     if not targets:
         targets = registry.getPackageNames()
 
-    deps = dict()
     for fulltargetname in targets:
         packagename, targetname = SConsider.splitTargetname(fulltargetname)
         if existsTarget(registry, packagename, targetname):

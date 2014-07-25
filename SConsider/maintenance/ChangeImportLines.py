@@ -17,8 +17,7 @@ import os
 import re
 import time
 import sys
-from SomeUtils import *
-from xmlrpclib import datetime
+from SomeUtils import multiple_replace, replaceRegexInFile
 
 excludelist = [
     'build',
@@ -65,7 +64,7 @@ hidReplace = (strReHID, "\n")
 # static char static_h_rcs_id[] = ATTFlowController_H_ID;
 # ifdef __GNUG__
 # define USE(name1,name2) static void use##name1() { if(!name1 && !name2) { use##name1(); } }
-#USE(static_h_rcs_id, static_c_rcs_id)
+# USE(static_h_rcs_id, static_c_rcs_id)
 # undef USE
 # endif
 # or
@@ -100,13 +99,14 @@ strRePragma = re.compile(
     re.M)
 pragmaReplace = (strRePragma, "")
 
-#--------------------------------------------------------------------
+
+# --------------------------------------------------------------------
 # Copyright (c) 1999 itopia
 # All Rights Reserved
 #
 # $RCSfile$: Main configuration for StressServer
 #
-#--------------------------------------------------------------------
+# --------------------------------------------------------------------
 strReCopyrightAnyShell = re.compile(
     r"(^(\s*(#[-#]{2}).*$\s)^([ \t]*#[^#-]?.*$\s)+^([ \t]*#[-#]{2}.*$\s)?\s*)",
     re.M)
@@ -123,7 +123,7 @@ headerTemplateAnyShell = """# --------------------------------------------------
 
 """
 
-#/*
+# /*
 # * Copyright (c) 2003 SYNLOGIC
 # * All Rights Reserved
 # */
@@ -139,7 +139,7 @@ strReCopyright = re.compile(r"^(\s*/\*(([^*])|(\*[^/]))*\*/\s*$\s+)", re.M)
 #           )*
 # \*/               ##  with a trailing "/*"
 # )                    ## close commment group
-#"""
+# """
 
 headerTemplateC = """/*
  * Copyright (c) 1980, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
@@ -377,7 +377,6 @@ fgExtensionToReplaceFuncMap = {
 }
 
 import subprocess
-import math
 
 
 def processFiles(
@@ -386,7 +385,6 @@ def processFiles(
         extensionToReplaceFuncMap,
         doAstyle=False):
     astyleFiles = []
-    replaceFuncs = []
     fileCopyrightYear = None
     authdate = getAuthorDate()
     if authdate >= replacementFromDate:
@@ -443,7 +441,7 @@ def processFiles(
             astyleCmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE)
-        res = proc.wait()
+        proc.wait()
 
 
 def readDictFromFile(fname):
@@ -470,14 +468,13 @@ def writeDictToFile(fname, outDict):
     try:
         fo = open(fname, 'wb')
         if fo:
-            retDict = pickle.dump(outDict, fo)
+            pickle.dump(outDict, fo)
             fo.close()
     except IOError:
         pass
 
 if __name__ == "__main__":
     from optparse import OptionParser
-    import time
 
     usage = "usage: %prog [options] <file>..."
     parser = OptionParser(usage=usage)
@@ -556,7 +553,7 @@ if __name__ == "__main__":
         matchIt = lambda n, r=fileRegEx.search, l=matchIt: l(n) or bool(r(n))
     if options.allfiles and len(extensionReList):
         for dirpath, dirnames, filenames in os.walk('.'):
-            dirnames[:] = [d for d in dirnames if not d in fgExcludeDirs]
+            dirnames[:] = [d for d in dirnames if d not in fgExcludeDirs]
             newfiles = [os.path.join(dirpath, name) for name in filenames]
             filesToProcess.extend(newfiles)
 

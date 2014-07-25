@@ -65,8 +65,6 @@ def generate(env):
     env['SMARTLINK'] = sun_smart_link
     env['LINK'] = "$SMARTLINK"
 
-    platf = env['PLATFORM']
-
     env.AppendUnique(LINKFLAGS='-mt')
     env.AppendUnique(SHLINKFLAGS='-mt')
     # do not use rpath

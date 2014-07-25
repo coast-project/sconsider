@@ -19,7 +19,6 @@ Each directory containing an eclipse .project file is scanned for its dependenci
 
 from __future__ import with_statement
 import os
-import re
 import uuid
 import optparse
 import SomeUtils
@@ -155,4 +154,4 @@ def generate(env):
 
 
 def exists(env):
-    return 1
+    return True

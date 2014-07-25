@@ -13,7 +13,6 @@ Collection of helper functions
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
 import os
-import glob
 import string
 import re
 
@@ -26,7 +25,6 @@ def FileNodeComparer(left, right):
 
 def listFiles(files, **kw):
     import SCons
-    import SConsider
 
     allFiles = []
     for file in files:
@@ -37,8 +35,8 @@ def listFiles(files, **kw):
                     False) and isinstance(
                     globFile,
                     SCons.Node.FS.Dir):
-                allFiles += SConsider.listFiles([str(SCons.Script.Dir(
-                    '.').srcnode().rel_path(globFile.srcnode())) + "/*"], recursive=True)
+                allFiles += listFiles([str(SCons.Script.Dir('.').srcnode().rel_path(
+                    globFile.srcnode())) + "/*"], recursive=True)
             else:
                 allFiles.append(globFile)
     allFiles.sort(cmp=FileNodeComparer)
@@ -68,7 +66,7 @@ def findFiles(directories, extensions=[], matchfiles=[], direxcludes=[]):
                 # the following call fails if the relative directory evaluates
                 # to a target...
                 curDir = baseDir.Dir(os.path.relpath(dirpath, basepathabs))
-                dirnames[:] = [d for d in dirnames if not d in direxcludes]
+                dirnames[:] = [d for d in dirnames if d not in direxcludes]
                 addfiles = []
                 if extensions:
                     efiles = [
@@ -182,7 +180,7 @@ def RegexReplace(
         excludelist=[],
         replacedCallback=None):
     for dirpath, dirnames, filenames in os.walk(baseDir):
-        dirnames[:] = [d for d in dirnames if not d in excludelist]
+        dirnames[:] = [d for d in dirnames if d not in excludelist]
         for name in filenames:
             if filematch(dirpath, name):
                 fname = os.path.join(dirpath, name)
@@ -243,8 +241,8 @@ if not hasattr(os.path, "relpath"):
 
         rel_list = [os.pardir] * (len(start_list) - i) + path_list[i:]
         if not rel_list:
-            return curdir
-        return join(*rel_list)
+            return os.path.curdir
+        return os.path.join(*rel_list)
 
     if os.name == 'posix':
         os.path.relpath = relpath_posix
@@ -264,7 +262,7 @@ def getFlatENV(env):
     import SCons
 
     if 'ENV' not in env:
-        env = Environment(ENV=env)
+        env = SCons.Environment(ENV=env)
 
     # Ensure that the ENV values are all strings:
     newENV = {}

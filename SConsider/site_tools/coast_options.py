@@ -14,9 +14,7 @@ Coast-SConsider-specific command line extensions to influence the build
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
 
-import os
-import SCons
-from SCons.Script import AddOption, Dir, GetOption, Flatten
+from SCons.Script import AddOption, Dir, GetOption
 from logging import getLogger
 logger = getLogger(__name__)
 
@@ -84,4 +82,4 @@ def generate(env, **kw):
 
 
 def exists(env):
-    return true
+    return True

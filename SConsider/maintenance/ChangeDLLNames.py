@@ -104,7 +104,7 @@ libdict = {'renderers': 'CoastRenderers',
            #           '':'',
            }
 for dirpath, dirnames, filenames in os.walk('.'):
-    dirnames[:] = [d for d in dirnames if not d in excludelist]
+    dirnames[:] = [d for d in dirnames if d not in excludelist]
     reDLL = re.compile(r"^[\s]*/DLL\s*{([^}]+)}[\s]*$", re.M)
     reLibTarget = re.compile(r"^\s+LibTarget\s+:\s*\"([^\"]+)\",\s*$", re.M)
     reAny = re.compile('^.*.any$')

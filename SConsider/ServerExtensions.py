@@ -14,10 +14,10 @@ Collection of slightly extended or tailored *Servers mainly used for testing
 # -------------------------------------------------------------------------
 import socket
 import os
-from SocketServer import BaseServer, TCPServer, BaseRequestHandler
-from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+from SocketServer import BaseServer
+from BaseHTTPServer import HTTPServer
 from SimpleHTTPServer import SimpleHTTPRequestHandler
-from OpenSSL import SSL, crypto
+from OpenSSL import SSL
 from smtpd import SMTPServer
 from logging import getLogger
 logger = getLogger(__name__)
@@ -63,7 +63,6 @@ class SecureHTTPServer(HTTPServer):
             pyOpensslVersion = tuple(int(t)
                                      for t in OpenSSL.__version__.split('.'))
             noMemoryViewsBelow = (0, 12)
-            import inspect
 
             if pyOpensslVersion < noMemoryViewsBelow:
                 raise SystemError(
@@ -80,7 +79,7 @@ Aborting!""")
     # request is of type OpenSSL.SSL.Connection
     def shutdown_request(self, request):
         # (Pdb) inspect.getargspec(OpenSSL.SSL.Connection.shutdown)
-        #*** TypeError: <method 'shutdown' of 'OpenSSL.SSL.Connection' objects> is not a Python function
+        # *** TypeError: <method 'shutdown' of 'OpenSSL.SSL.Connection' objects> is not a Python function
         # it doesn't work for C functions! see http://bugs.python.org/issue1748064
         # only with python 2.7 this function gets called!
         request.shutdown()

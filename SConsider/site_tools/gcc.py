@@ -38,7 +38,6 @@ def generate(env):
     else:
         env['SHCCFLAGS'] = SCons.Util.CLVar('$CCFLAGS -fPIC')
     # determine compiler version
-    gccfss = False
     if compiler_subject:
         # pipe = SCons.Action._subproc(env, [compiler_subject, '-dumpversion'],
         pipe = SCons.Action._subproc(env, [compiler_subject, '--version'],
@@ -60,7 +59,6 @@ def generate(env):
             env['CCVERSION'] = versionmatch.group(2)
         if gccfssmatch:
             env['CCFLAVOUR'] = gccfssmatch.group(1)
-            gccfss = True
 
         # own extension to detect system include paths
         import time

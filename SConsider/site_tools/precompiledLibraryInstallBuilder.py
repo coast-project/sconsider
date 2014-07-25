@@ -30,7 +30,6 @@ logger = getLogger(__name__)
 
 
 def findPlatformTargets(env, basedir, targetname, prefixes=[], suffixes=[]):
-    variantdir = ''
     bitwidth = env.get('ARCHBITS', '32')
     libRE = ''
     for pre in prefixes:
@@ -49,7 +48,6 @@ def findPlatformTargets(env, basedir, targetname, prefixes=[], suffixes=[]):
     reLibname = re.compile(libRE)
     osStringSep = '[_-]'
     if env['PLATFORM'] in ['cygwin', 'win32']:
-        variantdir = 'Win_i386'
         if env['PLATFORM'] == 'cygwin':
             osver = tuple([int(x)
                            for x in platform.system().split('-')
@@ -79,7 +77,7 @@ def findPlatformTargets(env, basedir, targetname, prefixes=[], suffixes=[]):
     files = []
     for dirpath, dirnames, filenames in os.walk(basedir):
         dirnames[:] = [
-            dir for dir in dirnames if not dir in [
+            dir for dir in dirnames if dir not in [
                 env['BUILDDIR'],
                 '.git',
                 '.svn',

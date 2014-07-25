@@ -18,8 +18,7 @@ import os
 import platform
 import SCons.Tool
 import SCons.Script
-from SCons.Script import AddOption, Dir, GetOption
-import SConsider
+from SCons.Script import AddOption, GetOption
 from logging import getLogger
 logger = getLogger(__name__)
 
@@ -244,4 +243,4 @@ def generate(env, **kw):
 
 
 def exists(env):
-    return 1
+    return True

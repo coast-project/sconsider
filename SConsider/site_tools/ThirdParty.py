@@ -16,10 +16,7 @@ SConsider-specific 3rdparty llibrary handling
 
 import re
 import os
-import optparse
-import functools
 import fnmatch
-import SomeUtils
 import SCons
 from logging import getLogger
 logger = getLogger(__name__)
