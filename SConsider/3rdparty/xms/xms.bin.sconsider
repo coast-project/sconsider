@@ -7,6 +7,8 @@
 # modify it under the terms of the license that is included with this
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
+from pkg_resources import require as pkg_require
+pkg_require(["SConsider<0.5"])
 import SConsider
 import ThirdParty
 from stat import *

@@ -60,7 +60,10 @@ def collectPackages(startdir, exceptions=[]):
 def registerDist(registry, packagename, package, distType, distDir, duplicate):
     package_dir = package[distType].get_dir()
     logger.debug(
-        'found package [{0}]({1}) in [{2}]'.format(packagename, distType, package_dir))
+        'found package [{0}]({1}) in [{2}]'.format(
+            packagename,
+            distType,
+            package_dir))
     registry.setPackage(
         packagename,
         package[distType],
@@ -79,7 +82,9 @@ def prepareLibraries(env, registry, **kw):
     for packagename, package in packages.iteritems():
         if registry.hasPackage(packagename):
             logger.warning(
-                'package [{0}] already registered, skipping [{1}]'.format(packagename, package.items()[0][1].get_dir().abspath))
+                'package [{0}] already registered, skipping [{1}]'.format(
+                    packagename,
+                    package.items()[0][1].get_dir().abspath))
             continue
         SCons.Script.AddOption(
             '--with-src-' +
@@ -155,7 +160,10 @@ def prepareLibraries(env, registry, **kw):
                     env.AppendUnique(LIBPATH=env.Dir(path).Dir('lib'))
                     env.PrependENVPath('PATH', env.Dir(path).Dir('bin'))
                 logger.debug(
-                    'found package [{0}]({1}) in [{2}]'.format(packagename, 'sys', package['sys'].get_dir()))
+                    'found package [{0}]({1}) in [{2}]'.format(
+                        packagename,
+                        'sys',
+                        package['sys'].get_dir()))
                 registry.setPackage(
                     packagename,
                     package['sys'],
