@@ -58,12 +58,15 @@ def collectPackages(startdir, exceptions=[]):
 
 
 def registerDist(registry, packagename, package, distType, distDir, duplicate):
+    package_dir = package[distType].get_dir()
+    logger.debug(
+        'found package [{0}]({1}) in [{2}]'.format(packagename, distType, package_dir))
     registry.setPackage(
         packagename,
         package[distType],
-        package[distType].get_dir(),
+        package_dir,
         duplicate)
-    package[distType].get_dir().addRepository(distDir)
+    package_dir.addRepository(distDir)
     thirdDartyPackages.setdefault(packagename, {})[distType] = distDir
 
 
@@ -74,6 +77,10 @@ def prepareLibraries(env, registry, **kw):
         packages.update(collectPackages(packageDir, [env.get('BUILDDIR', '')]))
 
     for packagename, package in packages.iteritems():
+        if registry.hasPackage(packagename):
+            logger.warning(
+                'package [{0}] already registered, skipping [{1}]'.format(packagename, package.items()[0][1].get_dir().abspath))
+            continue
         SCons.Script.AddOption(
             '--with-src-' +
             packagename,
@@ -147,6 +154,8 @@ def prepareLibraries(env, registry, **kw):
                 if path:
                     env.AppendUnique(LIBPATH=env.Dir(path).Dir('lib'))
                     env.PrependENVPath('PATH', env.Dir(path).Dir('bin'))
+                logger.debug(
+                    'found package [{0}]({1}) in [{2}]'.format(packagename, 'sys', package['sys'].get_dir()))
                 registry.setPackage(
                     packagename,
                     package['sys'],
@@ -156,8 +165,8 @@ def prepareLibraries(env, registry, **kw):
 
 def generate(env):
     import SCons.Script
-    from SConsider import sconsider_base_path, registerCallback
-    siteDefault3rdparty = os.path.join(sconsider_base_path,
+    from SConsider import _base_path, registerCallback
+    siteDefault3rdparty = os.path.join(_base_path,
                                        '3rdparty')
     SCons.Script.AddOption(
         '--3rdparty',

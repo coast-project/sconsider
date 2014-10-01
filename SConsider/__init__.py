@@ -30,10 +30,10 @@ from Logging import setup_logging
 from logging import getLogger
 from SCons.Tool import DefaultToolpath
 
-sconsider_base_path = os.path.dirname(__file__)
-sys.path[:0] = [sconsider_base_path]
+_base_path = os.path.dirname(__file__)
+sys.path[:0] = [_base_path]
 
-setup_logging(os.path.join(os.path.dirname(__file__), 'logging.yaml'))
+setup_logging(os.path.join(_base_path, 'logging.yaml'))
 logger = getLogger(__name__)
 
 addCallbackFeature(__name__)
@@ -42,13 +42,15 @@ SCons.Script.EnsureSConsVersion(1, 3, 0)
 SCons.Script.EnsurePythonVersion(2, 6)
 
 from pkg_resources import get_distribution as pkg_get_dist,\
-    DistributionNotFound
+    get_build_platform, ResolutionError
 
 try:
     sconsider_package_info = pkg_get_dist('sconsider')
-    logger.info("{0} version {1}".format(sconsider_package_info.project_name,
-                                         sconsider_package_info.version))
-except:
+    logger.info("{0} version {1} ({2})".format(
+        sconsider_package_info.project_name,
+        sconsider_package_info.version,
+        get_build_platform()))
+except ResolutionError:
     pass
 
 for platform_func in [platform.dist,
@@ -330,7 +332,7 @@ logger.debug('tools to use %s', Flatten(usetools))
 DefaultToolpath.insert(
     0,
     os.path.join(
-        os.path.dirname(__file__),
+        _base_path,
         'site_tools'))
 baseEnv = dEnv.Clone(tools=usetools)
 
@@ -410,6 +412,21 @@ class PackageNotFound(Exception):
         return 'Package [{0}] not found'.format(self.package)
 
 
+class PackageRequirementsNotFulfilled(Exception):
+
+    def __init__(self, package, packagefile, message):
+        self.package = package
+        self.packagefile = packagefile
+        self.message = message
+
+    def __str__(self):
+        return 'Package [{0}] not available (file {1}) '\
+               'because of unsatisfied requirements: [{2}]'.format(
+                   self.package,
+                   self.packagefile,
+                   self.message)
+
+
 class PackageTargetNotFound(Exception):
 
     def __init__(self, target):
@@ -421,19 +438,28 @@ class PackageTargetNotFound(Exception):
 
 class PackageRegistry:
 
-    def __init__(self, env, scandirs, scanexcludes=[]):
+    def __init__(
+            self,
+            env,
+            scan_dirs,
+            scan_dirs_exclude_rel=[],
+            scan_dirs_exclude_abs=[]):
         self.env = env
         self.packages = {}
-        if not SCons.Util.is_List(scandirs):
-            scandirs = [scandirs]
-        for scandir in scandirs:
-            self.collectPackages(scandir, scanexcludes)
+        if not SCons.Util.is_List(scan_dirs):
+            scan_dirs = [scan_dirs]
+        for scandir in scan_dirs:
+            self.collectPackages(
+                scandir,
+                scan_dirs_exclude_rel,
+                scan_dirs_exclude_abs)
 
-    def collectPackages(self, directory, direxcludes=[]):
+    def collectPackages(self, directory, excludes_rel=[], excludes_abs=[]):
         """Recursively collects SConsider packages.
 
-        Walks recursively through 'directory' (without 'direxcludes')
-        and collects found packages.
+        Walks recursively through 'directory' to collect package files
+        but skipping dirs in 'excludes_rel' and absolute dirs
+        from 'exclude_abs'.
 
         """
         rePackage = re.compile('^(.*).sconsider$')
@@ -442,12 +468,16 @@ class PackageRegistry:
             followlinks = True
         for dirpath, dirnames, filenames in os.walk(directory,
                                                     followlinks=followlinks):
-            dirnames[:] = [d for d in dirnames if d not in direxcludes]
+            thePath = os.path.abspath(dirpath)
+            dirnames[:] = filter(
+                lambda dirname: dirname not in excludes_rel and os.path.join(
+                    thePath,
+                    dirname) not in excludes_abs,
+                dirnames)
             for name in filenames:
                 rmatch = rePackage.match(name)
                 if rmatch:
                     pkgname = rmatch.group(1)
-                    thePath = os.path.abspath(dirpath)
                     logger.debug(
                         'found package [%s] in [%s]',
                         pkgname,
@@ -564,9 +594,9 @@ class PackageRegistry:
         packagename, targetname = splitTargetname(str(fulltargetname))
         return self.hasPackageTarget(packagename, targetname)
 
-    def setPackageDir(self, packagename, dir):
+    def setPackageDir(self, packagename, dirname):
         if self.hasPackage(packagename):
-            self.packages[packagename]['packagedir'] = dir
+            self.packages[packagename]['packagedir'] = dirname
 
     def getPackageDir(self, packagename):
         return self.packages.get(packagename, {}).get('packagedir', '')
@@ -656,31 +686,58 @@ class PackageRegistry:
                     'executing [%s] as SConscript for package [%s]',
                     packagefile.path,
                     packagename)
-                self.env.SConscript(
-                    packagefile,
-                    variant_dir=builddir,
-                    duplicate=self.getPackageDuplicate(packagename),
-                    exports=['packagename'])
+                try:
+                    self.env.SConscript(
+                        packagefile,
+                        variant_dir=builddir,
+                        duplicate=self.getPackageDuplicate(packagename),
+                        exports=['packagename'])
+                except ResolutionError as e:
+                    raise PackageRequirementsNotFulfilled(
+                        generateFulltargetname(
+                            packagename,
+                            targetname),
+                        packagefile,
+                        e)
             if targetname:
                 return self.getPackageTarget(packagename, targetname)
         return None
 
-dirExcludes = [baseEnv['BUILDDIR'], 'CVS', '.git', '.gitmodules', 'doc']
-dirExcludes.extend(baseEnv.GetOption('exclude'))
-dirExcludesTop = dirExcludes + ['site_scons', '3rdparty']
-dirExcludesTop.extend([baseEnv[varname] for varname in ['BINDIR',
-                                                        'LIBDIR',
-                                                        'LOGDIR',
-                                                        'CONFIGDIR']])
+_exclude_dirs_rel = ['CVS', '.git', '.svn']
+_exclude_dirs_toplevel = _exclude_dirs_rel + ['.sconf_temp']
+if baseoutdir == Dir('#'):
+    _exclude_dirs_toplevel += [baseEnv[varname] for varname in ['BUILDDIR',
+                                                                'BINDIR',
+                                                                'LIBDIR',
+                                                                'LOGDIR',
+                                                                'CONFIGDIR']]
+_exclude_dirs_abs = []
+for exclude_path in baseEnv.GetOption('exclude'):
+    absolute_path = exclude_path
+    if not os.path.isabs(exclude_path):
+        absolute_path = Dir(exclude_path).abspath
+    else:
+        exclude_path = os.path.relpath(exclude_path, Dir('#').abspath)
+    if not exclude_path.startswith('..'):
+        first_segment = exclude_path.split(os.pathsep)[0]
+        _exclude_dirs_toplevel.append(first_segment)
+    _exclude_dirs_abs.append(absolute_path)
+
 scanDirs = filter(
-    lambda dir: os.path.isdir(dir) and dir not in dirExcludesTop,
-    os.listdir(
+    lambda
+    dirname: os.path.isdir(dirname)
+    and dirname not in _exclude_dirs_toplevel, os.listdir(
         Dir('#').path))
+logger.debug("Toplevel dirs to scan for package files: {0}".format(scanDirs))
 
 logger.debug("calling PrePackageCollection callback")
 runCallback('PrePackageCollection', env=baseEnv, directories=scanDirs)
-logger.info("Collecting .sconsider packages")
-packageRegistry = PackageRegistry(baseEnv, scanDirs, dirExcludes)
+logger.info("Collecting .sconsider packages ...")
+packageRegistry = PackageRegistry(
+    baseEnv,
+    scanDirs,
+    _exclude_dirs_rel,
+    _exclude_dirs_abs)
 logger.debug("calling PostPackageCollection callback")
 runCallback('PostPackageCollection', env=baseEnv, registry=packageRegistry)
 
@@ -912,7 +969,12 @@ class TargetMaker:
             if not GetOption('ignore-missing'):
                 raise
             logger.warning(
-                '{0}, ignoring...'.format(e),
+                '{0} (referenced by [{1}]), ignoring as requested'.format(
+                    e,
+                    generateFulltargetname(
+                        packagename,
+                        targetname)
+                ),
                 exc_info=False)
 
     def createTargetEnv(self, targetname, targetBuildSettings, envVars={}):
@@ -1054,12 +1116,13 @@ def createTargets(packagename, buildSettings):
 
 baseEnv.lookup_list.append(packageRegistry.lookup)
 
+logger.info("Loading packages and their targets ...")
 # we need to define the targets before entering the build phase:
 try:
     def tryLoadPackage(packagename, targetname=None):
         try:
             packageRegistry.loadPackage(packagename)
-        except DistributionNotFound as e:
+        except ResolutionError as e:
             if not GetOption('ignore-missing'):
                 raise
             logger.warning(
@@ -1103,8 +1166,9 @@ try:
         for packagename in packageRegistry.getPackageNames():
             tryLoadPackage(packagename)
 
-except (PackageNotFound, PackageTargetNotFound) as e:
-    logger.error('{0}'.format(e), exc_info=True)
+except (PackageNotFound, PackageTargetNotFound, PackageRequirementsNotFulfilled) as e:
+    if not isinstance(e, PackageRequirementsNotFulfilled):
+        logger.error('{0}'.format(e), exc_info=True)
     if not GetOption('help'):
         raise SCons.Errors.UserError(
             '{0}, build aborted!'.format(e))
