@@ -45,7 +45,9 @@ addCallbackFeature(__name__)
 SCons.Script.EnsureSConsVersion(1, 3, 0)
 SCons.Script.EnsurePythonVersion(2, 6)
 
-from pkg_resources import get_distribution as pkg_get_dist
+from pkg_resources import get_distribution as pkg_get_dist,\
+    DistributionNotFound
+
 try:
     sconsider_package_info = pkg_get_dist('sconsider')
     logger.info("{0} version {1}".format(sconsider_package_info.project_name,
@@ -1061,6 +1063,21 @@ baseEnv.lookup_list.append(packageRegistry.lookup)
 
 # we need to define the targets before entering the build phase:
 try:
+    def tryLoadPackage(packagename, targetname=None):
+        try:
+            packageRegistry.loadPackage(packagename)
+        except DistributionNotFound as e:
+            if not GetOption('ignore-missing'):
+                raise
+            logger.warning(
+                'ignoring target [{0}]'
+                ' because of missing requirements [{1}]'.format(
+                    generateFulltargetname(
+                        packagename,
+                        targetname),
+                    e.message),
+                exc_info=False)
+
     try:
         buildtargets = SCons.Script.BUILD_TARGETS
         if not buildtargets:
@@ -1083,19 +1100,21 @@ try:
 
         for ftname in buildtargets:
             packagename, targetname = splitTargetname(ftname)
-            packageRegistry.loadPackage(packagename)
+            tryLoadPackage(packagename, targetname)
 
     except PackageNotFound as e:
-        logger.info(
-            'loading all SConscript files to find target',
+        logger.warning(
+            '{0}, loading all packages to find potential alias target'.format(
+                e),
             exc_info=False)
         for packagename in packageRegistry.getPackageNames():
-            packageRegistry.loadPackage(packagename)
+            tryLoadPackage(packagename)
 
 except (PackageNotFound, PackageTargetNotFound) as e:
     logger.error('Missing target or package', exc_info=True)
     if not GetOption('help'):
-        raise SCons.Errors.UserError('Build aborted, missing dependency!')
+        raise SCons.Errors.UserError(
+            'Build aborted, missing target or dependency!')
 
 runCallback(
     "PreBuild",
