@@ -12,7 +12,7 @@ CHANGES = codecs.open(
         'CHANGES.txt'),
     encoding='utf8').read()
 
-with codecs.open(os.path.join(os.path.dirname(__file__), 'SConsider', 'version.py'),
+with codecs.open(os.path.join(os.path.dirname(__file__), 'SConsider', '__init__.py'),
                  encoding='utf8') as version_file:
     metadata = dict(
         re.findall(

@@ -30,6 +30,9 @@ from Logging import setup_logging
 from logging import getLogger
 from SCons.Tool import DefaultToolpath
 
+__author__ = "Marcel Huber <marcel.huber@hsr.ch>"
+__version__ = "0.3.1"
+
 _base_path = os.path.dirname(__file__)
 sys.path[:0] = [_base_path]
 
