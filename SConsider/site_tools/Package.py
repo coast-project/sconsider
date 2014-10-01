@@ -18,8 +18,9 @@ import re
 import os
 import optparse
 import functools
-import logging
 import SomeUtils
+from logging import getLogger
+logger = getLogger(__name__)
 
 packageAliasName = 'makepackage'
 
@@ -89,7 +90,7 @@ def copyTarget(env, destdir, node):
                 node):
             return None
         else:
-            logging.error(
+            logger.error(
                 "Ambiguous target [%s] copied from [%s] and [%s].\nCan't create package! See errors below...",
                 old[0].path,
                 node.path,

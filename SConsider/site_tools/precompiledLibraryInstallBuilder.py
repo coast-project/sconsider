@@ -23,9 +23,10 @@ import re
 import platform
 import shutil
 import stat
-import logging
 import SCons.Action
 import SCons.Builder
+from logging import getLogger
+logger = getLogger(__name__)
 
 
 def findPlatformTargets(env, basedir, targetname, prefixes=[], suffixes=[]):
@@ -169,7 +170,7 @@ def findLibrary(env, basedir, libname):
             (entry['suffix'] == env.subst(
                 env['LIBSUFFIX'])))
 
-    logging.error(
+    logger.warning(
         'library [%s] not available for this platform [%s] and bitwidth[%s]',
         libname,
         env['PLATFORM'],
@@ -189,7 +190,7 @@ def findBinary(env, basedir, binaryname):
         entry = files[0]
         return (entry['path'], entry['file'], entry['linkfile'])
 
-    logging.error(
+    logger.warning(
         'binary [%s] not available for this platform [%s] and bitwidth[%s]',
         binaryname,
         env['PLATFORM'],

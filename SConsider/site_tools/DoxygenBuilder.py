@@ -2,7 +2,8 @@ from __future__ import with_statement
 import os
 import subprocess
 import re
-import logging
+from logging import getLogger
+logger = getLogger(__name__)
 
 
 def __getDependencies(registry, packagename, fnobj, recursive=False):
@@ -191,7 +192,7 @@ def parseDoxyfileContent(file_content, env, include_basepath=None):
             try:
                 token = env[token[2:token.find(")")]]
             except KeyError:
-                logging.error(
+                logger.error(
                     "Variable %s used in Doxygen file is not in environment!",
                     token)
                 token = ""

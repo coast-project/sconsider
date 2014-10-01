@@ -19,9 +19,10 @@ import os
 import optparse
 import functools
 import fnmatch
-import logging
 import SomeUtils
 import SCons
+from logging import getLogger
+logger = getLogger(__name__)
 
 thirdDartyPackages = {}
 
@@ -116,8 +117,8 @@ def prepareLibraries(env, registry, **kw):
         libpath = SCons.Script.GetOption('with-src-' + packagename)
         if libpath:
             if 'src' not in package:
-                logging.error(
-                    'Third party source distribution definition for {0} not found, aborting!'.format(packagename))
+                logger.error(
+                    'Source distribution definition for {0} not found, aborting!'.format(packagename))
                 SCons.Script.Exit(1)
             registerDist(
                 registry,
@@ -130,8 +131,8 @@ def prepareLibraries(env, registry, **kw):
             distpath = SCons.Script.GetOption('with-bin-' + packagename)
             if distpath:
                 if 'bin' not in package:
-                    logging.error(
-                        'Third party binary distribution definition for {0} not found, aborting!'.format(packagename))
+                    logger.error(
+                        'Binary distribution definition for {0} not found, aborting!'.format(packagename))
                     SCons.Script.Exit(1)
                 registerDist(
                     registry,
@@ -142,8 +143,8 @@ def prepareLibraries(env, registry, **kw):
                     False)
             else:
                 if 'sys' not in package:
-                    logging.error(
-                        'Third party system definition for {0} not found, aborting!'.format(packagename))
+                    logger.error(
+                        'System definition for {0} not found, aborting!'.format(packagename))
                     SCons.Script.Exit(1)
                 path = SCons.Script.GetOption('with-' + packagename)
                 if path:

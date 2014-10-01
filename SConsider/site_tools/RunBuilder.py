@@ -25,13 +25,15 @@ import optparse
 import sys
 import functools
 import re
-import logging
 import SCons.Action
 import SCons.Builder
 import SCons.Script
 from SCons.Script import AddOption, GetOption
 import SConsider
 import Callback
+from logging import getLogger
+logger = getLogger(__name__)
+
 Callback.addCallbackFeature(__name__)
 
 runtargets = {}
@@ -153,7 +155,7 @@ def execute(command, env):
 
 def doTest(target, source, env):
     if '__SKIP_TEST__' in env:
-        logging.info('Test skipped: %s', str(env['__SKIP_TEST__']))
+        logger.info('Test skipped: %s', str(env['__SKIP_TEST__']))
         return 0
 
     res = execute(source[0].abspath, env)

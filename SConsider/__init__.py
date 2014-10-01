@@ -678,8 +678,12 @@ scanDirs = filter(
     lambda dir: os.path.isdir(dir) and dir not in dirExcludesTop,
     os.listdir(
         Dir('#').path))
+
+logger.debug("calling PrePackageCollection callback")
 runCallback('PrePackageCollection', env=baseEnv, directories=scanDirs)
+logger.info("Collecting .sconsider packages")
 packageRegistry = PackageRegistry(baseEnv, scanDirs, dirExcludes)
+logger.debug("calling PostPackageCollection callback")
 runCallback('PostPackageCollection', env=baseEnv, registry=packageRegistry)
 
 

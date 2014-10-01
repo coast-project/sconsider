@@ -14,16 +14,17 @@ Collection of slightly extended or tailored *Servers mainly used for testing
 # -------------------------------------------------------------------------
 import socket
 import os
-import logging
 from SocketServer import BaseServer, TCPServer, BaseRequestHandler
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 from OpenSSL import SSL, crypto
 from smtpd import SMTPServer
+from logging import getLogger
+logger = getLogger(__name__)
+
+
 # creating an SSL enabled HTTPServer
 # see http://code.activestate.com/recipes/442473/
-
-
 class SecureHTTPServer(HTTPServer):
     allow_reuse_address = True
 
@@ -141,4 +142,4 @@ class SMTPFileSinkServer(SMTPServer):
             f.write(text + "\n")
             f.close()
         else:
-            logging.info(text)
+            logger.info(text)
