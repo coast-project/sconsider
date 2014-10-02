@@ -34,7 +34,8 @@ from Logging import setup_logging
 from logging import getLogger
 from SCons.Tool import DefaultToolpath
 
-sys.path[:0] = [os.path.dirname(__file__)]
+sconsider_base_path = os.path.dirname(__file__)
+sys.path[:0] = [sconsider_base_path]
 
 setup_logging(os.path.join(os.path.dirname(__file__), 'logging.yaml'))
 logger = getLogger(__name__)
@@ -43,6 +44,14 @@ addCallbackFeature(__name__)
 
 SCons.Script.EnsureSConsVersion(1, 3, 0)
 SCons.Script.EnsurePythonVersion(2, 6)
+
+from pkg_resources import get_distribution as pkg_get_dist
+try:
+    sconsider_package_info = pkg_get_dist('sconsider')
+    logger.info("{0} version {1}".format(sconsider_package_info.project_name,
+                                         sconsider_package_info.version))
+except:
+    pass
 
 for platform_func in [platform.dist,
                       platform.architecture,

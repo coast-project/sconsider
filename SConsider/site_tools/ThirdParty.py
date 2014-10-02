@@ -158,8 +158,9 @@ def prepareLibraries(env, registry, **kw):
 
 def generate(env):
     import SCons.Script
-    import SConsider
-    siteDefault3rdparty = 'site_scons/3rdparty'
+    from SConsider import sconsider_base_path, registerCallback
+    siteDefault3rdparty = os.path.join(sconsider_base_path,
+                                       '3rdparty')
     SCons.Script.AddOption(
         '--3rdparty',
         dest='3rdparty',
@@ -168,7 +169,7 @@ def generate(env):
         help='Specify base directory containing package files for third party libraries, default=["' +
         siteDefault3rdparty +
         '"]')
-    SConsider.registerCallback('PostPackageCollection', prepareLibraries)
+    registerCallback('PostPackageCollection', prepareLibraries)
 
 
 def exists(env):
