@@ -69,16 +69,30 @@ for platform_func in [platform.dist,
     if func_value:
         logger.debug("platform.%s: %s", platform_func.__name__, func_value)
 
+_baseout_dir_default = '#'
+
+globaltools = [
+    "setupBuildTools",
+    "coast_options",
+    "TargetPrinter",
+    "precompiledLibraryInstallBuilder",
+    "RunBuilder",
+    "DoxygenBuilder",
+    "SystemLibsInstallBuilder",
+    "Package",
+    "SubstInFileBuilder",
+    "ThirdParty"]
+
 AddOption(
     '--baseoutdir',
     dest='baseoutdir',
     action='store',
     nargs=1,
     type='string',
-    default='#',
+    default=_baseout_dir_default,
     metavar='DIR',
-    help='Directory containing packages superseding installed ones. Relative\
- paths not supported!')
+    help='Directory to store build target files. Helps keeping your source\
+ directory clean, default="' + Dir(_baseout_dir_default).abspath + '"')
 AddOption(
     '--exclude',
     dest='exclude',
@@ -87,7 +101,8 @@ AddOption(
     type='string',
     default=[],
     metavar='DIR',
-    help='Directory containing a SConscript file that should be ignored.')
+    help='Ignore sconsider files within this directory and its\
+ subdirectories.')
 AddOption(
     '--usetool',
     dest='usetools',
@@ -96,7 +111,8 @@ AddOption(
     type='string',
     default=[],
     metavar='VAR',
-    help='tools to use when constructing default environment')
+    help='SCons tools to use for constructing the default environment. Default\
+ tools are %s' % Flatten(globaltools))
 AddOption(
     '--appendPath',
     dest='appendPath',
@@ -104,7 +120,7 @@ AddOption(
     nargs=1,
     type='string',
     metavar='DIR',
-    help='Directory to append to PATH environment variable.')
+    help='Append this directory to the PATH environment variable.')
 AddOption(
     '--prependPath',
     dest='prependPath',
@@ -112,12 +128,12 @@ AddOption(
     nargs=1,
     type='string',
     metavar='DIR',
-    help='Directory to prepend to PATH environment variable.')
+    help='Prepend this directory to the PATH environment variable.')
 AddOption(
     '--ignore-missing',
     dest='ignore-missing',
     action='store_true',
-    help='Ignore missing dependencies instead of failing the whole build.')
+    help='Ignore missing dependencies instead of failing the build.')
 
 baseoutdir = Dir(GetOption('baseoutdir'))
 logger.info('base output dir [%s]', baseoutdir.abspath)
@@ -317,19 +333,8 @@ if GetOption('appendPath'):
     dEnv.AppendENVPath('PATH', GetOption('appendPath'))
     logger.debug('appended path is [%s]' % dEnv['ENV']['PATH'])
 
-globaltools = [
-    "setupBuildTools",
-    "coast_options",
-    "TargetPrinter",
-    "precompiledLibraryInstallBuilder",
-    "RunBuilder",
-    "DoxygenBuilder",
-    "SystemLibsInstallBuilder",
-    "Package",
-    "SubstInFileBuilder",
-    "ThirdParty"]
 usetools = globaltools + GetOption('usetools')
-logger.debug('tools to use %s', Flatten(usetools))
+logger.debug('tools in use %s', Flatten(usetools))
 
 # insert the site_tools path for our own tools
 DefaultToolpath.insert(

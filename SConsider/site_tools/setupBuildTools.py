@@ -55,7 +55,7 @@ def generate(env, **kw):
             type='string',
             default=None,
             metavar='PATH',
-            help='fully qualified path and name to gnu g++ compiler')
+            help='Fully qualified path and name to gnu g++ compiler')
         AddOption(
             '--with-cc',
             dest='whichcc',
@@ -64,7 +64,7 @@ def generate(env, **kw):
             type='string',
             default=None,
             metavar='PATH',
-            help='fully qualified path and name to gnu gcc compiler')
+            help='Fully qualified path and name to gnu gcc compiler')
         bitchoices = ['32', '64']
         bitdefault = '32'
         AddOption(

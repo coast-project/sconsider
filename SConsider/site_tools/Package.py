@@ -165,7 +165,10 @@ def generate(env):
             dest='package',
             action='store',
             default='',
-            help='Specify the destination directory')
+            help='Destination base directory for target specific files. Target\
+ files will be put into a subdirectory named <packagename>. If a specific\
+ package target is specified, the subdirectory will be named <packagename>.\
+ <targetname>.')
     except optparse.OptionConflictError:
         raise PackageToolException("Only one Package-Tool instance allowed")
 

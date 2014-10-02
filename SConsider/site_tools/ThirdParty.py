@@ -181,9 +181,8 @@ def generate(env):
         dest='3rdparty',
         action='append',
         default=[siteDefault3rdparty],
-        help='Specify base directory containing package files for third party libraries, default=["' +
-        siteDefault3rdparty +
-        '"]')
+        help='Specify directory containing package files for third party\
+ libraries, default=["' + siteDefault3rdparty + '"]')
     registerCallback('PostPackageCollection', prepareLibraries)
 
 

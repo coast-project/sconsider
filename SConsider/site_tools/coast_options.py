@@ -29,7 +29,8 @@ def generate(env, **kw):
             '--enable-Trace',
             dest='Trace',
             action='store_true',
-            help='Compile enabling trace support, (StartTrace, Trace,...), see Tracer.h for details')
+            help='Enable trace support by defining COAST_TRACE, (StartTrace,\
+ Trace,...), see Tracer.h for details')
         import socket
         envconfigdir_default = socket.gethostname()
         AddOption(
@@ -39,9 +40,11 @@ def generate(env, **kw):
             nargs=1,
             type='string',
             default=envconfigdir_default,
-            help='Define directory name to use for location dependent files, default [' +
-            envconfigdir_default +
-            ']. When a config file gets copied and a corresponding file exists below this directory, it will get used instead of the original one. This allows to define configuration settings appropriate for the current environment.')
+            help='Define directory name to use for location dependent files,\
+ default [' + envconfigdir_default + ']. When a config file gets copied and\
+ a corresponding file exists below this directory, it will get used instead\
+ of the original one. This allows to define configuration settings appropriate\
+ for the current environment.')
 
     buildflags = []
     buildmode = GetOption('buildcfg')
