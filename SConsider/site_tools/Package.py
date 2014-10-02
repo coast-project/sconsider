@@ -116,7 +116,7 @@ def isInstalledNode(testnode, node):
 
 def filterBaseOutDir(path, **kw):
     if not path or not path.startswith(os.sep):
-        return
+        return ''
     basedirprefix = kw.get('env', {}).get('BASEOUTDIR', False).abspath
     replist = [('^' + basedirprefix + os.sep + '?', ''),
                ]
@@ -125,7 +125,7 @@ def filterBaseOutDir(path, **kw):
 
 def filterTestsAppsGlobalsPath(path, **kw):
     if not path:
-        return
+        return ''
     replist = [('^tests' + os.sep + '[^' + os.sep + ']*' + os.sep + '?', ''),
                ('^apps' + os.sep + '[^' + os.sep + ']*' + os.sep + '?', ''),
                ('^globals' + os.sep + '[^' + os.sep + ']*' + os.sep + '?', '')]
@@ -134,7 +134,7 @@ def filterTestsAppsGlobalsPath(path, **kw):
 
 def filterVariantPath(path, **kw):
     if not path:
-        return
+        return ''
     variant = kw.get('env', {}).get('VARIANTDIR', False)
     if not variant:
         return path
