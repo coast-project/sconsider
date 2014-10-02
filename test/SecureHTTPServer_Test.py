@@ -6,6 +6,8 @@ import unittest
 import socket
 import urllib
 import Queue
+import os
+
 
 class StartStopMixin(object):
 
@@ -43,9 +45,14 @@ class StoppableHttpServer(StartStopMixin, SecureHTTPServer):
                 self.wfile = socket._fileobject(self.request, "wb", self.wbufsize)
 
         self.bucket = bucket
-        SecureHTTPServer.__init__(self, addr, SecureHTTPRequestHandler, "test/server.pem", "test/server.pem")
+        pem_file_name = os.path.join(os.path.dirname(__file__), "server.pem")
+        SecureHTTPServer.__init__(
+            self,
+            addr,
+            SecureHTTPRequestHandler,
+            pem_file_name,
+            pem_file_name)
         StartStopMixin.__init__(self, poll_interval)
-
 
     def process_request(self, request, client_address):
         try:
