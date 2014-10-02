@@ -1,8 +1,26 @@
 import os
-import logging.config
+import logging
 import yaml
+import re
 
-def setup_logging(default_path='logging.yaml', default_level=logging.INFO, env_key='LOG_CFG', capture_warnings=True):
+"""Work around missing dictConfig in python < 2.7
+http://www.calazan.com/how-to-configure-the-logging-module-using-dictionaries-in-python-2-6/
+"""
+try:
+    from logging.config import dictConfig as from_dictConfig
+    from logging import captureWarnings
+except:
+    from dictconfig import dictConfig as from_dictConfig
+
+    def captureWarnings(arg):
+        pass
+
+
+def setup_logging(
+        default_path='logging.yaml',
+        default_level=logging.WARNING,
+        env_key='LOG_CFG',
+        capture_warnings=True):
     """Setup logging configuration
     Based on http://victorlin.me/posts/2012/08/good-logging-practice-in-python/
     """
@@ -13,7 +31,20 @@ def setup_logging(default_path='logging.yaml', default_level=logging.INFO, env_k
     if os.path.exists(path):
         with open(path, 'rt') as f:
             config = yaml.load(f.read())
-        logging.config.dictConfig(config)
+        from_dictConfig(config)
     else:
         logging.basicConfig(level=default_level)
-    logging.captureWarnings(capture_warnings)
+    captureWarnings(capture_warnings)
+
+
+class RegexFilter(logging.Filter):
+
+    def __init__(self, pattern=None, flags=0):
+        self.compiled = None
+        if pattern:
+            self.compiled = re.compile(pattern, flags)
+
+    def filter(self, record):
+        if not self.compiled:
+            return True
+        return not self.compiled.match(record.getMessage())

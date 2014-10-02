@@ -9,6 +9,16 @@ formatters:
     detailed:
         format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
+filters:
+    filterLookup:
+        '()': SConsider.Logging.RegexFilter
+        pattern: "^looking up"
+        flags: 0
+    filterExecuting:
+        '()': SConsider.Logging.RegexFilter
+        pattern: "^executing \\["
+        flags: 0
+
 handlers:
     console:
         class: logging.StreamHandler
@@ -39,8 +49,14 @@ loggers:
         level: INFO
         handlers: [console]
         propagate: no
+        filters: [filterLookup, filterExecuting]
 
     setupBuildTools:
+        level: INFO
+        handlers: [console]
+        propagate: no
+
+    coast_options:
         level: INFO
         handlers: [console]
         propagate: no
