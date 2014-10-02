@@ -1,10 +1,12 @@
-#-----------------------------------------------------------------------------------------------------
-# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# -------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
 # All rights reserved.
 #
-# This library/application is free software; you can redistribute and/or modify it under the terms of
-# the license that is included with this library/application in the file license.txt.
-#-----------------------------------------------------------------------------------------------------
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
 import SConsider
 
 Import('*')
@@ -18,12 +20,12 @@ env = conf.Finish()
 buildSettings = {}
 if 'HAS_IPLANETLDAP' in env['CPPDEFINES']:
     buildSettings[packagename] = {
-        'linkDependencies' : [packagename + '.ldap50'],
+        'linkDependencies': [packagename + '.ldap50'],
     }
     buildSettings['ldap50'] = {
-        'public' : {
-            'appendUnique'     : {
-                'LIBS'         : ['ldap50'],
+        'public': {
+            'appendUnique': {
+                'LIBS': ['ldap50'],
             },
         },
     }

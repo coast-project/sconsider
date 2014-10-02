@@ -1,37 +1,41 @@
-#-----------------------------------------------------------------------------------------------------
-# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# -------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
 # All rights reserved.
 #
-# This library/application is free software; you can redistribute and/or modify it under the terms of
-# the license that is included with this library/application in the file license.txt.
-#-----------------------------------------------------------------------------------------------------
-import SConsider, ThirdParty
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
+import SConsider
 
 Import('*')
 
 buildSettings = {
-    'include' : {
-        'public' : {
+    'include': {
+        'public': {
             'includeSubdir': '',
         },
     },
-    'regex' : {
-        'targetType'       : 'LibraryShared',
-        'linkDependencies' : [
-            SConsider.generateFulltargetname(packagename, 'include'),  # used to pass public include dirs of boost
+    'regex': {
+        'targetType': 'LibraryShared',
+        'linkDependencies': [
+            # used to pass public include dirs of boost
+            SConsider.generateFulltargetname(packagename, 'include'),
         ],
-        'sourceFiles'      : SConsider.listFiles(['libs/regex/src/*.cpp']),
-#        'appendUnique'     : {
-#            'CPPDEFINES'   : ['BOOST_HAS_ICU=1'],
-#            'LIBS'         : ['icui18n','icuuc'],
-#        },
+        'sourceFiles': SConsider.listFiles(['libs/regex/src/*.cpp']),
+        # 'appendUnique'     : {
+        #     'CPPDEFINES'   : ['BOOST_HAS_ICU=1'],
+        #     'LIBS'         : ['icui18n','icuuc'],
+        # },
     },
-    'system' : {
-        'targetType'       : 'LibraryShared',
-        'linkDependencies' : [
-            SConsider.generateFulltargetname(packagename, 'include'),  # used to pass public include dirs of boost
+    'system': {
+        'targetType': 'LibraryShared',
+        'linkDependencies': [
+            # used to pass public include dirs of boost
+            SConsider.generateFulltargetname(packagename, 'include'),
         ],
-        'sourceFiles'      : SConsider.listFiles(['libs/system/src/*.cpp']),
+        'sourceFiles': SConsider.listFiles(['libs/system/src/*.cpp']),
     },
 }
 

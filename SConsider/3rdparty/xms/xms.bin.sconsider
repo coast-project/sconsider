@@ -1,73 +1,76 @@
-#-----------------------------------------------------------------------------------------------------
-# Copyright (c) 2012, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# -------------------------------------------------------------------------
+# Copyright (c) 2012, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
 # All rights reserved.
 #
-# This library/application is free software; you can redistribute and/or modify it under the terms of
-# the license that is included with this library/application in the file license.txt.
-#-----------------------------------------------------------------------------------------------------
-import SConsider, ThirdParty, os
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
+import SConsider
+import ThirdParty
 from stat import *
 
 Import('*')
 
 buildSettings = {
-    packagename : {
-        'linkDependencies' : [
-            packagename+'.gxi',
-            packagename+'.gxibasicmatch',
-            packagename+'.gxical',
-            packagename+'.gxiosa',
-            packagename+'.gxiplugin',
-            packagename+'.gxiwmqmsg',
-            packagename+'.gxiwmqprot',
-            packagename+'.gxixil',
-            packagename+'.icudata',
-            packagename+'.icuuc',
+    packagename: {
+        'linkDependencies': [
+            packagename + '.gxi',
+            packagename + '.gxibasicmatch',
+            packagename + '.gxical',
+            packagename + '.gxiosa',
+            packagename + '.gxiplugin',
+            packagename + '.gxiwmqmsg',
+            packagename + '.gxiwmqprot',
+            packagename + '.gxixil',
+            packagename + '.icudata',
+            packagename + '.icuuc',
         ],
-        'targetType'       : 'IncludeOnly',
-        'public' : {
+        'targetType': 'IncludeOnly',
+        'public': {
             'includeSubdir': 'inc',
         }
     },
-    'gxi' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('gxi')],
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    'gxi': {
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('gxi')],
+        'targetType': 'PrecompiledLibraryInstallBuilder',
     },
-    'gxibasicmatch' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('gxibasicmatch')],
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    'gxibasicmatch': {
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('gxibasicmatch')],
+        'targetType': 'PrecompiledLibraryInstallBuilder',
     },
-    'gxical' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('gxical')],
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    'gxical': {
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('gxical')],
+        'targetType': 'PrecompiledLibraryInstallBuilder',
     },
-    'gxiosa' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('gxiosa')],
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    'gxiosa': {
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('gxiosa')],
+        'targetType': 'PrecompiledLibraryInstallBuilder',
     },
-    'gxiplugin' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('gxiplugin')],
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    'gxiplugin': {
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('gxiplugin')],
+        'targetType': 'PrecompiledLibraryInstallBuilder',
     },
-    'gxiwmqprot' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('gxiwmqprot')],
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    'gxiwmqprot': {
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('gxiwmqprot')],
+        'targetType': 'PrecompiledLibraryInstallBuilder',
     },
-    'gxiwmqmsg' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('gxiwmqmsg')],
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    'gxiwmqmsg': {
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('gxiwmqmsg')],
+        'targetType': 'PrecompiledLibraryInstallBuilder',
     },
-    'gxixil' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('gxixil')],
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    'gxixil': {
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('gxixil')],
+        'targetType': 'PrecompiledLibraryInstallBuilder',
     },
-    'icudata' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('icudata')],
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    'icudata': {
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('icudata')],
+        'targetType': 'PrecompiledLibraryInstallBuilder',
     },
-    'icuuc' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('icuuc')],
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    'icuuc': {
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('icuuc')],
+        'targetType': 'PrecompiledLibraryInstallBuilder',
     },
 }
 

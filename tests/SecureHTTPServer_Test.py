@@ -41,8 +41,14 @@ class StoppableHttpServer(StartStopMixin, SecureHTTPServer):
 
             def setup(self):
                 self.connection = self.request
-                self.rfile = socket._fileobject(self.request, "rb", self.rbufsize)
-                self.wfile = socket._fileobject(self.request, "wb", self.wbufsize)
+                self.rfile = socket._fileobject(
+                    self.request,
+                    "rb",
+                    self.rbufsize)
+                self.wfile = socket._fileobject(
+                    self.request,
+                    "wb",
+                    self.wbufsize)
 
         self.bucket = bucket
         pem_file_name = os.path.join(os.path.dirname(__file__), "server.pem")
@@ -64,7 +70,8 @@ class StoppableHttpServer(StartStopMixin, SecureHTTPServer):
         try:
             self.shutdown_request(request)
         except:
-            import exceptions, sys
+            import exceptions
+            import sys
             (etype,) = sys.exc_info()[:2]
             if etype is TypeError:
                 self.bucket.put(sys.exc_info())
@@ -93,10 +100,10 @@ class SecureHTTPServerTest(unittest.TestCase):
             exc = self.bucket.get(block=True, timeout=1)
             exc_type, exc_obj, exc_trace = exc
             if exc_type is TypeError:
-                self.fail("Python 2.7 requires no arguments for request.shutdown")
+                self.fail(
+                    "Python 2.7 requires no arguments for request.shutdown")
         except Queue.Empty:
             pass
 
     def tearDown(self):
         self.shttpd.stop()
-

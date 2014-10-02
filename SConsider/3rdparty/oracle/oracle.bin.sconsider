@@ -1,75 +1,78 @@
-#-----------------------------------------------------------------------------------------------------
-# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# -------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
 # All rights reserved.
 #
-# This library/application is free software; you can redistribute and/or modify it under the terms of
-# the license that is included with this library/application in the file license.txt.
-#-----------------------------------------------------------------------------------------------------
-import SConsider, ThirdParty, os
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
+import SConsider
+import ThirdParty
 
 Import('*')
 
 buildSettings = {}
 
 buildSettings = {
-    packagename : {
-        'linkDependencies' : [
+    packagename: {
+        'linkDependencies': [
             packagename + '.nnz',
             packagename + '.clntsh',
         ],
-        'requires' : [
+        'requires': [
             packagename + '.ociicus',
         ],
-        'targetType'       : 'IncludeOnly',
-        'public' : {
+        'targetType': 'IncludeOnly',
+        'public': {
             'includeSubdir': 'include',
-        }
-    },
-    'occi' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('occi')],
-        'libVersion'       : '.11.1',
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
-    },
-    'clntsh' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('clntsh')],
-        'libVersion'       : '.11.1',
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
-    },
-    'nnz' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('nnz11')],
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
-    },
-    'ociicus' : {  # us language support library
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('ociicus')],
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
-    },
-    'ociei' : {  # oci library supporting all character sets
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('ociei')],
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
-    },
-    'libsqlplus' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('sqlplus')],
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
-    },
-    'libsqlplusic' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('sqlplusic')],
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
-    },
-    'sqlplusbin' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('sqlplus')],
-        'targetType'       : 'PrecompiledBinary',
-    },
-    'sqlplus' : {
-        'targetType'       : 'ProgramApp',
-        'runConfig' : {
         },
-        'requires' : [
+    },
+    'occi': {
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('occi')],
+        'libVersion': '.11.1',
+        'targetType': 'PrecompiledLibraryInstallBuilder',
+    },
+    'clntsh': {
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('clntsh')],
+        'libVersion': '.11.1',
+        'targetType': 'PrecompiledLibraryInstallBuilder',
+    },
+    'nnz': {
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('nnz11')],
+        'targetType': 'PrecompiledLibraryInstallBuilder',
+    },
+    'ociicus': {  # us language support library
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('ociicus')],
+        'targetType': 'PrecompiledLibraryInstallBuilder',
+    },
+    'ociei': {  # oci library supporting all character sets
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('ociei')],
+        'targetType': 'PrecompiledLibraryInstallBuilder',
+    },
+    'libsqlplus': {
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('sqlplus')],
+        'targetType': 'PrecompiledLibraryInstallBuilder',
+    },
+    'libsqlplusic': {
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('sqlplusic')],
+        'targetType': 'PrecompiledLibraryInstallBuilder',
+    },
+    'sqlplusbin': {
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('sqlplus')],
+        'targetType': 'PrecompiledBinary',
+    },
+    'sqlplus': {
+        'targetType': 'ProgramApp',
+        'runConfig': {
+        },
+        'requires': [
             packagename + '.' + packagename,
             packagename + '.libsqlplus',
             packagename + '.libsqlplusic',
         ],
-        'usedTarget'       : packagename + '.sqlplusbin',
-    }
+        'usedTarget': packagename + '.sqlplusbin',
+    },
 }
 
 SConsider.createTargets(packagename, buildSettings)

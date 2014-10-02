@@ -1,18 +1,22 @@
-"""site_scons.Callback
+"""SConsider.Callback.
 
 Provide callback function support
 
 """
-#-----------------------------------------------------------------------------------------------------
-# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# -------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
 # All rights reserved.
 #
-# This library/application is free software; you can redistribute and/or modify it under the terms of
-# the license that is included with this library/application in the file license.txt.
-#-----------------------------------------------------------------------------------------------------
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
 import sys
 
+
 class Callback(object):
+
     def __init__(self):
         self.callbacks = {}
 
@@ -24,6 +28,7 @@ class Callback(object):
         for func, kw in self.callbacks.get(signalname, []):
             kw.update(overrides)
             func(**kw)
+
 
 def addCallbackFeature(modulename):
     callback = Callback()

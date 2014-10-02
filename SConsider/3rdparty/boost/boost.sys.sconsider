@@ -1,10 +1,12 @@
-#-----------------------------------------------------------------------------------------------------
-# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# -------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
 # All rights reserved.
 #
-# This library/application is free software; you can redistribute and/or modify it under the terms of
-# the license that is included with this library/application in the file license.txt.
-#-----------------------------------------------------------------------------------------------------
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
 import SConsider
 
 Import('*')
@@ -15,7 +17,10 @@ if conf.CheckCXXHeader('boost/version.hpp'):
     conf.env.Append(CPPDEFINES='HAS_BOOST')
 if conf.CheckLibWithHeader('boost_regex', 'boost/regex.h', 'CXX'):
     conf.env.Append(CPPDEFINES='HAS_BOOST_REGEX')
-if conf.CheckLibWithHeader('boost_system', 'boost/system/error_code.hpp', 'CXX'):
+if conf.CheckLibWithHeader(
+        'boost_system',
+        'boost/system/error_code.hpp',
+        'CXX'):
     conf.env.Append(CPPDEFINES='HAS_BOOST_SYSTEM')
 env = conf.Finish()
 
@@ -26,18 +31,18 @@ if 'HAS_BOOST' in env['CPPDEFINES']:
 
 if 'HAS_BOOST_REGEX' in env['CPPDEFINES']:
     buildSettings['regex'] = {
-        'public' : {
-            'appendUnique'     : {
-                'LIBS'         : ['boost_regex'],
+        'public': {
+            'appendUnique': {
+                'LIBS': ['boost_regex'],
             },
         },
     }
 
 if 'HAS_BOOST_SYSTEM' in env['CPPDEFINES']:
     buildSettings['system'] = {
-        'public' : {
-            'appendUnique'     : {
-                'LIBS'         : ['boost_system'],
+        'public': {
+            'appendUnique': {
+                'LIBS': ['boost_system'],
             },
         },
     }

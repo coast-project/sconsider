@@ -1,21 +1,26 @@
-"""site_scons.site_tools.SCBWriter
+"""SConsider.site_tools.SCBWriter.
 
-Tool to generate settings files to use with SconsBuilder plugin by Lothar Werzinger
+Tool to generate settings files to use with SconsBuilder plugin by
+Lothar Werzinger
 
 """
 
-#-----------------------------------------------------------------------------------------------------
-# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# -------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
 # All rights reserved.
 #
-# This library/application is free software; you can redistribute and/or modify it under the terms of
-# the license that is included with this library/application in the file license.txt.
-#-----------------------------------------------------------------------------------------------------
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
 
 from __future__ import with_statement
-import os, re
+import os
+import re
 from SCons.Script import Dir
 import SConsider
+
 
 def writeSCB(registry, packagename, buildSettings, **kw):
     includeDirs = set()
@@ -50,8 +55,10 @@ def writeSCB(registry, packagename, buildSettings, **kw):
         with open(fname, 'a+') as of:
             of.write(pathstring)
 
+
 def generate(env):
     SConsider.registerCallback("PostCreatePackageTargets", writeSCB)
 
+
 def exists(env):
-   return 1
+    return 1

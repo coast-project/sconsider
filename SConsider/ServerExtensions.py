@@ -1,31 +1,45 @@
-"""site_scons.ServerExtensions
+"""SConsider.ServerExtensions.
 
 Collection of slightly extended or tailored *Servers mainly used for testing
 
 """
-#-----------------------------------------------------------------------------------------------------
-# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# -------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
 # All rights reserved.
 #
-# This library/application is free software; you can redistribute and/or modify it under the terms of
-# the license that is included with this library/application in the file license.txt.
-#-----------------------------------------------------------------------------------------------------
-import socket, os, logging
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
+import socket
+import os
+import logging
 from SocketServer import BaseServer, TCPServer, BaseRequestHandler
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 from OpenSSL import SSL, crypto
 from smtpd import SMTPServer
-# # creating an SSL enabled HTTPServer
-# # see http://code.activestate.com/recipes/442473/
+# creating an SSL enabled HTTPServer
+# see http://code.activestate.com/recipes/442473/
+
 
 class SecureHTTPServer(HTTPServer):
     allow_reuse_address = True
-    def __init__(self, server_address, HandlerClass, certFile=None, keyFile=None, caChainFile=None, sslContextMethod=SSL.SSLv23_METHOD, ciphers="ALL"):
+
+    def __init__(
+            self,
+            server_address,
+            HandlerClass,
+            certFile=None,
+            keyFile=None,
+            caChainFile=None,
+            sslContextMethod=SSL.SSLv23_METHOD,
+            ciphers="ALL"):
         BaseServer.__init__(self, server_address, HandlerClass)
         ctx = SSL.Context(sslContextMethod)
         if keyFile:
-            ctx.use_privatekey_file (keyFile)
+            ctx.use_privatekey_file(keyFile)
         if certFile:
             ctx.use_certificate_file(certFile)
         if certFile and keyFile:
@@ -35,18 +49,24 @@ class SecureHTTPServer(HTTPServer):
         ctx.set_timeout(60)
         if caChainFile:
             ctx.load_verify_locations(caChainFile)
-        self.socket = SSL.Connection(ctx, socket.socket(self.address_family, self.socket_type))
+        self.socket = SSL.Connection(
+            ctx,
+            socket.socket(
+                self.address_family,
+                self.socket_type))
         self.server_bind()
         self.server_activate()
-        import sys, OpenSSL
+        import sys
+        import OpenSSL
         if sys.version_info >= (2, 7):
-            pyOpensslVersion = tuple(int(t) for t in OpenSSL.__version__.split('.'))
+            pyOpensslVersion = tuple(int(t)
+                                     for t in OpenSSL.__version__.split('.'))
             noMemoryViewsBelow = (0, 12)
             import inspect
 
             if pyOpensslVersion < noMemoryViewsBelow:
                 raise SystemError(
-"""Please upgrade your pyopenssl version to at least 0.12
+                    """Please upgrade your pyopenssl version to at least 0.12
  as python2.7 is neither interface nor memory view compatible with older pyopenssl versions
 Checkout sources and install: bzr branch lp:pyopenssl pyopenssl/
 Check https://launchpad.net/pyopenssl for updates
@@ -56,7 +76,8 @@ Hint: Check your system for already installed python OpenSSL modules and rename/
 
 Aborting!""")
 
-    def shutdown_request(self, request):  # request is of type OpenSSL.SSL.Connection
+    # request is of type OpenSSL.SSL.Connection
+    def shutdown_request(self, request):
         # (Pdb) inspect.getargspec(OpenSSL.SSL.Connection.shutdown)
         #*** TypeError: <method 'shutdown' of 'OpenSSL.SSL.Connection' objects> is not a Python function
         # it doesn't work for C functions! see http://bugs.python.org/issue1748064
@@ -84,6 +105,7 @@ Aborting!""")
 
 
 class SecureHTTPRequestHandler(SimpleHTTPRequestHandler):
+
     def setup(self):
         self.connection = self.request
         self.rfile = socket._fileobject(self.request, "rb", self.rbufsize)

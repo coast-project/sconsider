@@ -1,18 +1,22 @@
-#-----------------------------------------------------------------------------------------------------
-# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# -------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
 # All rights reserved.
 #
-# This library/application is free software; you can redistribute and/or modify it under the terms of
-# the license that is included with this library/application in the file license.txt.
-#-----------------------------------------------------------------------------------------------------
-import SConsider, ThirdParty, os
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
+import SConsider
+import ThirdParty
+import os
 from stat import *
 
 Import('*')
 
 buildSettings = {
-    packagename : {
-        'linkDependencies' : [
+    packagename: {
+        'linkDependencies': [
             packagename + '.sybunic',
             packagename + '.sybcs',
             packagename + '.sybct',
@@ -20,58 +24,58 @@ buildSettings = {
             packagename + '.sybtcl',
             packagename + '.sybcomn',
         ],
-        'requires'         : [packagename + '.config'],
-        'targetType'       : 'IncludeOnly',
-        'public' : {
+        'requires': [packagename + '.config'],
+        'targetType': 'IncludeOnly',
+        'public': {
             'includeSubdir': 'include',
-        }
+        },
     },
     'config': {
-        'targetType'       : 'CopyFiles',
-        'copyFiles' : [
+        'targetType': 'CopyFiles',
+        'copyFiles': [
             (SConsider.listFiles(['config/*',
                                   'charsets/*',
                                   'locales/*'],
-                                  recursive=True), S_IRUSR|S_IRGRP|S_IROTH),
+                                 recursive=True), S_IRUSR | S_IRGRP | S_IROTH),
         ],
-        'appendUnique'     : { 'RELTARGETDIR' : os.path.join('globals', packagename) },
+        'appendUnique': {'RELTARGETDIR': os.path.join('globals', packagename)},
         'public': {
-            'execEnv' : {
+            'execEnv': {
                 'SYBASE': os.path.join('$BASEOUTDIR', '$RELTARGETDIR'),
-                'LANG'  : 'C',
+                'LANG': 'C',
             },
         },
     },
-    'sybunic' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('sybunic')],
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    'sybunic': {
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('sybunic')],
+        'targetType': 'PrecompiledLibraryInstallBuilder',
     },
-    'sybcs' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('sybcs')],
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    'sybcs': {
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('sybcs')],
+        'targetType': 'PrecompiledLibraryInstallBuilder',
     },
-    'sybct' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('sybct')],
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    'sybct': {
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('sybct')],
+        'targetType': 'PrecompiledLibraryInstallBuilder',
     },
-    'sybintl' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('sybintl')],
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    'sybintl': {
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('sybintl')],
+        'targetType': 'PrecompiledLibraryInstallBuilder',
     },
-    'sybtcl' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('sybtcl')],
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    'sybtcl': {
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('sybtcl')],
+        'targetType': 'PrecompiledLibraryInstallBuilder',
     },
-    'sybcomn' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('sybcomn')],
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    'sybcomn': {
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('sybcomn')],
+        'targetType': 'PrecompiledLibraryInstallBuilder',
     },
     'isql': {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('isql')],
-        'requires' : [
-            SConsider.generateFulltargetname(packagename,'config'),
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('isql')],
+        'requires': [
+            SConsider.generateFulltargetname(packagename, 'config'),
         ],
-        'targetType'       : 'PrecompiledBinary',
+        'targetType': 'PrecompiledBinary',
     },
 }
 

@@ -1,4 +1,4 @@
-"""site_scons.site_tools.default
+"""SConsider.site_tools.default.
 
 SConsider-specific default initialization tool - postpones SCons.Tool.default loading
 
@@ -6,19 +6,24 @@ SConsider-specific default initialization tool - postpones SCons.Tool.default lo
 
 """
 
-#-----------------------------------------------------------------------------------------------------
-# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# -------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
 # All rights reserved.
 #
-# This library/application is free software; you can redistribute and/or modify it under the terms of
-# the license that is included with this library/application in the file license.txt.
-#-----------------------------------------------------------------------------------------------------
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
 
 import SCons.Tool
 
+
 def generate(env):
-    """Postpone adding default tools, see setupBuildTools for implementation"""
+    """Postpone adding default tools, see setupBuildTools for
+    implementation."""
     pass
+
 
 def exists(env):
     return 1

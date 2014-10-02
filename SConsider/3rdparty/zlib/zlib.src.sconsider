@@ -1,18 +1,20 @@
-#-----------------------------------------------------------------------------------------------------
-# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# -------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
 # All rights reserved.
 #
-# This library/application is free software; you can redistribute and/or modify it under the terms of
-# the license that is included with this library/application in the file license.txt.
-#-----------------------------------------------------------------------------------------------------
-import SConsider, ThirdParty, SCons, os
-from SCons.Script import GetOption
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
+import SConsider
+from SCons.Script import File
 
 Import('*')
 
 buildSettings = {
-    packagename : {
-        'sourceFiles' : [
+    packagename: {
+        'sourceFiles': [
             File('adler32.c'),
             File('compress.c'),
             File('crc32.c'),
@@ -29,13 +31,13 @@ buildSettings = {
             File('uncompr.c'),
             File('zutil.c'),
         ],
-        'targetType'       : 'LibraryShared',
-        'appendUnique'     : {
+        'targetType': 'LibraryShared',
+        'appendUnique': {
         },
-        'public' : {
-            'includeSubdir' : '',
-        }
-    }
+        'public': {
+            'includeSubdir': '',
+        },
+    },
 }
 
 SConsider.createTargets(packagename, buildSettings)

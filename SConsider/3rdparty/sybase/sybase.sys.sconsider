@@ -1,18 +1,22 @@
-#-----------------------------------------------------------------------------------------------------
-# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# -------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
 # All rights reserved.
 #
-# This library/application is free software; you can redistribute and/or modify it under the terms of
-# the license that is included with this library/application in the file license.txt.
-#-----------------------------------------------------------------------------------------------------
-import SConsider, os
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
+import SConsider
+import os
 from stat import *
 
 Import('*')
 
 env = SConsider.cloneBaseEnv()
 conf = SConsider.Configure(env)
-if conf.CheckCHeader('sybdb.h') and conf.CheckMultipleLibs(['sybunic', 'sybcs', 'sybct', 'sybintl', 'sybtcl', 'sybcomn']):
+if conf.CheckCHeader('sybdb.h') and conf.CheckMultipleLibs(
+        ['sybunic', 'sybcs', 'sybct', 'sybintl', 'sybtcl', 'sybcomn']):
     conf.env.Append(CPPDEFINES='HAS_SYBASE')
 isqlbin = conf.CheckExecutable('isql')
 env = conf.Finish()
@@ -20,79 +24,80 @@ env = conf.Finish()
 buildSettings = {}
 if 'HAS_SYBASE' in env['CPPDEFINES']:
     buildSettings[packagename] = {
-            'linkDependencies' : [
-                packagename + '.sybunic',
-                packagename + '.sybcs',
-                packagename + '.sybct',
-                packagename + '.sybintl',
-                packagename + '.sybtcl',
-                packagename + '.sybcomn',
-            ],
-            'requires'         : [packagename + '.config'],
-            'targetType'       : 'IncludeOnly',
+        'linkDependencies': [
+            packagename + '.sybunic',
+            packagename + '.sybcs',
+            packagename + '.sybct',
+            packagename + '.sybintl',
+            packagename + '.sybtcl',
+            packagename + '.sybcomn',
+        ],
+        'requires': [packagename + '.config'],
+        'targetType': 'IncludeOnly',
     }
     buildSettings['config'] = {
-        'targetType'       : 'CopyFiles',
-        'copyFiles' : [
-            (SConsider.listFiles(['config/*','charsets/*','locales/*'], recursive=True), S_IRUSR|S_IRGRP|S_IROTH),
+        'targetType': 'CopyFiles',
+        'copyFiles': [
+            (SConsider.listFiles(
+                ['config/*', 'charsets/*', 'locales/*'], recursive=True), S_IRUSR | S_IRGRP | S_IROTH),
         ],
-        'appendUnique'     : { 'RELTARGETDIR' : os.path.join('globals', packagename) },
+        'appendUnique': {'RELTARGETDIR': os.path.join('globals', packagename)},
         'public': {
-            'execEnv' : {
+            'execEnv': {
                 'SYBASE': os.path.join('$BASEOUTDIR', '$RELTARGETDIR'),
-                'LANG'  : 'C',
+                'LANG': 'C',
             },
         },
     }
     buildSettings['sybunic'] = {
-        'public' : {
-            'appendUnique'     : {
-                'LIBS'         : ['sybunic'],
+        'public': {
+            'appendUnique': {
+                'LIBS': ['sybunic'],
             },
         },
     }
     buildSettings['sybcs'] = {
-        'public' : {
-            'appendUnique'     : {
-                'LIBS'         : ['sybcs'],
+        'public': {
+            'appendUnique': {
+                'LIBS': ['sybcs'],
             },
         },
     }
     buildSettings['sybct'] = {
-        'public' : {
-            'appendUnique'     : {
-                'LIBS'         : ['sybct'],
+        'public': {
+            'appendUnique': {
+                'LIBS': ['sybct'],
             },
         },
     }
     buildSettings['sybintl'] = {
-        'public' : {
-            'appendUnique'     : {
-                'LIBS'         : ['sybintl'],
+        'public': {
+            'appendUnique': {
+                'LIBS': ['sybintl'],
             },
         },
     }
     buildSettings['sybtcl'] = {
-        'public' : {
-            'appendUnique'     : {
-                'LIBS'         : ['sybtcl'],
+        'public': {
+            'appendUnique': {
+                'LIBS': ['sybtcl'],
             },
         },
     }
     buildSettings['sybcomn'] = {
-        'public' : {
-            'appendUnique'     : {
-                'LIBS'         : ['sybcomn'],
+        'public': {
+            'appendUnique': {
+                'LIBS': ['sybcomn'],
             },
         },
     }
     if isqlbin:
         buildSettings['isql'] = {
-            'sourceFiles'      : [isqlbin],
-            'requires' : [
-                SConsider.generateFulltargetname(packagename,'config'),
+            'sourceFiles': [isqlbin],
+            'requires': [
+                SConsider.generateFulltargetname(packagename, 'config'),
             ],
-            'targetType'       : 'InstallBinary',
+            'targetType': 'InstallBinary',
         }
 
 SConsider.createTargets(packagename, buildSettings)

@@ -1,17 +1,20 @@
-#-----------------------------------------------------------------------------------------------------
-# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# -------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
 # All rights reserved.
 #
-# This library/application is free software; you can redistribute and/or modify it under the terms of
-# the license that is included with this library/application in the file license.txt.
-#-----------------------------------------------------------------------------------------------------
-import SConsider, os
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
+import SConsider
 
 Import('*')
 
 env = SConsider.cloneBaseEnv()
 conf = SConsider.Configure(env)
-if conf.CheckCHeader('oci.h') and conf.CheckMultipleLibs(['occi', 'clntsh', 'nnz11', 'ociicus', 'ociei', 'sqlplus', 'sqlplusic']):
+if conf.CheckCHeader('oci.h') and conf.CheckMultipleLibs(
+        ['occi', 'clntsh', 'nnz11', 'ociicus', 'ociei', 'sqlplus', 'sqlplusic']):
     conf.env.Append(CPPDEFINES='HAS_ORACLE')
 sqlplusbin = conf.CheckExecutable('sqlplus')
 env = conf.Finish()
@@ -19,78 +22,78 @@ env = conf.Finish()
 buildSettings = {}
 if 'HAS_ORACLE' in env['CPPDEFINES']:
     buildSettings[packagename] = {
-        'linkDependencies' : [
+        'linkDependencies': [
             packagename + '.nnz',
             packagename + '.clntsh',
         ],
-        'requires' : [
+        'requires': [
             packagename + '.ociicus',
         ],
     }
     buildSettings['occi'] = {
-        'public' : {
-            'appendUnique'     : {
-                'LIBS'         : ['occi'],
+        'public': {
+            'appendUnique': {
+                'LIBS': ['occi'],
             },
         },
     }
     buildSettings['clntsh'] = {
-        'public' : {
-            'appendUnique'     : {
-                'LIBS'         : ['clntsh'],
+        'public': {
+            'appendUnique': {
+                'LIBS': ['clntsh'],
             },
         },
     }
     buildSettings['nnz'] = {
-        'public' : {
-            'appendUnique'     : {
-                'LIBS'         : ['nnz11'],
+        'public': {
+            'appendUnique': {
+                'LIBS': ['nnz11'],
             },
         },
     }
-    buildSettings['ociicus'] = { # us language support library
-        'public' : {
-            'appendUnique'     : {
-                'LIBS'         : ['ociicus'],
+    buildSettings['ociicus'] = {  # us language support library
+        'public': {
+            'appendUnique': {
+                'LIBS': ['ociicus'],
             },
         },
     }
     buildSettings['ociei'] = {  # oci library supporting all character sets
-        'public' : {
-            'appendUnique'     : {
-                'LIBS'         : ['ociei'],
+        'public': {
+            'appendUnique': {
+                'LIBS': ['ociei'],
             },
         },
     }
     buildSettings['libsqlplus'] = {
-        'public' : {
-            'appendUnique'     : {
-                'LIBS'         : ['sqlplus'],
+        'public': {
+            'appendUnique': {
+                'LIBS': ['sqlplus'],
             },
         },
     }
     buildSettings['libsqlplusic'] = {
-        'public' : {
-            'appendUnique'     : {
-                'LIBS'         : ['sqlplusic'],
+        'public': {
+            'appendUnique': {
+                'LIBS': ['sqlplusic'],
             },
         },
     }
     if sqlplusbin:
         buildSettings['sqlplusbin'] = {
-            'sourceFiles'      : [sqlplusbin],
-            'targetType'       : 'InstallBinary',
+            'sourceFiles': [sqlplusbin],
+            'targetType': 'InstallBinary',
         }
         buildSettings['sqlplus'] = {
-            'targetType'       : 'ProgramApp',
-            'runConfig' : {
+            'targetType': 'ProgramApp',
+            'runConfig': {
             },
-            'requires' : [
+            'requires': [
                 packagename + '.' + packagename,
                 packagename + '.libsqlplus',
                 packagename + '.libsqlplusic',
             ],
-            'usedTarget'       : packagename + '.sqlplusbin',
+            'usedTarget': packagename + '.sqlplusbin',
         }
 
 SConsider.createTargets(packagename, buildSettings)

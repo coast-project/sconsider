@@ -1,11 +1,13 @@
-#-----------------------------------------------------------------------------------------------------
-# Copyright (c) 2012, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# -------------------------------------------------------------------------
+# Copyright (c) 2012, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
 # All rights reserved.
 #
-# This library/application is free software; you can redistribute and/or modify it under the terms of
-# the license that is included with this library/application in the file license.txt.
-#-----------------------------------------------------------------------------------------------------
-import SConsider, os
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
+import SConsider
 
 Import('*')
 
@@ -18,14 +20,14 @@ env = conf.Finish()
 buildSettings = {}
 if 'HAS_RSA' in env['CPPDEFINES']:
     buildSettings[packagename] = {
-        'linkDependencies' : [
-            packagename+'.aceclnt',
+        'linkDependencies': [
+            packagename + '.aceclnt',
         ],
     }
     buildSettings['aceclnt'] = {
-        'public' : {
-            'appendUnique'     : {
-                'LIBS'         : ['aceclnt'],
+        'public': {
+            'appendUnique': {
+                'LIBS': ['aceclnt'],
             },
         },
     }

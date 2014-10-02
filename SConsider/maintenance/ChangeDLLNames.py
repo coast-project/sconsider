@@ -1,95 +1,107 @@
-"""site_scons.maintenance.ChangeDLLNames
+"""SConsider.maintenance.ChangeDLLNames.
 
 Simple helper tool to replace old WebDisplay2 dll names with new coast shared library names
 
 Usually it will be applied to Config.any and test configuration files using dynamic library loading
 
 """
-#-----------------------------------------------------------------------------------------------------
-# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# -------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
 # All rights reserved.
 #
-# This library/application is free software; you can redistribute and/or modify it under the terms of
-# the license that is included with this library/application in the file license.txt.
-#-----------------------------------------------------------------------------------------------------
-import os, re
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
+import os
+import re
 
-excludelist = ['build', 'CVS', 'data', 'xml', 'doc', 'bin', 'lib', '.git', '.gitmodules']
+excludelist = [
+    'build',
+    'CVS',
+    'data',
+    'xml',
+    'doc',
+    'bin',
+    'lib',
+    '.git',
+    '.gitmodules']
 list2 = []
 excludelist.extend(list2)
 print excludelist
-libdict = {'renderers':'CoastRenderers',
-           'renderer':'CoastRenderers',
-           'actions':'CoastActions',
-           'stddataaccess':'CoastStdDataAccess',
-           'security':'CoastSecurity',
-           'SSL':'CoastSSL',
-           'ITOSSL':'CoastSSL',
-           'ldapdataaccess':'CoastLDAPDataAccess',
-           'ldapdataaccess2':'CoastLDAP',
-           'dataaccess':'CoastDataAccess',
-           'perftest':'CoastPerfTest',
-           'perftesttest':'CoastPerfTestTest',
-           'applog':'CoastAppLog',
-           'TKFFunctionalRenderers':'CoastFunctionalRenderers',
-           'TKFFunctionalActions':'CoastFunctionalActions',
-           'TKFHTMLRenderers':'CoastHTMLRenderers',
-           'TKFStringRenderers':'CoastStringRenderers',
-           'TKFAppAndUserRights':'AppAndUserRights',
-           'TKSAppLog':'TKSAppLog',
-           'EDICommon':'EDICommon',
-           'Queueing':'CoastQueueing',
-           'sybaseCT':'CoastSybaseCT',
-           'radiusdataaccess':'RadiusDataAccess',
-           'workerpoolmanagermodule':'CoastWorkerPoolManager',
-           'fdcore':'fdCore',
-           'dnscachemodule':'DNSCacheModule',
-           'rsamodule':'RSAModule',
-           'dataserver':'HIKUDataServer',
-           'DataServer':'HIKUDataServer',
-           'HIKUDataServer':'KFF_DataServer',
-           'DataServerPerfTest':'HIKUDataServerPerfTest',
-           'HIKUDataServerPerfTest':'KFF_DataServerPerfTest',
-           'calcserver':'HIKUCalcServer',
-           'CalcServer':'HIKUCalcServer',
-           'HIKUCalcServer':'KFF_CalcServer',
-           'HPSComm':'HIKUHPSComm',
-           'HIKUHPSComm':'KFF_HPSMessage',
-           'HPSPerfTest':'HIKUHPSCommPerfTest',
-           'HIKUHPSCommPerfTest':'KFF_HPSMessagePerfTest',
-           'SystemFunctions':'CoastSystemFunctions',
-           'wdbase':'CoastWDBase',
-           'mtfoundation':'CoastMTFoundation',
-           'regex':'CoastRegex',
-           'foundation':'CoastFoundation',
-           'testbases':'testfwWDBase',
-           'EBCDIC':'CoastEBCDIC',
-           'TestLib':'CoastWDBaseTestTestLib',
-           'compress':'CoastCompress',
-           'MySQL':'CoastMySQL',
-           'SynMySQL':'CoastMySQL',
-           'NTLMAuth':'CoastNTLMAuth',
-           'accesscontrol':'CoastAccessControl',
-           'cachehandler':'CoastCacheHandler',
-           'HTTP':'CoastHTTP',
-           'ldapdaicachehdlr':'CoastLDAPDAICacheHandler',
-           'cachehdlr':'CoastCacheHandler',
-           'CoastOracle':'CoastOracle',
-           'HIKU_common':'HIKUCommon',
-           'HIKU_ChunkHandling':'HIKUChunkHandling',
-           'BPL':'HIKUBPL',
-           'DCD':'HIKUDCD',
-           'HIKU':'HIKUPflegeSystem',
-           'PoolFiller':'HIKUPoolFiller',
-           'momsmsg':'MomsMsg',
-           'deliverer':'HIKUDeliverer',
-           'dsverifier':'HIKUDSVerifier',
-           'helloworld':'Helloworld',
-           'loki':'lokiObjects',
-           'Topic':'HIKUTopic',
-#           '':'',
-#           '':'',
-#           '':'',
+libdict = {'renderers': 'CoastRenderers',
+           'renderer': 'CoastRenderers',
+           'actions': 'CoastActions',
+           'stddataaccess': 'CoastStdDataAccess',
+           'security': 'CoastSecurity',
+           'SSL': 'CoastSSL',
+           'ITOSSL': 'CoastSSL',
+           'ldapdataaccess': 'CoastLDAPDataAccess',
+           'ldapdataaccess2': 'CoastLDAP',
+           'dataaccess': 'CoastDataAccess',
+           'perftest': 'CoastPerfTest',
+           'perftesttest': 'CoastPerfTestTest',
+           'applog': 'CoastAppLog',
+           'TKFFunctionalRenderers': 'CoastFunctionalRenderers',
+           'TKFFunctionalActions': 'CoastFunctionalActions',
+           'TKFHTMLRenderers': 'CoastHTMLRenderers',
+           'TKFStringRenderers': 'CoastStringRenderers',
+           'TKFAppAndUserRights': 'AppAndUserRights',
+           'TKSAppLog': 'TKSAppLog',
+           'EDICommon': 'EDICommon',
+           'Queueing': 'CoastQueueing',
+           'sybaseCT': 'CoastSybaseCT',
+           'radiusdataaccess': 'RadiusDataAccess',
+           'workerpoolmanagermodule': 'CoastWorkerPoolManager',
+           'fdcore': 'fdCore',
+           'dnscachemodule': 'DNSCacheModule',
+           'rsamodule': 'RSAModule',
+           'dataserver': 'HIKUDataServer',
+           'DataServer': 'HIKUDataServer',
+           'HIKUDataServer': 'KFF_DataServer',
+           'DataServerPerfTest': 'HIKUDataServerPerfTest',
+           'HIKUDataServerPerfTest': 'KFF_DataServerPerfTest',
+           'calcserver': 'HIKUCalcServer',
+           'CalcServer': 'HIKUCalcServer',
+           'HIKUCalcServer': 'KFF_CalcServer',
+           'HPSComm': 'HIKUHPSComm',
+           'HIKUHPSComm': 'KFF_HPSMessage',
+           'HPSPerfTest': 'HIKUHPSCommPerfTest',
+           'HIKUHPSCommPerfTest': 'KFF_HPSMessagePerfTest',
+           'SystemFunctions': 'CoastSystemFunctions',
+           'wdbase': 'CoastWDBase',
+           'mtfoundation': 'CoastMTFoundation',
+           'regex': 'CoastRegex',
+           'foundation': 'CoastFoundation',
+           'testbases': 'testfwWDBase',
+           'EBCDIC': 'CoastEBCDIC',
+           'TestLib': 'CoastWDBaseTestTestLib',
+           'compress': 'CoastCompress',
+           'MySQL': 'CoastMySQL',
+           'SynMySQL': 'CoastMySQL',
+           'NTLMAuth': 'CoastNTLMAuth',
+           'accesscontrol': 'CoastAccessControl',
+           'cachehandler': 'CoastCacheHandler',
+           'HTTP': 'CoastHTTP',
+           'ldapdaicachehdlr': 'CoastLDAPDAICacheHandler',
+           'cachehdlr': 'CoastCacheHandler',
+           'CoastOracle': 'CoastOracle',
+           'HIKU_common': 'HIKUCommon',
+           'HIKU_ChunkHandling': 'HIKUChunkHandling',
+           'BPL': 'HIKUBPL',
+           'DCD': 'HIKUDCD',
+           'HIKU': 'HIKUPflegeSystem',
+           'PoolFiller': 'HIKUPoolFiller',
+           'momsmsg': 'MomsMsg',
+           'deliverer': 'HIKUDeliverer',
+           'dsverifier': 'HIKUDSVerifier',
+           'helloworld': 'Helloworld',
+           'loki': 'lokiObjects',
+           'Topic': 'HIKUTopic',
+           #           '':'',
+           #           '':'',
+           #           '':'',
            }
 for dirpath, dirnames, filenames in os.walk('.'):
     dirnames[:] = [d for d in dirnames if not d in excludelist]
@@ -126,7 +138,9 @@ for dirpath, dirnames, filenames in os.walk('.'):
                                 print lname, "MISSING"
                                 strout += it.string[it.start(0):it.end(0)]
                         if len(strout):
-                            if outstr[len(outstr)-1] != '\n' and strout[0] != '\n':
+                            if outstr[
+                                    len(outstr) -
+                                    1] != '\n' and strout[0] != '\n':
                                 outstr += '\n'
                             outstr += strout
                         else:

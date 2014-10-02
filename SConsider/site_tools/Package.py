@@ -1,25 +1,36 @@
-"""site_scons.site_tools.Package
+"""SConsider.site_tools.Package.
 
 SConsider-specific tool to create a distributable package  from compiled sources
 
 """
 
-#-----------------------------------------------------------------------------------------------------
-# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# -------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
 # All rights reserved.
 #
-# This library/application is free software; you can redistribute and/or modify it under the terms of
-# the license that is included with this library/application in the file license.txt.
-#-----------------------------------------------------------------------------------------------------
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
 
-import re, os, optparse, functools, logging
+import re
+import os
+import optparse
+import functools
+import logging
 import SomeUtils
 
 packageAliasName = 'makepackage'
 
+
 def addPackageTarget(registry, buildTargets, env, destdir, **kw):
     import SCons
-    createDeferredAction = SCons.Action.ActionFactory(makePackage, lambda *args, **kw: '')
+    createDeferredAction = SCons.Action.ActionFactory(
+        makePackage,
+        lambda *
+        args,
+        **kw: '')
 
     sources = []
     for tn in buildTargets:
@@ -31,43 +42,76 @@ def addPackageTarget(registry, buildTargets, env, destdir, **kw):
     action = createDeferredAction(registry, buildTargets, '$__env__', destdir)
     # create a dummy target which always will be built
     maker = env.Command('Package_dummy', sources, action)
-    # create intermediate alias target to which we add dependencies in the build phase
+    # create intermediate alias target to which we add dependencies in the
+    # build phase
     env.Alias(packageAliasName, maker)
     buildTargets.append(packageAliasName)
 
+
 def makePackage(registry, buildTargets, env, destdir, **kw):
-    isInBuilddir = functools.partial(SomeUtils.hasPathPart, pathpart=env['BUILDDIR'])
+    isInBuilddir = functools.partial(
+        SomeUtils.hasPathPart,
+        pathpart=env['BUILDDIR'])
     notInBuilddir = lambda target: not isInBuilddir(target)
     notCopiedInclude = lambda target: not target.path.startswith(env['INCDIR'])
-    copyfilters = [filterBaseOutDir, filterTestsAppsGlobalsPath, filterVariantPath]
+    copyfilters = [
+        filterBaseOutDir,
+        filterTestsAppsGlobalsPath,
+        filterVariantPath]
     for tn in buildTargets:
         if registry.isValidFulltargetname(tn):
-            tdeps = getTargetDependencies(env.Alias(tn)[0], [SomeUtils.isDerivedNode, notInBuilddir, notCopiedInclude])
+            tdeps = getTargetDependencies(
+                env.Alias(tn)[0], [
+                    SomeUtils.isDerivedNode, notInBuilddir, notCopiedInclude])
             copyPackage(tn, tdeps, env, destdir, copyfilters)
+
 
 def copyPackage(name, deps, env, destdir, filters=[]):
     for target in deps:
-        copyTarget(env, determineDirInPackage(name, env, destdir, target, filters), target)
+        copyTarget(
+            env,
+            determineDirInPackage(
+                name,
+                env,
+                destdir,
+                target,
+                filters),
+            target)
+
 
 def copyTarget(env, destdir, node):
     old = env.Alias(destdir.File(node.name))
     if old and old[0].sources:
-        if isInstalledNode(node, old[0].sources[0]) or isInstalledNode(old[0].sources[0], node):
+        if isInstalledNode(
+                node,
+                old[0].sources[0]) or isInstalledNode(
+                old[0].sources[0],
+                node):
             return None
         else:
-            logging.error("Ambiguous target [%s] copied from [%s] and [%s].\nCan't create package! See errors below...", old[0].path, node.path, old[0].sources[0].path)
+            logging.error(
+                "Ambiguous target [%s] copied from [%s] and [%s].\nCan't create package! See errors below...",
+                old[0].path,
+                node.path,
+                old[0].sources[0].path)
     target = env.Install(destdir, node)
     env.Alias(packageAliasName, target)
     return target
 
+
 def isInstalledNode(testnode, node):
     if testnode.path == node.path:
         return True
-    if not hasattr(node, 'builder') or not hasattr(node.builder, 'name') or node.builder.name != 'InstallBuilder':
+    if not hasattr(
+            node,
+            'builder') or not hasattr(
+            node.builder,
+            'name') or node.builder.name != 'InstallBuilder':
         return False
     if len(node.sources) < 1:
         return False
     return isInstalledNode(testnode, node.sources[0])
+
 
 def filterBaseOutDir(path, **kw):
     if not path.startswith(os.sep):
@@ -77,11 +121,13 @@ def filterBaseOutDir(path, **kw):
                ]
     return SomeUtils.multiple_replace(replist, path)
 
+
 def filterTestsAppsGlobalsPath(path, **kw):
     replist = [('^tests' + os.sep + '[^' + os.sep + ']*' + os.sep + '?', ''),
                ('^apps' + os.sep + '[^' + os.sep + ']*' + os.sep + '?', ''),
                ('^globals' + os.sep + '[^' + os.sep + ']*' + os.sep + '?', '')]
     return SomeUtils.multiple_replace(replist, path)
+
 
 def filterVariantPath(path, **kw):
     variant = kw.get('env', {}).get('VARIANTDIR', False)
@@ -89,6 +135,7 @@ def filterVariantPath(path, **kw):
         return path
 
     return re.sub(re.escape(variant) + os.sep + '?', '', path)
+
 
 def determineDirInPackage(name, env, destdir, target, filters=[]):
     path = target.get_dir().path
@@ -102,30 +149,47 @@ def determineDirInPackage(name, env, destdir, target, filters=[]):
     copydir = destdir.Dir(name)
     return copydir.Dir(path)
 
+
 class PackageToolException(Exception):
     pass
 
+
 def generate(env):
-    import SCons.Script, SCons.Script.Main, SConsider
+    import SCons.Script
+    import SCons.Script.Main
+    import SConsider
     try:
-        SCons.Script.AddOption('--package', dest='package', action='store', default='', help='Specify the destination directory')
+        SCons.Script.AddOption(
+            '--package',
+            dest='package',
+            action='store',
+            default='',
+            help='Specify the destination directory')
     except optparse.OptionConflictError:
         raise PackageToolException("Only one Package-Tool instance allowed")
 
     destination = SCons.Script.GetOption('package')
     if destination:
         if not os.path.isdir(destination):
-            SCons.Script.Main.OptionsParser.error("given package destination path doesn't exist")
+            SCons.Script.Main.OptionsParser.error(
+                "given package destination path doesn't exist")
         else:
-            SConsider.registerCallback("PreBuild", addPackageTarget, env=env, destdir=SCons.Script.Dir(destination))
+            SConsider.registerCallback(
+                "PreBuild",
+                addPackageTarget,
+                env=env,
+                destdir=SCons.Script.Dir(destination))
+
 
 def exists(env):
     return 1
+
 
 def getTargetDependencies(target, filters=[]):
     """Determines the recursive dependencies of a target (including itself).
 
     Specify additional target filters using 'filters'.
+
     """
     if not isinstance(filters, list):
         filters = [filters]

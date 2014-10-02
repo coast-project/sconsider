@@ -1,37 +1,40 @@
-#-----------------------------------------------------------------------------------------------------
-# Copyright (c) 2012, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# -------------------------------------------------------------------------
+# Copyright (c) 2012, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
 # All rights reserved.
 #
-# This library/application is free software; you can redistribute and/or modify it under the terms of
-# the license that is included with this library/application in the file license.txt.
-#-----------------------------------------------------------------------------------------------------
-import SConsider, ThirdParty, os
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
+import SConsider
+import ThirdParty
 
 Import('*')
 
 buildSettings = {
-    packagename : {
-        'linkDependencies' : [
-            packagename+'.mqic',
-            packagename+'.mqiz',
-            packagename+'.mqmcs',
+    packagename: {
+        'linkDependencies': [
+            packagename + '.mqic',
+            packagename + '.mqiz',
+            packagename + '.mqmcs',
         ],
-        'targetType'       : 'IncludeOnly',
-        'public' : {
+        'targetType': 'IncludeOnly',
+        'public': {
             'includeSubdir': 'inc',
         },
     },
-    'mqic' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('mqic')],
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    'mqic': {
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('mqic')],
+        'targetType': 'PrecompiledLibraryInstallBuilder',
     },
-    'mqiz' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('mqiz')],
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    'mqiz': {
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('mqiz')],
+        'targetType': 'PrecompiledLibraryInstallBuilder',
     },
-    'mqmcs' : {
-        'sourceFiles'      : [ThirdParty.getBinaryDistDir(packagename).File('mqmcs')],
-        'targetType'       : 'PrecompiledLibraryInstallBuilder',
+    'mqmcs': {
+        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('mqmcs')],
+        'targetType': 'PrecompiledLibraryInstallBuilder',
     },
 }
 

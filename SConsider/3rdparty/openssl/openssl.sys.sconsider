@@ -1,17 +1,22 @@
-#-----------------------------------------------------------------------------------------------------
-# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# -------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
 # All rights reserved.
 #
-# This library/application is free software; you can redistribute and/or modify it under the terms of
-# the license that is included with this library/application in the file license.txt.
-#-----------------------------------------------------------------------------------------------------
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
 import SConsider
 
 Import('*')
 
 env = SConsider.cloneBaseEnv()
 conf = SConsider.Configure(env)
-if conf.CheckLibWithHeader('ssl', 'openssl/ssl.h', 'C') and conf.CheckLib('crypto'):
+if conf.CheckLibWithHeader(
+        'ssl',
+        'openssl/ssl.h',
+        'C') and conf.CheckLib('crypto'):
     conf.env.Append(CPPDEFINES='HAS_OPENSSL')
 opensslbin = conf.CheckExecutable('openssl')
 env = conf.Finish()
@@ -19,39 +24,39 @@ env = conf.Finish()
 buildSettings = {}
 if 'HAS_OPENSSL' in env['CPPDEFINES']:
     buildSettings[packagename] = {
-        'linkDependencies' : [
+        'linkDependencies': [
             packagename + '.ssl',
             packagename + '.crypto',
         ],
     }
     buildSettings['ssl'] = {
-        'public' : {
-            'appendUnique'     : {
-                'LIBS'         : ['ssl'],
+        'public': {
+            'appendUnique': {
+                'LIBS': ['ssl'],
             },
         },
     }
     buildSettings['crypto'] = {
-        'public' : {
-            'appendUnique'     : {
-                'LIBS'         : ['crypto'],
+        'public': {
+            'appendUnique': {
+                'LIBS': ['crypto'],
             },
         },
     }
     if opensslbin:
         buildSettings['opensslbin'] = {
-            'sourceFiles'      : [opensslbin],
-            'targetType'       : 'InstallBinary',
+            'sourceFiles': [opensslbin],
+            'targetType': 'InstallBinary',
         }
         buildSettings['openSSL'] = {
-            'targetType'       : 'ProgramApp',
-            'runConfig' : {
+            'targetType': 'ProgramApp',
+            'runConfig': {
             },
-            'requires' : [
+            'requires': [
                 packagename + '.ssl',
                 packagename + '.crypto',
             ],
-            'usedTarget'       : packagename + '.opensslbin',
+            'usedTarget': packagename + '.opensslbin',
         }
 
 SConsider.createTargets(packagename, buildSettings)

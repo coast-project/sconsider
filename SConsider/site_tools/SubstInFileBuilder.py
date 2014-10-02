@@ -1,20 +1,24 @@
-"""site_scons.site_tools.SubstInFileBuilder
+"""SConsider.site_tools.SubstInFileBuilder.
 
-Builder used to search/replace content in Files using regular expression syntax
+Builder used to search/replace content in Files using regular expression
+syntax
 
 """
 
-#-----------------------------------------------------------------------------------------------------
-# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# -------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
 # All rights reserved.
 #
-# This library/application is free software; you can redistribute and/or modify it under the terms of
-# the license that is included with this library/application in the file license.txt.
-#-----------------------------------------------------------------------------------------------------
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
 
 import re
 
 from SCons.Script import *
+
 
 def substInFile(target, source, searchre, subfn):
     with open(source, 'rU') as f:
@@ -25,15 +29,24 @@ def substInFile(target, source, searchre, subfn):
     with open(target, 'wt') as f:
         f.write(contents)
 
+
 def getLogMessage(target, source, env):
-    items = ['Substituting vars from {source} to {target}'.format(source=str(s), target=str(t))
-                for (t, s) in zip(target, source)]
+    items = [
+        'Substituting vars from {source} to {target}'.format(
+            source=str(s),
+            target=str(t)) for (
+            t,
+            s) in zip(
+                target,
+            source)]
     return '\n'.join(items)
+
 
 def getKeysFromFile(source, searchre):
     with open(source, 'rU') as f:
         content = f.read()
     return getKeysFromString(content, searchre)
+
 
 def getKeysFromString(content, searchre):
     keys = []
@@ -42,6 +55,7 @@ def getKeysFromString(content, searchre):
         if key != '':
             keys.append(key)
     return keys
+
 
 def getData(keys, env):
     subst_dict = env.get('SUBST_DICT', env)
@@ -56,6 +70,7 @@ def getData(keys, env):
                 data[key] = env.subst(value)
     return data
 
+
 def emit(target, source, env):
     newTarget = []
     for (t, s) in zip(target, source):
@@ -68,19 +83,23 @@ def emit(target, source, env):
         Depends(t, SCons.Node.Python.Value(data))
     return newTarget, source
 
+
 def getMarker(env):
     return env.get("SUBST_MARKER", "##")
+
 
 def getSearchRE(env, marker=None):
     if not marker:
         marker = getMarker(env)
-    return re.compile(env.get("SUBST_PATTERN", marker+'(.*?)'+marker))
+    return re.compile(env.get("SUBST_PATTERN", marker + '(.*?)' + marker))
+
 
 def getSubFn(env, default):
     subfn = default
     if "SUBST_FN" in env and callable(env["SUBST_FN"]):
         subfn = env["SUBST_FN"]
     return subfn
+
 
 def substInFiles(target, source, env):
     marker = getMarker(env)
@@ -90,7 +109,7 @@ def substInFiles(target, source, env):
         key = match.group(1)
         if key == '':
             return marker
-        if not key in data:
+        if key not in data:
             return match.group(0)
         return str(data[key])
 
@@ -104,11 +123,12 @@ def substInFiles(target, source, env):
     for (t, s) in zip(target, source):
         substInFile(str(t), str(s), searchre, lambda match: subfn(match, data))
 
+
 def generate(env):
-	substInFileAction = SCons.Action.Action(substInFiles, getLogMessage)
-	substInFileBuilder = Builder(action=substInFileAction, emitter=emit)
-	env.Append(BUILDERS={ 'SubstInFileBuilder' : substInFileBuilder })
+    substInFileAction = SCons.Action.Action(substInFiles, getLogMessage)
+    substInFileBuilder = Builder(action=substInFileAction, emitter=emit)
+    env.Append(BUILDERS={'SubstInFileBuilder': substInFileBuilder})
+
 
 def exists(env):
-    return 1;
-
+    return 1

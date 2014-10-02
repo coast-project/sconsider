@@ -1,23 +1,29 @@
-"""site_scons.site_tools.g++
+"""SConsider.site_tools.g++
 
 SConsider-specific g++ tool initialization
 
 """
 
-#-----------------------------------------------------------------------------------------------------
-# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# -------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
 # All rights reserved.
 #
-# This library/application is free software; you can redistribute and/or modify it under the terms of
-# the license that is included with this library/application in the file license.txt.
-#-----------------------------------------------------------------------------------------------------
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
 
-import os, re, subprocess
-import SCons.Util, SCons.Tool
+import os
+import re
+import subprocess
+import SCons.Util
+import SCons.Tool
 from logging import getLogger
 logger = getLogger(__name__)
 
 compilers = ['g++']
+
 
 def generate(env):
     """Add Builders and construction variables for g++ to an Environment."""
@@ -46,7 +52,8 @@ def generate(env):
                                      stdin='devnull',
                                      stderr='devnull',
                                      stdout=subprocess.PIPE)
-        if pipe.wait() != 0: return
+        if pipe.wait() != 0:
+            return
         # -dumpversion was added in GCC 3.0.  As long as we're supporting
         # GCC versions older than that, we should use --version and a
         # regular expression.
@@ -62,7 +69,7 @@ def generate(env):
             env['CXXFLAVOUR'] = gccfssmatch.group(1)
             gccfss = True
 
-        # # own extension to detect system include paths
+        # own extension to detect system include paths
         import time
         fName = '.code2Compile.' + str(time.time())
         tFile = os.path.join(SCons.Script.Dir('.').abspath, fName)
@@ -72,14 +79,24 @@ def generate(env):
             outf.write('#include <cstdlib>\nint main(){return 0;}')
             outf.close()
         except:
-            logger.error("failed to create compiler input file, check folder permissions and retry", exc_info=True)
+            logger.error(
+                "failed to create compiler input file, check folder permissions and retry",
+                exc_info=True)
             return
-        pipe = SCons.Action._subproc(env, [compiler_subject, '-v', '-xc++', tFile, '-o', outFile, '-m' + env['ARCHBITS']],
+        pipe = SCons.Action._subproc(env,
+                                     [compiler_subject,
+                                      '-v',
+                                      '-xc++',
+                                      tFile,
+                                      '-o',
+                                      outFile,
+                                      '-m' + env['ARCHBITS']],
                                      stdin='devnull',
                                      stderr=subprocess.PIPE,
                                      stdout=subprocess.PIPE)
         pRet = pipe.wait()
         os.remove(tFile)
+
         def formattedStdOutAndStdErr(the_pipe, prefix_text=None):
             text_to_join = ['---- stdout ----',
                             the_pipe.stdout.read(),
@@ -91,12 +108,24 @@ def generate(env):
         try:
             os.remove(outFile)
         except:
-            logger.error(formattedStdOutAndStdErr(pipe, prefix_text="{0} {1}, check compiler output for errors:".format(outFile, 'could not be deleted' if os.path.exists(outFile) else 'was not created')),
-                         exc_info=True)
-            raise SCons.Errors.UserError('Build aborted, {0} compiler detection failed!'.format(compiler_subject))
+            logger.error(
+                formattedStdOutAndStdErr(
+                    pipe,
+                    prefix_text="{0} {1}, check compiler output for errors:".format(
+                        outFile,
+                        'could not be deleted' if os.path.exists(outFile) else 'was not created')),
+                exc_info=True)
+            raise SCons.Errors.UserError(
+                'Build aborted, {0} compiler detection failed!'.format(
+                    compiler_subject))
         if pRet != 0:
-            logger.error(formattedStdOutAndStdErr(pipe, prefix_text="compile command failed with return code {0}:".format(pRet)))
-            raise SCons.Errors.UserError('Build aborted, {0} compiler detection failed!'.format(compiler_subject))
+            logger.error(
+                formattedStdOutAndStdErr(
+                    pipe,
+                    prefix_text="compile command failed with return code {0}:".format(pRet)))
+            raise SCons.Errors.UserError(
+                'Build aborted, {0} compiler detection failed!'.format(
+                    compiler_subject))
         pout = pipe.stderr.read()
         reIncl = re.compile('#include <\.\.\.>.*:$\s((^ .*\s)*)', re.M)
         match = reIncl.search(pout)
@@ -122,7 +151,9 @@ def generate(env):
 
     buildmode = SCons.Script.GetOption('buildcfg')
     if buildmode == 'debug':
-        env.AppendUnique(CXXFLAGS=[ '-ggdb3' if str(platf) == 'sunos' else '-g'])
+        env.AppendUnique(
+            CXXFLAGS=[
+                '-ggdb3' if str(platf) == 'sunos' else '-g'])
     elif buildmode == 'optimized':
         if str(platf) == 'sunos':
             if gccfss:
@@ -152,13 +183,19 @@ def generate(env):
     if warnlevel == 'full':
         env.AppendUnique(CXXFLAGS=[
             '-Wcast-qual',  # <! Warn about casts which discard qualifiers
-            '-Wconversion',  # <! Warn for implicit type conversions that may change a value
-            '-Weffc++',  # <! Warn about violations of Effective C++ style rules
-            '-Wignored-qualifiers',  # <! Warn whenever type qualifiers are ignored.
-            '-Wold-style-cast',  # <! Warn if a C-style cast is used in a program
-            '-Wextra',  # <! Warn about some extra warning flags that are not enabled by -Wall.
+            '-Wconversion',
+            # <! Warn for implicit type conversions that may change a value
+            '-Weffc++',
+            # <! Warn about violations of Effective C++ style rules
+            '-Wignored-qualifiers',
+            # <! Warn whenever type qualifiers are ignored.
+            '-Wold-style-cast',
+            # <! Warn if a C-style cast is used in a program
+            '-Wextra',
+            # <! Warn about some extra warning flags that are not enabled by -Wall.
             '-Wundef',  # <! Warn if an undefined macro is used in an #if directive
         ])
+
 
 def exists(env):
     if env.get('_CXXPREPEND_'):

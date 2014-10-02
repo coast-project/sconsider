@@ -1,7 +1,12 @@
-import unittest, os, tempfile, shutil
+import unittest
+import os
+import tempfile
+import shutil
 from Anything import *
 
+
 class AnythingTest(unittest.TestCase):
+
     def setUp(self):
         self.any1 = Anything([('a', 1), ('b', 2), 3, ('c', 4), 5])
 
@@ -27,15 +32,19 @@ class AnythingTest(unittest.TestCase):
         self.assertEqual(99, self.any1[0])
 
     def testArrayIteration(self):
-        expected = map(lambda i: i+1, range(5))
+        expected = map(lambda i: i + 1, range(5))
         self.assertEqual(expected, [v for v in self.any1])
 
     def testItervalues(self):
         expected = [1, 2, 4]
-        self.assertEqual(sorted(expected), sorted(list(self.any1.itervalues())))
+        self.assertEqual(
+            sorted(expected),
+            sorted(
+                list(
+                    self.any1.itervalues())))
 
     def testItervaluesAll(self):
-        expected = map(lambda i: i+1, range(5))
+        expected = map(lambda i: i + 1, range(5))
         self.assertEqual(expected, list(self.any1.itervalues(all=True)))
 
     def testValues(self):
@@ -43,7 +52,7 @@ class AnythingTest(unittest.TestCase):
         self.assertEqual(sorted(expected), sorted(list(self.any1.values())))
 
     def testValuesAll(self):
-        expected = map(lambda i: i+1, range(5))
+        expected = map(lambda i: i + 1, range(5))
         self.assertEqual(expected, list(self.any1.values(all=True)))
 
     def testItems(self):
@@ -103,7 +112,9 @@ class AnythingTest(unittest.TestCase):
 
     def testRepr(self):
         result = repr(self.any1)
-        self.assertEqual("Anything([('a', 1), ('b', 2), 3, ('c', 4), 5])", result)
+        self.assertEqual(
+            "Anything([('a', 1), ('b', 2), 3, ('c', 4), 5])",
+            result)
         self.assertEqual(self.any1, eval(result))
 
     def testHasKey(self):
@@ -138,7 +149,7 @@ class AnythingTest(unittest.TestCase):
         self.assertEqual(3, self.any1[1])
         self.assertEqual(4, self.any1[2])
         self.assertEqual(5, self.any1[3])
-        self.assertEqual(2, self.any1['b'])        
+        self.assertEqual(2, self.any1['b'])
         self.assertEqual(4, self.any1['c'])
         self.assertEqual(None, self.any1.get('a', None))
 
@@ -152,7 +163,7 @@ class AnythingTest(unittest.TestCase):
         self.assertEqual(2, self.any1['b'])
         self.assertEqual(4, self.any1['c'])
         self.assertEqual(None, self.any1.get('a', None))
-        
+
     def testUpdateWithDict(self):
         self.any1.update({'a': 99, 'b': 88, 'd': 77})
         self.assertEqual(99, self.any1['a'])
@@ -171,25 +182,60 @@ class AnythingTest(unittest.TestCase):
 
     def testExtendWithList(self):
         self.any1.extend([55, ('d', 66), 77])
-        self.assertEqual(Anything([('a', 1), ('b', 2), 3, ('c', 4), 5, 55, ('d', 66), 77]), self.any1)
+        self.assertEqual(
+            Anything(
+                [('a', 1),
+                 ('b', 2),
+                 3, ('c', 4),
+                 5, 55, ('d', 66),
+                 77]),
+            self.any1)
 
     def testExtendWithAnything(self):
         self.any1.extend(Anything([55, ('d', 66), 77]))
-        self.assertEqual(Anything([('a', 1), ('b', 2), 3, ('c', 4), 5, 55, ('d', 66), 77]), self.any1)
+        self.assertEqual(
+            Anything(
+                [('a', 1),
+                 ('b', 2),
+                 3, ('c', 4),
+                 5, 55, ('d', 66),
+                 77]),
+            self.any1)
 
     def testAddAnything(self):
         self.any1 += Anything([55, ('d', 66), 77])
-        self.assertEqual(Anything([('a', 1), ('b', 2), 3, ('c', 4), 5, 55, ('d', 66), 77]), self.any1)
+        self.assertEqual(
+            Anything(
+                [('a', 1),
+                 ('b', 2),
+                 3, ('c', 4),
+                 5, 55, ('d', 66),
+                 77]),
+            self.any1)
 
     def testAddList(self):
         self.any1 += [55, ('d', 66), 77]
-        self.assertEqual(Anything([('a', 1), ('b', 2), 3, ('c', 4), 5, 55, ('d', 66), 77]), self.any1)
+        self.assertEqual(
+            Anything(
+                [('a', 1),
+                 ('b', 2),
+                 3, ('c', 4),
+                 5, 55, ('d', 66),
+                 77]),
+            self.any1)
 
     def testAddReturnsCopy(self):
         any1before = self.any1.copy()
         any2 = self.any1 + Anything([55, ('d', 66), 77])
         self.assertEqual(any1before, self.any1)
-        self.assertEqual(Anything([('a', 1), ('b', 2), 3, ('c', 4), 5, 55, ('d', 66), 77]), any2)
+        self.assertEqual(
+            Anything(
+                [('a', 1),
+                 ('b', 2),
+                 3, ('c', 4),
+                 5, 55, ('d', 66),
+                 77]),
+            any2)
 
     def testMergeWithAnything(self):
         any2 = Anything()
@@ -303,23 +349,26 @@ class AnythingTest(unittest.TestCase):
 
     def testSetSliceWithAnything(self):
         self.any1[1:3] = Anything([99, ('d', 88)])
-        self.assertEqual(Anything([('a', 1), 99, ('d', 88), ('c', 4), 5]), self.any1)
+        self.assertEqual(
+            Anything([('a', 1), 99, ('d', 88), ('c', 4), 5]), self.any1)
 
     def testSetSliceWithList(self):
         self.any1[1:3] = [99, ('d', 88)]
-        self.assertEqual(Anything([('a', 1), 99, ('d', 88), ('c', 4), 5]), self.any1)
+        self.assertEqual(
+            Anything([('a', 1), 99, ('d', 88), ('c', 4), 5]), self.any1)
 
     def testReverse(self):
         self.any1.reverse()
-        self.assertEqual(Anything([5, ('c', 4), 3, ('b', 2), ('a', 1)]), self.any1)
+        self.assertEqual(
+            Anything([5, ('c', 4), 3, ('b', 2), ('a', 1)]), self.any1)
 
     def testIndex(self):
-        for i in xrange(1,5):
+        for i in xrange(1, 5):
             print i
-            self.assertEqual(i-1, self.any1.index(i))
+            self.assertEqual(i - 1, self.any1.index(i))
 
     def testCount(self):
-        self.any1.extend([2 ,3 ,3])
+        self.any1.extend([2, 3, 3])
         self.assertEqual(1, self.any1.count(1))
         self.assertEqual(2, self.any1.count(2))
         self.assertEqual(3, self.any1.count(3))
@@ -327,15 +376,28 @@ class AnythingTest(unittest.TestCase):
         self.assertEqual(1, self.any1.count(5))
 
     def testSort(self):
-        any2 = Anything([('e',7),3,5,('a',2),('b',1), ('c', 1), 4])
+        any2 = Anything(
+                [('e', 7),
+                 3, 5, ('a', 2),
+                 ('b', 1),
+                 ('c', 1),
+                 4])
         any2.sort()
-        self.assertEqual(Anything([('b',1),('c',1),('a',2),3,4,5,('e',7)]), any2)
+        self.assertEqual(
+            Anything(
+                [('b', 1),
+                 ('c', 1),
+                 ('a', 2),
+                 3, 4, 5, ('e', 7)]),
+            any2)
         self.assertEqual(7, any2['e'])
         self.assertEqual(1, any2['c'])
         self.assertEqual(1, any2['b'])
         self.assertEqual(2, any2['a'])
 
+
 class AnythingParserTest(unittest.TestCase):
+
     def testParse(self):
         content = """
 dd
@@ -350,12 +412,12 @@ dd
     	xs
     }
  { dsfd dds }
-/blub { 
+/blub {
   sdfsd sdf
   ddd
    }}dsfsdf
    {
-   second 
+   second
    }
    {
    1
@@ -365,21 +427,23 @@ dd
    """
         result = parse(content)
         expected = [
-                    Anything(['bla',
-                             'blub dd',
-                             12,
-                             ('key', 'va3lue'),
-                             ('a nice key', 'value'),
-                             Anything(['ggg', 'xs']),
-                             Anything(['dsfd', 'dds']),
-                             ('blub', Anything(['sdfsd', 'sdf', 'ddd']))
-                             ]),
-                    Anything(['second']),
-                    Anything([1, 2, 3.0])
-                   ]
+            Anything(['bla',
+                      'blub dd',
+                      12,
+                      ('key', 'va3lue'),
+                      ('a nice key', 'value'),
+                      Anything(['ggg', 'xs']),
+                      Anything(['dsfd', 'dds']),
+                      ('blub', Anything(['sdfsd', 'sdf', 'ddd']))
+                      ]),
+            Anything(['second']),
+            Anything([1, 2, 3.0])
+        ]
         self.assertEqual(expected, result)
 
+
 class ResolvePathTest(unittest.TestCase):
+
     def __makeTempFile(self, filename, relpath=None):
         if relpath:
             path = os.path.join(self.tempdir, relpath)
@@ -406,79 +470,190 @@ class ResolvePathTest(unittest.TestCase):
 
     def testResolveAbs(self):
         self.assertRaises(IOError, lambda: resolvePath("test4.any"))
-        self.assertEqual(os.path.join(self.tempdir, 'test1.any'), resolvePath(os.path.join(self.tempdir, "test1.any")))
+        self.assertEqual(
+            os.path.join(
+                self.tempdir, 'test1.any'), resolvePath(
+                os.path.join(
+                    self.tempdir, "test1.any")))
 
     def testResolveCwd(self):
         os.chdir(self.tempdir)
-        self.assertEqual(os.path.join(self.tempdir, 'test1.any'), resolvePath("test1.any"))
-        self.assertEqual(os.path.join(self.tempdir, 'config', 'test2.any'), resolvePath("test2.any"))
-        self.assertEqual(os.path.join(self.tempdir, 'src', 'test3.any'), resolvePath("test3.any"))
+        self.assertEqual(
+            os.path.join(
+                self.tempdir,
+                'test1.any'),
+            resolvePath("test1.any"))
+        self.assertEqual(
+            os.path.join(
+                self.tempdir,
+                'config',
+                'test2.any'),
+            resolvePath("test2.any"))
+        self.assertEqual(
+            os.path.join(
+                self.tempdir,
+                'src',
+                'test3.any'),
+            resolvePath("test3.any"))
         self.assertRaises(IOError, lambda: resolvePath("test4.any"))
 
     def testResolvePathEnv(self):
         os.environ['COAST_ROOT'] = self.tempdir
-        self.assertEqual(os.path.join(self.tempdir, 'test1.any'), resolvePath("test1.any"))
-        self.assertEqual(os.path.join(self.tempdir, 'config', 'test2.any'), resolvePath("test2.any"))
-        self.assertEqual(os.path.join(self.tempdir, 'src', 'test3.any'), resolvePath("test3.any"))
+        self.assertEqual(
+            os.path.join(
+                self.tempdir,
+                'test1.any'),
+            resolvePath("test1.any"))
+        self.assertEqual(
+            os.path.join(
+                self.tempdir,
+                'config',
+                'test2.any'),
+            resolvePath("test2.any"))
+        self.assertEqual(
+            os.path.join(
+                self.tempdir,
+                'src',
+                'test3.any'),
+            resolvePath("test3.any"))
         self.assertRaises(IOError, lambda: resolvePath("test4.any"))
         os.environ['COAST_PATH'] = '.:config:src:test'
-        self.assertEqual(os.path.join(self.tempdir, 'test', 'test4.any'), resolvePath("test4.any"))
+        self.assertEqual(
+            os.path.join(
+                self.tempdir,
+                'test',
+                'test4.any'),
+            resolvePath("test4.any"))
 
     def testResolvePathTLS(self):
         setLocalEnv({'COAST_ROOT': self.tempdir})
-        self.assertEqual(os.path.join(self.tempdir, 'test1.any'), resolvePath("test1.any"))
-        self.assertEqual(os.path.join(self.tempdir, 'config', 'test2.any'), resolvePath("test2.any"))
-        self.assertEqual(os.path.join(self.tempdir, 'src', 'test3.any'), resolvePath("test3.any"))
+        self.assertEqual(
+            os.path.join(
+                self.tempdir,
+                'test1.any'),
+            resolvePath("test1.any"))
+        self.assertEqual(
+            os.path.join(
+                self.tempdir,
+                'config',
+                'test2.any'),
+            resolvePath("test2.any"))
+        self.assertEqual(
+            os.path.join(
+                self.tempdir,
+                'src',
+                'test3.any'),
+            resolvePath("test3.any"))
         self.assertRaises(IOError, lambda: resolvePath("test4.any"))
         setLocalEnv(COAST_PATH='.:config:src:test')
-        self.assertEqual(os.path.join(self.tempdir, 'test', 'test4.any'), resolvePath("test4.any"))
+        self.assertEqual(
+            os.path.join(
+                self.tempdir,
+                'test',
+                'test4.any'),
+            resolvePath("test4.any"))
 
     def testResolvePathPassed(self):
-        self.assertEqual(os.path.join(self.tempdir, 'test1.any'), resolvePath("test1.any", self.tempdir))
-        self.assertEqual(os.path.join(self.tempdir, 'config', 'test2.any'), resolvePath("test2.any", self.tempdir))
-        self.assertEqual(os.path.join(self.tempdir, 'src', 'test3.any'), resolvePath("test3.any", self.tempdir))
-        self.assertRaises(IOError, lambda: resolvePath("test4.any", self.tempdir))
-        self.assertEqual(os.path.join(self.tempdir, 'test', 'test4.any'),
-                         resolvePath("test4.any", self.tempdir, '.:config:src:test'))
-        self.assertEqual(os.path.join(self.tempdir, 'test', 'test4.any'),
-                         resolvePath("test4.any", self.tempdir, ['.','config','src','test']))
+        self.assertEqual(
+            os.path.join(
+                self.tempdir, 'test1.any'), resolvePath(
+                "test1.any", self.tempdir))
+        self.assertEqual(
+            os.path.join(
+                self.tempdir,
+                'config',
+                'test2.any'),
+            resolvePath(
+                "test2.any",
+                self.tempdir))
+        self.assertEqual(
+            os.path.join(
+                self.tempdir, 'src', 'test3.any'), resolvePath(
+                "test3.any", self.tempdir))
+        self.assertRaises(
+            IOError,
+            lambda: resolvePath(
+                "test4.any",
+                self.tempdir))
+        self.assertEqual(
+            os.path.join(
+                self.tempdir,
+                'test',
+                'test4.any'),
+            resolvePath(
+                "test4.any",
+                self.tempdir,
+                '.:config:src:test'))
+        self.assertEqual(
+            os.path.join(
+                self.tempdir, 'test', 'test4.any'), resolvePath(
+                "test4.any", self.tempdir, [
+                    '.', 'config', 'src', 'test']))
+
 
 class UtilsTest(unittest.TestCase):
+
     def testFirst(self):
         result = first([lambda: None, lambda: 2, lambda: 3])
         self.assertEqual(2, result)
-    
+
     def testFirstWithArg(self):
         result = first([lambda arg: None, lambda arg: arg, lambda arg: 3], 42)
         self.assertEqual(42, result)
-        
+
     def testToNumber(self):
         self.assertEqual(42, toNumber("42"))
         self.assertEqual(42.0, toNumber("42.0"))
         self.assertEqual("42.0a", toNumber("42.0a"))
-        
+
     def testLoadAllFromFile(self):
-        result = loadAllFromFile(resolvePath('AnythingLoadFromFileTest.any', os.path.dirname(__file__), 'data'))
+        result = loadAllFromFile(
+            resolvePath(
+                'AnythingLoadFromFileTest.any',
+                os.path.dirname(__file__),
+                'data'))
         expected = [
-                    Anything([('key', 'value')])
-                   ]
+            Anything([('key', 'value')])
+        ]
         self.assertEqual(expected, result)
 
     def testLoadFromFile(self):
-        result = loadFromFile(resolvePath('AnythingLoadFromFileTest.any', os.path.dirname(__file__), 'data'))
+        result = loadFromFile(
+            resolvePath(
+                'AnythingLoadFromFileTest.any',
+                os.path.dirname(__file__),
+                'data'))
         expected = Anything([('key', 'value')])
         self.assertEqual(expected, result)
 
     def testLoadFromNonexistingFile(self):
-        self.assertRaises(IOError, lambda: loadFromFile(os.path.join(os.path.dirname(__file__), 'data', 'NotThere.any')))
-        result=None
-        try: result=loadFromFile(os.path.join(os.path.dirname(__file__), 'data', 'NotThere.any'))
-        except IOError: pass
+        self.assertRaises(
+            IOError,
+            lambda: loadFromFile(
+                os.path.join(
+                    os.path.dirname(__file__),
+                    'data',
+                    'NotThere.any')))
+        result = None
+        try:
+            result = loadFromFile(
+                os.path.join(
+                    os.path.dirname(__file__),
+                    'data',
+                    'NotThere.any'))
+        except IOError:
+            pass
         self.assertEqual(None, result)
 
+
 class AnythingReferenceTest(unittest.TestCase):
+
     def setUp(self):
-        self.any1 = Anything([('a', 1), ('b', 2), 3, ('c', Anything([('a', Anything([1, 2, 3]))])), 5, ('a.b:3', 'escaped')])
+        self.any1 = Anything(
+            [('a', 1),
+             ('b', 2),
+             3, ('c', Anything([('a', Anything([1, 2, 3]))])),
+             5, ('a.b:3', 'escaped')])
         self.savedEnviron = os.environ.copy()
         os.environ['COAST_ROOT'] = os.path.dirname(__file__)
         os.environ['COAST_PATH'] = '.:data'

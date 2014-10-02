@@ -1,19 +1,26 @@
-"""site_scons.Anything
+"""SConsider.Anything.
 
 Utility module to parse Anything files and provide a python, dict-based, equivalent
 
 """
-#-----------------------------------------------------------------------------------------------------
-# Copyright (c) 2010, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
+# -------------------------------------------------------------------------
+# Copyright (c) 2010, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
 # All rights reserved.
 #
-# This library/application is free software; you can redistribute and/or modify it under the terms of
-# the license that is included with this library/application in the file license.txt.
-#-----------------------------------------------------------------------------------------------------
-import collections, operator, threading, os
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
+import collections
+import operator
+import threading
+import os
 from lepl import *
 
+
 class AnythingEntry(object):
+
     def __init__(self, key, value=None):
         if isinstance(key, AnythingEntry):
             self.key = key.key
@@ -28,20 +35,25 @@ class AnythingEntry(object):
         if isinstance(self.__value, AnythingReference):
             return self.__value.resolve()
         return self.__value
+
     def set_value(self, newvalue):
         self.__value = newvalue
     value = property(get_value, set_value)
 
     def __eq__(self, other):
-        return isinstance(other, AnythingEntry) and self.key == other.key and self.value == other.value
+        return isinstance(
+            other,
+            AnythingEntry) and self.key == other.key and self.value == other.value
 
     def __str__(self):
-        return '('+str(self.key)+', '+str(self.value)+')'
+        return '(' + str(self.key) + ', ' + str(self.value) + ')'
 
     def __repr__(self):
-        return 'AnythingEntry('+str(self.key)+', '+str(self.value)+')'
+        return 'AnythingEntry(' + str(self.key) + ', ' + str(self.value) + ')'
+
 
 class Anything(collections.MutableSequence, collections.MutableMapping):
+
     def __init__(self, other=None, **kw):
         self.__data = []
         self.__keys = {}
@@ -52,7 +64,7 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 
     def insert(self, pos, value):
         self.__data.insert(pos, AnythingEntry(None, value))
-        self.__updateKeys(pos+1)
+        self.__updateKeys(pos + 1)
 
     def update(self, other):
         if isinstance(other, Anything):
@@ -143,9 +155,17 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
             if data.key:
                 del self.__keys[data.key]
         if isinstance(other, Anything):
-            self.__data[start:stop:step] = [AnythingEntry(key, value) for key, value in other.items(all=True)]
+            self.__data[
+                start:stop:step] = [
+                AnythingEntry(
+                    key, value) for key, value in other.items(
+                    all=True)]
         elif isinstance(other, collections.Sequence):
-            self.__data[start:stop:step] = [AnythingEntry(key, value) for key, value in Anything(other).items(all=True)]
+            self.__data[
+                start:stop:step] = [
+                AnythingEntry(
+                    key, value) for key, value in Anything(other).items(
+                    all=True)]
         self.__updateKeys(start)
 
     def __setitem__(self, key, value):
@@ -170,9 +190,11 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 
     def items(self, all=False):
         if all:
-            return [(self.slotname(pos), value) for pos, value in enumerate(self)]
+            return [(self.slotname(pos), value)
+                    for pos, value in enumerate(self)]
         else:
-            return [(key, self.__data[pos].value) for key, pos in self.__keys.iteritems()]
+            return [(key, self.__data[pos].value)
+                    for key, pos in self.__keys.iteritems()]
 
     def iteritems(self, all=False):
         if all:
@@ -194,7 +216,9 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
         if all:
             return list(self)
         else:
-            return [self.__data[pos].value for _, pos in self.__keys.iteritems()]
+            return [
+                self.__data[pos].value for _,
+                pos in self.__keys.iteritems()]
 
     def popitem(self):
         try:
@@ -216,20 +240,21 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
     def __pprint(self, level=1):
         content = ''
         for key, value in self.iteritems(all=True):
-            content += '\t'*level
+            content += '\t' * level
             if key:
-                content += '/'+str(key)+' '
+                content += '/' + str(key) + ' '
             if isinstance(value, Anything):
-                content += value.__pprint(level+1)+'\n'
+                content += value.__pprint(level + 1) + '\n'
             else:
-                content += str(value)+'\n'
-        return '{\n'+content+('\t'*(level-1))+'}'
+                content += str(value) + '\n'
+        return '{\n' + content + ('\t' * (level - 1)) + '}'
 
     def __str__(self):
         return self.__pprint()
 
     def __repr__(self):
-        return 'Anything('+str(map(lambda data: data if data[0] else data[1], self.iteritems(all=True)))+')'
+        return 'Anything(' + str(map(lambda data:
+                                     data if data[0] else data[1], self.iteritems(all=True))) + ')'
 
     def copy(self):
         return Anything(self)
@@ -239,7 +264,10 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
         self.__updateKeys()
 
     def __eq__(self, other):
-        return isinstance(other, Anything) and self.items(all=True) == other.items(all=True)
+        return isinstance(
+            other, Anything) and self.items(
+            all=True) == other.items(
+            all=True)
 
     def __add__(self, other):
         return self.copy().extend(other)
@@ -254,7 +282,9 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
         self.__data.sort(key=operator.attrgetter('value', 'key'))
         self.__updateKeys()
 
+
 class AnythingReference(object):
+
     def __init__(self, keys, file=None):
         self.keys = keys
         self.file = file
@@ -285,7 +315,7 @@ class AnythingReference(object):
             keystr += str(key)
 
         if self.file:
-            result = '!'+self.file
+            result = '!' + self.file
             if keystr:
                 result += '?'
         else:
@@ -294,17 +324,22 @@ class AnythingReference(object):
         result += keystr
 
         if ' ' in result:
-            return result[0]+'"'+result[1:]+'"'
+            return result[0] + '"' + result[1:] + '"'
         return result
 
     def __repr__(self):
-        return 'AnythingReference('+repr(self.keys)+(", '"+self.file+"'" if self.file else '')+')'
+        return 'AnythingReference(' + repr(self.keys) + (
+            ", '" + self.file + "'" if self.file else '') + ')'
+
 
 class TLS(threading.local):
+
     def __init__(self):
         self.env = {}
 
 tls = TLS()
+
+
 def setLocalEnv(env=None, **kw):
     """
     Use env to set the entire env: setLocalEnv({'COAST_ROOT': '/path/to/dir'})
@@ -315,9 +350,10 @@ def setLocalEnv(env=None, **kw):
     tls.env.update(kw)
 
 resolvers = [
-             lambda key: tls.env.get(key, None) if hasattr(tls, 'env') else None,
-             lambda key: os.environ.get(key, None)
-            ]
+    lambda key: tls.env.get(key, None) if hasattr(tls, 'env') else None,
+    lambda key: os.environ.get(key, None)
+]
+
 
 def first(funcs, *args, **kw):
     for func in funcs:
@@ -326,15 +362,18 @@ def first(funcs, *args, **kw):
             return result
     return None
 
+
 def resolvePath(filename, root=None, path=None):
     if os.path.isabs(filename):
         return filename
 
     if not root or not os.path.isdir(root):
-        root = first(resolvers+[lambda key: os.getcwd()], 'COAST_ROOT')
+        root = first(resolvers + [lambda key: os.getcwd()], 'COAST_ROOT')
 
     if not path:
-        path = first(resolvers+[lambda key: ['.','config', 'src']], 'COAST_PATH')
+        path = first(
+            resolvers + [lambda key: ['.', 'config', 'src']],
+            'COAST_PATH')
     if isinstance(path, basestring):
         path = path.split(':')
 
@@ -346,6 +385,8 @@ def resolvePath(filename, root=None, path=None):
 
 anythingCache = {}
 anythingCacheLock = threading.Lock()
+
+
 def loadAllFromFile(filename):
     filename = resolvePath(filename)
     with anythingCacheLock:
@@ -354,8 +395,10 @@ def loadAllFromFile(filename):
                 anythingCache[filename] = parse(file.read())
         return anythingCache[filename]
 
+
 def loadFromFile(filename):
     return loadAllFromFile(filename)[0]
+
 
 def toNumber(string):
     try:
@@ -363,11 +406,14 @@ def toNumber(string):
     except ValueError:
         return string
 
+
 def createAnythingReferenceGrammar():
     indexstart = Literal(':')
     keystart = Literal('.')
     escape = Literal('\\')
-    key = Optional(~keystart) & Word(And(~escape, keystart | indexstart) | AnyBut(keystart | indexstart))
+    key = Optional(
+        ~keystart) & Word(
+        And(~escape, keystart | indexstart) | AnyBut(keystart | indexstart))
     index = ~indexstart & Integer() >> int
     internalref = (key | index)[:] > list
 
@@ -375,26 +421,29 @@ def createAnythingReferenceGrammar():
     filename = Word(AnyBut(delimiter))
     filedesc = Optional(~Regexp(r'file://[^/]*/')) & filename
     reverse = lambda alist: list(reversed(alist))
-    externalref = ( filedesc & Optional(~delimiter & internalref) ) >= reverse
+    externalref = (filedesc & Optional(~delimiter & internalref)) >= reverse
 
     fullref = (~Literal('!') & externalref) | (~Literal('%') & internalref)
     return fullref
 
 refgrammar = createAnythingReferenceGrammar()
+
+
 def parseRef(refstring):
     return AnythingReference(*refgrammar.parse(refstring))
 
+
 def createAnythingGrammar():
     commentstart = Literal('#')
-    comment = ~commentstart & AnyBut(Newline())[:,...] & ~Newline()
+    comment = ~commentstart & AnyBut(Newline())[:, ...] & ~Newline()
     anystart = Literal('{')
     anystop = Literal('}')
     word = Word(AnyBut(Whitespace() | anystart | anystop | commentstart))
     anything = Delayed()
-    reference = ( Literal('!') | Literal('%') ) + ( String() | word ) >> parseRef
+    reference = (Literal('!') | Literal('%')) + (String() | word) >> parseRef
     stringvalue = String() | word >> toNumber
     value = anything | reference | stringvalue
-    key = ~Literal('/') & ( String() | word )
+    key = ~Literal('/') & (String() | word)
     keyvalue = Delayed()
     content = ~comment | keyvalue | value
     with Separator(~Star(Whitespace())):
@@ -405,5 +454,7 @@ def createAnythingGrammar():
     return document
 
 anygrammar = createAnythingGrammar()
+
+
 def parse(anythingstring):
     return anygrammar.parse(anythingstring)
