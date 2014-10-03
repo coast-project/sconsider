@@ -16,6 +16,10 @@ directory using the current commit hash appended:
 
     `python setup.py gitegginfo --tag-git-desc --tag-build .dev develop`
 
+To uninstall a previously installed development version you need to use the following command:
+
+    `python setup.py develop --uninstall`
+
 Run tests
 ---------
 
