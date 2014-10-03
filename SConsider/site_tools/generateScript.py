@@ -159,28 +159,28 @@ generateGdbCommandFile()
     runAsServer=${4:-1};
     # <<-EOF ignore tabs, nice for formatting heredocs
 cat > ${outputfile} <<-EOF
-    handle SIGSTOP nostop nopass
-    handle SIGLWP  nostop pass
-    handle SIGTERM nostop pass
-#    handle SIGINT  nostop pass
-    set environment PATH=${PATH}
-#    set environment COAST_ROOT=${COAST_ROOT}
-#    set environment COAST_PATH=${COAST_PATH}
-    set environment """ + libpathvariable + """=${""" + libpathvariable + """}
-#    set environment LOGDIR=${LOGDIR}
-#    set environment PID_FILE=${PID_FILE}
-    set auto-solib-add 1
-    # convert to Windows path on mingw (msys supplies it automatically to non-msys tools)
-    file \"""" + ("`cmd //c echo ${executable}`" if "mingw" in env["TOOLS"] else "${executable}") + """\"
-    set args "${arguments}"
+	handle SIGSTOP nostop nopass
+	handle SIGLWP  nostop pass
+	handle SIGTERM nostop pass
+	#handle SIGINT  nostop pass
+	set environment PATH=${PATH}
+	set environment COAST_ROOT=${COAST_ROOT}
+	set environment COAST_PATH=${COAST_PATH}
+	set environment """ + libpathvariable + """=${""" + libpathvariable + """}
+	#set environment LOGDIR=${LOGDIR}
+	#set environment PID_FILE=${PID_FILE}
+	set auto-solib-add 1
+	#convert to Windows path on mingw (msys supplies it automatically to non-msys tools)
+	file \"""" + ("`cmd //c echo ${executable}`" if "mingw" in env["TOOLS"] else "${executable}") + """\"
+	set args "${arguments}"
 EOF
     if [ $runAsServer -eq 1 ]; then
 cat >> ${outputfile} <<-EOF
-    run
-    where
-    continue
-    shell rm ${outputfile}
-    quit
+	run
+	where
+	continue
+	shell rm ${outputfile}
+	quit
 EOF
     fi;
 }
