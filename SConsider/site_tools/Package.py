@@ -115,8 +115,9 @@ def isInstalledNode(testnode, node):
 
 
 def filterBaseOutDir(path, **kw):
-    if not path or not path.startswith(os.sep):
-        return ''
+    #FIXME: baseoutdir is always an absolute path except maybe windows?
+    if not path.startswith(os.sep):
+        return path
     basedirprefix = kw.get('env', {}).get('BASEOUTDIR', False).abspath
     replist = [('^' + basedirprefix + os.sep + '?', ''),
                ]
@@ -124,8 +125,6 @@ def filterBaseOutDir(path, **kw):
 
 
 def filterTestsAppsGlobalsPath(path, **kw):
-    if not path:
-        return ''
     replist = [('^tests' + os.sep + '[^' + os.sep + ']*' + os.sep + '?', ''),
                ('^apps' + os.sep + '[^' + os.sep + ']*' + os.sep + '?', ''),
                ('^globals' + os.sep + '[^' + os.sep + ']*' + os.sep + '?', '')]
@@ -133,8 +132,6 @@ def filterTestsAppsGlobalsPath(path, **kw):
 
 
 def filterVariantPath(path, **kw):
-    if not path:
-        return ''
     variant = kw.get('env', {}).get('VARIANTDIR', False)
     if not variant:
         return path
@@ -148,7 +145,7 @@ def determineDirInPackage(name, env, destdir, target, filters=[]):
     if not isinstance(filters, list):
         filters = [filters]
     for filter in filters:
-        if callable(filter):
+        if path and callable(filter):
             path = filter(path, env=env)
 
     copydir = destdir.Dir(name)
