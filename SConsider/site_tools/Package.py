@@ -50,11 +50,20 @@ def addPackageTarget(registry, buildTargets, env, destdir, **kw):
 
 
 def makePackage(registry, buildTargets, env, destdir, **kw):
+    import SCons
     isInBuilddir = functools.partial(
         SomeUtils.hasPathPart,
         pathpart=env['BUILDDIR'])
     notInBuilddir = lambda target: not isInBuilddir(target)
-    notCopiedInclude = lambda target: not target.path.startswith(env['INCDIR'])
+    includePathRel = env['INCDIR']
+    includePathFull = includePathRel
+    if not includePathFull.startswith(os.path.sep):
+        includePathFull = os.path.join(env.get('BASEOUTDIR', SCons.Script.Dir('.')).abspath, includePathRel)
+    def isIncludeFile(target):
+        if os.path.splitext(target.path)[1].lower() in ['.h', '.hpp', '.hxx', '.ipp']:
+            return target.path.startswith(includePathRel) or target.path.startswith(includePathFull)
+        return False
+    isNotIncludeFile = lambda target: not isIncludeFile(target)
     copyfilters = [
         filterBaseOutDir,
         filterTestsAppsGlobalsPath,
@@ -63,7 +72,7 @@ def makePackage(registry, buildTargets, env, destdir, **kw):
         if registry.isValidFulltargetname(tn):
             tdeps = getTargetDependencies(
                 env.Alias(tn)[0], [
-                    SomeUtils.isDerivedNode, notInBuilddir, notCopiedInclude])
+                    SomeUtils.isDerivedNode, notInBuilddir, isNotIncludeFile])
             copyPackage(tn, tdeps, env, destdir, copyfilters)
 
 
