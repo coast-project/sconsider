@@ -154,7 +154,7 @@ def execute(command, env):
 
 def doTest(target, source, env):
     if '__SKIP_TEST__' in env:
-        logger.info('Test skipped: %s', str(env['__SKIP_TEST__']))
+        logger.critical('Test skipped: %s', str(env['__SKIP_TEST__']))
         return 0
 
     res = execute(source[0].abspath, env)
