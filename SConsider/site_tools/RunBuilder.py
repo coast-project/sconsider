@@ -90,6 +90,7 @@ def run(cmd, logfile=None, **kw):
     tee = Tee()
     tee.add(sys.stdout, flush=True, close=False)
     rcode = 99
+    proc = None
     try:
         if logfile:
             if not os.path.isdir(logfile.dir.abspath):
@@ -107,7 +108,7 @@ def run(cmd, logfile=None, **kw):
             tee.write(out)
         rcode = proc.returncode
     finally:
-        while True:
+        while True and proc:
             out = proc.stdout.readline()
             if out == '' and proc.poll() is not None:
                 break
@@ -154,7 +155,7 @@ def execute(command, env):
 
 def doTest(target, source, env):
     if '__SKIP_TEST__' in env:
-        logger.critical('Test skipped: %s', str(env['__SKIP_TEST__']))
+        logger.critical('%s', str(env['__SKIP_TEST__']))
         return 0
 
     res = execute(source[0].abspath, env)
@@ -193,7 +194,7 @@ def wrapSetUp(setUpFunc):
         try:
             return setUpFunc(target, source, env)
         except SkipTest as e:
-            env['__SKIP_TEST__'] = e.message
+            env['__SKIP_TEST__'] = "Test skipped for target {0}: {1}".format(source[0].name, e.message)
             return 0
     return setUp
 

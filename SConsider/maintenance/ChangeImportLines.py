@@ -3,7 +3,7 @@
 Simple helper tool to search/replace old-style c++ file contents in WebDisplay2 source and header files
 
 """
-# vim: set et ai ts=2 sw=2:
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
 # Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -17,7 +17,6 @@ import os
 import re
 import time
 import sys
-from SomeUtils import multiple_replace, replaceRegexInFile
 
 excludelist = [
     'build',
@@ -155,6 +154,45 @@ replacementFromDate = time.mktime(
         '20050101000000',
         '%Y%m%d%H%M%S'))
 reCopyYear = re.compile(r"(Copyright \(c\) )(\d{4})?(, Peter Sommerlad)?")
+
+
+def multiple_replace(replist, text):
+    """Using a list of tuples (pattern, replacement) replace all occurrences of
+    pattern (supports regex) with replacement.
+
+    Returns the new string.
+
+    """
+    for pattern, replacement in replist:
+        text = re.sub(pattern, replacement, text)
+    return text
+
+
+def replaceRegexInFile(
+        fname,
+        searchReplace,
+        multiReplFunc=multiple_replace,
+        replacedCallback=None):
+    try:
+        fo = open(fname)
+        if fo:
+            fstr = fo.read()
+            fo.close()
+            if fstr:
+                strout = multiReplFunc(searchReplace, fstr)
+                if fstr != strout:
+                    try:
+                        of = open(fname, 'w+')
+                        of.write(strout)
+                        of.close()
+                        if callable(replacedCallback):
+                            replacedCallback(fname=fname, text=strout)
+                        return strout
+                    except:
+                        pass
+    except IOError:
+        pass
+    return None
 
 
 def getCopyrightYear(text):
@@ -315,66 +353,84 @@ fgExtensionReList = [reCpp, reHeader, reAny, reShell, reMake]
 fgExtensionToReplaceFuncMap = {
     reAny: [
         cleanNewLines,
-        cleanDomain,
-        cleanESport,
-        cleanFinanzInfo,
         cleanWebDisplay,
-        cleanCompany,
-        removeVersion,
         correctKeyFile,
-        cleanTKFID,
         cleanWD2,
         cleanLineEnds,
-        cleanNewLines,
     ],
-    reShell: myshellcleanlist,
-    reLdif: myldifcleanlist,
+    reShell: [],
+    reLdif: [],
     reCpp: [
-        identoldReplace,
         rcsidReplace,
+        identoldReplace,
         pragmaReplace,
         cleanNewLines,
-        cleanDomain,
+        cleanLineEnds,
         cleanWebDisplay,
         cleanWD2,
-        cleanCompany,
         cleanEXPORTDECL,
     ],
     reHeader: [
-        identoldReplace,
         rcsidReplace,
+        identoldReplace,
         hidReplace,
         pragmaReplace,
         cleanNewLines,
-        cleanDomain,
+        cleanLineEnds,
         cleanWebDisplay,
         cleanWD2,
-        cleanCompany,
         cleanEXPORTDECL,
     ],
-    reText: [
-        cleanDomain,
-        cleanWD2,
-        cleanWebDisplay,
-    ],
+    reText: [],
     reDoxy: [
         cleanWebDisplay,
-        cleanTKFPath,
         cleanWD2,
         cleanLineEnds,
     ],
     reHtml: [
         cleanWebDisplay,
-        cleanDomain,
-        cleanESport,
-        cleanCompany,
     ],
-    #    reSQL: [cleanDomain],
-    #    reSconsider: [cleanDomain],
+    reSQL: [],
+    reSconsider: [],
     reMake: [
         cleanNewLines,
     ],
 }
+
+
+def extendMapWithHSRSpecifics(extensionToReplaceFuncMap):
+    extensionToReplaceFuncMap[reAny].extend([
+        cleanDomain,
+        cleanESport,
+        cleanFinanzInfo,
+        cleanCompany,
+        removeVersion,
+        cleanTKFID,
+    ])
+    extensionToReplaceFuncMap[reShell].extend(myshellcleanlist)
+    extensionToReplaceFuncMap[reLdif].extend(myldifcleanlist)
+    extensionToReplaceFuncMap[reCpp].extend([
+        cleanDomain,
+        cleanCompany,
+    ])
+    extensionToReplaceFuncMap[reHeader].extend([
+        cleanDomain,
+        cleanCompany,
+    ])
+    extensionToReplaceFuncMap[reText].extend([
+        cleanDomain,
+    ])
+    extensionToReplaceFuncMap[reDoxy].extend([
+        cleanTKFPath,
+    ])
+    extensionToReplaceFuncMap[reHtml].extend([
+        cleanDomain,
+        cleanESport,
+        cleanCompany,
+    ])
+#     extensionToReplaceFuncMap[reSQL].extend([cleanDomain])
+#     extensionToReplaceFuncMap[reSconsider].extend([cleanDomain])
+    extensionToReplaceFuncMap[reMake].extend([])
 
 import subprocess
 
@@ -387,25 +443,25 @@ def processFiles(
     astyleFiles = []
     fileCopyrightYear = None
     authdate = getAuthorDate()
-    if authdate >= replacementFromDate:
+    if authdate >= replacementFromDate or True:
         localMap = {}
         for (rex, funcs) in extensionToReplaceFuncMap.iteritems():
-            if rex == reCpp or rex == reHeader:
-                funcs.insert(
-                    0,
-                    (strReCopyright,
-                     lambda mo: replaceHeaderFunc(
-                         mo,
-                         headerTemplateC,
-                         fileCopyrightYear)))
-            elif rex == reAny or rex == reShell:
-                funcs.insert(
-                    0,
-                    (strReCopyrightAnyShell,
-                     lambda mo: replaceHeaderFunc(
-                         mo,
-                         headerTemplateAnyShell,
-                         fileCopyrightYear)))
+#             if rex == reCpp or rex == reHeader:
+#                 funcs.insert(
+#                     0,
+#                     (strReCopyright,
+#                      lambda mo: replaceHeaderFunc(
+#                          mo,
+#                          headerTemplateC,
+#                          fileCopyrightYear)))
+#             elif rex == reAny or rex == reShell:
+#                 funcs.insert(
+#                     0,
+#                     (strReCopyrightAnyShell,
+#                      lambda mo: replaceHeaderFunc(
+#                          mo,
+#                          headerTemplateAnyShell,
+#                          fileCopyrightYear)))
             localMap.setdefault(rex, funcs)
         for fname in theFiles:
             fname = os.path.normpath(fname)
@@ -473,6 +529,56 @@ def writeDictToFile(fname, outDict):
     except IOError:
         pass
 
+
+def healDictFile(options, filesToProcess, f):
+    oldDict = readDictFromFile(options.dictfilename)
+    newDict = {}
+    if oldDict:
+        for df in oldDict.keys():
+            for knownDir in ['webdisplay2', 'perfTest']:
+                if df.startswith(knownDir):
+                    newDict[os.path.join('WWW', df)] = oldDict.pop(df)
+
+    newDict.update(oldDict)
+    remainingFileList = [f for f in filesToProcess if
+                         f not in newDict.keys() and not f.startswith('TKF')]
+    remainDict = {}
+    for f in remainingFileList:
+        Cmd = [
+            "git",
+            "log",
+            "--pretty=format:%ad",
+            "--date=short",
+            "--reverse",
+            "--",
+            f]
+        authorDate = 2005
+        proc = subprocess.Popen(
+            Cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
+        try:
+            popen_out, popen_err = proc.communicate(None)
+            if popen_err:
+                print >> sys.stderr, popen_err
+            if popen_out:
+                authorDate = int(popen_out[0:4])
+                if authorDate < 2005:
+                    authorDate = 2005
+                remainDict[f] = str(authorDate)
+            proc.returncode
+        except OSError as e:
+            print >> sys.stderr, e
+            for line in proc.stderr:
+                print >> sys.stderr, line
+
+    for k, v in remainDict.iteritems():
+        print "%s %s" % (k, v)
+
+    writeDictToFile(options.dictfilename, newDict)
+    sys.exit()
+
+
 if __name__ == "__main__":
     from optparse import OptionParser
 
@@ -523,6 +629,13 @@ if __name__ == "__main__":
         help="write messages to stderr",
         default=0)
     parser.add_option(
+        "-i",
+        "--ifs",
+        action="store_true",
+        dest="ifs",
+        help="do hsr specific replacements",
+        default=False)
+    parser.add_option(
         "-e",
         "--extra",
         action="store_true",
@@ -559,51 +672,16 @@ if __name__ == "__main__":
 
     filesToProcess = [os.path.normpath(f) for f in filesToProcess]
     if options.xtra:
-        oldDict = readDictFromFile(options.dictfilename)
-        newDict = {}
-        if oldDict:
-            for df in oldDict.keys():
-                for knownDir in ['webdisplay2', 'perfTest']:
-                    if df.startswith(knownDir):
-                        newDict[os.path.join('WWW', df)] = oldDict.pop(df)
-        newDict.update(oldDict)
-        remainingFileList = [
-            f for f in filesToProcess
-            if f not in newDict.keys() and not f.startswith('TKF')]
-        remainDict = {}
-        for f in remainingFileList:
-            Cmd = [
-                "git",
-                "log",
-                "--pretty=format:%ad",
-                "--date=short",
-                "--reverse",
-                "--",
-                f]
-            authorDate = 2005
-            proc = subprocess.Popen(
-                Cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE)
-            try:
-                popen_out, popen_err = proc.communicate(None)
-                if popen_err:
-                    print >>sys.stderr, popen_err
-                if popen_out:
-                    authorDate = int(popen_out[0:4])
-                    if authorDate < 2005:
-                        authorDate = 2005
-                    remainDict[f] = str(authorDate)
-                res = proc.returncode
-            except OSError as e:
-                print >>sys.stderr, e
-                for line in proc.stderr:
-                    print >>sys.stderr, line
-        for (k, v) in remainDict.iteritems():
-            print "%s %s" % (k, v)
-        writeDictToFile(options.dictfilename, newDict)
-        sys.exit()
+        healDictFile(options, filesToProcess, f)
 
+    extensionToReplaceFuncMap = fgExtensionToReplaceFuncMap
+    if options.ifs:
+        extendMapWithHSRSpecifics(extensionToReplaceFuncMap)
+    try:
+        import WD2Coast
+        WD2Coast.extendReplaceFuncMap(extensionToReplaceFuncMap)
+    except:
+        pass
     end = time.clock()
     numFiles = len(filesToProcess)
     if options.verbose > 2:
@@ -612,7 +690,7 @@ if __name__ == "__main__":
     processFiles(
         filesToProcess,
         fileCopyrightDict=fileCopyrightDict,
-        extensionToReplaceFuncMap=fgExtensionToReplaceFuncMap,
+        extensionToReplaceFuncMap=extensionToReplaceFuncMap,
         doAstyle=options.astyle)
     end = time.clock()
     chgElapsed = end - start
