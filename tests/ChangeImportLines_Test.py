@@ -145,15 +145,6 @@ fsdfds
             testCopyrightHeader2)
         self.assertEqual(testHeader2007, result)
 
-    def testCopyrightReplaceUseAuthorDateVariant(self):
-        dateStr = str(int(time.mktime(
-            time.strptime('20070201000000', '%Y%m%d%H%M%S')))) + ' some date x y z'
-        os.environ['GIT_AUTHOR_DATE'] = dateStr
-        result = SomeUtils.multiple_replace(
-            [ChangeImportLines.copyReplace],
-            testCopyrightHeader3)
-        self.assertEqual(testHeader2007, result)
-
     def testCopyrightReplaceDoNotOverwriteExistingBefore(self):
         dateStr = str(int(time.mktime(
             time.strptime('20060101000000', '%Y%m%d%H%M%S')))) + ' some date x y z'

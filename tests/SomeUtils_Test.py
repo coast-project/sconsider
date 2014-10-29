@@ -133,35 +133,3 @@ class GetNodeDependenciesTest(unittest.TestCase):
         deps = SomeUtils.getNodeDependencies(self.alias)
         self.assertEqual(len(deps), 6)
 
-
-class SplitTargetnameTest(unittest.TestCase):
-
-    def testSplitTargetname(self):
-        pkgname, tgtname = SomeUtils.splitTargetname('package.target')
-        self.assertEqual('package', pkgname)
-        self.assertEqual('target', tgtname)
-
-    def testSplitTargetnameNoTarget(self):
-        pkgname, tgtname = SomeUtils.splitTargetname('package')
-        self.assertEqual('package', pkgname)
-        self.assertEqual(None, tgtname)
-
-    def testSplitTargetnameDefault(self):
-        pkgname, tgtname = SomeUtils.splitTargetname('package', True)
-        self.assertEqual('package', pkgname)
-        self.assertEqual('package', tgtname)
-
-
-class GenerateFulltargetnameTest(unittest.TestCase):
-
-    def testGenerateFulltargetname(self):
-        ftn = SomeUtils.generateFulltargetname('package', 'target')
-        self.assertEqual('package.target', ftn)
-
-    def testGenerateFulltargetnameNoTarget(self):
-        ftn = SomeUtils.generateFulltargetname('package')
-        self.assertEqual('package', ftn)
-
-    def testGenerateFulltargetnameDefault(self):
-        ftn = SomeUtils.generateFulltargetname('package', default=True)
-        self.assertEqual('package.package', ftn)

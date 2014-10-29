@@ -51,6 +51,12 @@ loggers:
         propagate: no
         filters: [filterLookup, filterExecuting]
 
+    SConsider.PackageRegistry:
+        level: INFO
+        handlers: [console]
+        propagate: no
+        filters: [filterLookup, filterExecuting]
+
     setupBuildTools:
         level: INFO
         handlers: [console]

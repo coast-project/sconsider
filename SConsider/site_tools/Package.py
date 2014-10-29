@@ -58,10 +58,21 @@ def makePackage(registry, buildTargets, env, destdir, **kw):
     includePathRel = env['INCDIR']
     includePathFull = includePathRel
     if not includePathFull.startswith(os.path.sep):
-        includePathFull = os.path.join(env.get('BASEOUTDIR', SCons.Script.Dir('.')).abspath, includePathRel)
+        includePathFull = os.path.join(
+            env.get(
+                'BASEOUTDIR',
+                SCons.Script.Dir('.')).abspath,
+            includePathRel)
+
     def isIncludeFile(target):
-        if os.path.splitext(target.path)[1].lower() in ['.h', '.hpp', '.hxx', '.ipp']:
-            return target.path.startswith(includePathRel) or target.path.startswith(includePathFull)
+        if os.path.splitext(
+                target.path)[1].lower() in [
+                '.h',
+                '.hpp',
+                '.hxx',
+                '.ipp']:
+            return target.path.startswith(
+                includePathRel) or target.path.startswith(includePathFull)
         return False
     isNotIncludeFile = lambda target: not isIncludeFile(target)
     copyfilters = [
@@ -124,7 +135,7 @@ def isInstalledNode(testnode, node):
 
 
 def filterBaseOutDir(path, **kw):
-    #FIXME: baseoutdir is always an absolute path except maybe windows?
+    # FIXME: baseoutdir is always an absolute path except maybe windows?
     if not path.startswith(os.sep):
         return path
     basedirprefix = kw.get('env', {}).get('BASEOUTDIR', False).abspath

@@ -36,7 +36,9 @@ prefixStreamModifiersWithStd = (
     lambda mo: str(mo.group(2)) + 'std::' + str(mo.group(3)))
 
 adjustCloneFunctionDecl = (
-    re.compile(r'(^[ \t]+//.*$\s)?^([ \t]+)((virtual\s+)?IFAObject\s*\*\s*Clone\()(\)\s*const)', re.M),
+    re.compile(
+        r'(^[ \t]+//.*$\s)?^([ \t]+)((virtual\s+)?IFAObject\s*\*\s*Clone\()(\)\s*const)',
+        re.M),
     lambda mo:
         str(mo.group(2)) +
         '/*! @copydoc IFAObject::Clone(Allocator *) */\n' +
@@ -148,7 +150,7 @@ replaceDoCheckStoresInTestCode = (
         str(mo.group(1)) +
         str(mo.group(2)) +
         'anyFailureStrings, '
-    )
+)
 
 from ChangeImportLines import reAny, reShell, reCpp, reHeader, reSconsider
 

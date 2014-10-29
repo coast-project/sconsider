@@ -1,9 +1,8 @@
 """SConsider.site_tools.workingSetWriter.
 
-Eclipse-SConsider-specific tool to create an eclipse working set filter file.
-
-Each directory containing an eclipse .project file is scanned for its dependencies to other
-'eclipse' project files.
+Eclipse-SConsider-specific tool to create an eclipse working set filter
+file.  Each directory containing an eclipse .project file is scanned for
+its dependencies to other 'eclipse' project files.
 
 """
 
@@ -20,8 +19,7 @@ Each directory containing an eclipse .project file is scanned for its dependenci
 from __future__ import with_statement
 import os
 import uuid
-import optparse
-import SomeUtils
+import PackageRegistry
 from xml.etree.ElementTree import ElementTree, Element
 
 
@@ -47,7 +45,8 @@ def getProjectNameFromProjectFile(projectFile):
 def determineProjectDependencies(dependencyDict, registry, topPath):
     dependencies = set()
     for fulltargetname, depDict in dependencyDict.iteritems():
-        packagename, targetname = SomeUtils.splitTargetname(fulltargetname)
+        packagename, targetname = PackageRegistry.splitTargetname(
+            fulltargetname)
         packagePath = registry.getPackageDir(packagename).get_abspath()
         projectFilePath = determineProjectFilePath(packagePath, topPath)
         projectName = getProjectNameFromProjectFile(projectFilePath)
@@ -136,22 +135,19 @@ def toXML(deps, file):
 
 
 def generate(env):
-    import SConsider
     import SCons
+    import SConsider
 
-    try:
-        SCons.Script.AddOption(
-            '--workspace',
-            dest='workspace',
-            action='store',
-            default='',
-            help='Select workspace directory')
-    except optparse.OptionConflictError:
-        pass
+    SCons.Script.AddOption(
+        '--workspace',
+        dest='workspace',
+        action='store',
+        default='',
+        help='Select workspace directory')
 
     SConsider.registerCallback('PostCreatePackageTargets', rememberWorkingSet)
     SConsider.registerCallback('PreBuild', writeWorkingSets)
 
 
 def exists(env):
-    return True
+    return 1

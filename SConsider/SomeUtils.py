@@ -142,6 +142,8 @@ def multiple_replace(replist, text):
 
     """
     for pattern, replacement in replist:
+        if not pattern or not text:
+            continue
         text = re.sub(pattern, replacement, text)
     return text
 
@@ -322,35 +324,6 @@ def getNodeDependencies(target, filters=[]):
         deps.update(getNodeDependencies(t, filters))
 
     return deps
-
-targetnameseparator = '.'
-
-
-def splitTargetname(fulltargetname, default=False):
-    """Split fulltargetname into packagename and targetname."""
-    parts = fulltargetname.split(targetnameseparator)
-    pkgname = parts[0]
-    targetname = None
-    if len(parts) > 1:
-        targetname = parts[1]
-    elif default:
-        targetname = pkgname
-    return (pkgname, targetname)
-
-
-def generateFulltargetname(packagename, targetname=None, default=False):
-    """Generate fulltargetname using packagename and targetname."""
-    if not targetname:
-        if default:
-            return packagename + targetnameseparator + packagename
-        else:
-            return packagename
-    else:
-        return packagename + targetnameseparator + targetname
-
-
-def createUniqueTargetname(packagename, targetname):
-    return packagename + targetname if packagename != targetname else targetname
 
 
 def getfqdn():

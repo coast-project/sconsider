@@ -30,6 +30,8 @@ import SCons.Script
 from SCons.Script import AddOption, GetOption
 import SConsider
 import Callback
+from SomeUtils import hasPathPart, isFileNode, isDerivedNode,\
+    getNodeDependencies, getFlatENV
 from logging import getLogger
 logger = getLogger(__name__)
 
@@ -147,7 +149,7 @@ def execute(command, env):
 
     return run(
         args,
-        env=SConsider.getFlatENV(env),
+        env=getFlatENV(env),
         logfile=env.get(
             'logfile',
             None))
@@ -194,7 +196,9 @@ def wrapSetUp(setUpFunc):
         try:
             return setUpFunc(target, source, env)
         except SkipTest as e:
-            env['__SKIP_TEST__'] = "Test skipped for target {0}: {1}".format(source[0].name, e.message)
+            env['__SKIP_TEST__'] = "Test skipped for target {0}: {1}".format(
+                source[0].name,
+                e.message)
             return 0
     return setUp
 
@@ -261,13 +265,13 @@ def createTestTarget(
         env.AlwaysBuild(runner)
 
     isInBuilddir = functools.partial(
-        SConsider.hasPathPart,
+        hasPathPart,
         pathpart=env['BUILDDIR'])
     isCopiedInclude = lambda node: node.path.startswith(env['INCDIR'])
 
     funcs = [
-        SConsider.isFileNode,
-        SConsider.isDerivedNode,
+        isFileNode,
+        isDerivedNode,
         lambda node: not isInBuilddir(node),
         lambda node: not isCopiedInclude(node)
     ]
@@ -275,7 +279,7 @@ def createTestTarget(
     env.Depends(
         runner,
         sorted(
-            SConsider.getNodeDependencies(
+            getNodeDependencies(
                 runner[0],
                 funcs)))
 
