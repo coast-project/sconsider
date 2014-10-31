@@ -1,3 +1,4 @@
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
 # Copyright (c) 2012, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -7,32 +8,35 @@
 # modify it under the terms of the license that is included with this
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
-from pkg_resources import require as pkg_require
-pkg_require(["SConsider<0.5"])
+
+import pkg_resources
+pkg_resources.require(["SConsider"])
 import SConsider
-from SConsider.ConfigureHelper import Configure
 
 Import('*')
 
-env = SConsider.cloneBaseEnv()
-conf = Configure(env)
-if conf.CheckLibWithHeader('aceclnt', 'acclnt.h', 'C'):
-    conf.env.Append(CPPDEFINES='HAS_RSA')
-env = conf.Finish()
+_scons_dist = pkg_resources.get_distribution("SConsider").parsed_version
+if _scons_dist < pkg_resources.parse_version("0.5.dev"):
+    from SConsider.ConfigureHelper import Configure
+    env = SConsider.cloneBaseEnv()
+    conf = Configure(env)
+    if conf.CheckLibWithHeader('aceclnt', 'acclnt.h', 'C'):
+        conf.env.Append(CPPDEFINES='HAS_RSA')
+    env = conf.Finish()
 
-buildSettings = {}
-if 'HAS_RSA' in env['CPPDEFINES']:
-    buildSettings[packagename] = {
-        'linkDependencies': [
-            packagename + '.aceclnt',
-        ],
-    }
-    buildSettings['aceclnt'] = {
-        'public': {
-            'appendUnique': {
-                'LIBS': ['aceclnt'],
+    buildSettings = {}
+    if 'HAS_RSA' in env['CPPDEFINES']:
+        buildSettings[packagename] = {
+            'linkDependencies': [
+                packagename + '.aceclnt',
+            ],
+        }
+        buildSettings['aceclnt'] = {
+            'public': {
+                'appendUnique': {
+                    'LIBS': ['aceclnt'],
+                },
             },
-        },
-    }
+        }
 
-SConsider.createTargets(packagename, buildSettings)
+    SConsider.createTargets(packagename, buildSettings)

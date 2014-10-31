@@ -1,5 +1,6 @@
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
-# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
+# Copyright (c) 2011, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
 # All rights reserved.
 #
@@ -7,39 +8,42 @@
 # modify it under the terms of the license that is included with this
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
-from pkg_resources import require as pkg_require
-pkg_require(["SConsider<0.5"])
+
+import pkg_resources
+pkg_resources.require(["SConsider"])
 import SConsider
-from SCons.Script import File
 
 Import('*')
 
-buildSettings = {
-    packagename: {
-        'sourceFiles': [
-            File('adler32.c'),
-            File('compress.c'),
-            File('crc32.c'),
-            File('deflate.c'),
-            File('gzclose.c'),
-            File('gzlib.c'),
-            File('gzread.c'),
-            File('gzwrite.c'),
-            File('infback.c'),
-            File('inffast.c'),
-            File('inflate.c'),
-            File('inftrees.c'),
-            File('trees.c'),
-            File('uncompr.c'),
-            File('zutil.c'),
-        ],
-        'targetType': 'LibraryShared',
-        'appendUnique': {
+_scons_dist = pkg_resources.get_distribution("SConsider").parsed_version
+if _scons_dist < pkg_resources.parse_version("0.5.dev"):
+    from SCons.Script import File
+    buildSettings = {
+        packagename: {
+            'sourceFiles': [
+                File('adler32.c'),
+                File('compress.c'),
+                File('crc32.c'),
+                File('deflate.c'),
+                File('gzclose.c'),
+                File('gzlib.c'),
+                File('gzread.c'),
+                File('gzwrite.c'),
+                File('infback.c'),
+                File('inffast.c'),
+                File('inflate.c'),
+                File('inftrees.c'),
+                File('trees.c'),
+                File('uncompr.c'),
+                File('zutil.c'),
+            ],
+            'targetType': 'LibraryShared',
+            'appendUnique': {
+            },
+            'public': {
+                'includeSubdir': '',
+            },
         },
-        'public': {
-            'includeSubdir': '',
-        },
-    },
-}
+    }
 
-SConsider.createTargets(packagename, buildSettings)
+    SConsider.createTargets(packagename, buildSettings)

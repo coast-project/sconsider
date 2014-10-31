@@ -1,5 +1,6 @@
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
-# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
+# Copyright (c) 2011, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
 # All rights reserved.
 #
@@ -7,46 +8,49 @@
 # modify it under the terms of the license that is included with this
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
-from pkg_resources import require as pkg_require
-pkg_require(["SConsider<0.5"])
+
+import pkg_resources
+pkg_resources.require(["SConsider"])
 import SConsider
-import ThirdParty
 
 Import('*')
 
-buildSettings = {
-    packagename: {
-        'linkDependencies': [
-            packagename + '.ssl',
-            packagename + '.crypto',
-        ],
-        'targetType': 'IncludeOnly',
-        'public': {
-            'includeSubdir': 'include',
+_scons_dist = pkg_resources.get_distribution("SConsider").parsed_version
+if _scons_dist < pkg_resources.parse_version("0.5.dev"):
+    import ThirdParty
+    buildSettings = {
+        packagename: {
+            'linkDependencies': [
+                packagename + '.ssl',
+                packagename + '.crypto',
+            ],
+            'targetType': 'IncludeOnly',
+            'public': {
+                'includeSubdir': 'include',
+            },
         },
-    },
-    'ssl': {
-        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('ssl')],
-        'targetType': 'PrecompiledLibraryInstallBuilder',
-    },
-    'crypto': {
-        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('crypto')],
-        'targetType': 'PrecompiledLibraryInstallBuilder',
-    },
-    'opensslbin': {
-        'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('openssl')],
-        'targetType': 'PrecompiledBinary',
-    },
-    'openSSL': {
-        'targetType': 'ProgramApp',
-        'runConfig': {
+        'ssl': {
+            'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('ssl')],
+            'targetType': 'PrecompiledLibraryInstallBuilder',
         },
-        'requires': [
-            packagename + '.ssl',
-            packagename + '.crypto',
-        ],
-        'usedTarget': packagename + '.opensslbin',
-    },
-}
+        'crypto': {
+            'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('crypto')],
+            'targetType': 'PrecompiledLibraryInstallBuilder',
+        },
+        'opensslbin': {
+            'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('openssl')],
+            'targetType': 'PrecompiledBinary',
+        },
+        'openSSL': {
+            'targetType': 'ProgramApp',
+            'runConfig': {
+            },
+            'requires': [
+                packagename + '.ssl',
+                packagename + '.crypto',
+            ],
+            'usedTarget': packagename + '.opensslbin',
+        },
+    }
 
-SConsider.createTargets(packagename, buildSettings)
+    SConsider.createTargets(packagename, buildSettings)
