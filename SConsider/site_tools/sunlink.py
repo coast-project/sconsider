@@ -79,7 +79,7 @@ def generate(env):
             bitwidth = ''
         return bitwoption + bitwidth
 
-    bitwidth = env['ARCHBITS']
+    bitwidth = env.getBitwidth() if hasattr(env, 'getBitwidth') else '32'
     env.AppendUnique(LINKFLAGS=bwopt(bitwidth))
     env.AppendUnique(SHLINKFLAGS=bwopt(bitwidth))
     env.AppendUnique(SHLINKFLAGS='-library=stlport4')
@@ -97,4 +97,4 @@ def generate(env):
 
 
 def exists(env):
-    return None
+    return True

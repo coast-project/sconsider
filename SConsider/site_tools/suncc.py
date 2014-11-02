@@ -39,7 +39,7 @@ def generate(env):
             bitwidth = ''
         return bitwoption + bitwidth
 
-    env.AppendUnique(CFLAGS=bwopt(env['ARCHBITS']))
+    env.AppendUnique(CFLAGS=bwopt(env.getBitwidth() if hasattr(env, 'getBitwidth') else '32'))
 
     if not SCons.Script.GetOption('no-largefilesupport'):
         env.AppendUnique(CPPDEFINES=['_LARGEFILE64_SOURCE'])

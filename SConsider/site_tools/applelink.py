@@ -36,14 +36,15 @@ def generate(env):
         env.AppendUnique(LINKFLAGS=['-fprofile'])
         env.AppendUnique(SHLINKFLAGS=['-fprofile'])
 
-    env.AppendUnique(LINKFLAGS='-m' + env['ARCHBITS'])
+    bitwidth = env.getBitwidth() if hasattr(env, 'getBitwidth') else '32'
+    env.AppendUnique(LINKFLAGS='-m' + bitwidth)
     # FIXME: only append to SHLINKFLAGS if we do not require all symbols
     # resolved!
     env.Append(SHLINKFLAGS=['-undefined', 'dynamic_lookup'])
 
-    if env['ARCHBITS'] == '32':
+    if bitwidth == '32':
         env.Append(LINKFLAGS=['-arch', 'i386'])
-    elif env['ARCHBITS'] == '64':
+    elif bitwidth == '64':
         env.Append(LINKFLAGS=['-arch', 'x86_64'])
     orig_smart_link = env['SMARTLINK']
 

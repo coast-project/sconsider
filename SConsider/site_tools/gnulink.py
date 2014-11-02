@@ -74,7 +74,8 @@ def generate(env):
         return orig_smart_link(source, target, env, for_signature)
     env.Replace(SMARTLINK=smart_link)
 
-    env.AppendUnique(LINKFLAGS='-m' + env['ARCHBITS'])
+    bitwidth = env.getBitwidth() if hasattr(env, 'getBitwidth') else '32'
+    env.AppendUnique(LINKFLAGS='-m' + bitwidth)
 
     if str(platf) not in ["cygwin", "win32"]:
         env.Append(_NONLAZYLINKFLAGS='-z defs -z now ')
@@ -97,4 +98,4 @@ def generate(env):
 
 
 def exists(env):
-    return None
+    return True

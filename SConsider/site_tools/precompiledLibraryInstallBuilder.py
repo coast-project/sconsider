@@ -30,7 +30,7 @@ logger = getLogger(__name__)
 
 
 def findPlatformTargets(env, basedir, targetname, prefixes=[], suffixes=[]):
-    bitwidth = env.get('ARCHBITS', '32')
+    bitwidth = env.getBitwidth() if hasattr(env, 'getBitwidth') else '32'
     libRE = ''
     for pre in prefixes:
         if libRE:
@@ -172,9 +172,7 @@ def findLibrary(env, basedir, libname):
         'library [%s] not available for this platform [%s] and bitwidth[%s]',
         libname,
         env['PLATFORM'],
-        env.get(
-            'ARCHBITS',
-            '32'))
+        env.getBitwidth() if hasattr(env, 'getBitwidth') else '32')
     return (None, None, None, None)
 
 
@@ -192,9 +190,7 @@ def findBinary(env, basedir, binaryname):
         'binary [%s] not available for this platform [%s] and bitwidth[%s]',
         binaryname,
         env['PLATFORM'],
-        env.get(
-            'ARCHBITS',
-            '32'))
+        env.getBitwidth() if hasattr(env, 'getBitwidth') else '32')
     return (None, None, None)
 
 

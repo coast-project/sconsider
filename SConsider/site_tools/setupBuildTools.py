@@ -25,7 +25,6 @@ logger = getLogger(__name__)
 import Callback
 Callback.addCallbackFeature(__name__)
 
-added = None
 cxxCompiler = None
 ccCompiler = None
 
@@ -44,92 +43,89 @@ def checkCompiler(env, optionvalue, envVarName):
 
 def generate(env, **kw):
     """Add build tools."""
-    global added
-    if not added:
-        added = 1
-        AddOption(
-            '--with-cxx',
-            dest='whichcxx',
-            action='store',
-            nargs=1,
-            type='string',
-            default=None,
-            metavar='PATH',
-            help='Fully qualified path and name to gnu g++ compiler')
-        AddOption(
-            '--with-cc',
-            dest='whichcc',
-            action='store',
-            nargs=1,
-            type='string',
-            default=None,
-            metavar='PATH',
-            help='Fully qualified path and name to gnu gcc compiler')
-        bitchoices = ['32', '64']
-        bitdefault = '32'
-        AddOption(
-            '--archbits',
-            dest='archbits',
-            action='store',
-            nargs=1,
-            type='choice',
-            choices=bitchoices,
-            default=bitdefault,
-            metavar='OPTIONS',
-            help='Select target bit width (if compiler supports it), ' +
-            str(bitchoices) +
-            ', default=' +
-            bitdefault)
-        buildchoices = ['debug', 'optimized', 'profile']
-        builddefault = 'optimized'
-        AddOption(
-            '--build-cfg',
-            dest='buildcfg',
-            action='store',
-            nargs=1,
-            type='choice',
-            choices=buildchoices,
-            default=builddefault,
-            metavar='OPTIONS',
-            help='Select build configuration, ' +
-            str(buildchoices) +
-            ', default=' +
-            builddefault)
-        langchoices = ['boost', 'c++0x', 'tr1']
-        langdefault = 'boost'
-        AddOption(
-            '--use-lang-features',
-            dest='whichlangfeat',
-            action='store',
-            nargs=1,
-            type='choice',
-            choices=langchoices,
-            default=langdefault,
-            metavar='OPTIONS',
-            help='Select which language features, ' +
-            str(langchoices) +
-            ', default=' +
-            langdefault)
-        warnchoices = ['none', 'medium', 'full']
-        warndefault = 'medium'
-        AddOption(
-            '--warnlevel',
-            dest='warnlevel',
-            action='store',
-            nargs=1,
-            type='choice',
-            choices=warnchoices,
-            default=warndefault,
-            metavar='OPTIONS',
-            help='Select compilation warning level, one of ' +
-            str(warnchoices) +
-            ', default=' +
-            warndefault)
-        AddOption(
-            '--no-largefilesupport',
-            dest='no-largefilesupport',
-            action='store_true',
-            help='Disable use of std libraries iostream headers')
+    AddOption(
+        '--with-cxx',
+        dest='whichcxx',
+        action='store',
+        nargs=1,
+        type='string',
+        default=None,
+        metavar='PATH',
+        help='Fully qualified path and name to gnu g++ compiler')
+    AddOption(
+        '--with-cc',
+        dest='whichcc',
+        action='store',
+        nargs=1,
+        type='string',
+        default=None,
+        metavar='PATH',
+        help='Fully qualified path and name to gnu gcc compiler')
+    bitchoices = ['32', '64']
+    bitdefault = '32'
+    AddOption(
+        '--archbits',
+        dest='archbits',
+        action='store',
+        nargs=1,
+        type='choice',
+        choices=bitchoices,
+        default=bitdefault,
+        metavar='OPTIONS',
+        help='Select target bit width (if compiler supports it), ' +
+        str(bitchoices) +
+        ', default=' +
+        bitdefault)
+    buildchoices = ['debug', 'optimized', 'profile']
+    builddefault = 'optimized'
+    AddOption(
+        '--build-cfg',
+        dest='buildcfg',
+        action='store',
+        nargs=1,
+        type='choice',
+        choices=buildchoices,
+        default=builddefault,
+        metavar='OPTIONS',
+        help='Select build configuration, ' +
+        str(buildchoices) +
+        ', default=' +
+        builddefault)
+    langchoices = ['boost', 'c++0x', 'tr1']
+    langdefault = 'boost'
+    AddOption(
+        '--use-lang-features',
+        dest='whichlangfeat',
+        action='store',
+        nargs=1,
+        type='choice',
+        choices=langchoices,
+        default=langdefault,
+        metavar='OPTIONS',
+        help='Select which language features, ' +
+        str(langchoices) +
+        ', default=' +
+        langdefault)
+    warnchoices = ['none', 'medium', 'full']
+    warndefault = 'medium'
+    AddOption(
+        '--warnlevel',
+        dest='warnlevel',
+        action='store',
+        nargs=1,
+        type='choice',
+        choices=warnchoices,
+        default=warndefault,
+        metavar='OPTIONS',
+        help='Select compilation warning level, one of ' +
+        str(warnchoices) +
+        ', default=' +
+        warndefault)
+    AddOption(
+        '--no-largefilesupport',
+        dest='no-largefilesupport',
+        action='store_true',
+        help='Disable use of std libraries iostream headers')
 
     platf = env['PLATFORM']
     cxxCompiler = checkCompiler(env, GetOption('whichcxx'), 'CXX')
@@ -162,8 +158,8 @@ def generate(env, **kw):
 
     # select target architecture bits
     bitwidth = GetOption('archbits')
-    env['ARCHBITS'] = bitwidth
     env.AppendUnique(CCFLAGS=['-DARCHBITS=' + str(bitwidth)])
+    env.AddMethod(lambda env: bitwidth, "getBitwidth")
 
     # tool initialization, previously done in <scons>/Tool/default.py
     for t in SCons.Tool.tool_list(platf, env):

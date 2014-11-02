@@ -46,6 +46,7 @@ def generate(env):
         env['SHOBJSUFFIX'] = '.pic.o'
     # determine compiler version
     gccfss = False
+    bitwidth = env.getBitwidth() if hasattr(env, 'getBitwidth') else '32'
     if compiler_subject:
         # pipe = SCons.Action._subproc(env, [compiler_subject, '-dumpversion'],
         pipe = SCons.Action._subproc(env, [compiler_subject, '--version'],
@@ -90,7 +91,7 @@ def generate(env):
                                       tFile,
                                       '-o',
                                       outFile,
-                                      '-m' + env['ARCHBITS']],
+                                      '-m' + bitwidth],
                                      stdin='devnull',
                                      stderr=subprocess.PIPE,
                                      stdout=subprocess.PIPE)
@@ -139,9 +140,9 @@ def generate(env):
     platf = env['PLATFORM']
     env.AppendUnique(CPPDEFINES=['_POSIX_PTHREAD_SEMANTICS', '_REENTRANT'])
 
-    env.AppendUnique(CCFLAGS='-m' + env['ARCHBITS'])
+    env.AppendUnique(CCFLAGS='-m' + bitwidth)
     if str(platf) == 'darwin':
-        if env['ARCHBITS'] == '32':
+        if bitwidth == '32':
             env.AppendUnique(CCFLAGS=['-arch', 'i386'])
         else:
             env.AppendUnique(CCFLAGS=['-arch', 'x86_64'])

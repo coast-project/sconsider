@@ -84,7 +84,7 @@ def generate(env):
             bitwidth = ''
         return bitwoption + bitwidth
 
-    env.AppendUnique(CXXFLAGS=bwopt(env['ARCHBITS']))
+    env.AppendUnique(CXXFLAGS=bwopt(env.getBitwidth() if hasattr(env, 'getBitwidth') else '32'))
     env.AppendUnique(CXXFLAGS='-library=stlport4')
 
     if not SCons.Script.GetOption('no-largefilesupport'):

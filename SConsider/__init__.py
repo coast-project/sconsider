@@ -149,7 +149,7 @@ variant = "Unknown-"
 myplatf = str(SCons.Platform.Platform())
 
 if myplatf == "posix":
-    bitwidth = baseEnv.get('ARCHBITS', '32')
+    bitwidth = baseEnv.getBitwidth() if hasattr(baseEnv, 'getBitwidth') else '32'
     libcver = getLibCVersion(bitwidth)
     variant = platform.system(
     ) + "_" + libcver[0] + "_" + libcver[1] + "-" + platform.machine()
