@@ -4,6 +4,7 @@ SCons build tool extension allowing automatic target finding within a
 directoy tree.
 
 """
+
 # -------------------------------------------------------------------------
 # Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -13,12 +14,12 @@ directoy tree.
 # modify it under the terms of the license that is included with this
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
+
 from __future__ import with_statement
 import os
 import platform
 import atexit
 import sys
-import commands
 import SCons
 from SCons.Script import AddOption, GetOption, Dir, DefaultEnvironment,\
     Flatten, SConsignFile
@@ -38,6 +39,7 @@ sys.path[:0] = [_base_path]
 setup_logging(os.path.join(_base_path, 'logging.yaml'))
 logger = getLogger(__name__)
 
+"""add callback feature early as it might be used from tools"""
 addCallbackFeature(__name__)
 
 SCons.Script.EnsureSConsVersion(1, 3, 0)
@@ -54,6 +56,15 @@ try:
         get_build_platform()))
 except ResolutionError:
     pass
+
+
+class Null(SCons.Util.Null):
+
+    def __getitem__(self, key):
+        return self
+
+    def __contains__(self, key):
+        return False
 
 for platform_func in [platform.dist,
                       platform.architecture,
@@ -120,8 +131,9 @@ AddOption(
     help='SCons tools to use for constructing the default environment. Default\
  tools are %s' % Flatten(globaltools))
 
-usetools = globaltools + GetOption('usetools')
-logger.debug('tools in use %s', Flatten(usetools))
+usetools = globaltools + DefaultEnvironment().get('_SCONSIDER_TOOLS_',
+                                                  []) + GetOption('usetools')
+logger.debug('tools to use %s', Flatten(usetools))
 
 # insert the site_tools path for our own tools
 DefaultToolpath.insert(
@@ -143,6 +155,7 @@ elif myplatf == "sunos":
     variant = platform.system(
     ) + "_" + platform.release() + "-" + platform.processor()
 elif myplatf == "darwin":
+    import commands
     version = commands.getoutput("sw_vers -productVersion")
     cpu = commands.getoutput("arch")
     if version.startswith("10.7"):
@@ -215,9 +228,10 @@ baseEnv.Append(SCRIPTDIR='scripts')
 baseEnv.Append(CONFIGDIR='config')
 baseEnv.Append(DOCDIR='doc')
 baseEnv.Append(BUILDDIR='.build')
-
-# directory relative to BASEOUTDIR where we are going to install target
-# specific files mainly used to rebase/group test or app specific target files
+baseEnv['CONFIGURELOG'] = baseoutdir.File("config.log").abspath
+baseEnv['CONFIGUREDIR'] = baseoutdir.Dir(".sconf_temp").abspath
+# directory relative to BASEOUTDIR where we are going to install target specific files
+# mainly used to rebase/group test or app specific target files
 baseEnv.Append(RELTARGETDIR='')
 baseEnv.AppendUnique(
     LIBPATH=[

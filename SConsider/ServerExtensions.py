@@ -1,8 +1,10 @@
 """SConsider.ServerExtensions.
 
-Collection of slightly extended or tailored *Servers mainly used for testing
+Collection of slightly extended or tailored *Servers mainly used for
+testing
 
 """
+
 # -------------------------------------------------------------------------
 # Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -12,6 +14,7 @@ Collection of slightly extended or tailored *Servers mainly used for testing
 # modify it under the terms of the license that is included with this
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
+
 import socket
 import os
 from SocketServer import BaseServer

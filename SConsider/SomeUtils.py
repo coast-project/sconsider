@@ -3,6 +3,7 @@
 Collection of helper functions
 
 """
+
 # -------------------------------------------------------------------------
 # Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -12,6 +13,7 @@ Collection of helper functions
 # modify it under the terms of the license that is included with this
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
+
 import os
 import string
 import re
@@ -374,9 +376,9 @@ def runCommand(
         res = popenObject.returncode
     except OSError as e:
         with open(errfilename, 'w') as errfile:
-            print >>errfile, e
+            print >> errfile, e
             for line in popenObject.stderr:
-                print >>errfile, line
+                print >> errfile, line
     return res
 
 

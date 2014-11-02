@@ -3,6 +3,7 @@
 Utility to find depending libraries of a target.
 
 """
+
 # -------------------------------------------------------------------------
 # Copyright (c) 2010, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -12,6 +13,7 @@ Utility to find depending libraries of a target.
 # modify it under the terms of the license that is included with this
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
+
 import os
 import re
 import subprocess
@@ -27,7 +29,8 @@ def uniquelist(iterable):
 
 
 def unique(iterable):
-    """Generates an iterator over an order preserved list with unique items."""
+    """Generates an iterator over an order preserved list with unique
+    items."""
     seen = set()
     for element in itertools.ifilterfalse(seen.__contains__, iterable):
         seen.add(element)
@@ -99,6 +102,8 @@ class UnixFinder(LibFinder):
     def getSystemLibDirs(self, env):
         libdirs = []
         linkercmd = env.subst('$LINK')
+        if not linkercmd:
+            return libdirs
         cmdargs = [
             linkercmd,
             '-print-search-dirs'] + env.subst('$LINKFLAGS').split(' ')

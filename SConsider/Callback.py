@@ -3,6 +3,7 @@
 Provide callback function support
 
 """
+
 # -------------------------------------------------------------------------
 # Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -12,6 +13,7 @@ Provide callback function support
 # modify it under the terms of the license that is included with this
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
+
 import sys
 
 

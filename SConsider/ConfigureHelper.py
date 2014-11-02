@@ -3,6 +3,7 @@
 Helper functions used when executing configure like build steps
 
 """
+
 # -------------------------------------------------------------------------
 # Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -12,19 +13,12 @@ Helper functions used when executing configure like build steps
 # modify it under the terms of the license that is included with this
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
+
 import contextlib
 import functools
 import os
 import SCons
-
-
-class Null(SCons.Util.Null):
-
-    def __getitem__(self, key):
-        return self
-
-    def __contains__(self, key):
-        return False
+import SConsider
 
 
 def CheckExecutable(context, executable):
@@ -50,7 +44,7 @@ def CheckMultipleLibs(context, libraries=None, **kw):
 
 def Configure(env, *args, **kw):
     if SCons.Script.GetOption('help'):
-        return Null()
+        return SConsider.Null()
 
     kw.setdefault('custom_tests', {})['CheckExecutable'] = CheckExecutable
     kw.setdefault('custom_tests', {})['CheckMultipleLibs'] = CheckMultipleLibs

@@ -1,8 +1,10 @@
 """SConsider.Anything.
 
-Utility module to parse Anything files and provide a python, dict-based, equivalent
+Utility module to parse Anything files and provide a python, dict-based,
+equivalent
 
 """
+
 # -------------------------------------------------------------------------
 # Copyright (c) 2010, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -345,10 +347,9 @@ tls = TLS()
 
 
 def setLocalEnv(env=None, **kw):
-    """
-    Use env to set the entire env: setLocalEnv({'COAST_ROOT': '/path/to/dir'})
-    Use kw to add/update single values: setLocalEnv(COAST_PATH='.:config')
-    """
+    """Use env to set the entire env: setLocalEnv({'COAST_ROOT':
+    '/path/to/dir'}) Use kw to add/update single values:
+    setLocalEnv(COAST_PATH='.:config')"""
     if env is not None:
         tls.env = env
     tls.env.update(kw)

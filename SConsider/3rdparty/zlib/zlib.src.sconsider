@@ -15,28 +15,30 @@ import SConsider
 
 Import('*')
 
+from SCons.Script import File
+sources = [
+    File('adler32.c'),
+    File('compress.c'),
+    File('crc32.c'),
+    File('deflate.c'),
+    File('gzclose.c'),
+    File('gzlib.c'),
+    File('gzread.c'),
+    File('gzwrite.c'),
+    File('infback.c'),
+    File('inffast.c'),
+    File('inflate.c'),
+    File('inftrees.c'),
+    File('trees.c'),
+    File('uncompr.c'),
+    File('zutil.c'),
+]
+
 _scons_dist = pkg_resources.get_distribution("SConsider").parsed_version
 if _scons_dist < pkg_resources.parse_version("0.5.dev"):
-    from SCons.Script import File
     buildSettings = {
         packagename: {
-            'sourceFiles': [
-                File('adler32.c'),
-                File('compress.c'),
-                File('crc32.c'),
-                File('deflate.c'),
-                File('gzclose.c'),
-                File('gzlib.c'),
-                File('gzread.c'),
-                File('gzwrite.c'),
-                File('infback.c'),
-                File('inffast.c'),
-                File('inflate.c'),
-                File('inftrees.c'),
-                File('trees.c'),
-                File('uncompr.c'),
-                File('zutil.c'),
-            ],
+            'sourceFiles': sources,
             'targetType': 'LibraryShared',
             'appendUnique': {
             },

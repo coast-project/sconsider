@@ -1,3 +1,20 @@
+"""SConsider.Logging.
+
+Provides logging initialization and a regular expression based filter.
+
+"""
+
+# vim: set et ai ts=4 sw=4:
+# -------------------------------------------------------------------------
+# Copyright (c) 2014, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
+# All rights reserved.
+#
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
+
 import os
 import logging
 import yaml
@@ -22,6 +39,7 @@ def setup_logging(
         env_key='LOG_CFG',
         capture_warnings=True):
     """Setup logging configuration
+
     Based on http://victorlin.me/posts/2012/08/good-logging-practice-in-python/
     """
     path = default_path

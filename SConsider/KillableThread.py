@@ -4,6 +4,7 @@ Class and functions intended to be used when wanting to terminate
 asynchronous background tasks.
 
 """
+
 # -------------------------------------------------------------------------
 # Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -13,6 +14,7 @@ asynchronous background tasks.
 # modify it under the terms of the license that is included with this
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
+
 import threading
 import inspect
 import ctypes
@@ -28,8 +30,9 @@ def _async_raise(tid, exctype):
     if res == 0:
         raise ValueError("invalid thread id")
     elif res != 1:
-        # """if it returns a number greater than one, you're in trouble,
-        # and you should call it again with exc=NULL to revert the effect"""
+        """if it returns a number greater than one, you're in trouble,
+        and you should call it again with exc=NULL to revert the
+        effect"""
         ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, None)
         raise SystemError("PyThreadState_SetAsyncExc failed")
 
