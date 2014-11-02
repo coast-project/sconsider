@@ -105,20 +105,26 @@ if GetOption('appendPath'):
     logger.debug('appended path is [%s]' % dEnv['ENV']['PATH'])
 
 _baseout_dir_default = '#'
+_builddirrel = '.build'
+_exclude_dirs_rel = ['CVS', '.git', '.gitmodules', '.svn', _builddirrel]
+
+dEnv.AddMethod(lambda env: _exclude_dirs_rel, "relativeExcludeDirsList")
+
 
 globaltools = [
     "setupBuildTools",
     "TargetHelpers",
     "TargetMaker",
-    "coast_options",
     "TargetPrinter",
-    "precompiledLibraryInstallBuilder",
-    "RunBuilder",
-    "DoxygenBuilder",
-    "SystemLibsInstallBuilder",
-    "Package",
     "SubstInFileBuilder",
-    "ThirdParty"]
+    "RunBuilder",
+    "SystemLibsInstallBuilder",
+    "precompiledLibraryInstallBuilder",
+    "coast_options",
+    "DoxygenBuilder",
+    "Package",
+    "ThirdParty",
+]
 
 AddOption(
     '--usetool',
@@ -229,9 +235,10 @@ baseEnv.Append(LIBDIR='lib')
 baseEnv.Append(SCRIPTDIR='scripts')
 baseEnv.Append(CONFIGDIR='config')
 baseEnv.Append(DOCDIR='doc')
-baseEnv.Append(BUILDDIR='.build')
+baseEnv.Append(BUILDDIR=_builddirrel)
+_sconf_tempdirrel = '.sconf_temp'
 baseEnv['CONFIGURELOG'] = baseoutdir.File("config.log").abspath
-baseEnv['CONFIGUREDIR'] = baseoutdir.Dir(".sconf_temp").abspath
+baseEnv['CONFIGUREDIR'] = baseoutdir.Dir(_sconf_tempdirrel).abspath
 # directory relative to BASEOUTDIR where we are going to install target specific files
 # mainly used to rebase/group test or app specific target files
 baseEnv.Append(RELTARGETDIR='')
@@ -256,11 +263,9 @@ AddOption(
     help='Ignore sconsider files within this directory and its\
  subdirectories.')
 
-_exclude_dirs_rel = ['CVS', '.git', '.svn']
-_exclude_dirs_toplevel = _exclude_dirs_rel + ['.sconf_temp']
+_exclude_dirs_toplevel = _exclude_dirs_rel + [_sconf_tempdirrel]
 if baseoutdir == Dir('#'):
-    _exclude_dirs_toplevel += [baseEnv[varname] for varname in ['BUILDDIR',
-                                                                'BINDIR',
+    _exclude_dirs_toplevel += [baseEnv[varname] for varname in ['BINDIR',
                                                                 'LIBDIR',
                                                                 'LOGDIR',
                                                                 'CONFIGDIR']]

@@ -1,10 +1,9 @@
 """SConsider.site_tools.precompiledLibraryInstallBuilder.
 
 Coast-SConsider-specific tool to find precompiled third party libraries
-
-A specific directory and library name scheme is assumed.
-
-The tool tries to find the 'best matching' library, with the possibility of a downgrade.
+A specific directory and library name scheme is assumed.  The tool tries
+to find the 'best matching' library, with the possibility of a
+downgrade.
 
 """
 
@@ -29,7 +28,14 @@ from logging import getLogger
 logger = getLogger(__name__)
 
 
-def findPlatformTargets(env, basedir, targetname, prefixes=[], suffixes=[]):
+def findPlatformTargets(
+        env,
+        basedir,
+        targetname,
+        prefixes=[],
+        suffixes=[],
+        dir_has_to_match=True,
+        strict_lib_name_matching=False):
     bitwidth = env.getBitwidth() if hasattr(env, 'getBitwidth') else '32'
     libRE = ''
     for pre in prefixes:
@@ -38,7 +44,8 @@ def findPlatformTargets(env, basedir, targetname, prefixes=[], suffixes=[]):
         libRE += re.escape(env.subst(pre))
     libRE = '(' + libRE + ')'
     # probably there are files like 'targetname64' or 'targetname_r':
-    libRE += '(' + targetname + '[^.]*)'
+    libRE += '(' + targetname + (
+        '' if strict_lib_name_matching else '[^.]*') + ')'
     libSFX = ''
     for suf in suffixes:
         if libSFX:
@@ -46,64 +53,63 @@ def findPlatformTargets(env, basedir, targetname, prefixes=[], suffixes=[]):
         libSFX += re.escape(env.subst(suf))
     libRE += '(' + libSFX + ')(.*)'
     reLibname = re.compile(libRE)
-    osStringSep = '[_-]'
-    if env['PLATFORM'] in ['cygwin', 'win32']:
-        if env['PLATFORM'] == 'cygwin':
-            osver = tuple([int(x)
-                           for x in platform.system().split('-')
-                           [1].split('.')])
+
+    if dir_has_to_match:
+        osStringSep = '[_-]'
+        if env['PLATFORM'] in ['cygwin', 'win32']:
+            dirRE = 'Win' + osStringSep + 'i386'
+        elif env['PLATFORM'] == 'sunos':
+            dirRE = platform.system() + osStringSep + '([0-9]+(\.[0-9]+)*)'
         else:
-            osver = tuple([int(x) for x in platform.version().split('.')])
-#        dirRE = platform.system() + osStringSep + '([0-9]+(\.[0-9]+)*)'
-        dirRE = 'Win' + osStringSep + 'i386'
-        # re for architecture (i686, sparc, amd,...) - bitwidth (32,64)
+            dirRE = platform.system(
+            ) + osStringSep + 'glibc' + osStringSep + '([0-9]+(\.[0-9]+)*)'
         dirRE += osStringSep + '?(.*)'
-    elif env['PLATFORM'] == 'sunos':
-        osver = tuple([int(x) for x in platform.release().split('.')])
-        dirRE = platform.system() + osStringSep + '([0-9]+(\.[0-9]+)*)'
-        # re for architecture (i686, sparc, amd,...) - bitwidth (32,64)
-        dirRE += osStringSep + '?(.*)'
+        reDirname = re.compile(dirRE)
     else:
-        import SomeUtils
-        osver = tuple([int(x)
-                       for x in SomeUtils.getLibCVersion(bitwidth)[1].split(
-                           '.')])
-        dirRE = platform.system(
-        ) + osStringSep + 'glibc' + osStringSep + '([0-9]+(\.[0-9]+)*)'
-        # re for architecture (i686, sparc, amd,...) - bitwidth (32,64)
-        dirRE += osStringSep + '?(.*)'
-    reDirname = re.compile(dirRE)
+        reDirname = re.compile('.*')
+
     reBits = re.compile('.*(32|64)')
     files = []
+    _relExcludeList = env.relativeExcludeDirsList() if hasattr(
+        env, 'relativeExcludeDirsList') else [
+        env['BUILDDIR'],
+        '.git',
+        '.svn',
+        'CVS', ]
     for dirpath, dirnames, filenames in os.walk(basedir):
         dirnames[:] = [
-            dir for dir in dirnames if dir not in [
-                env['BUILDDIR'],
-                '.git',
-                '.svn',
-                'CVS']]
+            d for d in dirnames if not d in _relExcludeList]
         dirMatch = reDirname.match(os.path.split(dirpath)[1])
-        if dirMatch:
-            for name in filenames:
-                libMatch = reLibname.match(name)
-                if libMatch:
-                    bits = '32'
-                    reM = reBits.match(dirMatch.group(3))
-                    if reM:
-                        bits = reM.group(1)
-                    files.append({
-                        'osver':
-                        tuple(
-                            [int(x)
-                             for x in dirMatch.group(1).split('.')]),
-                        'bits': bits, 'file': libMatch.group(0),
-                        'path': dirpath,
-                        'linkfile': libMatch.group(0).replace(
-                                      libMatch.group(4),
-                                      ''),
-                        'filewoext': libMatch.group(2),
-                        'suffix': libMatch.group(3),
-                        'libVersion': libMatch.group(4), })
+        if not dirMatch:
+            continue
+
+        for name in filenames:
+            libMatch = reLibname.match(name)
+            if not libMatch:
+                continue
+            bits = '32'
+            reM = None
+            lib_os_version = None
+            if len(dirMatch.groups()) > 2:
+                reM = reBits.match(dirMatch.group(3))
+                if reM:
+                    bits = reM.group(1)
+                lib_os_version = tuple([int(x)
+                                        for x in dirMatch.group(1).split('.')])
+
+            files.append(
+                {'lib_os_version': lib_os_version, 'bits': bits,
+                 'file': libMatch.group(0),
+                 'path': dirpath, 'linkfile': libMatch.group(0).replace(
+                     libMatch.group(4),
+                     ''),
+                 'filewoext': libMatch.group(2),
+                 'suffix': libMatch.group(3),
+                 'libVersion': libMatch.group(4), })
+
+    if not dir_has_to_match:
+        return files
+
     # find best matching library
     # dirmatch: (xxver[1]:'2.9', xxx[2]:'.9', arch-bits[3]:'i686-32')
     # libmatch: ([1]:'lib', sufx[2]:'.so',vers[3]:'.0.9.7')
@@ -111,21 +117,34 @@ def findPlatformTargets(env, basedir, targetname, prefixes=[], suffixes=[]):
     # filter out wrong bit sizes
     files = [entry for entry in files if entry['bits'] == bitwidth]
 
-    # check for best matching osver entry, downgrade if non exact match
-    files.sort(cmp=lambda l, r: cmp(l['osver'], r['osver']), reverse=True)
+    # check for best matching lib_os_version entry, downgrade if non exact
+    # match
+    files.sort(
+        cmp=lambda l,
+        r: cmp(
+            l['lib_os_version'],
+            r['lib_os_version']),
+        reverse=True)
     osvermatch = None
+    current_os_version = env.getOsVersionTuple() if hasattr(
+        env, 'getOsVersionTuple') else (0, 0, 0)
     for entry in files:
-        if entry['osver'] <= osver:
-            osvermatch = entry['osver']
+        if entry['lib_os_version'] <= current_os_version:
+            osvermatch = entry['lib_os_version']
             break
-    files = [entry for entry in files if entry['osver'] == osvermatch]
+    files = [entry for entry in files if entry['lib_os_version'] == osvermatch]
     # shorter names are sorted first to prefer libtargetname.so over
     # libtargetname64.so
     files.sort(cmp=lambda l, r: cmp(len(l['filewoext']), len(r['filewoext'])))
     return files
 
 
-def findLibrary(env, basedir, libname):
+def findLibrary(
+        env,
+        basedir,
+        libname,
+        dir_has_to_match=True,
+        strict_lib_name_matching=False):
     # LIBPREFIXES = [ LIBPREFIX, SHLIBPREFIX ]
     # LIBSUFFIXES = [ LIBSUFFIX, SHLIBSUFFIX ]
     files = findPlatformTargets(
@@ -133,7 +152,9 @@ def findLibrary(env, basedir, libname):
         basedir,
         libname,
         env['LIBPREFIXES'],
-        env['LIBSUFFIXES'])
+        env['LIBSUFFIXES'],
+        dir_has_to_match,
+        strict_lib_name_matching)
 
     preferStaticLib = env.get(
         'buildSettings',
@@ -276,8 +297,9 @@ def copyFunc(dest, source, env):
         if os.path.exists(dest):
             if not os.path.isdir(dest):
                 raise SCons.Errors.UserError(
-                    "cannot overwrite non-directory `%s' with a directory `%s'" %
-                    (str(dest), str(source)))
+                    'cannot overwrite non-directory [{0}] with a directory [{1}]'.format(
+                        str(dest),
+                        str(source)))
         else:
             parent = os.path.split(dest)[0]
             if not os.path.exists(parent):
@@ -320,7 +342,9 @@ def generate(env):
                                               emitter=precompBinNamesEmitter,
                                               single_source=False)
 
-    env.Append(BUILDERS={'PrecompiledBinaryInstallBuilder': PrecompBinBuilder})
+    env.Append(
+        BUILDERS={
+            'PrecompiledBinaryInstallBuilder': PrecompBinBuilder})
 
 
 def exists(env):

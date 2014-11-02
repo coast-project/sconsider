@@ -41,6 +41,24 @@ def checkCompiler(env, optionvalue, envVarName):
     return None
 
 
+"""Extract OS specific version information into tuple to return"""
+def extractOsVersion(platf):
+    current_os_version = (0, 0, 0)
+    if str(platf) == "cygwin":
+        current_os_version = tuple([int(x) for x in
+                platform.system().split('-')[1].split('.')])
+    elif str(platf) == 'win32':
+        current_os_version = tuple([int(x) for x in platform.version().split('.')])
+    elif str(platf) == 'sunos':
+        current_os_version = tuple([int(x) for x in platform.release().split('.')])
+    elif str(platf) == 'darwin':
+        current_os_version = tuple([int(x) for x in platform.release().split('.')])
+    elif platform.system() == 'Linux':
+        current_os_version = tuple([int(x) for x in
+                platform.release().split('-')[0].split('.')])
+    return current_os_version
+
+
 def generate(env, **kw):
     """Add build tools."""
     AddOption(
@@ -161,6 +179,9 @@ def generate(env, **kw):
     env.AppendUnique(CCFLAGS=['-DARCHBITS=' + str(bitwidth)])
     env.AddMethod(lambda env: bitwidth, "getBitwidth")
 
+    current_os_version = extractOsVersion(platf)
+    env.AddMethod(lambda env: current_os_version, "getOsVersionTuple")
+
     # tool initialization, previously done in <scons>/Tool/default.py
     for t in SCons.Tool.tool_list(platf, env):
         SCons.Tool.Tool(t)(env)
@@ -178,28 +199,13 @@ def generate(env, **kw):
             'CCVERSION',
             'unknown'))
 
-    platf = env['PLATFORM']
-
     # tell linker to only succeed when all external references can be resolved
     # FIXME: attention the following is a workaround
     # because LINKFLAGS='-z defs' would lead to a string'ified "-z defs" in
     # the linker command line
     env.Append(LINKFLAGS=['$_NONLAZYLINKFLAGS'])
 
-    if str(platf) == "cygwin":
-        osver = tuple([int(x)
-                       for x in platform.system().split('-')[1].split('.')])
-    elif str(platf) == 'sunos':
-        osver = tuple([int(x) for x in platform.release().split('.')])
-    elif str(platf) == 'darwin':
-        osver = tuple([int(x) for x in platform.release().split('.')])
-    elif platform.system() == 'Linux':
-        osver = tuple([int(x)
-                       for x in platform.release().split('-')[0].split('.')])
-    elif str(platf) == 'win32':
-        osver = tuple([int(x) for x in platform.version().split('.')])
-
-    for val, valname in zip(osver, ['OS_RELMAJOR', 'OS_RELMINOR', 'OS_RELMINSUB']):
+    for val, valname in zip(current_os_version, ['OS_RELMAJOR', 'OS_RELMINOR', 'OS_RELMINSUB']):
         env.AppendUnique(CCFLAGS=['-D' + valname + '=' + str(val)])
 
     if str(platf) == 'sunos':
