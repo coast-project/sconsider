@@ -65,6 +65,39 @@ def getUsedTarget(env, buildSettings):
     return plaintarget
 
 
+def collectPackageFiles(
+        directory,
+        filename_re,
+        matchfun,
+        file_ext='sconsider',
+        excludes_rel=[],
+        excludes_abs=[]):
+    """Recursively collects SConsider packages.
+
+    Walks recursively through 'directory' to collect package files
+    but skipping dirs in 'excludes_rel' and absolute dirs
+    from 'exclude_abs'.
+
+    """
+    import fnmatch
+    package_re = re.compile(filename_re)
+    followlinks = False
+    if sys.version_info[:2] >= (2, 6):
+        followlinks = True
+    for root, dirnames, filenames in os.walk(directory,
+                                                followlinks=followlinks):
+        _root_pathabs = os.path.abspath(root)
+        dirnames[:] = filter(
+            lambda dirname: dirname not in excludes_rel and os.path.join(
+                _root_pathabs,
+                dirname) not in excludes_abs,
+            dirnames)
+        for filename in fnmatch.filter(filenames, '*.' + file_ext):
+            match = package_re.match(filename)
+            if match:
+                matchfun(root, filename, match)
+
+
 class PackageNotFound(Exception):
 
     def __init__(self, package):
@@ -112,45 +145,64 @@ class PackageRegistry:
         self.packages = {}
         if not SCons.Util.is_List(scan_dirs):
             scan_dirs = [scan_dirs]
+        startDir = SCons.Script.Dir('#')
+
+        def scanmatchfun(root, filename, match):
+            rootDir = self.env.Dir(root)
+            filen = rootDir.File(filename)
+            logger.debug(
+                'found package [{0}] in [{1}]'.format(
+                    match.group('packagename'),
+                    startDir.rel_path(filen)))
+            self.setPackage(match.group('packagename'), filen, rootDir)
+
         for scandir in scan_dirs:
-            self.collectPackages(
+            collectPackageFiles(
                 scandir,
-                scan_dirs_exclude_rel,
-                scan_dirs_exclude_abs)
+                '^(?P<packagename>.*)\.sconsider$',
+                scanmatchfun,
+                excludes_rel=scan_dirs_exclude_rel,
+                excludes_abs=scan_dirs_exclude_abs)
 
-    def collectPackages(self, directory, excludes_rel=[], excludes_abs=[]):
-        """Recursively collects SConsider packages.
+    def setPackage(
+            self,
+            packagename,
+            packagefile,
+            packagedir,
+            duplicate=False):
+        self.packages[packagename] = {
+            'packagefile': packagefile,
+            'packagedir': packagedir,
+            'duplicate': duplicate}
 
-        Walks recursively through 'directory' to collect package files
-        but skipping dirs in 'excludes_rel' and absolute dirs
-        from 'exclude_abs'.
+    def hasPackage(self, packagename):
+        """Check if packagename is found in list of packages.
+
+        This solely relies on directories and <packagename>.sconscript
+        files found
 
         """
-        from SCons.Script import Dir
-        rePackage = re.compile('^(.*).sconsider$')
-        followlinks = False
-        if sys.version_info[:2] >= (2, 6):
-            followlinks = True
-        for dirpath, dirnames, filenames in os.walk(directory,
-                                                    followlinks=followlinks):
-            thePath = os.path.abspath(dirpath)
-            dirnames[:] = filter(
-                lambda dirname: dirname not in excludes_rel and os.path.join(
-                    thePath,
-                    dirname) not in excludes_abs,
-                dirnames)
-            for name in filenames:
-                rmatch = rePackage.match(name)
-                if rmatch:
-                    pkgname = rmatch.group(1)
-                    logger.debug(
-                        'found package [%s] in [%s]',
-                        pkgname,
-                        thePath)
-                    self.setPackage(
-                        pkgname,
-                        Dir(thePath).File(name),
-                        Dir(thePath))
+        return packagename in self.packages
+
+    def setPackageDir(self, packagename, dirname):
+        if self.hasPackage(packagename):
+            self.packages[packagename]['packagedir'] = dirname
+
+    def getPackageDir(self, packagename):
+        return self.packages.get(packagename, {}).get('packagedir', '')
+
+    def getPackageFile(self, packagename):
+        return self.packages.get(packagename, {}).get('packagefile', '')
+
+    def getPackageDuplicate(self, packagename):
+        return self.packages.get(packagename, {}).get('duplicate', False)
+
+    def setPackageDuplicate(self, packagename, duplicate=True):
+        if self.hasPackage(packagename):
+            self.packages[packagename]['duplicate'] = duplicate
+
+    def getPackageNames(self):
+        return self.packages.keys()
 
     def setPackageTarget(self, packagename, targetname, plaintarget, target):
         import SCons
@@ -169,6 +221,20 @@ class PackageRegistry:
             target = plaintarget
         theTargets[targetname] = {'plaintarget': plaintarget, 'target': target}
 
+    def getPackageTarget(self, packagename, targetname):
+        return self.getPackageTargetTargets(
+            packagename,
+            targetname).get(
+                'target',
+                None)
+
+    def hasPackageTarget(self, packagename, targetname):
+        return targetname in self.packages.get(
+            packagename,
+            {}).get(
+            'targets',
+            {})
+
     def getPackageTargetTargets(self, packagename, targetname):
         if not self.hasPackage(packagename):
             logger.warning(
@@ -181,12 +247,8 @@ class PackageRegistry:
                     targetname, {
                         'plaintarget': None, 'target': None})
 
-    def getPackageTarget(self, packagename, targetname):
-        return self.getPackageTargetTargets(
-            packagename,
-            targetname).get(
-                'target',
-                None)
+    def getPackageTargetNames(self, packagename):
+        return self.packages.get(packagename, {}).get('targets', {}).keys()
 
     def getPackagePlaintarget(self, packagename, targetname):
         return self.getPackageTargetTargets(
@@ -195,16 +257,11 @@ class PackageRegistry:
                 'plaintarget',
                 None)
 
-    def getPackageDependencies(self, packagename):
-        deps = dict()
-        for targetname in self.getPackageTargetNames(packagename):
-            deps[
-                generateFulltargetname(
-                    packagename,
-                    targetname)] = self.getPackageTargetDependencies(
-                        packagename,
-                        targetname)
-        return deps
+    def isValidFulltargetname(self, fulltargetname):
+        if self.hasPackage(str(fulltargetname)):
+            return True
+        packagename, targetname = splitTargetname(str(fulltargetname))
+        return self.hasPackageTarget(packagename, targetname)
 
     def getPackageTargetDependencies(self, packagename, targetname):
         targetBuildSettings = self.getBuildSettings(
@@ -227,61 +284,19 @@ class PackageRegistry:
                             dep_targetname)
         return deps
 
-    def setPackage(
-            self,
-            packagename,
-            packagefile,
-            packagedir,
-            duplicate=False):
-        self.packages[packagename] = {
-            'packagefile': packagefile,
-            'packagedir': packagedir,
-            'duplicate': duplicate}
+    def getPackageDependencies(self, packagename):
+        deps = dict()
+        for targetname in self.getPackageTargetNames(packagename):
+            deps[
+                generateFulltargetname(
+                    packagename,
+                    targetname)] = self.getPackageTargetDependencies(
+                        packagename,
+                        targetname)
+        return deps
 
-    def hasPackage(self, packagename):
-        """Check if packagename is found in list of packages.
-
-        This solely relies on directories and <packagename>.sconscript
-        files found
-
-        """
-        return packagename in self.packages
-
-    def hasPackageTarget(self, packagename, targetname):
-        return targetname in self.packages.get(
-            packagename,
-            {}).get(
-            'targets',
-            {})
-
-    def isValidFulltargetname(self, fulltargetname):
-        if self.hasPackage(str(fulltargetname)):
-            return True
-        packagename, targetname = splitTargetname(str(fulltargetname))
-        return self.hasPackageTarget(packagename, targetname)
-
-    def setPackageDir(self, packagename, dirname):
-        if self.hasPackage(packagename):
-            self.packages[packagename]['packagedir'] = dirname
-
-    def getPackageDir(self, packagename):
-        return self.packages.get(packagename, {}).get('packagedir', '')
-
-    def getPackageFile(self, packagename):
-        return self.packages.get(packagename, {}).get('packagefile', '')
-
-    def getPackageDuplicate(self, packagename):
-        return self.packages.get(packagename, {}).get('duplicate', False)
-
-    def setPackageDuplicate(self, packagename, duplicate=True):
-        if self.hasPackage(packagename):
-            self.packages[packagename]['duplicate'] = duplicate
-
-    def getPackageTargetNames(self, packagename):
-        return self.packages.get(packagename, {}).get('targets', {}).keys()
-
-    def getPackageNames(self):
-        return self.packages.keys()
+    def isPackageLoaded(self, packagename):
+        return 'loaded' in self.packages.get(packagename, {})
 
     def setBuildSettings(self, packagename, buildSettings):
         if self.hasPackage(packagename):
@@ -306,11 +321,6 @@ class PackageRegistry:
                 'buildsettings', {}).get(
                 targetname, {})
 
-    def loadPackage(self, packagename):
-        if not self.hasPackage(packagename):
-            raise PackageNotFound(packagename)
-        self.lookup(packagename)
-
     def __loadPackageTarget(self, loadfunc, packagename, targetname):
         self.loadPackage(packagename)
         target = loadfunc(packagename, targetname)
@@ -332,9 +342,6 @@ class PackageRegistry:
             self.getPackagePlaintarget,
             packagename,
             targetname)
-
-    def isPackageLoaded(self, packagename):
-        return 'loaded' in self.packages.get(packagename, {})
 
     def lookup(self, fulltargetname, **kw):
         packagename, targetname = splitTargetname(fulltargetname)
@@ -370,3 +377,8 @@ class PackageRegistry:
             if targetname:
                 return self.getPackageTarget(packagename, targetname)
         return None
+
+    def loadPackage(self, packagename):
+        if not self.hasPackage(packagename):
+            raise PackageNotFound(packagename)
+        self.lookup(packagename)
