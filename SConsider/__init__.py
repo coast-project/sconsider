@@ -131,8 +131,10 @@ AddOption(
     help='SCons tools to use for constructing the default environment. Default\
  tools are %s' % Flatten(globaltools))
 
-usetools = globaltools + DefaultEnvironment().get('_SCONSIDER_TOOLS_',
-                                                  []) + GetOption('usetools')
+from collections import OrderedDict
+"""Keep order of tools in list but remove duplicates"""
+usetools = OrderedDict.fromkeys(globaltools + DefaultEnvironment().get('_SCONSIDER_TOOLS_',
+                                                  []) + GetOption('usetools')).keys()
 logger.debug('tools to use %s', Flatten(usetools))
 
 # insert the site_tools path for our own tools
