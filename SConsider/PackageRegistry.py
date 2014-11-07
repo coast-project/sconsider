@@ -98,13 +98,19 @@ def collectPackageFiles(
                 matchfun(root, filename, match)
 
 
-class PackageNotFound(Exception):
+class TargetNotFound(Exception):
 
-    def __init__(self, package):
-        self.package = package
+    def __init__(self, name):
+        self.name = name
 
     def __str__(self):
-        return 'Package [{0}] not found'.format(self.package)
+        return 'Target [{0}] not found'.format(self.name)
+
+
+class PackageNotFound(TargetNotFound):
+
+    def __str__(self):
+        return 'Package [{0}] not found'.format(self.name)
 
 
 class PackageRequirementsNotFulfilled(Exception):
@@ -120,16 +126,6 @@ class PackageRequirementsNotFulfilled(Exception):
                    self.package,
                    self.packagefile,
                    self.message)
-
-
-class PackageTargetNotFound(Exception):
-
-    def __init__(self, target):
-        self.target = target
-        self.message = target
-
-    def __str__(self):
-        return 'Target [{0}] not found'.format(self.target)
 
 
 class PackageRegistry:
@@ -247,9 +243,6 @@ class PackageRegistry:
                     targetname, {
                         'plaintarget': None, 'target': None})
 
-    def getPackageTargetNames(self, packagename):
-        return self.packages.get(packagename, {}).get('targets', {}).keys()
-
     def getPackagePlaintarget(self, packagename, targetname):
         return self.getPackageTargetTargets(
             packagename,
@@ -257,15 +250,21 @@ class PackageRegistry:
                 'plaintarget',
                 None)
 
+    def getPackageTargetNames(self, packagename):
+        return self.packages.get(packagename, {}).get('targets', {}).keys()
+
     def isValidFulltargetname(self, fulltargetname):
         if self.hasPackage(str(fulltargetname)):
             return True
         packagename, targetname = splitTargetname(str(fulltargetname))
         return self.hasPackageTarget(packagename, targetname)
 
-    def getPackageTargetDependencies(self, packagename, targetname):
+    def getPackageTargetDependencies(self, packagename, targetname, callerdeps=None):
         targetBuildSettings = self.getBuildSettings(
             packagename).get(targetname, {})
+        if callerdeps is None:
+            callerdeps = dict()
+        callerdeps.setdefault('pending', [])
         deps = dict()
         targetlist = targetBuildSettings.get('requires', [])
         targetlist.extend(targetBuildSettings.get('linkDependencies', []))
@@ -283,20 +282,6 @@ class PackageRegistry:
                             dep_packagename,
                             dep_targetname)
         return deps
-
-    def getPackageDependencies(self, packagename):
-        deps = dict()
-        for targetname in self.getPackageTargetNames(packagename):
-            deps[
-                generateFulltargetname(
-                    packagename,
-                    targetname)] = self.getPackageTargetDependencies(
-                        packagename,
-                        targetname)
-        return deps
-
-    def isPackageLoaded(self, packagename):
-        return 'loaded' in self.packages.get(packagename, {})
 
     def setBuildSettings(self, packagename, buildSettings):
         if self.hasPackage(packagename):
@@ -325,7 +310,7 @@ class PackageRegistry:
         self.loadPackage(packagename)
         target = loadfunc(packagename, targetname)
         if not target:
-            raise PackageTargetNotFound(
+            raise TargetNotFound(
                 generateFulltargetname(
                     packagename,
                     targetname))
@@ -343,14 +328,35 @@ class PackageRegistry:
             packagename,
             targetname)
 
+    def getPackageDependencies(self, packagename, callerdeps=None):
+        if callerdeps is None:
+            callerdeps = dict()
+        deps = dict()
+        for targetname in self.getPackageTargetNames(packagename):
+            deps[
+                generateFulltargetname(
+                    packagename,
+                    targetname)] = self.getPackageTargetDependencies(
+                        packagename,
+                        targetname,
+                        callerdeps=callerdeps)
+        return deps
+
+    def isPackageLoaded(self, packagename):
+        return 'loaded' in self.packages.get(packagename, {})
+
+    def __setPackageLoaded(self, packagename):
+        self.packages[packagename]['loaded'] = True
+
     def lookup(self, fulltargetname, **kw):
         packagename, targetname = splitTargetname(fulltargetname)
         logger.debug('looking up [%s]', fulltargetname)
         if self.hasPackage(packagename):
             if not self.isPackageLoaded(packagename):
-                self.packages[packagename]['loaded'] = True
+                self.__setPackageLoaded(packagename)
                 packagedir = self.getPackageDir(packagename)
                 packagefile = self.getPackageFile(packagename)
+                packageduplicate = self.getPackageDuplicate(packagename)
                 builddir = self.env.getBaseOutDir().Dir(
                     packagedir.path).Dir(
                     self.env.getRelativeBuildDirectory()).Dir(
@@ -359,12 +365,16 @@ class PackageRegistry:
                     'executing [%s] as SConscript for package [%s]',
                     packagefile.path,
                     packagename)
+                exports = {
+                    'packagename': packagename,
+                    'registry': self
+                }
                 try:
                     self.env.SConscript(
                         packagefile,
                         variant_dir=builddir,
-                        duplicate=self.getPackageDuplicate(packagename),
-                        exports=['packagename'])
+                        duplicate=packageduplicate,
+                        exports=exports)
                 except ResolutionError as e:
                     raise PackageRequirementsNotFulfilled(
                         generateFulltargetname(
@@ -372,7 +382,7 @@ class PackageRegistry:
                             targetname),
                         packagefile,
                         e)
-                except PackageTargetNotFound as e:
+                except TargetNotFound as e:
                     raise e
             if targetname:
                 return self.getPackageTarget(packagename, targetname)

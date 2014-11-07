@@ -1,7 +1,7 @@
 """SConsider.
 
 SCons build tool extension allowing automatic target finding within a
-directoy tree.
+directory tree.
 
 """
 # vim: set et ai ts=4 sw=4:
@@ -243,7 +243,7 @@ try:
     def tryLoadPackage(packagename, targetname=None):
         try:
             packageRegistry.loadPackage(packagename)
-        except (ResolutionError, PackageRegistry.PackageTargetNotFound) as e:
+        except (ResolutionError, PackageRegistry.TargetNotFound) as e:
             if not GetOption('ignore-missing'):
                 raise
             logger.warning(
@@ -255,6 +255,7 @@ try:
                     e.message),
                 exc_info=False)
 
+    launchDir = Dir(SCons.Script.GetLaunchDir())
     if GetOption("climb_up") in [1, 3]:  # 1: -u, 3: -U
         if GetOption("climb_up") == 1:
             dirfilter = lambda directory: directory.is_under(launchDir)
@@ -267,7 +268,6 @@ try:
 
     try:
         buildtargets = SCons.Script.BUILD_TARGETS
-        launchDir = Dir(SCons.Script.GetLaunchDir())
         _launchdir_relative = launchDir.path
         if not buildtargets:
             buildtargets = filter(
@@ -296,7 +296,7 @@ try:
         for packagename in buildtargets:
             tryLoadPackage(packagename)
 
-except (PackageRegistry.PackageNotFound, PackageRegistry.PackageTargetNotFound, PackageRegistry.PackageRequirementsNotFulfilled) as e:
+except (PackageRegistry.PackageNotFound, PackageRegistry.TargetNotFound, PackageRegistry.PackageRequirementsNotFulfilled) as e:
     if not isinstance(e, PackageRegistry.PackageRequirementsNotFulfilled):
         logger.error('{0}'.format(e), exc_info=True)
     if not GetOption('help'):

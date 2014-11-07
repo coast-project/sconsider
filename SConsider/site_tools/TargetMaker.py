@@ -21,7 +21,7 @@ import stat
 import SConsider
 from SConsider.PackageRegistry import targetnameseparator,\
     splitTargetname, createUniqueTargetname, generateFulltargetname,\
-    PackageNotFound, PackageTargetNotFound
+    PackageNotFound, TargetNotFound
 from SCons.Script import Dir, File, GetOption
 from SomeUtils import copyFileNodes, multiple_replace
 from logging import getLogger
@@ -34,7 +34,7 @@ def getRealTarget(target, doThrow=False, messagePrefix='', fullTargetName=''):
     if (is_Tuple(target) and target[0] is None) or (
             is_List(target) and not len(target)):
         if doThrow:
-            raise PackageTargetNotFound(
+            raise TargetNotFound(
                 target[1] if len(target) == 2 else '<unknown target>')
         return None
     target_name = None
@@ -290,7 +290,7 @@ class TargetMaker:
                 plaintarget,
                 target)
             return True
-        except (PackageNotFound, PackageTargetNotFound) as e:
+        except (PackageNotFound, TargetNotFound) as e:
             if not GetOption('ignore-missing'):
                 raise
             logger.warning(
