@@ -5,7 +5,7 @@ Tool to collect system libraries needed by an executable/shared library
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
-# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
+# Copyright (c) 2010, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
 # All rights reserved.
 #

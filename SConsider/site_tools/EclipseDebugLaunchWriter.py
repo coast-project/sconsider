@@ -7,7 +7,7 @@ This can be used to start a target in debug mode through Run->Debug Configuratio
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
-# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
+# Copyright (c) 2011, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
 # All rights reserved.
 #

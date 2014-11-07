@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------
-# Copyright (c) 2012, Peter Sommerlad and IFS Institute for Software
+# Copyright (c) 2011, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
 # All rights reserved.
 #

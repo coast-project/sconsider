@@ -1,3 +1,13 @@
+# -------------------------------------------------------------------------
+# Copyright (c) 2010, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
+# All rights reserved.
+#
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
+
 import unittest
 import SomeUtils
 import os
@@ -20,12 +30,9 @@ class AllFuncsTest(unittest.TestCase):
 
     def setUp(self):
         self.funcs = [
-            lambda *
-            attrs: True,
-            lambda *
-            attrs: True,
-            lambda *
-            attrs: True]
+            lambda *attrs: True,
+            lambda *attrs: True,
+            lambda *attrs: True]
 
     def testAllFuncsTrue(self):
         self.assertTrue(SomeUtils.allFuncs(self.funcs, "blub"))
@@ -132,4 +139,3 @@ class GetNodeDependenciesTest(unittest.TestCase):
     def testNodeDependenciesAlias(self):
         deps = SomeUtils.getNodeDependencies(self.alias)
         self.assertEqual(len(deps), 6)
-
