@@ -3,7 +3,7 @@
 SConsider-specific gnulink tool initialization
 
 """
-
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
 # Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -74,7 +74,11 @@ def generate(env):
         return orig_smart_link(source, target, env, for_signature)
     env.Replace(SMARTLINK=smart_link)
 
-    bitwidth = env.getBitwidth() if hasattr(env, 'getBitwidth') else '32'
+    # ensure we have getBitwidth() available
+    if 'setupBuildTools' not in env['TOOLS']:
+        env.Tool('setupBuildTools')
+
+    bitwidth = env.getBitwidth()
     env.AppendUnique(LINKFLAGS='-m' + bitwidth)
 
     if str(platf) not in ["cygwin", "win32"]:

@@ -4,7 +4,7 @@ SCons build tool extension allowing automatic target finding within a
 directoy tree.
 
 """
-
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
 # Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -23,7 +23,7 @@ import sys
 import SCons
 from SCons.Script import AddOption, GetOption, Dir, DefaultEnvironment,\
     Flatten, SConsignFile
-from SomeUtils import getLibCVersion, listFiles, findFiles, removeFiles,\
+from SomeUtils import listFiles, findFiles, removeFiles,\
     getfqdn
 from Callback import addCallbackFeature
 from Logging import setup_logging
@@ -48,14 +48,19 @@ SCons.Script.EnsurePythonVersion(2, 6)
 from pkg_resources import get_distribution as pkg_get_dist,\
     get_build_platform, ResolutionError
 
+_project_name = 'SConsider'
+_project_version = __version__
 try:
-    sconsider_package_info = pkg_get_dist('sconsider')
-    logger.info("{0} version {1} ({2})".format(
-        sconsider_package_info.project_name,
-        sconsider_package_info.version,
-        get_build_platform()))
+    sconsider_package_info = pkg_get_dist(_project_name)
+    _project_name = sconsider_package_info.project_name
+    _project_version = sconsider_package_info.version
 except ResolutionError:
     pass
+finally:
+    logger.info("{0} version {1} ({2})".format(
+        _project_name,
+        _project_version,
+        get_build_platform()))
 
 
 class Null(SCons.Util.Null):
@@ -104,15 +109,11 @@ if GetOption('appendPath'):
     dEnv.AppendENVPath('PATH', GetOption('appendPath'))
     logger.debug('appended path is [%s]' % dEnv['ENV']['PATH'])
 
-_baseout_dir_default = '#'
-_builddirrel = '.build'
-_exclude_dirs_rel = ['CVS', '.git', '.gitmodules', '.svn', _builddirrel]
-
-dEnv.AddMethod(lambda env: _exclude_dirs_rel, "relativeExcludeDirsList")
-
 
 globaltools = [
     "setupBuildTools",
+    "OutputDirectoryHelper",
+    "ExcludeDirectoryHelper",
     "TargetHelpers",
     "TargetMaker",
     "TargetPrinter",
@@ -139,8 +140,10 @@ AddOption(
 
 from collections import OrderedDict
 """Keep order of tools in list but remove duplicates"""
-usetools = OrderedDict.fromkeys(globaltools + DefaultEnvironment().get('_SCONSIDER_TOOLS_',
-                                                  []) + GetOption('usetools')).keys()
+usetools = OrderedDict.fromkeys(
+    globaltools +
+    DefaultEnvironment().get('_SCONSIDER_TOOLS_', []) +
+    GetOption('usetools')).keys()
 logger.debug('tools to use %s', Flatten(usetools))
 
 # insert the site_tools path for our own tools
@@ -151,148 +154,41 @@ DefaultToolpath.insert(
         'site_tools'))
 baseEnv = dEnv.Clone(tools=usetools)
 
-variant = "Unknown-"
-myplatf = str(SCons.Platform.Platform())
-
-if myplatf == "posix":
-    bitwidth = baseEnv.getBitwidth() if hasattr(baseEnv, 'getBitwidth') else '32'
-    libcver = getLibCVersion(bitwidth)
-    variant = platform.system(
-    ) + "_" + libcver[0] + "_" + libcver[1] + "-" + platform.machine()
-elif myplatf == "sunos":
-    variant = platform.system(
-    ) + "_" + platform.release() + "-" + platform.processor()
-elif myplatf == "darwin":
-    import commands
-    version = commands.getoutput("sw_vers -productVersion")
-    cpu = commands.getoutput("arch")
-    if version.startswith("10.7"):
-        variant = "lion-"
-    elif version.startswith("10.6"):
-        variant = "snowleopard-"
-    elif version.startswith("10.5"):
-        variant = "leopard-"
-    elif version.startswith("10.4"):
-        variant = "tiger-"
-    variant += cpu
-elif myplatf == "cygwin":
-    variant = platform.system() + "-" + platform.machine()
-elif myplatf == "win32":
-    variant = platform.system(
-    ) + "_" + platform.release() + "-" + platform.machine()
-    baseEnv.Append(WINDOWS_INSERT_DEF=1)
-
-variant += ''.join(baseEnv.get('VARIANT_SUFFIX', []))
-
-logger.info('compilation variant [{0}]'.format(variant))
-
-AddOption(
-    '--baseoutdir',
-    dest='baseoutdir',
-    action='store',
-    nargs=1,
-    type='string',
-    default=_baseout_dir_default,
-    metavar='DIR',
-    help='Directory to store build target files. Helps keeping your source\
- directory clean, default="' + Dir(_baseout_dir_default).abspath + '"')
-
-baseoutdir = Dir(GetOption('baseoutdir'))
-logger.info('base output dir [{0}]'.format(baseoutdir.abspath))
-
-testfile = os.path.join(baseoutdir.abspath, '.writefiletest')
-try:
-    if not os.path.isdir(baseoutdir.abspath):
-        os.makedirs(baseoutdir.abspath)
-    # test if we are able to create a file
-    fp = open(testfile, 'w+')
-    fp.close()
-except (os.error, IOError) as e:
-    logger.error(
-        'Output directory [{0}] not writable'.format(
-            baseoutdir.abspath),
-        exc_info=True)
-    raise SCons.Errors.UserError(
-        'Build aborted, baseoutdir [' +
-        baseoutdir.abspath +
-        '] not writable for us!')
-finally:
-    os.unlink(testfile)
-
-ssfile = os.path.join(baseoutdir.abspath, '.sconsign.' + variant)
-SConsignFile(ssfile)
-
-#########################
-#  Project Environment  #
-#########################
-baseEnv.Append(BASEOUTDIR=baseoutdir)
-baseEnv.Append(VARIANTDIR=variant)
-
-baseEnv.Append(INCDIR='include')
-baseEnv.Append(LOGDIR='log')
-baseEnv.Append(BINDIR='bin')
-baseEnv.Append(LIBDIR='lib')
-baseEnv.Append(SCRIPTDIR='scripts')
-baseEnv.Append(CONFIGDIR='config')
-baseEnv.Append(DOCDIR='doc')
-baseEnv.Append(BUILDDIR=_builddirrel)
-_sconf_tempdirrel = '.sconf_temp'
-baseEnv['CONFIGURELOG'] = baseoutdir.File("config.log").abspath
-baseEnv['CONFIGUREDIR'] = baseoutdir.Dir(_sconf_tempdirrel).abspath
-# directory relative to BASEOUTDIR where we are going to install target specific files
-# mainly used to rebase/group test or app specific target files
-baseEnv.Append(RELTARGETDIR='')
-baseEnv.AppendUnique(
-    LIBPATH=[
-        baseoutdir.Dir(
-            baseEnv['LIBDIR']).Dir(
-                baseEnv['VARIANTDIR'])])
-
 
 def cloneBaseEnv():
     return baseEnv.Clone()
 
-AddOption(
-    '--exclude',
-    dest='exclude',
-    action='append',
-    nargs=1,
-    type='string',
-    default=[],
-    metavar='DIR',
-    help='Ignore sconsider files within this directory and its\
- subdirectories.')
 
-_exclude_dirs_toplevel = _exclude_dirs_rel + [_sconf_tempdirrel]
-if baseoutdir == Dir('#'):
-    _exclude_dirs_toplevel += [baseEnv[varname] for varname in ['BINDIR',
-                                                                'LIBDIR',
-                                                                'LOGDIR',
-                                                                'CONFIGDIR']]
-_exclude_dirs_abs = []
-for exclude_path in baseEnv.GetOption('exclude'):
-    absolute_path = exclude_path
-    if not os.path.isabs(exclude_path):
-        absolute_path = Dir(exclude_path).abspath
-    else:
-        exclude_path = os.path.relpath(exclude_path, Dir('#').abspath)
-    if not exclude_path.startswith('..'):
-        first_segment = exclude_path.split(os.pathsep)[0]
-        _exclude_dirs_toplevel.append(first_segment)
-    _exclude_dirs_abs.append(absolute_path)
+variant = baseEnv.getRelativeVariantDirectory()
+logger.info('compilation variant [{0}]'.format(variant))
 
-scanDirs = filter(
-    lambda
-    dirname: os.path.isdir(dirname)
-    and dirname not in _exclude_dirs_toplevel, os.listdir(
-        Dir('#').path))
-logger.debug("Toplevel dirs to scan for package files: {0}".format(scanDirs))
+baseoutdir = baseEnv.getBaseOutDir()
+logger.info('base output dir [{0}]'.format(baseoutdir.abspath))
+
+ssfile = os.path.join(baseoutdir.abspath, '.sconsign.' + variant)
+SConsignFile(ssfile)
+
+# FIXME: move to some link helper?
+baseEnv.AppendUnique(LIBPATH=[baseEnv.getLibraryInstallDir()])
 
 logger.debug("calling PrePackageCollection callback")
 runCallback(
     'PrePackageCollection',
-    env=baseEnv,
-    directories=scanDirs)
+    env=baseEnv
+)
+logger.debug("Exclude dirs rel: {0}".format(baseEnv.relativeExcludeDirs()))
+logger.debug("Exclude dirs abs: {0}".format(baseEnv.absoluteExcludeDirs()))
+logger.debug(
+    "Exclude dirs toplevel: {0}".format(
+        baseEnv.toplevelExcludeDirs()))
+
+_sconsider_toplevel_scandirs = filter(
+    lambda dirname: os.path.isdir(dirname)
+        and dirname not in baseEnv.toplevelExcludeDirs(),
+    os.listdir(Dir('#').path))
+logger.debug(
+    "Toplevel dirs to scan for package files: {0}".format(
+        _sconsider_toplevel_scandirs))
 
 logger.info("Collecting .sconsider packages ...")
 import PackageRegistry
@@ -300,9 +196,9 @@ from PackageRegistry import targetnameseparator,\
     splitTargetname, createUniqueTargetname, generateFulltargetname
 packageRegistry = PackageRegistry.PackageRegistry(
     baseEnv,
-    scanDirs,
-    _exclude_dirs_rel,
-    _exclude_dirs_abs)
+    _sconsider_toplevel_scandirs,
+    baseEnv.relativeExcludeDirs(),
+    baseEnv.absoluteExcludeDirs())
 
 
 def getRegistry():
@@ -379,7 +275,8 @@ try:
                 packageRegistry.getPackageNames())
         elif '.' in buildtargets:
             builddir = baseoutdir.Dir(_launchdir_relative).Dir(
-                baseEnv['BUILDDIR']).Dir(baseEnv['VARIANTDIR']).abspath
+                baseEnv.getRelativeBuildDirectory()).Dir(
+                baseEnv.getRelativeVariantDirectory()).abspath
             buildtargets[buildtargets.index('.')] = builddir
 
         for ftname in buildtargets:

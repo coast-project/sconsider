@@ -31,12 +31,12 @@ if _scons_dist < pkg_resources.parse_version("0.5.dev"):
         'mysqlclient': {
             'sourceFiles': [
                 ThirdParty.getBinaryDistDir(packagename).File('mysql')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'mysqlbin': {
             'sourceFiles': [
                 ThirdParty.getBinaryDistDir(packagename).File('mysql')],
-            'targetType': 'PrecompiledBinaryInstallBuilder',
+            'targetType': 'PrecompiledBinary',
         },
     }
 

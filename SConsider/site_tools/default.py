@@ -5,7 +5,7 @@ SConsider-specific default initialization tool - postpones SCons.Tool.default lo
 -> see setupBuildTools for details
 
 """
-
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
 # Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland

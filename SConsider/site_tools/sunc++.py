@@ -3,7 +3,7 @@
 SConsider-specific sunc++ tool initialization
 
 """
-
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
 # Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -76,6 +76,10 @@ def generate(env):
 
     env.AppendUnique(CXXFLAGS='-mt')
 
+    # ensure we have getBitwidth() available
+    if 'setupBuildTools' not in env['TOOLS']:
+        env.Tool('setupBuildTools')
+
     def bwopt(bitwidth):
         bitwoption = '-xtarget=native'
         if bitwidth == '32':
@@ -84,7 +88,7 @@ def generate(env):
             bitwidth = ''
         return bitwoption + bitwidth
 
-    env.AppendUnique(CXXFLAGS=bwopt(env.getBitwidth() if hasattr(env, 'getBitwidth') else '32'))
+    env.AppendUnique(CXXFLAGS=bwopt(env.getBitwidth()))
     env.AppendUnique(CXXFLAGS='-library=stlport4')
 
     if not SCons.Script.GetOption('no-largefilesupport'):
@@ -112,9 +116,3 @@ def exists(env):
         if os.path.exists(cppc):
             return cppc
     return None
-
-# Local Variables:
-# tab-width:4
-# indent-tabs-mode:nil
-# End:
-# vim: set expandtab tabstop=4 shiftwidth=4:

@@ -3,7 +3,6 @@
 Provides logging initialization and a regular expression based filter.
 
 """
-
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
 # Copyright (c) 2014, Peter Sommerlad and IFS Institute for Software

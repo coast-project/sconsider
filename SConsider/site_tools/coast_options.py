@@ -3,7 +3,7 @@
 Coast-SConsider-specific command line extensions to influence the build
 
 """
-
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
 # Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland

@@ -1,9 +1,9 @@
 """SConsider.site_tools.ThirdParty.
 
-SConsider-specific 3rdparty llibrary handling
+SConsider-specific 3rdparty library handling
 
 """
-
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
 # Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -14,53 +14,58 @@ SConsider-specific 3rdparty llibrary handling
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
 
-import re
 import os
-import fnmatch
 import SCons
 from logging import getLogger
 logger = getLogger(__name__)
 
-thirdDartyPackages = {}
+thirdPartyPackages = {}
 
 
 def hasSourceDist(packagename):
-    return 'src' in thirdDartyPackages.get(packagename, {})
+    return 'src' in thirdPartyPackages.get(packagename, {})
 
 
 def getSourceDistDir(packagename):
-    return thirdDartyPackages.get(packagename, {}).get('src', '')
+    return thirdPartyPackages.get(packagename, {}).get('src', '')
 
 
 def hasBinaryDist(packagename):
-    return 'bin' in thirdDartyPackages.get(packagename, {})
+    return 'bin' in thirdPartyPackages.get(packagename, {})
 
 
 def getBinaryDistDir(packagename):
-    return thirdDartyPackages.get(packagename, {}).get('bin', '')
+    return thirdPartyPackages.get(packagename, {}).get('bin', '')
 
 
-def collectPackages(startdir, exceptions=[]):
-    package_re = re.compile(
-        '^(?P<packagename>.*)\.(?P<type>sys|src|bin)\.sconsider$')
+def collectPackages(directory, direxcludesrel=[]):
     packages = {}
-    for root, dirnames, filenames in os.walk(startdir):
-        dirnames[:] = [dir for dir in dirnames if dir not in exceptions]
-        for filename in fnmatch.filter(filenames, '*.sconsider'):
-            match = package_re.match(filename)
-            if match:
-                packages.setdefault(
+
+    def scanmatchfun(root, filename, match):
+        dirobj = SCons.Script.Dir(root)
+        fileobj = dirobj.File(filename)
+        if 0:
+            logger.debug(
+                'found package [{0}]({1}) in [{2}]'.format(
                     match.group('packagename'),
-                    {})[
-                    match.group('type')] = SCons.Script.Dir(root).File(
-                    filename)
+                    match.group('type'),
+                    fileobj.path))
+        packages.setdefault(
+            match.group('packagename'), {})[
+            match.group('type')] = fileobj
+    from PackageRegistry import collectPackageFiles
+    collectPackageFiles(
+        directory,
+        '^(?P<packagename>.*)\.(?P<type>sys|src|bin)\.sconsider$',
+        scanmatchfun,
+        excludes_rel=direxcludesrel)
     return packages
 
 
 def registerDist(registry, packagename, package, distType, distDir, duplicate):
     package_dir = package[distType].get_dir()
     logger.debug(
-        'found package [{0}]({1}) in [{2}]'.format(
+        'using package [{0}]({1}) in [{2}]'.format(
             packagename,
             distType,
             package_dir))
@@ -70,14 +75,15 @@ def registerDist(registry, packagename, package, distType, distDir, duplicate):
         package_dir,
         duplicate)
     package_dir.addRepository(distDir)
-    thirdDartyPackages.setdefault(packagename, {})[distType] = distDir
+    thirdPartyPackages.setdefault(packagename, {})[distType] = distDir
 
 
-def prepareLibraries(env, registry, **kw):
+def postPackageCollection(env, registry, **kw):
     thirdPartyPathList = SCons.Script.GetOption('3rdparty')
     packages = {}
     for packageDir in thirdPartyPathList:
-        packages.update(collectPackages(packageDir, [env.get('BUILDDIR', '')]))
+        packages.update(collectPackages(packageDir,
+                                        env.relativeExcludeDirs()))
 
     for packagename, package in packages.iteritems():
         if registry.hasPackage(packagename):
@@ -127,7 +133,7 @@ def prepareLibraries(env, registry, **kw):
         if libpath:
             if 'src' not in package:
                 logger.error(
-                    'Source distribution definition for {0} not found, aborting!'.format(packagename))
+                    'Third party source distribution definition for {0} not found, aborting!'.format(packagename))
                 SCons.Script.Exit(1)
             registerDist(
                 registry,
@@ -141,7 +147,7 @@ def prepareLibraries(env, registry, **kw):
             if distpath:
                 if 'bin' not in package:
                     logger.error(
-                        'Binary distribution definition for {0} not found, aborting!'.format(packagename))
+                        'Third party binary distribution definition for {0} not found, aborting!'.format(packagename))
                     SCons.Script.Exit(1)
                 registerDist(
                     registry,
@@ -153,14 +159,14 @@ def prepareLibraries(env, registry, **kw):
             else:
                 if 'sys' not in package:
                     logger.error(
-                        'System definition for {0} not found, aborting!'.format(packagename))
+                        'Third party system definition for {0} not found, aborting!'.format(packagename))
                     SCons.Script.Exit(1)
                 path = SCons.Script.GetOption('with-' + packagename)
                 if path:
                     env.AppendUnique(LIBPATH=env.Dir(path).Dir('lib'))
                     env.PrependENVPath('PATH', env.Dir(path).Dir('bin'))
                 logger.debug(
-                    'found package [{0}]({1}) in [{2}]'.format(
+                    'using package [{0}]({1}) in [{2}]'.format(
                         packagename,
                         'sys',
                         package['sys'].get_dir()))
@@ -183,7 +189,11 @@ def generate(env):
         default=[siteDefault3rdparty],
         help='Specify directory containing package files for third party\
  libraries, default=["' + siteDefault3rdparty + '"]')
-    registerCallback('PostPackageCollection', prepareLibraries)
+
+    # we require ConfigureHelper
+    env.Tool('ConfigureHelper')
+
+    registerCallback('PostPackageCollection', postPackageCollection)
 
 
 def exists(env):

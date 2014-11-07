@@ -54,27 +54,27 @@ if _scons_dist < pkg_resources.parse_version("0.5.dev"):
         },
         'sybunic': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('sybunic')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'sybcs': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('sybcs')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'sybct': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('sybct')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'sybintl': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('sybintl')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'sybtcl': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('sybtcl')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'sybcomn': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('sybcomn')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'isql': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('isql')],

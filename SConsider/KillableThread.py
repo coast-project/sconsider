@@ -4,7 +4,7 @@ Class and functions intended to be used when wanting to terminate
 asynchronous background tasks.
 
 """
-
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
 # Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland

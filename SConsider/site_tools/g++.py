@@ -3,7 +3,7 @@
 SConsider-specific g++ tool initialization
 
 """
-
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
 # Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -46,7 +46,12 @@ def generate(env):
         env['SHOBJSUFFIX'] = '.pic.o'
     # determine compiler version
     gccfss = False
-    bitwidth = env.getBitwidth() if hasattr(env, 'getBitwidth') else '32'
+
+    # ensure we have getBitwidth() available
+    if 'setupBuildTools' not in env['TOOLS']:
+        env.Tool('setupBuildTools')
+
+    bitwidth = env.getBitwidth()
     if compiler_subject:
         # pipe = SCons.Action._subproc(env, [compiler_subject, '-dumpversion'],
         pipe = SCons.Action._subproc(env, [compiler_subject, '--version'],

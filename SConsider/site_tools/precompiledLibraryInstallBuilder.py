@@ -6,7 +6,7 @@ to find the 'best matching' library, with the possibility of a
 downgrade.
 
 """
-
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
 # Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -36,7 +36,7 @@ def findPlatformTargets(
         suffixes=[],
         dir_has_to_match=True,
         strict_lib_name_matching=False):
-    bitwidth = env.getBitwidth() if hasattr(env, 'getBitwidth') else '32'
+    bitwidth = env.getBitwidth()
     libRE = ''
     for pre in prefixes:
         if libRE:
@@ -70,12 +70,7 @@ def findPlatformTargets(
 
     reBits = re.compile('.*(32|64)')
     files = []
-    _relExcludeList = env.relativeExcludeDirsList() if hasattr(
-        env, 'relativeExcludeDirsList') else [
-        env['BUILDDIR'],
-        '.git',
-        '.svn',
-        'CVS', ]
+    _relExcludeList = env.relativeExcludeDirs()
     for dirpath, dirnames, filenames in os.walk(basedir):
         dirnames[:] = [
             d for d in dirnames if not d in _relExcludeList]
@@ -193,7 +188,7 @@ def findLibrary(
         'library [%s] not available for this platform [%s] and bitwidth[%s]',
         libname,
         env['PLATFORM'],
-        env.getBitwidth() if hasattr(env, 'getBitwidth') else '32')
+        env.getBitwidth())
     return (None, None, None, None)
 
 
@@ -211,13 +206,14 @@ def findBinary(env, basedir, binaryname):
         'binary [%s] not available for this platform [%s] and bitwidth[%s]',
         binaryname,
         env['PLATFORM'],
-        env.getBitwidth() if hasattr(env, 'getBitwidth') else '32')
+        env.getBitwidth())
     return (None, None, None)
 
 
 def precompBinNamesEmitter(target, source, env):
     target = []
     newsource = []
+    binaryVariantDir = env.getBinaryInstallDir()
     for src in source:
         # catch misleading alias nodes with the same name as the binary to
         # search for
@@ -226,29 +222,22 @@ def precompBinNamesEmitter(target, source, env):
         path, binaryname = os.path.split(src.srcnode().abspath)
         srcpath, srcfile, linkfile = findBinary(env, path, binaryname)
         if srcfile:
+            sourcenode = env.File(os.path.join(srcpath, srcfile))
+            """replace default environment with the current one to propagate settings"""
+            sourcenode.env_set(env)
+            newsource.append(sourcenode)
+            installedTarget = binaryVariantDir.File(srcfile)
+            target.append(installedTarget)
             if srcfile != linkfile:
-                newsource.append(
-                    SCons.Script.File(
-                        os.path.join(
-                            srcpath,
-                            srcfile)))
-                target.append(
-                    env['BASEOUTDIR'].Dir(
-                        env['RELTARGETDIR']).Dir(
-                        env['BINDIR']).Dir(
-                        env['VARIANTDIR']).File(linkfile))
-            newsource.append(SCons.Script.File(os.path.join(srcpath, srcfile)))
-            target.append(
-                env['BASEOUTDIR'].Dir(
-                    env['RELTARGETDIR']).Dir(
-                    env['BINDIR']).Dir(
-                    env['VARIANTDIR']).File(srcfile))
+                linkTarget = binaryVariantDir.File(linkfile)
+                target.append(linkTarget)
     return (target, newsource)
 
 
 def precompLibNamesEmitter(target, source, env):
     target = []
     newsource = []
+    libraryVariantDir = env.getLibraryInstallDir(withRelTarget=True)
     for src in source:
         # catch misleading alias nodes with the same name as the library to
         # search for
@@ -258,35 +247,18 @@ def precompLibNamesEmitter(target, source, env):
         srcpath, srcfile, linkfile, isStaticLib = findLibrary(
             env, path, libname)
         if srcfile:
-            if not isStaticLib:
-                if srcfile != linkfile:
-                    newsource.append(
-                        SCons.Script.File(
-                            os.path.join(
-                                srcpath,
-                                srcfile)))
-                    target.append(
-                        env['BASEOUTDIR'].Dir(
-                            env['RELTARGETDIR']).Dir(
-                            env['LIBDIR']).Dir(
-                            env['VARIANTDIR']).File(linkfile))
-                newsource.append(
-                    SCons.Script.File(
-                        os.path.join(
-                            srcpath,
-                            srcfile)))
-                target.append(
-                    env['BASEOUTDIR'].Dir(
-                        env['RELTARGETDIR']).Dir(
-                        env['LIBDIR']).Dir(
-                        env['VARIANTDIR']).File(srcfile))
-            else:
-                newsource.append(
-                    SCons.Script.File(
-                        os.path.join(
-                            srcpath,
-                            srcfile)))
+            sourcenode = env.File(os.path.join(srcpath, srcfile))
+            """replace default environment with the current one to propagate settings"""
+            sourcenode.env_set(env)
+            newsource.append(sourcenode)
+            if isStaticLib:
                 target.append(SCons.Script.Dir('.').File(srcfile))
+            else:
+                installedTarget = libraryVariantDir.File(srcfile)
+                target.append(installedTarget)
+                if srcfile != linkfile:
+                    linkTarget = libraryVariantDir.File(linkfile)
+                    target.append(linkTarget)
     return (target, newsource)
 
 
@@ -313,23 +285,43 @@ def copyFunc(dest, source, env):
     return 0
 
 
+def createSymLink(target, source, env):
+    from TargetMaker import getRealTarget
+    source = getRealTarget(source)
+    target = getRealTarget(target)
+    src, dest = source.abspath, target.abspath
+    relSrc = os.path.relpath(src, os.path.dirname(dest))
+    os.symlink(relSrc, dest)
+
+
 def installFunc(target, source, env):
     """Install a source file into a target using the function specified as the
     INSTALL construction variable."""
-    if len(target) == len(source):
-        for t, s in zip(target, source):
-            if copyFunc(t.get_path(), s.get_path(), env):
-                return 1
+    for t, s in zip(target, source):
+        if copyFunc(t.get_path(), s.get_path(), env):
+            return 1
+    if len(target) > len(source):
+        createSymLink(target[1], target[0], env)
     return 0
 
 
 def generate(env):
+    # ensure we have getBitwidth() available
+    if 'setupBuildTools' not in env['TOOLS']:
+        env.Tool('setupBuildTools')
+
+    SymbolicLinkAction = SCons.Action.Action(
+        createSymLink,
+        "Generating symbolic link for '$SOURCE' as '$TARGET'")
+    SymbolicLinkBuilder = SCons.Builder.Builder(action=[SymbolicLinkAction])
+    env.Append(BUILDERS={"Symlink": SymbolicLinkBuilder})
+
     PrecompLibAction = SCons.Action.Action(
         installFunc,
         "Installing precompiled library '$SOURCE' as '$TARGET'")
     PrecompLibBuilder = SCons.Builder.Builder(action=[PrecompLibAction],
                                               emitter=precompLibNamesEmitter,
-                                              single_source=False)
+                                              single_source=True)
 
     env.Append(
         BUILDERS={
@@ -348,4 +340,4 @@ def generate(env):
 
 
 def exists(env):
-    return 1
+    return True

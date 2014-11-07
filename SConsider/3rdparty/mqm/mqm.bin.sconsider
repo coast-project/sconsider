@@ -32,15 +32,15 @@ if _scons_dist < pkg_resources.parse_version("0.5.dev"):
         },
         'mqic': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('mqic')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'mqiz': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('mqiz')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'mqmcs': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('mqmcs')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
     }
 

@@ -1,10 +1,10 @@
-"""SConsider.TargetHelpers.
+"""SConsider.site_tools.TargetHelpers.
 
 Just a bunch of simple methods to help creating targets. Methods will be added
 to the environment supplied in the generate call.
 
 """
-
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
 # Copyright (c) 2014, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -38,14 +38,8 @@ def setupTargetDirAndWrapperScripts(
         packagename,
         plaintarget,
         basetargetdir):
-    baseoutdir = env['BASEOUTDIR']
-    env['RELTARGETDIR'] = os.path.join(basetargetdir, packagename)
-    instApps = env.InstallAs(
-        baseoutdir.Dir(
-            env['RELTARGETDIR']).Dir(
-                env['BINDIR']).Dir(
-                    env['VARIANTDIR']).File(name),
-        plaintarget)
+    env.setRelativeTargetDirectory(os.path.join(basetargetdir, packagename))
+    instApps = env.InstallAs(env.getBinaryInstallDir().File(name), plaintarget)
     env.Tool('generateScript')
     wrappers = env.GenerateWrapperScript(instApps)
     return (plaintarget, wrappers)
@@ -94,13 +88,7 @@ def sharedLibrary(
             libBuilder = env.StaticLibrary
 
     plaintarget = libBuilder(name, sources)
-
-    baseoutdir = env['BASEOUTDIR']
-    instTarg = env.Install(
-        baseoutdir.Dir(
-            env['LIBDIR']).Dir(
-                env['VARIANTDIR']),
-        plaintarget)
+    instTarg = env.Install(env.getLibraryInstallDir(), plaintarget)
     env.Requires(instTarg[0], instTarg[1:])
 
     compLibs = env.InstallSystemLibs(plaintarget)
@@ -121,13 +109,7 @@ def staticLibrary(
     env['_NONLAZYLINKFLAGS'] = ''
 
     plaintarget = env.StaticLibrary(name, sources)
-
-    baseoutdir = env['BASEOUTDIR']
-    instTarg = env.Install(
-        baseoutdir.Dir(
-            env['LIBDIR']).Dir(
-                env['VARIANTDIR']),
-        plaintarget)
+    instTarg = env.Install(env.getLibraryInstallDir(), plaintarget)
     env.Requires(instTarg[0], instTarg[1:])
 
     compLibs = env.InstallSystemLibs(plaintarget)
@@ -144,10 +126,25 @@ def installPrecompiledBinary(
         targetname,
         buildSettings,
         **kw):
-    env['RELTARGETDIR'] = os.path.join('globals', packagename)
-    plaintarget = env.PrecompiledBinaryInstallBuilder(name, sources)
+    env.setRelativeTargetDirectory(os.path.join('globals', packagename))
+    target = env.PrecompiledBinaryInstallBuilder(name, sources)
+    # use symlink target at index 1 if available
+    target = target[-1:]
+    return (target, target)
 
-    return (plaintarget, plaintarget)
+
+def installPrecompiledLibrary(
+        env,
+        name,
+        sources,
+        packagename,
+        targetname,
+        buildSettings,
+        **kw):
+    lib = env.PrecompiledLibraryInstallBuilder(name, sources)
+    # use symlink target at index 1 if available
+    lib = lib[-1:]
+    return (lib, lib)
 
 
 def installBinary(
@@ -158,12 +155,8 @@ def installBinary(
         targetname,
         buildSettings,
         **kw):
-    env['RELTARGETDIR'] = os.path.join('globals', packagename)
-    installDir = env['BASEOUTDIR'].Dir(
-        env['RELTARGETDIR']).Dir(
-            env['BINDIR']).Dir(
-                env['VARIANTDIR'])
-    instTarg = env.Install(installDir, sources)
+    env.setRelativeTargetDirectory(os.path.join('globals', packagename))
+    instTarg = env.Install(env.getBinaryInstallDir(), sources)
     env.Requires(instTarg[0], instTarg[1:])
 
     return (instTarg, instTarg)
@@ -177,6 +170,7 @@ def generate(env):
     env.AddMethod(sharedLibrary, "LibraryShared")
     env.AddMethod(staticLibrary, "LibraryStatic")
     env.AddMethod(installPrecompiledBinary, "PrecompiledBinary")
+    env.AddMethod(installPrecompiledLibrary, "PrecompiledLibrary")
     env.AddMethod(installBinary, "InstallBinary")
 
 

@@ -39,43 +39,43 @@ if _scons_dist < pkg_resources.parse_version("0.5.dev"):
         },
         'gxi': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('gxi')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'gxibasicmatch': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('gxibasicmatch')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'gxical': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('gxical')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'gxiosa': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('gxiosa')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'gxiplugin': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('gxiplugin')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'gxiwmqprot': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('gxiwmqprot')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'gxiwmqmsg': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('gxiwmqmsg')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'gxixil': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('gxixil')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'icudata': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('icudata')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'icuuc': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('icuuc')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
     }
 

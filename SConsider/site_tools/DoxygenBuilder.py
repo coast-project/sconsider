@@ -1,3 +1,20 @@
+"""SConsider.site_tools.DoxygenBuilder.
+
+Builder to generate doxygen API documentation. It automatically adds a
+doxygen target for every target specified.
+
+"""
+# vim: set et ai ts=4 sw=4:
+# -------------------------------------------------------------------------
+# Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
+# All rights reserved.
+#
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
+
 from __future__ import with_statement
 import os
 import subprocess
@@ -367,9 +384,7 @@ def openLogFiles(env):
 
     logfilebasename = env.get('logname', '')
     if logfilebasename:
-        logpath = env['BASEOUTDIR'].Dir(
-            os.path.join(
-                env['LOGDIR'])).get_abspath()
+        logpath = env.getLogInstallDir().abspath
         if not os.path.isdir(logpath):
             os.makedirs(logpath)
         log_out = open(os.path.join(logpath, logfilebasename + '.stdout'), 'w')
@@ -467,17 +482,17 @@ def getDoxyDefaults(env, registry, packagename=""):
         packagename = 'Coast'
         basepathrel = os.path.relpath(
             os.path.curdir,
-            env['BASEOUTDIR'].get_abspath())
+            env.getBaseOutDir().abspath)
         outputpath = os.path.relpath(
-            env['BASEOUTDIR'].Dir(
+            env.getBaseOutDir().Dir(
                 env['DOCDIR']).Dir(packagename).get_abspath(),
-            env['BASEOUTDIR'].get_abspath())
+            env.getBaseOutDir().abspath)
     else:
         basepathrel = os.path.relpath(
-            env['BASEOUTDIR'].get_abspath(),
+            env.getBaseOutDir().abspath,
             registry.getPackageDir(packagename).get_abspath())
         outputpath = os.path.relpath(
-            env['BASEOUTDIR'].Dir(
+            env.getBaseOutDir().Dir(
                 env['DOCDIR']).Dir(packagename).get_abspath(),
             registry.getPackageDir(packagename).get_abspath())
     file_patterns = '*.c *.cc *.cxx *.cpp *.c++ *.java *.ii *.ixx *.ipp *.i++ *.inl *.h *.hh *.hxx *.hpp *.h++ *.idl *.odl *.cs *.php *.php3 *.inc *.m *.mm *.py *.f90'.split(
@@ -607,7 +622,7 @@ def createDoxygenAllTarget(registry):
     import SConsider
     env = SConsider.cloneBaseEnv()
 
-    doxyfile = env['BASEOUTDIR'].File('Doxyfile')
+    doxyfile = env.getBaseOutDir().File('Doxyfile')
 
     doxyData = getDoxyfileData(doxyfile, env)
     if not doxyData:
@@ -643,7 +658,7 @@ def createDoxygenAllTarget(registry):
             getPackageInputDirs(
                 registry,
                 package_name,
-                relativeTo=env['BASEOUTDIR'].abspath))
+                relativeTo=env.getBaseOutDir().abspath))
         allPackageFiles.append(registry.getPackageFile(package_name))
 
     doxyData["INPUT"] = []
@@ -724,22 +739,18 @@ def generate(env):
     """Add the options, builders and wrappers to the current Environment."""
     from SCons.Script import AddOption, GetOption
     import SConsider
-    import optparse
-    try:
-        AddOption(
-            '--doxygen',
-            dest='doxygen',
-            action='store_true',
-            default=False,
-            help='Create module documentation')
-        AddOption(
-            '--doxygen-only',
-            dest='doxygen-only',
-            action='store_true',
-            default=False,
-            help='Same as --doxygen but skips all targets except doxygen')
-    except optparse.OptionConflictError:
-        raise DoxygenToolException("Only one Doxygen-Tool instance allowed")
+    AddOption(
+        '--doxygen',
+        dest='doxygen',
+        action='store_true',
+        default=False,
+        help='Create module documentation')
+    AddOption(
+        '--doxygen-only',
+        dest='doxygen-only',
+        action='store_true',
+        default=False,
+        help='Same as --doxygen but skips all targets except doxygen')
 
     import SCons.Action
     import SCons.Builder
@@ -763,6 +774,8 @@ def generate(env):
     env.Append(BUILDERS={'DoxygenBuilder': doxygenBuilder})
 
     env.AddMethod(createDoxygenTarget, "PackageDoxygen")
+
+    env.Append(DOCDIR='doc')
 
     def createTargetCallback(registry, packagename, **kw):
         doxyEnv = SConsider.cloneBaseEnv()

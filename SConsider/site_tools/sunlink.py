@@ -3,7 +3,7 @@
 SConsider-specific sunlink tool initialization
 
 """
-
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
 # Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -79,7 +79,11 @@ def generate(env):
             bitwidth = ''
         return bitwoption + bitwidth
 
-    bitwidth = env.getBitwidth() if hasattr(env, 'getBitwidth') else '32'
+    # ensure we have getBitwidth() available
+    if 'setupBuildTools' not in env['TOOLS']:
+        env.Tool('setupBuildTools')
+
+    bitwidth = env.getBitwidth()
     env.AppendUnique(LINKFLAGS=bwopt(bitwidth))
     env.AppendUnique(SHLINKFLAGS=bwopt(bitwidth))
     env.AppendUnique(SHLINKFLAGS='-library=stlport4')

@@ -3,7 +3,7 @@
 SConsider-specific tool chain initialization
 
 """
-
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
 # Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -42,20 +42,27 @@ def checkCompiler(env, optionvalue, envVarName):
 
 
 """Extract OS specific version information into tuple to return"""
+
+
 def extractOsVersion(platf):
     current_os_version = (0, 0, 0)
     if str(platf) == "cygwin":
-        current_os_version = tuple([int(x) for x in
-                platform.system().split('-')[1].split('.')])
+        current_os_version = tuple([int(x)
+                                    for x in platform.system().split('-')
+                                    [1].split('.')])
     elif str(platf) == 'win32':
-        current_os_version = tuple([int(x) for x in platform.version().split('.')])
+        current_os_version = tuple(
+            [int(x) for x in platform.version().split('.')])
     elif str(platf) == 'sunos':
-        current_os_version = tuple([int(x) for x in platform.release().split('.')])
+        current_os_version = tuple(
+            [int(x) for x in platform.release().split('.')])
     elif str(platf) == 'darwin':
-        current_os_version = tuple([int(x) for x in platform.release().split('.')])
+        current_os_version = tuple(
+            [int(x) for x in platform.release().split('.')])
     elif platform.system() == 'Linux':
-        current_os_version = tuple([int(x) for x in
-                platform.release().split('-')[0].split('.')])
+        current_os_version = tuple([int(x)
+                                    for x in platform.release().split('-')
+                                    [0].split('.')])
     return current_os_version
 
 
@@ -216,6 +223,10 @@ def generate(env, **kw):
     elif platform.system() == 'Linux':
         env.AppendUnique(CCFLAGS=['-DOS_SYSV'])
         env.AppendUnique(CCFLAGS=['-DOS_LINUX'])
+    elif str(platf) == 'win32':
+        """from scons user manual: a library build of a Windows shared library
+        (.dllfile) will also build a corresponding .def file at the same time"""
+        env.Append(WINDOWS_INSERT_DEF=1)
 
     env.Append(VARIANT_SUFFIX=['-' + bitwidth])
     env.Append(VARIANT_SUFFIX=['_' + GetOption('buildcfg')])

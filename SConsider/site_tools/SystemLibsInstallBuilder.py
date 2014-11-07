@@ -3,7 +3,7 @@
 Tool to collect system libraries needed by an executable/shared library
 
 """
-
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
 # Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -14,10 +14,12 @@ Tool to collect system libraries needed by an executable/shared library
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
 
+import os
 import functools
 import threading
 import SCons
 import LibFinder
+from TargetMaker import getRealTarget
 
 # needs locking because it is manipulated during multi-threaded build phase
 systemLibTargets = {}
@@ -32,58 +34,108 @@ def notInDir(env, dir, path):
 def installSystemLibs(source):
     """This function is called during the build phase and adds targets
     dynamically to the dependency tree."""
-    if not SCons.Util.is_List(source):
-        source = [source]
-
-    if not source:
+    sourcenode = getRealTarget(source)
+    if not sourcenode:
         return None
+    source = [sourcenode]
 
-    env = source[0].get_env()
+    env = sourcenode.get_env()
     finder = LibFinder.FinderFactory.getForPlatform(env["PLATFORM"])
-    libdirs = env['LIBPATH']
+    libdirs = []
+    libdirs.extend(env.get('LIBPATH', []))
     libdirs.extend(finder.getSystemLibDirs(env))
     deplibs = finder.getLibs(env, source, libdirs=libdirs)
-
-    ownlibDir = env['BASEOUTDIR'].Dir(env['LIBDIR']).Dir(env['VARIANTDIR'])
+    if not hasattr(env, 'getLibraryInstallDir'):
+        raise SCons.Errors.UserError(
+            'environment on node [%s] is not a SConsider environment, can not continue' %
+            (str(sourcenode)))
+    ownlibDir = env.getLibraryInstallDir()
 
     # don't create cycles by copying our own libs
     deplibs = filter(functools.partial(notInDir, env, ownlibDir), deplibs)
-
     target = []
 
+    from stat import S_IRUSR, S_IRGRP, S_IROTH, S_IXUSR
+    # ensure executable flag on installed shared libs
+    mode = S_IRUSR | S_IRGRP | S_IROTH | S_IXUSR
     # build phase could be multi-threaded
     with systemLibTargetsRLock:
         for deplib in deplibs:
             # take care of already created targets otherwise we would have
             # multiple ways to build the same target
-            if deplib in systemLibTargets:
-                libtarget = systemLibTargets[deplib]
+            srcfile = os.path.basename(deplib)
+            linkfile = srcfile
+            if linkfile in systemLibTargets:
+                libtarget = systemLibTargets[linkfile]
             else:
-                libtarget = env.Install(ownlibDir, env.File(deplib))
-                systemLibTargets[deplib] = libtarget
-            target.extend(libtarget)
+                libpathname = deplib
+                reallibpath = os.path.realpath(libpathname)
+                if reallibpath != libpathname:
+                    srcfile = os.path.basename(reallibpath)
+                lib = env.File(reallibpath)
+                if not os.path.dirname(lib.abspath) == ownlibDir.abspath:
+                    libtarget = env.Install(ownlibDir, lib)
+                    env.AddPostAction(
+                        libtarget,
+                        SCons.Defaults.Chmod(str(libtarget[0]), mode))
+                    if srcfile != linkfile:
+                        libtarget = env.Symlink(
+                            ownlibDir.File(linkfile),
+                            libtarget)
+                    systemLibTargets[linkfile] = libtarget
+            if not libtarget[0] in target:
+                target.extend(libtarget)
 
     # add targets as dependency of the intermediate target
-    env.Depends(aliasPrefix + source[0].name, target)
+    env.Depends(aliasPrefix + sourcenode.name, target)
 
 
-def generate(env):
+def generate(env, *args, **kw):
     """Add the options, builders and wrappers to the current Environment."""
     createDeferredAction = SCons.Action.ActionFactory(
         installSystemLibs,
-        lambda source: '')
+        lambda *args, **kw: '')
 
     def createDeferredTarget(env, source):
         # bind 'source' parameter to an Action which is called in the build phase and
         # create a dummy target which always will be built
-        target = env.Command(
-            source[0].name +
-            '_dummy',
-            source,
-            createDeferredAction(source))
-        # create intermediate target to which we add dependency in the build
-        # phase
-        return env.Alias(aliasPrefix + source[0].name, target)
+        sourcenode = getRealTarget(source)
+        if not sourcenode:
+            return []
+        source = [sourcenode]
+        if not env.GetOption('clean') and not env.GetOption('help'):
+            target = env.Command(
+                sourcenode.name + '_dummy',
+                sourcenode,
+                createDeferredAction(source))
+            # create intermediate target to which we add dependency in the
+            # build phase
+            return env.Alias(aliasPrefix + sourcenode.name, target)
+        else:
+            """It makes no sense to find nodes to delete when target doesn't
+            exist..."""
+            if not os.path.exists(sourcenode.abspath):
+                return []
+            env = sourcenode.get_env()
+            finder = LibFinder.FinderFactory.getForPlatform(env["PLATFORM"])
+            libdirs = []
+            libdirs.extend(env.get('LIBPATH', []))
+            libdirs.extend(finder.getSystemLibDirs(env))
+            deplibs = finder.getLibs(env, source, libdirs=libdirs)
+            ownlibdir = env.getLibraryInstallDir()
+            for deplib in deplibs:
+                srcfile = os.path.basename(deplib)
+                libfile = ownlibdir.File(srcfile)
+                if os.path.isfile(
+                        libfile.abspath) or os.path.islink(
+                        libfile.abspath):
+                    env.Clean(sourcenode, libfile)
+                    if os.path.islink(libfile.abspath):
+                        env.Clean(
+                            sourcenode,
+                            ownlibdir.File(os.readlink(libfile.abspath)))
+            return []
+
     env.AddMethod(createDeferredTarget, "InstallSystemLibs")
 
 

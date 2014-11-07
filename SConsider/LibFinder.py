@@ -3,7 +3,7 @@
 Utility to find depending libraries of a target.
 
 """
-
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
 # Copyright (c) 2010, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -85,7 +85,7 @@ class UnixFinder(LibFinder):
             ['ldd', os.path.basename(source[0].abspath)],
             stdout=subprocess.PIPE, cwd=os.path.dirname(source[0].abspath),
             env=SomeUtils.getFlatENV(env))
-        out, err = ldd.communicate()
+        out, _ = ldd.communicate()
         libs = filter(
             functools.partial(
                 operator.ne, 'not found'), re.findall(
@@ -111,7 +111,7 @@ class UnixFinder(LibFinder):
             cmdargs,
             stdout=subprocess.PIPE,
             env=SomeUtils.getFlatENV(env))
-        out, err = linker.communicate()
+        out, _ = linker.communicate()
         match = re.search('^libraries.*=(.*)$', out, re.MULTILINE)
         if match:
             libdirs.extend(
@@ -153,7 +153,7 @@ class MacFinder(LibFinder):
             ['otool', '-L', os.path.basename(source[0].abspath)],
             stdout=subprocess.PIPE, cwd=os.path.dirname(source[0].abspath),
             env=SomeUtils.getFlatENV(env))
-        out, err = ldd.communicate()
+        out, _ = ldd.communicate()
         libs = filter(
             functools.partial(
                 operator.ne, 'not found'), re.findall(
@@ -177,7 +177,7 @@ class MacFinder(LibFinder):
             cmdargs,
             stdout=subprocess.PIPE,
             env=SomeUtils.getFlatENV(env))
-        out, err = linker.communicate()
+        out, _ = linker.communicate()
         match = re.search('^libraries.*=(.*)$', out, re.MULTILINE)
         if match:
             libdirs.extend(
@@ -218,7 +218,7 @@ class Win32Finder(LibFinder):
             ['objdump', '-p', os.path.basename(source[0].abspath)],
             stdout=subprocess.PIPE, cwd=os.path.dirname(source[0].abspath),
             env=SomeUtils.getFlatENV(env))
-        out, err = ldd.communicate()
+        out, _ = ldd.communicate()
         deplibs = re.findall('DLL Name:\s*(\S*)', out, re.MULTILINE)
         if not libdirs:
             libdirs = self.getSystemLibDirs(env)

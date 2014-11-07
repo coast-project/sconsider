@@ -3,7 +3,7 @@
 SConsider-specific stand alone script to execute programs
 
 """
-
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
 # Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -54,9 +54,9 @@ LIBDIR=\"""" + env['LIBDIR'] + """\"
 BINDIR=\"""" + env['BINDIR'] + """\"
 SCRIPTDIR=\"""" + env['SCRIPTDIR'] + """\"
 CONFIGDIR=\"""" + env['CONFIGDIR'] + """\"
-VARIANTDIR=\"""" + env['VARIANTDIR'] + """\"
-BASEOUTDIR=\"""" + env['BASEOUTDIR'].abspath + """\"
-RELTARGETDIR=\"""" + env['RELTARGETDIR'] + """\"
+VARIANTDIR=\"""" + env.getRelativeVariantDirectory() + """\"
+BASEOUTDIR=\"""" + env.getBaseOutDir().abspath + """\"
+RELTARGETDIR=\"""" + env.getRelativeTargetDirectory() + """\"
 BINARYNAME=\"""" + os.path.basename(binpath) + """\"
 
 doChangeDir=1
@@ -226,12 +226,9 @@ def generateScriptEmitter(target, source, env):
     target = []
     for src in source:
         target.append(
-            env['BASEOUTDIR'].Dir(
-                env['RELTARGETDIR']).Dir(
-                env['SCRIPTDIR']).Dir(
-                env['VARIANTDIR']).File(
-                    os.path.basename(
-                        src.abspath)))
+            env.getScriptInstallDir().File(
+                os.path.basename(
+                    src.abspath)))
     return (target, source)
 
 
@@ -256,6 +253,7 @@ def generate(env):
 
     env.Append(BUILDERS={'GenerateScriptBuilder': GenerateScriptBuilder})
     env.AddMethod(generateWrapperScript, "GenerateWrapperScript")
+    env.Append(CONFIGDIR='config')
 
 
 def exists(env):

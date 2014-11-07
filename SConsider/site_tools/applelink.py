@@ -3,7 +3,7 @@
 SConsider-specific initialization for the Apple gnu-like linker.
 
 """
-
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
 # Copyright (c) 2011, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -36,7 +36,11 @@ def generate(env):
         env.AppendUnique(LINKFLAGS=['-fprofile'])
         env.AppendUnique(SHLINKFLAGS=['-fprofile'])
 
-    bitwidth = env.getBitwidth() if hasattr(env, 'getBitwidth') else '32'
+    # ensure we have getBitwidth() available
+    if 'setupBuildTools' not in env['TOOLS']:
+        env.Tool('setupBuildTools')
+
+    bitwidth = env.getBitwidth()
     env.AppendUnique(LINKFLAGS='-m' + bitwidth)
     # FIXME: only append to SHLINKFLAGS if we do not require all symbols
     # resolved!

@@ -26,6 +26,13 @@ class ExecutorStub(object):
         return self.targets
 
 
+class EnvWrapper(dict):
+    def __init__(self, values):
+        super(EnvWrapper, self).__init__(values)
+    def getRelativeVariantDirectory(self):
+        return self['VARIANTDIR']
+
+
 class TargetStub(UpdateableObject):
     sources = []
     depends = []
@@ -130,7 +137,7 @@ class PathFilterTest(unittest.TestCase):
             "bin/variant123/blub")
 
     def testFilterVariantPath(self):
-        env = {'VARIANTDIR': 'variant123'}
+        env = EnvWrapper({'VARIANTDIR': 'variant123'})
         self.assertEqual(
             Package.filterVariantPath(
                 self.path,

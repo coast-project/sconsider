@@ -4,7 +4,7 @@ Utility module to parse Anything files and provide a python, dict-based,
 equivalent
 
 """
-
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
 # Copyright (c) 2010, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland

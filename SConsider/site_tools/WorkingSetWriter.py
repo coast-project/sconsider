@@ -5,7 +5,7 @@ file.  Each directory containing an eclipse .project file is scanned for
 its dependencies to other 'eclipse' project files.
 
 """
-
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
 # Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland

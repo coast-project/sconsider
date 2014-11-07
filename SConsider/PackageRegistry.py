@@ -3,7 +3,7 @@
 SCons extension to manage targets by name in a global registry
 
 """
-
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
 # Copyright (c) 2014, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -85,7 +85,7 @@ def collectPackageFiles(
     if sys.version_info[:2] >= (2, 6):
         followlinks = True
     for root, dirnames, filenames in os.walk(directory,
-                                                followlinks=followlinks):
+                                             followlinks=followlinks):
         _root_pathabs = os.path.abspath(root)
         dirnames[:] = filter(
             lambda dirname: dirname not in excludes_rel and os.path.join(
@@ -149,12 +149,12 @@ class PackageRegistry:
 
         def scanmatchfun(root, filename, match):
             rootDir = self.env.Dir(root)
-            filen = rootDir.File(filename)
+            _filename = rootDir.File(filename)
             logger.debug(
                 'found package [{0}] in [{1}]'.format(
                     match.group('packagename'),
-                    startDir.rel_path(filen)))
-            self.setPackage(match.group('packagename'), filen, rootDir)
+                    startDir.rel_path(_filename)))
+            self.setPackage(match.group('packagename'), _filename, rootDir)
 
         for scandir in scan_dirs:
             collectPackageFiles(
@@ -351,10 +351,10 @@ class PackageRegistry:
                 self.packages[packagename]['loaded'] = True
                 packagedir = self.getPackageDir(packagename)
                 packagefile = self.getPackageFile(packagename)
-                builddir = self.env['BASEOUTDIR'].Dir(
+                builddir = self.env.getBaseOutDir().Dir(
                     packagedir.path).Dir(
-                    self.env['BUILDDIR']).Dir(
-                    self.env['VARIANTDIR'])
+                    self.env.getRelativeBuildDirectory()).Dir(
+                    self.env.getRelativeVariantDirectory())
                 logger.info(
                     'executing [%s] as SConscript for package [%s]',
                     packagefile.path,

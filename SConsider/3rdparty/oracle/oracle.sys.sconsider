@@ -17,11 +17,12 @@ Import('*')
 
 _scons_dist = pkg_resources.get_distribution("SConsider").parsed_version
 if _scons_dist < pkg_resources.parse_version("0.5.dev"):
-    from SConsider.ConfigureHelper import Configure
+    from ConfigureHelper import Configure
     env = SConsider.cloneBaseEnv()
     conf = Configure(env)
     if conf.CheckCHeader('oci.h') and conf.CheckMultipleLibs(
-            ['occi', 'clntsh', 'nnz11', 'ociicus', 'ociei', 'sqlplus', 'sqlplusic']):
+        ['occi', 'clntsh', 'nnz11', 'ociicus', 'ociei', 'sqlplus',
+         'sqlplusic']):
         conf.env.Append(CPPDEFINES='HAS_ORACLE')
     sqlplusbin = conf.CheckExecutable('sqlplus')
     env = conf.Finish()

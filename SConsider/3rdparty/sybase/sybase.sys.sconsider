@@ -19,7 +19,7 @@ Import('*')
 
 _scons_dist = pkg_resources.get_distribution("SConsider").parsed_version
 if _scons_dist < pkg_resources.parse_version("0.5.dev"):
-    from SConsider.ConfigureHelper import Configure
+    from ConfigureHelper import Configure
     env = SConsider.cloneBaseEnv()
     conf = Configure(env)
     if conf.CheckCHeader('sybdb.h') and conf.CheckMultipleLibs(

@@ -3,7 +3,7 @@
 SConsider-specific tool to create a distributable package  from compiled sources
 
 """
-
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
 # Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -29,9 +29,7 @@ def addPackageTarget(registry, buildTargets, env, destdir, **kw):
     import SCons
     createDeferredAction = SCons.Action.ActionFactory(
         makePackage,
-        lambda *
-        args,
-        **kw: '')
+        lambda *args, **kw: '')
 
     sources = []
     for tn in buildTargets:
@@ -53,16 +51,13 @@ def makePackage(registry, buildTargets, env, destdir, **kw):
     import SCons
     isInBuilddir = functools.partial(
         SomeUtils.hasPathPart,
-        pathpart=env['BUILDDIR'])
+        pathpart=env.getRelativeBuildDirectory())
     notInBuilddir = lambda target: not isInBuilddir(target)
     includePathRel = env['INCDIR']
     includePathFull = includePathRel
     if not includePathFull.startswith(os.path.sep):
-        includePathFull = os.path.join(
-            env.get(
-                'BASEOUTDIR',
-                SCons.Script.Dir('.')).abspath,
-            includePathRel)
+        includePathFull = os.path.join(env.getBaseOutDir().abspath,
+                                       includePathRel)
 
     def isIncludeFile(target):
         if os.path.splitext(
@@ -136,11 +131,14 @@ def isInstalledNode(testnode, node):
 
 def filterBaseOutDir(path, **kw):
     # FIXME: baseoutdir is always an absolute path except maybe windows?
+    env = kw.get('env', {})
+    basedirprefix = ''
     if not path.startswith(os.sep):
         return path
-    basedirprefix = kw.get('env', {}).get('BASEOUTDIR', False).abspath
-    replist = [('^' + basedirprefix + os.sep + '?', ''),
-               ]
+    basedirprefix = env.getBaseOutDir().abspath
+    if not basedirprefix:
+        return path
+    replist = [('^' + basedirprefix + os.sep + '?', '')]
     return SomeUtils.multiple_replace(replist, path)
 
 
@@ -152,10 +150,10 @@ def filterTestsAppsGlobalsPath(path, **kw):
 
 
 def filterVariantPath(path, **kw):
-    variant = kw.get('env', {}).get('VARIANTDIR', False)
+    env = kw.get('env', {})
+    variant = env.getRelativeVariantDirectory()
     if not variant:
         return path
-
     return re.sub(re.escape(variant) + os.sep + '?', '', path)
 
 
@@ -164,9 +162,9 @@ def determineDirInPackage(name, env, destdir, target, filters=[]):
 
     if not isinstance(filters, list):
         filters = [filters]
-    for filter in filters:
-        if path and callable(filter):
-            path = filter(path, env=env)
+    for current_filter in filters:
+        if path and callable(current_filter):
+            path = current_filter(path, env=env)
 
     copydir = destdir.Dir(name)
     return copydir.Dir(path)
@@ -180,24 +178,22 @@ def generate(env):
     import SCons.Script
     import SCons.Script.Main
     import SConsider
-    try:
-        SCons.Script.AddOption(
-            '--package',
-            dest='package',
-            action='store',
-            default='',
-            help='Destination base directory for target specific files. Target\
- files will be put into a subdirectory named <packagename>. If a specific\
- package target is specified, the subdirectory will be named <packagename>.\
- <targetname>.')
-    except optparse.OptionConflictError:
-        raise PackageToolException("Only one Package-Tool instance allowed")
+    SCons.Script.AddOption(
+        '--package',
+        dest='package',
+        action='store',
+        default='',
+        help='Destination base directory for target specific files. Target\
+    files will be put into a subdirectory named <packagename>. If a specific\
+    package target is specified, the subdirectory will be named <packagename>.\
+    <targetname>.')
 
     destination = SCons.Script.GetOption('package')
     if destination:
         if not os.path.isdir(destination):
             SCons.Script.Main.OptionsParser.error(
-                "given package destination path doesn't exist")
+                "given package destination path [{0}] doesn't exist".format(
+                    destination))
         else:
             SConsider.registerCallback(
                 "PreBuild",

@@ -35,32 +35,32 @@ if _scons_dist < pkg_resources.parse_version("0.5.dev"):
         'occi': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('occi')],
             'libVersion': '.11.1',
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'clntsh': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('clntsh')],
             'libVersion': '.11.1',
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'nnz': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('nnz11')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'ociicus': {  # us language support library
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('ociicus')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'ociei': {  # oci library supporting all character sets
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('ociei')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'libsqlplus': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('sqlplus')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'libsqlplusic': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('sqlplusic')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'sqlplusbin': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('sqlplus')],

@@ -1,9 +1,9 @@
-"""SConsider.TargetMaker.
+"""SConsider.site_tools.TargetMaker.
 
 SCons extension to create target environments using EnvBuilder
 
 """
-
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
 # Copyright (c) 2014, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -26,6 +26,42 @@ from SCons.Script import Dir, File, GetOption
 from SomeUtils import copyFileNodes, multiple_replace
 from logging import getLogger
 logger = getLogger(__name__)
+
+
+def getRealTarget(target, doThrow=False, messagePrefix='', fullTargetName=''):
+    from SCons.Util import is_Tuple, is_List
+    from SConsider import getRegistry
+    if (is_Tuple(target) and target[0] is None) or (
+            is_List(target) and not len(target)):
+        if doThrow:
+            raise PackageTargetNotFound(
+                target[1] if len(target) == 2 else '<unknown target>')
+        return None
+    target_name = None
+    if is_List(target) and is_Tuple(target[0]):
+        target = target[0]
+    if is_Tuple(target):
+        target_name = target[1]
+        target = target[0]
+        if not SCons.Util.is_String(target_name) and doThrow:
+            raise SCons.Errors.UserError(
+                "%s '%s' for target '%s' is not a valid string entry" %
+                (messagePrefix, target_name, fullTargetName))
+    if is_List(target) and len(target) <= 1:
+        target = target[0]
+    if SCons.Util.is_String(target):
+        target = getRegistry().lookup(target)
+    if isinstance(target, SCons.Node.Alias.Alias):
+        if doThrow:
+            raise SCons.Errors.UserError(
+                "%s '%s' for target '%s' must be a string entry, not an alias node" %
+                (messagePrefix, str(target), fullTargetName))
+        logger.error(
+            '{0} [{1}] for target [{2}] must be a string entry, not an alias node'.format(
+                messagePrefix,
+                str(target),
+                fullTargetName))
+    return target
 
 
 class TargetMaker:
@@ -96,7 +132,7 @@ class TargetMaker:
         instTargets = []
         if 'public' in buildSettings:
             ifiles = buildSettings['public'].get('includes', [])
-            destdir = env['BASEOUTDIR'].Dir(
+            destdir = env.getBaseOutDir().Dir(
                 os.path.join(
                     env['INCDIR'],
                     pkgname))
@@ -224,7 +260,7 @@ class TargetMaker:
             if 'copyFiles' in targetBuildSettings:
                 copyTargets = self.copyFiles(
                     targetEnv,
-                    targetEnv['BASEOUTDIR'].Dir(targetEnv['RELTARGETDIR']),
+                    targetEnv.getTargetBaseInstallDir(),
                     packagename,
                     targetBuildSettings.get('copyFiles', []))
                 targetEnv.Depends(target, copyTargets)

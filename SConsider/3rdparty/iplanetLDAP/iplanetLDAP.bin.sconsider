@@ -30,7 +30,7 @@ if _scons_dist < pkg_resources.parse_version("0.5.dev"):
         'ldap50': {
             'sourceFiles': [
                 ThirdParty.getBinaryDistDir(packagename).File('ldap50')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
     }
 

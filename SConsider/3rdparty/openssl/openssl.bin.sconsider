@@ -31,11 +31,11 @@ if _scons_dist < pkg_resources.parse_version("0.5.dev"):
         },
         'ssl': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('ssl')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'crypto': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('crypto')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
         'opensslbin': {
             'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('openssl')],

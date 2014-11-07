@@ -31,7 +31,7 @@ if _scons_dist < pkg_resources.parse_version("0.5.dev"):
         'aceclnt': {
             'sourceFiles': [
                 ThirdParty.getBinaryDistDir(packagename).File('aceclnt')],
-            'targetType': 'PrecompiledLibraryInstallBuilder',
+            'targetType': 'PrecompiledLibrary',
         },
     }
 

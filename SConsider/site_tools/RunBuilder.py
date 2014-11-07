@@ -7,7 +7,7 @@ the possibility to add program options. Further it allows to specify specific
 setup/teardown functions executed before and after running the program.
 
 """
-
+# vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
 # Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -123,14 +123,8 @@ def run(cmd, logfile=None, **kw):
 def emitPassedFile(target, source, env):
     target = []
     for src in source:
-        path, scriptname = os.path.split(src.abspath)
-        target.append(
-            env['BASEOUTDIR'].Dir(
-                env['RELTARGETDIR']).Dir(
-                env['LOGDIR']).Dir(
-                env['VARIANTDIR']).File(
-                    scriptname +
-                '.passed'))
+        _, scriptname = os.path.split(src.abspath)
+        target.append(env.getLogInstallDir().File(scriptname + '.passed'))
     return (target, source)
 
 
@@ -248,11 +242,7 @@ def createTestTarget(
     if not SCons.Util.is_List(source):
         source = [source]
 
-    logfile = env['BASEOUTDIR'].Dir(
-        env['RELTARGETDIR']).Dir(
-        env['LOGDIR']).Dir(
-        env['VARIANTDIR']).File(
-        targetname + '.test.log')
+    logfile = env.getLogInstallDir().File(targetname + '.test.log')
 
     runner = env.TestBuilder(
         [],
@@ -266,7 +256,7 @@ def createTestTarget(
 
     isInBuilddir = functools.partial(
         hasPathPart,
-        pathpart=env['BUILDDIR'])
+        pathpart=env.getRelativeBuildDirectory())
     isCopiedInclude = lambda node: node.path.startswith(env['INCDIR'])
 
     funcs = [
@@ -325,11 +315,7 @@ def createRunTarget(
     if not SCons.Util.is_List(source):
         source = [source]
 
-    logfile = env['BASEOUTDIR'].Dir(
-        env['RELTARGETDIR']).Dir(
-        env['LOGDIR']).Dir(
-        env['VARIANTDIR']).File(
-        targetname + '.run.log')
+    logfile = env.getLogInstallDir().File(targetname + '.run.log')
 
     runner = env.RunBuilder(
         [
