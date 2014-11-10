@@ -31,9 +31,9 @@ def prePackageCollection(env, **kw):
     for exclude_path in env.GetOption('exclude') + DefaultToolpath:
         absolute_path = exclude_path
         if not os.path.isabs(exclude_path):
-            absolute_path = Dir(exclude_path).abspath
+            absolute_path = Dir(exclude_path).get_abspath()
         else:
-            exclude_path = os.path.relpath(exclude_path, Dir('#').abspath)
+            exclude_path = os.path.relpath(exclude_path, Dir('#').get_abspath())
         if not exclude_path.startswith('..'):
             first_segment = exclude_path.split(os.pathsep)[0]
             env.AppendUnique(EXCLUDE_DIRS_TOPLEVEL=[first_segment])

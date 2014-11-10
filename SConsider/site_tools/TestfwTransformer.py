@@ -1,6 +1,7 @@
 """SConsider.site_tools.TestfwTransformer.
 
-Tool to adapt output of coast-testfw to xUnit xml output parseable by most programs
+Tool to adapt output of coast-testfw to xUnit xml output parseable by
+most programs
 
 """
 # vim: set et ai ts=4 sw=4:
@@ -279,10 +280,10 @@ def dependsOnTestfw(target, registry):
 def callPostTest(target, registry, packagename, targetname, logfile, **kw):
     if dependsOnTestfw(target, registry):
         parser = Parser()
-        if os.path.isfile(logfile.abspath):
-            with open(logfile.abspath) as file:
+        if os.path.isfile(logfile.get_abspath()):
+            with open(logfile.get_abspath()) as file:
                 result = parser.parse(file)
-                with open(logfile.dir.File(targetname + '.test.xml').abspath, 'w') as xmlfile:
+                with open(logfile.dir.File(targetname + '.test.xml').get_abspath(), 'w') as xmlfile:
                     xmlfile.write(result.toXML(packagename + '.' + targetname))
 
 

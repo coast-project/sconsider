@@ -1,3 +1,8 @@
+"""SConsider.maintenance.
+
+Default initializer
+"""
+
 # -------------------------------------------------------------------------
 # Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland

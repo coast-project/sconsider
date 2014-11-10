@@ -81,7 +81,7 @@ def generate(env, **kw):
     env['__envconfigdir__'] = Dir(GetOption('envconfigdir'))
     logger.info(
         "environment specific directory: %s",
-        env['__envconfigdir__'].abspath)
+        env['__envconfigdir__'].get_abspath())
 
 
 def exists(env):

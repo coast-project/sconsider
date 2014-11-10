@@ -1,6 +1,7 @@
 """SConsider.site_tools.Package.
 
-SConsider-specific tool to create a distributable package  from compiled sources
+SConsider-specific tool to create a distributable package from compiled
+sources
 
 """
 # vim: set et ai ts=4 sw=4:
@@ -56,7 +57,7 @@ def makePackage(registry, buildTargets, env, destdir, **kw):
     includePathRel = env['INCDIR']
     includePathFull = includePathRel
     if not includePathFull.startswith(os.path.sep):
-        includePathFull = os.path.join(env.getBaseOutDir().abspath,
+        includePathFull = os.path.join(env.getBaseOutDir().get_abspath(),
                                        includePathRel)
 
     def isIncludeFile(target):
@@ -135,7 +136,7 @@ def filterBaseOutDir(path, **kw):
     basedirprefix = ''
     if not path.startswith(os.sep):
         return path
-    basedirprefix = env.getBaseOutDir().abspath
+    basedirprefix = env.getBaseOutDir().get_abspath()
     if not basedirprefix:
         return path
     replist = [('^' + basedirprefix + os.sep + '?', '')]
@@ -146,7 +147,13 @@ def filterTestsAppsGlobalsPath(path, **kw):
     replist = [('^tests' + os.sep + '[^' + os.sep + ']*' + os.sep + '?', ''),
                ('^apps' + os.sep + '[^' + os.sep + ']*' + os.sep + '?', ''),
                ('^globals' + os.sep + '[^' + os.sep + ']*' + os.sep + '?', '')]
-    return SomeUtils.multiple_replace(replist, path)
+    for r in replist:
+        res = SomeUtils.multiple_replace([r], path)
+        # leave as soon as we replaced a prefix, as only one can match per call
+        if res != path:
+            return res
+
+    return path
 
 
 def filterVariantPath(path, **kw):

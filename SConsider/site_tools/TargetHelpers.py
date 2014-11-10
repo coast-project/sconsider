@@ -40,7 +40,8 @@ def setupTargetDirAndWrapperScripts(
         basetargetdir):
     env.setRelativeTargetDirectory(os.path.join(basetargetdir, packagename))
     instApps = env.InstallAs(env.getBinaryInstallDir().File(name), plaintarget)
-    env.Tool('generateScript')
+    if 'generateScript' not in env['TOOLS']:
+        env.Tool('generateScript')
     wrappers = env.GenerateWrapperScript(instApps)
     return (plaintarget, wrappers)
 
@@ -162,6 +163,12 @@ def installBinary(
     return (instTarg, instTarg)
 
 
+def prePackageCollection(env):
+    # we require ThirdParty
+    if 'ThirdParty' not in env['TOOLS']:
+        env.Tool('ThirdParty')
+
+
 def generate(env):
     env.AddMethod(programApp, "ProgramApp")
     # @!FIXME: should use ProgramTest instead
@@ -172,7 +179,9 @@ def generate(env):
     env.AddMethod(installPrecompiledBinary, "PrecompiledBinary")
     env.AddMethod(installPrecompiledLibrary, "PrecompiledLibrary")
     env.AddMethod(installBinary, "InstallBinary")
+    from SConsider import registerCallback
+    registerCallback('PrePackageCollection', prePackageCollection)
 
 
 def exists(env):
-    return 1
+    return True

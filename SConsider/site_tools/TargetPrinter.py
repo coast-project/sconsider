@@ -21,11 +21,12 @@ import SCons.Action
 import SCons.Builder
 import SCons.Util
 from SCons.Script import AddOption, GetOption
-import SConsider
+from SConsider.PackageRegistry import splitFulltargetname, createFulltargetname
 import SomeUtils
 
 
 def printTargets(registry, **kw):
+    from SConsider import cloneBaseEnv
     print "\nAvailable Packages"
     print "------------------"
     packagenames = sorted(registry.getPackageNames(), key=str.lower)
@@ -37,10 +38,10 @@ def printTargets(registry, **kw):
 
     print "\nAvailable Aliases"
     print "-----------------"
-    env = SConsider.cloneBaseEnv()
+    env = cloneBaseEnv()
 
     def isPackage(alias):
-        pkg, target = SConsider.splitTargetname(alias)
+        pkg, target = splitFulltargetname(alias)
         return registry.hasPackage(pkg)
     filters = [lambda alias: not isPackage(alias)]
     if not GetOption("showallaliases"):
@@ -83,10 +84,11 @@ def printTree(registry, buildTargets, **kw):
         targets = registry.getPackageNames()
 
     for fulltargetname in targets:
-        packagename, targetname = SConsider.splitTargetname(fulltargetname)
+        packagename, targetname = splitFulltargetname(
+            fulltargetname, True)
         if existsTarget(registry, packagename, targetname):
             node = Node(
-                SConsider.generateFulltargetname(
+                createFulltargetname(
                     packagename, targetname), getDependencies(
                     registry, packagename, targetname))
             SCons.Util.print_tree(node, lambda node: node.children)
@@ -96,6 +98,7 @@ def printTree(registry, buildTargets, **kw):
 
 
 def generate(env):
+    from SConsider import registerCallback
     """Add the options, builders and wrappers to the current Environment."""
     try:
         AddOption(
@@ -120,9 +123,9 @@ def generate(env):
         pass
 
     if GetOption("showtargets"):
-        SConsider.registerCallback("PreBuild", printTargets)
+        registerCallback("PreBuild", printTargets)
     if GetOption("showtree"):
-        SConsider.registerCallback("PreBuild", printTree)
+        registerCallback("PreBuild", printTree)
 
 
 def exists(env):

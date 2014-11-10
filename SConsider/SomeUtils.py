@@ -22,7 +22,7 @@ import re
 def FileNodeComparer(left, right):
     """Default implementation for sorting File nodes according to their
     lexicographical order."""
-    return cmp(left.srcnode().abspath, right.srcnode().abspath)
+    return cmp(left.srcnode().get_abspath(), right.srcnode().get_abspath())
 
 
 def listFiles(files, **kw):
@@ -51,7 +51,7 @@ def removeFiles(files, **kw):
         files = [files]
     for fname in files:
         try:
-            os.unlink(SCons.Script.File(fname).abspath)
+            os.unlink(SCons.Script.File(fname).get_abspath())
         except:
             pass
 
@@ -60,9 +60,9 @@ def findFiles(directories, extensions=[], matchfiles=[], direxcludes=[]):
     import SCons
     files = []
     baseDir = SCons.Script.Dir('.').srcnode()
-    basepathabs = baseDir.abspath
+    basepathabs = baseDir.get_abspath()
     for directory in directories:
-        directory = baseDir.Dir(directory).abspath
+        directory = baseDir.Dir(directory).get_abspath()
         for dirpath, dirnames, filenames in os.walk(directory):
             try:
                 # the following call fails if the relative directory evaluates

@@ -45,7 +45,7 @@ def getProjectNameFromProjectFile(projectFile):
 def determineProjectDependencies(dependencyDict, registry, topPath):
     dependencies = set()
     for fulltargetname, depDict in dependencyDict.iteritems():
-        packagename, targetname = PackageRegistry.splitTargetname(
+        packagename, targetname = PackageRegistry.splitFulltargetname(
             fulltargetname)
         packagePath = registry.getPackageDir(packagename).get_abspath()
         projectFilePath = determineProjectFilePath(packagePath, topPath)

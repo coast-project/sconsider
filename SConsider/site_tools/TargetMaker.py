@@ -113,13 +113,13 @@ class TargetMaker:
                 # based on installRelPath and file, try to find an override
                 # file to use instead
                 fileWithRelpathToSearch = os.path.relpath(
-                    currentFile.abspath,
-                    currentBaseDir.abspath)
+                    currentFile.get_abspath(),
+                    currentBaseDir.get_abspath())
                 # catch possible errors and stop when wanting to do relative
                 # movements
                 if not fileWithRelpathToSearch.startswith('..'):
                     fileToCheckFor = os.path.join(
-                        alternativeDir.abspath,
+                        alternativeDir.get_abspath(),
                         fileWithRelpathToSearch)
                     if os.path.isfile(fileToCheckFor):
                         currentFile = File(fileToCheckFor)

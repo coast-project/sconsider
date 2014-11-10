@@ -19,8 +19,8 @@ import SCons.Tool
 
 
 def generate(env):
-    """Add Builders and construction variables for Forte C and C++ compilers to
-    an Environment."""
+    """Add Builders and construction variables for Forte C and C++ compilers
+    to an Environment."""
 
     SCons.Tool.Tool('cc')(env)
 
@@ -33,7 +33,8 @@ def generate(env):
 
     # ensure we have getBitwidth() available
     if 'setupBuildTools' not in env['TOOLS']:
-        env.Tool('setupBuildTools')
+        raise SCons.Errors.UserError('setupBuildTools is required for\
+ initialization')
 
     def bwopt(bitwidth):
         bitwoption = '-xtarget=native'

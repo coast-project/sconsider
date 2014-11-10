@@ -38,7 +38,8 @@ def generate(env):
 
     # ensure we have getBitwidth() available
     if 'setupBuildTools' not in env['TOOLS']:
-        env.Tool('setupBuildTools')
+        raise SCons.Errors.UserError('setupBuildTools is required for\
+ initialization')
 
     bitwidth = env.getBitwidth()
     env.AppendUnique(LINKFLAGS='-m' + bitwidth)
@@ -65,9 +66,3 @@ def generate(env):
 
 def exists(env):
     return env['PLATFORM'] == 'darwin'
-
-# Local Variables:
-# tab-width:4
-# indent-tabs-mode:nil
-# End:
-# vim: set expandtab tabstop=4 shiftwidth=4:

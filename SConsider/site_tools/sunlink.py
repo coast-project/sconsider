@@ -25,8 +25,8 @@ def FileNodeComparer(left, right):
     """Specialized implementation of file node sorting based on the fact that
     config_ files must get placed after any other object on the linker command
     line."""
-    nleft = left.srcnode().abspath
-    nright = right.srcnode().abspath
+    nleft = left.srcnode().get_abspath()
+    nright = right.srcnode().get_abspath()
     ldirname, lbasename = os.path.split(nleft)
     rdirname, rbasename = os.path.split(nright)
     # l < r, -1
@@ -35,7 +35,7 @@ def FileNodeComparer(left, right):
     if lbasename.startswith('config_'):
         return 1
     elif rbasename.startswith('config_'):
-        return - 1
+        return -1
     return cmp(nleft, nright)
 
 SomeUtils.FileNodeComparer = FileNodeComparer
@@ -81,7 +81,8 @@ def generate(env):
 
     # ensure we have getBitwidth() available
     if 'setupBuildTools' not in env['TOOLS']:
-        env.Tool('setupBuildTools')
+        raise SCons.Errors.UserError('setupBuildTools is required for\
+ initialization')
 
     bitwidth = env.getBitwidth()
     env.AppendUnique(LINKFLAGS=bwopt(bitwidth))

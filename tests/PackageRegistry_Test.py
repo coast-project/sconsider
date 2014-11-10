@@ -16,18 +16,18 @@ import os
 class SplitTargetnameTest(unittest.TestCase):
 
     def testSplitTargetname(self):
-        pkgname, tgtname = PackageRegistry.splitTargetname(
+        pkgname, tgtname = PackageRegistry.splitFulltargetname(
             'package.target')
         self.assertEqual('package', pkgname)
         self.assertEqual('target', tgtname)
 
     def testSplitTargetnameNoTarget(self):
-        pkgname, tgtname = PackageRegistry.splitTargetname('package')
+        pkgname, tgtname = PackageRegistry.splitFulltargetname('package')
         self.assertEqual('package', pkgname)
         self.assertEqual(None, tgtname)
 
     def testSplitTargetnameDefault(self):
-        pkgname, tgtname = PackageRegistry.splitTargetname('package', True)
+        pkgname, tgtname = PackageRegistry.splitFulltargetname('package', True)
         self.assertEqual('package', pkgname)
         self.assertEqual('package', tgtname)
 
@@ -35,13 +35,13 @@ class SplitTargetnameTest(unittest.TestCase):
 class GenerateFulltargetnameTest(unittest.TestCase):
 
     def testGenerateFulltargetname(self):
-        ftn = PackageRegistry.generateFulltargetname('package', 'target')
+        ftn = PackageRegistry.createFulltargetname('package', 'target')
         self.assertEqual('package.target', ftn)
 
     def testGenerateFulltargetnameNoTarget(self):
-        ftn = PackageRegistry.generateFulltargetname('package')
+        ftn = PackageRegistry.createFulltargetname('package')
         self.assertEqual('package', ftn)
 
     def testGenerateFulltargetnameDefault(self):
-        ftn = PackageRegistry.generateFulltargetname('package', default=True)
+        ftn = PackageRegistry.createFulltargetname('package', default=True)
         self.assertEqual('package.package', ftn)

@@ -206,12 +206,6 @@ def generate(env, **kw):
             'CCVERSION',
             'unknown'))
 
-    # tell linker to only succeed when all external references can be resolved
-    # FIXME: attention the following is a workaround
-    # because LINKFLAGS='-z defs' would lead to a string'ified "-z defs" in
-    # the linker command line
-    env.Append(LINKFLAGS=['$_NONLAZYLINKFLAGS'])
-
     for val, valname in zip(current_os_version, ['OS_RELMAJOR', 'OS_RELMINOR', 'OS_RELMINSUB']):
         env.AppendUnique(CCFLAGS=['-D' + valname + '=' + str(val)])
 

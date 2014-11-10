@@ -121,8 +121,7 @@ def findPlatformTargets(
             r['lib_os_version']),
         reverse=True)
     osvermatch = None
-    current_os_version = env.getOsVersionTuple() if hasattr(
-        env, 'getOsVersionTuple') else (0, 0, 0)
+    current_os_version = env.getOsVersionTuple()
     for entry in files:
         if entry['lib_os_version'] <= current_os_version:
             osvermatch = entry['lib_os_version']
@@ -219,7 +218,7 @@ def precompBinNamesEmitter(target, source, env):
         # search for
         if not hasattr(src, 'srcnode'):
             src = env.File(str(src))
-        path, binaryname = os.path.split(src.srcnode().abspath)
+        path, binaryname = os.path.split(src.srcnode().get_abspath())
         srcpath, srcfile, linkfile = findBinary(env, path, binaryname)
         if srcfile:
             sourcenode = env.File(os.path.join(srcpath, srcfile))
@@ -243,7 +242,7 @@ def precompLibNamesEmitter(target, source, env):
         # search for
         if not hasattr(src, 'srcnode'):
             src = env.File(str(src))
-        path, libname = os.path.split(src.srcnode().abspath)
+        path, libname = os.path.split(src.srcnode().get_abspath())
         srcpath, srcfile, linkfile, isStaticLib = findLibrary(
             env, path, libname)
         if srcfile:
@@ -289,7 +288,7 @@ def createSymLink(target, source, env):
     from TargetMaker import getRealTarget
     source = getRealTarget(source)
     target = getRealTarget(target)
-    src, dest = source.abspath, target.abspath
+    src, dest = source.get_abspath(), target.get_abspath()
     relSrc = os.path.relpath(src, os.path.dirname(dest))
     os.symlink(relSrc, dest)
 
@@ -305,11 +304,14 @@ def installFunc(target, source, env):
     return 0
 
 
-def generate(env):
+def prePackageCollection(env):
     # ensure we have getBitwidth() available
     if 'setupBuildTools' not in env['TOOLS']:
         env.Tool('setupBuildTools')
 
+
+def generate(env):
+    from SConsider import registerCallback
     SymbolicLinkAction = SCons.Action.Action(
         createSymLink,
         "Generating symbolic link for '$SOURCE' as '$TARGET'")
@@ -337,6 +339,7 @@ def generate(env):
     env.Append(
         BUILDERS={
             'PrecompiledBinaryInstallBuilder': PrecompBinBuilder})
+    registerCallback('PrePackageCollection', prePackageCollection)
 
 
 def exists(env):

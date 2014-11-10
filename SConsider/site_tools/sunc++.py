@@ -78,7 +78,8 @@ def generate(env):
 
     # ensure we have getBitwidth() available
     if 'setupBuildTools' not in env['TOOLS']:
-        env.Tool('setupBuildTools')
+        raise SCons.Errors.UserError('setupBuildTools is required for\
+ initialization')
 
     def bwopt(bitwidth):
         bitwoption = '-xtarget=native'

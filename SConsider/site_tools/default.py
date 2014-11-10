@@ -1,6 +1,7 @@
 """SConsider.site_tools.default.
 
-SConsider-specific default initialization tool - postpones SCons.Tool.default loading
+SConsider-specific default initialization tool - postpones
+SCons.Tool.default loading  -> see setupBuildTools for details
 
 -> see setupBuildTools for details
 

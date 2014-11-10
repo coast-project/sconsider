@@ -82,8 +82,8 @@ class UnixFinder(LibFinder):
         if libdirs:
             env.AppendENVPath('LD_LIBRARY_PATH', map(self.absolutify, libdirs))
         ldd = subprocess.Popen(
-            ['ldd', os.path.basename(source[0].abspath)],
-            stdout=subprocess.PIPE, cwd=os.path.dirname(source[0].abspath),
+            ['ldd', os.path.basename(source[0].get_abspath())],
+            stdout=subprocess.PIPE, cwd=os.path.dirname(source[0].get_abspath()),
             env=SomeUtils.getFlatENV(env))
         out, _ = ldd.communicate()
         libs = filter(
@@ -150,8 +150,8 @@ class MacFinder(LibFinder):
                 'DYLD_LIBRARY_PATH', map(
                     self.absolutify, libdirs))
         ldd = subprocess.Popen(
-            ['otool', '-L', os.path.basename(source[0].abspath)],
-            stdout=subprocess.PIPE, cwd=os.path.dirname(source[0].abspath),
+            ['otool', '-L', os.path.basename(source[0].get_abspath())],
+            stdout=subprocess.PIPE, cwd=os.path.dirname(source[0].get_abspath()),
             env=SomeUtils.getFlatENV(env))
         out, _ = ldd.communicate()
         libs = filter(
@@ -210,13 +210,13 @@ class Win32Finder(LibFinder):
     def __findFileInPath(self, filename, paths):
         for path in paths:
             if os.path.isfile(os.path.join(path, filename)):
-                return os.path.abspath(os.path.join(path, filename))
+                return os.path.get_abspath()(os.path.join(path, filename))
         return None
 
     def getLibs(self, env, source, libnames=None, libdirs=None):
         ldd = subprocess.Popen(
-            ['objdump', '-p', os.path.basename(source[0].abspath)],
-            stdout=subprocess.PIPE, cwd=os.path.dirname(source[0].abspath),
+            ['objdump', '-p', os.path.basename(source[0].get_abspath())],
+            stdout=subprocess.PIPE, cwd=os.path.dirname(source[0].get_abspath()),
             env=SomeUtils.getFlatENV(env))
         out, _ = ldd.communicate()
         deplibs = re.findall('DLL Name:\s*(\S*)', out, re.MULTILINE)

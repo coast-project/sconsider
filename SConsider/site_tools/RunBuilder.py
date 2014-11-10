@@ -28,7 +28,8 @@ import SCons.Action
 import SCons.Builder
 import SCons.Script
 from SCons.Script import AddOption, GetOption
-import SConsider
+from SConsider.PackageRegistry import createFulltargetname, splitFulltargetname
+from TargetMaker import getRealTarget
 import Callback
 from SomeUtils import hasPathPart, isFileNode, isDerivedNode,\
     getNodeDependencies, getFlatENV
@@ -95,9 +96,9 @@ def run(cmd, logfile=None, **kw):
     proc = None
     try:
         if logfile:
-            if not os.path.isdir(logfile.dir.abspath):
-                os.makedirs(logfile.dir.abspath)
-            tee.add(open(logfile.abspath, 'w'))
+            if not os.path.isdir(logfile.dir.get_abspath()):
+                os.makedirs(logfile.dir.get_abspath())
+            tee.add(open(logfile.get_abspath(), 'w'))
         proc = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
@@ -123,7 +124,7 @@ def run(cmd, logfile=None, **kw):
 def emitPassedFile(target, source, env):
     target = []
     for src in source:
-        _, scriptname = os.path.split(src.abspath)
+        _, scriptname = os.path.split(src.get_abspath())
         target.append(env.getLogInstallDir().File(scriptname + '.passed'))
     return (target, source)
 
@@ -154,9 +155,9 @@ def doTest(target, source, env):
         logger.critical('%s', str(env['__SKIP_TEST__']))
         return 0
 
-    res = execute(source[0].abspath, env)
+    res = execute(source[0].get_abspath(), env)
     if res == 0:
-        with open(target[0].abspath, 'w') as file:
+        with open(target[0].get_abspath(), 'w') as file:
             file.write("PASSED\n")
     runCallback('__PostTestOrRun')
     runCallback('__PostAction_' + str(id(target[0])))
@@ -164,7 +165,7 @@ def doTest(target, source, env):
 
 
 def doRun(target, source, env):
-    res = execute(source[0].abspath, env)
+    res = execute(source[0].get_abspath(), env)
     runCallback('__PostTestOrRun')
     runCallback('__PostAction_' + str(id(target[0])))
     return res
@@ -227,12 +228,14 @@ def createTestTarget(
         defaultRunParams='-- -all'):
     """Creates a target which runs a target given in parameter 'source'.
 
-    If ran successfully a
-    file is generated (name given in parameter 'target') which indicates that this runner-target
-    doesn't need to be executed unless the dependencies changed. Command line parameters could be
-    handed over by using --runparams="..." or by setting buildSettings['runConfig']['runParams'].
-    The Fields 'setUp' and 'tearDown' in 'runConfig' accept a string (executed as shell command),
-    a Python function (with arguments 'target', 'source', 'env') or any SCons.Action.
+    If ran successfully a file is generated (name given in parameter
+    'target') which indicates that this runner-target doesn't need to be
+    executed unless the dependencies changed. Command line parameters
+    could be handed over by using --runparams="..." or by setting
+    buildSettings['runConfig']['runParams']. The Fields 'setUp' and
+    'tearDown' in 'runConfig' accept a string (executed as shell
+    command), a Python function (with arguments 'target', 'source',
+    'env') or any SCons.Action.
 
     """
 
@@ -243,7 +246,6 @@ def createTestTarget(
         source = [source]
 
     logfile = env.getLogInstallDir().File(targetname + '.test.log')
-
     runner = env.TestBuilder(
         [],
         source,
@@ -302,10 +304,12 @@ def createRunTarget(
         defaultRunParams=''):
     """Creates a target which runs a target given in parameter 'source'.
 
-    Command line parameters could be
-    handed over by using --runparams="..." or by setting buildSettings['runConfig']['runParams'].
-    The Fields 'setUp' and 'tearDown' in 'runConfig' accept a string (executed as shell command),
-    a Python function (with arguments 'target', 'source', 'env') or any SCons.Action.
+    Command line parameters could be handed over by using
+    --runparams="..." or by setting
+    buildSettings['runConfig']['runParams']. The Fields 'setUp' and
+    'tearDown' in 'runConfig' accept a string (executed as shell
+    command), a Python function (with arguments 'target', 'source',
+    'env') or any SCons.Action.
 
     """
 
@@ -314,19 +318,12 @@ def createRunTarget(
 
     if not SCons.Util.is_List(source):
         source = [source]
+    fullTargetName = createFulltargetname(packagename, targetname)
 
     logfile = env.getLogInstallDir().File(targetname + '.run.log')
-
     runner = env.RunBuilder(
-        [
-            'dummyRunner_' +
-            SConsider.generateFulltargetname(
-                packagename,
-                targetname)],
-        source,
-        runParams=getRunParams(
-            buildSettings,
-            defaultRunParams),
+        ['dummyRunner_' + fullTargetName],
+        source, runParams=getRunParams(buildSettings, defaultRunParams),
         logfile=logfile)
 
     addRunConfigHooks(env, source, runner, buildSettings)
@@ -357,11 +354,11 @@ def composeRunTargets(
         defaultRunParams=''):
     targets = []
     for ftname in buildSettings.get('requires', []) + buildSettings.get('linkDependencies', []):
-        otherPackagename, otherTargetname = SConsider.splitTargetname(ftname)
+        otherPackagename, otherTargetname = splitFulltargetname(ftname)
         targets.extend(getTargets(otherPackagename, otherTargetname))
     return env.Alias(
         'dummyRunner_' +
-        SConsider.generateFulltargetname(
+        createFulltargetname(
             packagename,
             targetname),
         targets)
@@ -408,6 +405,7 @@ def generate(env):
     env.Append(BUILDERS={'RunBuilder': RunBuilder})
     env.AddMethod(createTestTarget, "TestTarget")
     env.AddMethod(createRunTarget, "RunTarget")
+    import SConsider
     SConsider.SkipTest = SkipTest
 
     def createTargetCallback(
@@ -443,7 +441,7 @@ def generate(env):
 
     def addBuildTargetCallback(**kw):
         for ftname in SCons.Script.COMMAND_LINE_TARGETS:
-            packagename, targetname = SConsider.splitTargetname(ftname)
+            packagename, targetname = splitFulltargetname(ftname)
             SCons.Script.BUILD_TARGETS.extend(
                 getTargets(
                     packagename,

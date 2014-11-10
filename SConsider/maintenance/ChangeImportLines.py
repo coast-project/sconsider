@@ -31,6 +31,7 @@ excludelist = [
 
 reCpp = re.compile(r'\.(cpp|C)$')
 reHeader = re.compile(r'\.(hp*|ip*)$')
+rePy = re.compile(r'\.py$')
 reLibPy = re.compile(r'\w+Lib\.py$')
 reScons = re.compile(r'SConscript$')
 reShell = re.compile(r'\.(sh|awk)$')
@@ -44,36 +45,36 @@ reDoxy = re.compile(r'(Doxyfile|\.doxy)$')
 reHtml = re.compile(r'\.html?$')
 
 # within .h
-# define ATTFlowController_H_ID "itopia, ($Id$)"
+"""#define ATTFlowController_H_ID "itopia, ($Id$)" """
 strReHidOnly = r"define\s+\w+_H_ID"
 strReHID = re.compile(r"(^\s*#[ \t]*" + strReHidOnly + ".*\s*$\s+)", re.M)
 hidReplace = (strReHID, "\n")
 
 # within .cpp
 # remove #ident from c++ source files
-# if defined(__GNUG__) || defined(__SUNPRO_CC)
-# ident "@(#) $Id$ (c) itopia"
-# else
-# define AnythingPerfTest_H_ID "@(#) $Id$ (c) itopia"
-# static char static_c_rcs_id[] = "@(#) $Id$ (c) itopia";
+"""#if defined(__GNUG__) || defined(__SUNPRO_CC)
+    #ident "@(#) $Id$ (c) itopia"
+#else
+    #define AnythingPerfTest_H_ID "@(#) $Id$ (c) itopia"
+#    static char static_c_rcs_id[] = "@(#) $Id$ (c) itopia";
 #    static char static_h_rcs_id[] = AnythingPerfTest_H_ID;
-# endif
+#endif"""
 # or
-# static char static_c_rcs_id[] = "itopia, ($Id$)";
-# static char static_h_rcs_id[] = ATTFlowController_H_ID;
-# ifdef __GNUG__
-# define USE(name1,name2) static void use##name1() { if(!name1 && !name2) { use##name1(); } }
-# USE(static_h_rcs_id, static_c_rcs_id)
-# undef USE
-# endif
+"""#static char static_c_rcs_id[] = "itopia, ($Id$)";
+static char static_h_rcs_id[] = ATTFlowController_H_ID;
+#ifdef __GNUG__
+#define USE(name1,name2) static void use##name1() { if(!name1 && !name2) { use##name1(); } }
+USE(static_h_rcs_id, static_c_rcs_id)
+#undef USE
+#endif"""
 # or
-# static char static_c_rcs_id[] = "itopia, ($Id$)";
-# ifdef __GNUG__
-# pragma implementation
-# define USE1(name) static void use##name() { if(!name) { use##name(); } }
-# USE1(static_c_rcs_id)
-# undef USE1
-# endif
+"""#static char static_c_rcs_id[] = "itopia, ($Id$)";
+#ifdef __GNUG__
+#pragma implementation
+#define USE1(name) static void use##name() { if(!name) { use##name(); } }
+USE1(static_c_rcs_id)
+#undef USE1
+#endif"""
 strReStaticRcsId = r"[ \t]*static[ \t]+char[ \t]+.*rcs_id"
 strReIdentOld = re.compile(
     r"((^(\s*#if.*$\s+))((^([ \t]*#[ \t]*(pragma\s+(nomargins|implementation|interface)|define\s+(USE|\w+_H_ID)|undef\s+USE|ident)|[ \t]*#[ \t]*e(?!ndif)\w*|[ \t]*USE|" +
@@ -87,25 +88,24 @@ strReRCSId = re.compile(
     re.M)
 rcsidReplace = (strReRCSId, "")
 
-# ifdef __370__
-# pragma nomargins
-# endif
-# ifdef __GNUG__
-# pragma implementation
-# endif
+"""#ifdef __370__
+    #pragma nomargins
+#endif
+#ifdef __GNUG__
+    #pragma implementation
+#endif"""
 strRePragma = re.compile(
     r"(^[ \t]*#if.*$\s*#\s*pragma\s+(nomargins|implementation|interface)\s*$\s+#endif\s*$\s)",
     re.M)
 pragmaReplace = (strRePragma, "")
 
-
-# --------------------------------------------------------------------
+"""#--------------------------------------------------------------------
 # Copyright (c) 1999 itopia
 # All Rights Reserved
 #
 # $RCSfile$: Main configuration for StressServer
 #
-# --------------------------------------------------------------------
+#--------------------------------------------------------------------"""
 strReCopyrightAnyShell = re.compile(
     r"(^(\s*(#[-#]{2}).*$\s)^([ \t]*#[^#-]?.*$\s)+^([ \t]*#[-#]{2}.*$\s)?\s*)",
     re.M)
@@ -122,23 +122,23 @@ headerTemplateAnyShell = """# --------------------------------------------------
 
 """
 
-# /*
+"""#/*
 # * Copyright (c) 2003 SYNLOGIC
 # * All Rights Reserved
-# */
+# */"""
 strReCopyright = re.compile(r"^(\s*/\*(([^*])|(\*[^/]))*\*/\s*$\s+)", re.M)
 # the following regex can only be used with re.X flag
-# strReCopyright =r"""
-# (                    ## use whole comment as one group
-# /\*               ##  Leading "/*"
-# (                 ##  Followed by any number of
-# ([^*])         ##  non star characters
-# |              ##  or
-# (\*[^/])       ##  star-nonslash
+#strReCopyright =r"""
+#        (                    ## use whole comment as one group
+#           /\*               ##  Leading "/*"
+#           (                 ##  Followed by any number of
+#              ([^*])         ##  non star characters
+#              |              ##  or
+#              (\*[^/])       ##  star-nonslash
 #           )*
-# \*/               ##  with a trailing "/*"
-# )                    ## close commment group
-# """
+#           \*/               ##  with a trailing "/*"
+#        )                    ## close commment group
+#"""
 
 headerTemplateC = """/*
  * Copyright (c) 1980, Peter Sommerlad and IFS Institute for Software at HSR Rapperswil, Switzerland
@@ -164,6 +164,8 @@ def multiple_replace(replist, text):
 
     """
     for pattern, replacement in replist:
+        if not pattern or not text:
+            continue
         text = re.sub(pattern, replacement, text)
     return text
 
@@ -213,7 +215,7 @@ def getAuthorDate():
 
 def replaceHeaderFunc(mo, newheader, fileCopyrightYear=None):
     originalHeader = mo.group(0)
-    (copyYear, matches) = getCopyrightYear(originalHeader)
+    _, matches = getCopyrightYear(originalHeader)
     if not matches or matches.group(3):
         return originalHeader
     # get commit date
@@ -391,6 +393,7 @@ fgExtensionToReplaceFuncMap = {
         cleanWebDisplay,
     ],
     reSQL: [],
+    rePy: [],
     reSconsider: [],
     reMake: [
         cleanNewLines,
@@ -429,10 +432,9 @@ def extendMapWithHSRSpecifics(extensionToReplaceFuncMap):
         cleanCompany,
     ])
 #     extensionToReplaceFuncMap[reSQL].extend([cleanDomain])
-#     extensionToReplaceFuncMap[reSconsider].extend([cleanDomain])
+    extensionToReplaceFuncMap[rePy].extend([copyReplaceAnyShell])
+    extensionToReplaceFuncMap[reSconsider].extend([copyReplaceAnyShell])
     extensionToReplaceFuncMap[reMake].extend([])
-
-import subprocess
 
 
 def processFiles(
@@ -441,7 +443,7 @@ def processFiles(
         extensionToReplaceFuncMap,
         doAstyle=False):
     astyleFiles = []
-    fileCopyrightYear = None
+#     fileCopyrightYear = None
     authdate = getAuthorDate()
     if authdate >= replacementFromDate or True:
         localMap = {}
@@ -472,13 +474,13 @@ def processFiles(
             for (rex, funcs) in localMap.iteritems():
                 if rex.search(fname):
                     didMatch = True
-                    fileCopyrightYear = fileCopyrightDict.get(fname, None)
+                    fileCopyrightDict.get(fname, None)
                     strReplaced = replaceRegexInFile(
                         fname,
                         searchReplace=funcs)
                     if strReplaced:
                         didReplace = True
-                        (year, matches) = getCopyrightYear(strReplaced)
+                        year, _ = getCopyrightYear(strReplaced)
                         if year:
                             copyDate = time.mktime(time.strptime(year, "%Y"))
                             if copyDate >= replacementFromDate:
@@ -530,7 +532,7 @@ def writeDictToFile(fname, outDict):
         pass
 
 
-def healDictFile(options, filesToProcess, f):
+def healDictFile(options, filesToProcess):
     oldDict = readDictFromFile(options.dictfilename)
     newDict = {}
     if oldDict:
@@ -672,14 +674,16 @@ if __name__ == "__main__":
 
     filesToProcess = [os.path.normpath(f) for f in filesToProcess]
     if options.xtra:
-        healDictFile(options, filesToProcess, f)
+        healDictFile(options, filesToProcess)
 
     extensionToReplaceFuncMap = fgExtensionToReplaceFuncMap
     if options.ifs:
         extendMapWithHSRSpecifics(extensionToReplaceFuncMap)
+        print "Extending for ifs"
     try:
         import WD2Coast
         WD2Coast.extendReplaceFuncMap(extensionToReplaceFuncMap)
+        print "Using WD2Coast extensions"
     except:
         pass
     end = time.clock()

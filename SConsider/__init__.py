@@ -21,7 +21,7 @@ import platform
 import atexit
 import sys
 import SCons
-from SCons.Script import AddOption, GetOption, Dir, DefaultEnvironment,\
+from SCons.Script import AddOption, GetOption, Dir, File, DefaultEnvironment,\
     Flatten, SConsignFile
 from SomeUtils import listFiles, findFiles, removeFiles,\
     getfqdn
@@ -163,9 +163,9 @@ variant = baseEnv.getRelativeVariantDirectory()
 logger.info('compilation variant [{0}]'.format(variant))
 
 baseoutdir = baseEnv.getBaseOutDir()
-logger.info('base output dir [{0}]'.format(baseoutdir.abspath))
+logger.info('base output dir [{0}]'.format(baseoutdir.get_abspath()))
 
-ssfile = os.path.join(baseoutdir.abspath, '.sconsign.' + variant)
+ssfile = os.path.join(baseoutdir.get_abspath(), '.sconsign.' + variant)
 SConsignFile(ssfile)
 
 # FIXME: move to some link helper?
@@ -240,19 +240,18 @@ def createTargets(packagename, buildSettings):
 logger.info("Loading packages and their targets ...")
 # we need to define the targets before entering the build phase:
 try:
-    def tryLoadPackage(packagename, targetname=None):
+    def tryLoadPackageTarget(packagename, targetname=None):
         try:
-            packageRegistry.loadPackage(packagename)
-        except (ResolutionError, PackageRegistry.TargetNotFound) as e:
+            packageRegistry.loadPackageTarget(packagename, targetname)
+        except (PackageRegistry.PackageNotFound) as e:
+            # catch PackageNotFound separately as we are derived
+            #  from TargetNotFound
+            raise
+        except PackageRegistry.TargetNotFound as e:
             if not GetOption('ignore-missing'):
                 raise
             logger.warning(
-                'ignoring target [{0}]'
-                ' because of missing requirements [{1}]'.format(
-                    PackageRegistry.generateFulltargetname(
-                        packagename,
-                        targetname),
-                    e.message),
+                '{0}'.format(e),
                 exc_info=False)
 
     launchDir = Dir(SCons.Script.GetLaunchDir())
@@ -276,12 +275,12 @@ try:
         elif '.' in buildtargets:
             builddir = baseoutdir.Dir(_launchdir_relative).Dir(
                 baseEnv.getRelativeBuildDirectory()).Dir(
-                baseEnv.getRelativeVariantDirectory()).abspath
+                baseEnv.getRelativeVariantDirectory()).get_abspath()
             buildtargets[buildtargets.index('.')] = builddir
 
         for ftname in buildtargets:
             packagename, targetname = PackageRegistry.splitTargetname(ftname)
-            tryLoadPackage(packagename, targetname)
+            tryLoadPackageTarget(packagename, targetname)
 
     except PackageRegistry.PackageNotFound as e:
         logger.warning(
@@ -294,7 +293,7 @@ try:
             packageRegistry.getPackageNames())
 
         for packagename in buildtargets:
-            tryLoadPackage(packagename)
+            packageRegistry.loadPackage(packagename)
 
 except (PackageRegistry.PackageNotFound, PackageRegistry.TargetNotFound, PackageRegistry.PackageRequirementsNotFulfilled) as e:
     if not isinstance(e, PackageRegistry.PackageRequirementsNotFulfilled):

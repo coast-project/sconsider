@@ -224,10 +224,12 @@ class BaseConfigurator(object):
         return d
 
     def convert(self, value):
-        """
-        Convert values to an appropriate type. dicts, lists and tuples are
-        replaced by their converting alternatives. Strings are checked to
-        see if they have a conversion format and are converted if they do.
+        """Convert values to an appropriate type.
+
+        dicts, lists and tuples are replaced by their converting
+        alternatives. Strings are checked to see if they have a
+        conversion format and are converted if they do.
+
         """
         if not isinstance(value, ConvertingDict) and isinstance(value, dict):
             value = ConvertingDict(value)
@@ -276,10 +278,8 @@ class BaseConfigurator(object):
 
 class DictConfigurator(BaseConfigurator):
 
-    """
-    Configure logging using a dictionary-like object to describe the
-    configuration.
-    """
+    """Configure logging using a dictionary-like object to describe the
+    configuration."""
 
     def configure(self):
         """Do the configuration."""
@@ -530,9 +530,8 @@ class DictConfigurator(BaseConfigurator):
                 raise ValueError('Unable to add handler %r: %s' % (h, e))
 
     def common_logger_config(self, logger, config, incremental=False):
-        """
-        Perform configuration which is common to root and non-root loggers.
-        """
+        """Perform configuration which is common to root and non-root
+        loggers."""
         level = config.get('level', None)
         if level is not None:
             logger.setLevel(_checkLevel(level))

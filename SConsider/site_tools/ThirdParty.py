@@ -16,6 +16,8 @@ SConsider-specific 3rdparty library handling
 
 import os
 import SCons
+from SCons.Script import Clean
+from ConfigureHelper import Configure
 from logging import getLogger
 logger = getLogger(__name__)
 
@@ -90,7 +92,7 @@ def postPackageCollection(env, registry, **kw):
             logger.warning(
                 'package [{0}] already registered, skipping [{1}]'.format(
                     packagename,
-                    package.items()[0][1].get_dir().abspath))
+                    package.items()[0][1].get_dir().get_abspath()))
             continue
         SCons.Script.AddOption(
             '--with-src-' +
@@ -177,6 +179,12 @@ def postPackageCollection(env, registry, **kw):
                     False)
 
 
+def prePackageCollection(env):
+    # we require ConfigureHelper
+    if 'ConfigureHelper' not in env['TOOLS']:
+        env.Tool('ConfigureHelper')
+
+
 def generate(env):
     import SCons.Script
     from SConsider import _base_path, registerCallback
@@ -190,11 +198,9 @@ def generate(env):
         help='Specify directory containing package files for third party\
  libraries, default=["' + siteDefault3rdparty + '"]')
 
-    # we require ConfigureHelper
-    env.Tool('ConfigureHelper')
-
     registerCallback('PostPackageCollection', postPackageCollection)
+    registerCallback('PrePackageCollection', prePackageCollection)
 
 
 def exists(env):
-    return 1
+    return True

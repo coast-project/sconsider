@@ -73,7 +73,7 @@ def installSystemLibs(source):
                 if reallibpath != libpathname:
                     srcfile = os.path.basename(reallibpath)
                 lib = env.File(reallibpath)
-                if not os.path.dirname(lib.abspath) == ownlibDir.abspath:
+                if not os.path.dirname(lib.get_abspath()) == ownlibDir.get_abspath():
                     libtarget = env.Install(ownlibDir, lib)
                     env.AddPostAction(
                         libtarget,
@@ -114,7 +114,7 @@ def generate(env, *args, **kw):
         else:
             """It makes no sense to find nodes to delete when target doesn't
             exist..."""
-            if not os.path.exists(sourcenode.abspath):
+            if not os.path.exists(sourcenode.get_abspath()):
                 return []
             env = sourcenode.get_env()
             finder = LibFinder.FinderFactory.getForPlatform(env["PLATFORM"])
@@ -127,13 +127,13 @@ def generate(env, *args, **kw):
                 srcfile = os.path.basename(deplib)
                 libfile = ownlibdir.File(srcfile)
                 if os.path.isfile(
-                        libfile.abspath) or os.path.islink(
-                        libfile.abspath):
+                        libfile.get_abspath()) or os.path.islink(
+                        libfile.get_abspath()):
                     env.Clean(sourcenode, libfile)
-                    if os.path.islink(libfile.abspath):
+                    if os.path.islink(libfile.get_abspath()):
                         env.Clean(
                             sourcenode,
-                            ownlibdir.File(os.readlink(libfile.abspath)))
+                            ownlibdir.File(os.readlink(libfile.get_abspath())))
             return []
 
     env.AddMethod(createDeferredTarget, "InstallSystemLibs")

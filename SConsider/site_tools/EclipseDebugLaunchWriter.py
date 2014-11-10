@@ -1,8 +1,8 @@
 """SConsider.site_tools.EclipseDebugLaunchWriter.
 
-Eclipse-SConsider-specific tool to create an Eclipse debug launch configuration file.
-
-This can be used to start a target in debug mode through Run->Debug Configurations...->targetname.
+Eclipse-SConsider-specific tool to create an Eclipse debug launch
+configuration file.  This can be used to start a target in debug mode
+through Run->Debug Configurations...->targetname.
 
 """
 # vim: set et ai ts=4 sw=4:
@@ -45,7 +45,7 @@ def generateEclipseLaunchEmitter(target, source, env):
             env.Dir(debugLaunchesPath).File(
                 os.path.splitext(
                     os.path.basename(
-                        src.abspath))[0] +
+                        src.get_abspath()))[0] +
                 '.launch'))
     return (target, source)
 

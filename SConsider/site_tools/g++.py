@@ -49,7 +49,8 @@ def generate(env):
 
     # ensure we have getBitwidth() available
     if 'setupBuildTools' not in env['TOOLS']:
-        env.Tool('setupBuildTools')
+        raise SCons.Errors.UserError('setupBuildTools is required for\
+ initialization')
 
     bitwidth = env.getBitwidth()
     if compiler_subject:
@@ -78,8 +79,8 @@ def generate(env):
         # own extension to detect system include paths
         import time
         fName = '.code2Compile.' + str(time.time())
-        tFile = os.path.join(SCons.Script.Dir('.').abspath, fName)
-        outFile = os.path.join(SCons.Script.Dir('.').abspath, fName + '.o')
+        tFile = os.path.join(SCons.Script.Dir('.').get_abspath(), fName)
+        outFile = os.path.join(SCons.Script.Dir('.').get_abspath(), fName + '.o')
         try:
             outf = open(tFile, 'w')
             outf.write('#include <cstdlib>\nint main(){return 0;}')

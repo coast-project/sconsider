@@ -25,7 +25,7 @@ logger = getLogger(__name__)
 targetnameseparator = '.'
 
 
-def splitTargetname(fulltargetname, default=False):
+def splitFulltargetname(fulltargetname, default=False):
     """Split fulltargetname into packagename and targetname."""
     parts = fulltargetname.split(targetnameseparator)
     pkgname = parts[0]
@@ -37,7 +37,11 @@ def splitTargetname(fulltargetname, default=False):
     return (pkgname, targetname)
 
 
-def generateFulltargetname(packagename, targetname=None, default=False):
+def splitTargetname(fulltargetname, default=False):
+    return splitFulltargetname(fulltargetname, default)
+
+
+def createFulltargetname(packagename, targetname=None, default=False):
     """Generate fulltargetname using packagename and targetname."""
     if not targetname:
         if default:
@@ -46,6 +50,10 @@ def generateFulltargetname(packagename, targetname=None, default=False):
             return packagename
     else:
         return packagename + targetnameseparator + targetname
+
+
+def generateFulltargetname(packagename, targetname=None, default=False):
+    return createFulltargetname(packagename, targetname, default)
 
 
 def createUniqueTargetname(packagename, targetname):
@@ -309,7 +317,7 @@ class PackageRegistry:
     def __loadPackageTarget(self, loadfunc, packagename, targetname):
         self.loadPackage(packagename)
         target = loadfunc(packagename, targetname)
-        if not target:
+        if targetname and not target:
             raise TargetNotFound(
                 generateFulltargetname(
                     packagename,
@@ -349,7 +357,7 @@ class PackageRegistry:
         self.packages[packagename]['loaded'] = True
 
     def lookup(self, fulltargetname, **kw):
-        packagename, targetname = splitTargetname(fulltargetname)
+        packagename, targetname = splitFulltargetname(fulltargetname)
         logger.debug('looking up [%s]', fulltargetname)
         if self.hasPackage(packagename):
             if not self.isPackageLoaded(packagename):
@@ -391,4 +399,4 @@ class PackageRegistry:
     def loadPackage(self, packagename):
         if not self.hasPackage(packagename):
             raise PackageNotFound(packagename)
-        self.lookup(packagename)
+        return self.lookup(packagename)

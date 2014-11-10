@@ -110,16 +110,16 @@ def prepareVariantDir(env):
 
 
 def verifyBaseoutDirWritable(baseoutdir):
-    testfile = os.path.join(baseoutdir.abspath, '.writefiletest')
+    testfile = os.path.join(baseoutdir.get_abspath(), '.writefiletest')
     try:
-        if not os.path.isdir(baseoutdir.abspath):
-            os.makedirs(baseoutdir.abspath) # test if we are able to create a file
+        if not os.path.isdir(baseoutdir.get_abspath()):
+            os.makedirs(baseoutdir.get_abspath()) # test if we are able to create a file
         fp = open(testfile, 'w+')
         fp.close()
     except (os.error, IOError):
-        logger.error('Output directory [{0}] not writable'.format(baseoutdir.abspath), exc_info=True)
+        logger.error('Output directory [{0}] not writable'.format(baseoutdir.get_abspath()), exc_info=True)
         raise UserError(
-            'Build aborted, baseoutdir [' + baseoutdir.abspath + '] not writable for us!')
+            'Build aborted, baseoutdir [' + baseoutdir.get_abspath() + '] not writable for us!')
     finally:
         os.unlink(testfile)
 
@@ -150,11 +150,12 @@ def generate(env):
         default=_baseout_dir_default,
         metavar='DIR',
         help='Directory to store build target files. Helps keeping your source\
-     directory clean, default="' + Dir(_baseout_dir_default).abspath + '"')
+     directory clean, default="' + Dir(_baseout_dir_default).get_abspath() + '"')
 
     # ensure we have getBitwidth() available
     if 'setupBuildTools' not in env['TOOLS']:
-        env.Tool('setupBuildTools')
+        raise SCons.Errors.UserError('setupBuildTools is required for\
+ initialization')
 
     baseoutdir = Dir(GetOption('baseoutdir'))
     verifyBaseoutDirWritable(baseoutdir)
