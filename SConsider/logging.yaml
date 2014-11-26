@@ -49,7 +49,7 @@ loggers:
         level: INFO
         handlers: [console]
         propagate: no
-        filters: [filterLookup, filterExecuting]
+        filters: []
 
     SConsider.PackageRegistry:
         level: INFO
