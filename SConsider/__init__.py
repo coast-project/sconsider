@@ -121,10 +121,6 @@ globaltools = [
     "RunBuilder",
     "SystemLibsInstallBuilder",
     "precompiledLibraryInstallBuilder",
-    "coast_options",
-    "DoxygenBuilder",
-    "Package",
-    "ThirdParty",
 ]
 
 AddOption(

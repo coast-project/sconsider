@@ -62,11 +62,6 @@ loggers:
         handlers: [console]
         propagate: no
 
-    coast_options:
-        level: INFO
-        handlers: [console]
-        propagate: no
-
 root:
     level: ERROR
     handlers: [console, info_file_handler, error_file_handler]
