@@ -1,0 +1,3009 @@
+Changelog
+=========
+
+Release (HEAD, tag: 0.3.6, master)
+-------------
+
+-   2014-12-03 Marcel Huber
+
+    version bump to 0.3.6
+
+    filled changelog
+
+    Change-Id: I7cdaca2b8eb3b2ee387d6931a4b9645d0dd420d5
+
+
+
+-   2014-11-27 Marcel Huber
+
+    ignoring lepl INFO messages using increased logging severity
+
+    Change-Id: Ibbd519fd93bed3fda4ce9d53fd1f4184a62c1223
+
+
+
+-   2014-11-27 Marcel Huber
+
+    removed coast_options which was specific to the COAST build
+
+    Change-Id: I7d67180aa92d1e1bd499728ae6c93caab56e4297
+
+
+
+-   2014-11-26 Marcel Huber
+
+    renamed local variable for sconsider dist version
+
+    removed log filters due to change in module structure
+
+    Change-Id: I9d16a4a0279d65140d8665baeb8dc801a92d48fc
+
+
+
+-   2014-11-10 Marcel Huber
+
+    alias target build corrected
+
+    using get_abspath() on Dir/File nodes instead of abspath field
+
+    structure equalization to newSconsider branch
+
+    Change-Id: I011b2249f1af28836a8e92461e7a7d4dafc42897
+
+
+
+-   2014-11-07 Marcel Huber
+
+    renamed TargetNotFound exception
+
+    Change-Id: Ie02cafd3cf30e543e9813f2ee5e795aeed64145a
+
+
+
+-   2014-11-07 Marcel Huber
+
+    corrected initial copyright year or added copyright message
+
+    Change-Id: I103898c86095b341e8ede57a3289b04c418637bc
+
+
+
+-   2014-11-07 Marcel Huber
+
+    corrected handling of versioned shared libraries and cleanup
+
+    ConfigureHelper is now a tool too
+
+    added PrecompiledLibrary as wrapper method for
+    PrecompiledLibraryInstallBuilder to take care of symbolic links to real
+    libraries
+
+    added feature to add symlinks to installed and versioned third party
+    libraries
+
+    exchanged env var accesses with corresponding environment methods where 
+    applicable, see OutputDirectoryHelper.py for available methods
+
+    moved variantdir handling from SConsider into OutputDirectoryHelper tool
+
+    moved exclude directory handling into ExcludeDirectoryHelper tool
+
+    Change-Id: I1ec11b3cbfe40391990d21af8afb85a187e9deaf
+
+
+
+-   2014-11-02 Marcel Huber
+
+    restructured PackageRegistry for less diffs against branch
+
+    Change-Id: I7fd80f865667e4ae55bc24c9cdc029b5ce1abc3b
+
+
+
+-   2014-11-02 Marcel Huber
+
+    refactor: only one copy of current_os_version extraction method
+
+    attaching method to environment when initializing tools
+
+    env method added to get list of relative exclude directories
+
+    Change-Id: I82c4637abc9a8cb7f93a363ad6acd21b9d14ede6
+
+
+
+-   2014-11-02 Marcel Huber
+
+    ARCHBITS: removed from env, use env.getBitwidth() instead
+
+    Change-Id: Ie0e7a3891e346f560df6683d9d29bdc44483711b
+
+
+
+-   2014-11-02 Marcel Huber
+
+    tools: Keep order of tools in list but remove duplicates
+
+    Change-Id: Idd33ea6e71a595ce9c4b9d490314300235295217
+
+
+
+-   2014-11-02 Marcel Huber
+
+    scons tools extensible from SConstruct setting _SCONSIDER_TOOLS_
+
+    explicitly setting CONFIGURELOG and CONFIGUREDIR within baseoutdir
+
+    Change-Id: I71b19b3e9876a19df59ecc0bffb147d789610cf7
+
+
+
+-   2014-10-31 Marcel Huber
+
+    prepared for 0.3.6 version
+
+    Change-Id: I561052c574dbb78572d97dfa5808d1fac178bf39
+
+
+Release (tag: 0.3.5)
+-------------
+
+-   2014-10-31 Marcel Huber
+
+    sconsider: version specific target creation
+
+    moved current buildSettings target creation into version specific section 
+    which allows for future extension
+
+    Change-Id: I669b6feb00f48edfe0b7a53ed5b73ff60e969c2d
+
+
+
+-   2014-10-29 Marcel Huber
+
+    file split: SConsider main module split into parts
+
+    split out TargetHelper, TargetMaker and PackageRegistry
+
+    corrected/improved package/target collection
+
+    Change-Id: I52b37c8f71f7e47e8e20be9581727f5aba4aea88
+
+
+
+-   2014-10-22 Marcel Huber
+
+    runbuilder: added skipped target in skiptest message
+
+    maintenance: split search replace rules apart
+
+    Change-Id: I2cfd22809694f08032061505b86ea9df2f0b995c
+
+
+
+-   2014-10-20 Marcel Huber
+
+    skiptest: gaining more attention using critical message
+
+    Change-Id: Ieca73ae7372f1a64294ea430c0de4820628ea834
+
+
+Release (tag: 0.3.4)
+-------------
+
+-   2014-10-10 Marcel Huber
+
+    package: do not copy include files when using baseoutdir
+
+    Change-Id: I462c45a67b347e1af9cafcd8bcc6d1d7d394c92d
+
+
+Release (tag: 0.3.3)
+-------------
+
+-   2014-10-08 Marcel Huber
+
+    incremented version for new bugfix release
+
+    Change-Id: I1e7f1c0d304f397314d4843e52329fc6bb775e3c
+
+
+
+-   2014-10-08 Marcel Huber
+
+    package: fixed package behavior without baseoutdir
+
+    Change-Id: I78ab7e840357c17818c4b0c00435a5c6b0a460b9
+
+
+
+-   2014-10-03 Marcel Huber
+
+    build: documented how to uninstall a development version
+
+    Change-Id: I52a281a8c0f614c8ad3f27c266241ba88a4a6365
+
+
+Release (tag: coast_20141003, tag: 0.3.2)
+-------------
+
+-   2014-10-03 Marcel Huber
+
+    generatescript: corrected generated gdb batch file
+
+    this file must not contain white space characters before commands
+
+    Change-Id: I87ffacb7cc788c4c3ac7ad65262d1a08ad650431
+
+
+
+-   2014-10-02 Marcel Huber
+
+    packagebuild: correct return types to not create path segments like 'None'
+
+    Change-Id: Icff5a2f5173dc86fda775b766a042b7b2ab5a5eb
+
+
+
+-   2014-10-02 Marcel Huber
+
+    packagebuilding: do not raise an exception with an empty path
+
+    this occurs when creating a package from a target like testfw which is of
+    no sense either
+
+    Change-Id: I18e6bb6670e42fb349c1e5f9bd65616f8ab4fe0f
+
+
+
+-   2014-10-02 Marcel Huber
+
+    helptext: improved help text for sconsider options
+
+    Change-Id: I2994a16a5e0f6834163598292c1d03b6196dbfe9
+
+
+
+-   2014-10-02 Marcel Huber
+
+    version: integrated SConsider module version into __init__.py
+
+    Change-Id: I7a704768d304d12a3208b6a94c1ca594d5309b0c
+
+
+
+-   2014-10-02 Marcel Huber
+
+    version: changed to 0.3.0, added author, style updates
+
+    version: 3rdparty; added version requirement to SConsider <0.5
+
+    explicitly importing Configure from ConfigureHelper
+
+    Change-Id: I34abba8c15422d5c37184e565cdc9ca588e02f84
+
+
+
+-   2014-10-02 Marcel Huber
+
+    package-handling: exclude dir handling improved
+
+    raising exception when package requirements are not fulfilled
+
+    except clause extended to ResolutionError exception
+
+    logging: improved logging messages
+
+    Change-Id: Ib830575b5d0a444e05e66574df21823fa3e09811
+
+
+-   2014-10-02 Marcel Huber
+
+    pep8: corrections applied as reported by pyflakes
+
+    pep8: more explicit imports
+
+    Change-Id: I0c57742d206919e0ea7fc644b5da778611b72762
+
+
+
+-   2014-10-02 Marcel Huber
+
+    setup: adapted setup.py to layout seen in wheel
+
+    (https://bitbucket.org/pypa/wheel/src)
+
+    adjusted markdown style in README
+
+    documented how to run tests using nosetests
+
+    build command should only create a wheel as default
+
+    Change-Id: I7fc1582603916467003252dfeff256cfdcd14ae0
+
+
+
+-   2014-10-02 Marcel Huber
+
+    package-handling: raising specific exception during package collection
+
+    package-handling: catching DistributionNotFound exception also when loading
+    all packages
+
+    Change-Id: Ia7d96a1e563e77dc495e32b7612cd3449db5551f
+
+
+
+-   2014-10-02 Marcel Huber
+
+    logging: use specific loggers
+
+    Change-Id: I5bf0ceb105660d701346e98ea9f05e9616e47ac0
+
+
+
+-   2014-10-02 Marcel Huber
+
+    printing sconsider version when being executed
+
+    structure: corrected 3rdparty default location (delivered files in package)
+
+    Change-Id: I14f724f96d2c90988a2b9c80fcbbe2ece706232b
+
+
+
+-   2014-10-02 Marcel Huber
+
+    pep8: reformatted methods
+
+    pep8: license text line size adjustment
+
+    pep8: comment reformatting using docformatter
+
+    pep8: reformatted due to line length checks
+
+    Change-Id: Ie1a025d18050ed2b1e61c2eaf015d621035c26c8
+
+
+
+-   2014-10-02 Marcel Huber
+
+    structure: moved files and added setup.py
+
+    structure: tests need ../SConsider now
+
+    setup: added setup.cfg
+
+    setup: added setuptools-git dependency to create complete sdist package
+
+    Change-Id: I04dad56f01fa9d67381b36fe3d0295c0a6311ec5
+
+
+
+-   2014-10-02 Marcel Huber
+
+    logging: added regex filter and compatibility for python <2.7
+
+    Change-Id: I8e9e9c2a2825d578310465b41c15b14230356032
+
+
+
+-   2014-10-02 Marcel Huber
+
+    tests: better path detection for test server certificate
+
+    Change-Id: I1aa8c9c77eb3dc087f9f3a99c56cc16b0ff3ab50
+
+
+
+-   2014-07-21 Marcel Huber
+
+    replaced print with logging commands
+
+    copy logging.yaml, adapt it to your needs and use
+    LOG_CFG environment variable to point to it
+
+    Change-Id: I47c9477ab4ef85bffeabecafcb19fb6e392bb07d
+
+
+
+-   2014-07-21 Marcel Huber
+
+    allow specifying 'targetName' in buildsettings if he default is not
+    sufficient
+
+    Change-Id: I5254724a30d15d84082593ba7bcb12a331951a19
+
+
+
+-   2014-02-18 Marcel Huber
+
+    corrected version detection of OpenSSL using tuples now
+
+    Change-Id: Ib28db0e6cdc7f338247ede4c784118972e0bc943
+
+
+
+-   2013-10-23 Marcel Huber
+
+    moved -Wundef flag to full warnings section
+
+    boost causes many Wundef warnings which interfere with usual output
+
+    Change-Id: I8b46cc60836b860510eadcc55d4a0740c67bceaa
+
+
+
+-   2013-10-22 Marcel Huber
+
+    added boost.system target
+
+    Change-Id: I1e15eff1b13eae34f8da9e5bf90eeaac66d1c0b5
+
+
+
+-   2013-08-21 Marcel Huber
+
+    corrected doxygen file creation and added Test
+
+    refactored DoxygenBuilder by moving module imports
+
+    Change-Id: I76980f8c7da6b15776bc60e81bee08a9048becbd
+
+
+
+-   2013-06-18 Marcel Huber
+
+    pip requirements specification
+
+    Change-Id: I65346081dda8aa0339061629adce98004652c4eb
+
+
+
+-   2013-06-18 Marcel Huber
+
+    lowercasing fqdn and hostname entries to be consistent with own resolver
+
+    added .gitreview configuration
+
+    Change-Id: I1bf212cd17e9a7148fa04a1c33743a3ed1b71472
+
+
+
+-   2013-01-21 Marcel Huber
+
+    removed obsoleted check for gzio.h
+
+    fixes #303
+
+    Change-Id: Ib6008211262369781683f8b14febca8b7d88b167
+
+
+
+-   2012-07-05 Marcel Huber
+
+    file list changed for zlib 1.2.7
+
+    Change-Id: I1018f18d5a91acf6443cf895f459334bee96fc58
+
+
+
+-   2012-06-13 Marcel Huber
+
+    simplified getfqdn
+
+    Change-Id: I9885015b3c5e19abed66135ba454fa5ca718a866
+
+
+
+-   2012-06-13 Marcel Huber
+
+    removed unused decider function
+
+    Change-Id: I29f81c1da4f6f60ebf353b06d89757cdb029af44
+
+
+
+-   2012-06-12 Marcel Huber
+
+    always changing fqdn and its components to lowercase
+
+    corrected setting of hostonly and domain on systems without aliaslist
+
+    Change-Id: If09e069240021d79e445f127e911bcdf12a9de26
+
+
+
+-   2012-06-12 Marcel Huber
+
+    extended SecureHTTPServer for specifying ciphers to use
+
+    Change-Id: Ibc9e9cb8078dc3a72c2f5f2005253394b3030c80
+
+
+
+-   2012-06-11 Marcel Huber
+
+    extended cleanup tokens as some code contained references to customer
+    related projects
+
+    Change-Id: I6d802f2d7c7a4593b7ff17ce5a6a845a3061b4f5
+
+
+
+-   2012-06-11 Marcel Huber
+
+    testing if baseoutdir is writable before continueing
+
+    removed CONFIGURELOG, CONFIGUREDIR and some other vars not used anymore
+
+    Change-Id: I41d95ce2e23e85ac7a803b1adfb9226ef43b78d5
+
+
+
+-   2012-06-01 Marcel Huber
+
+    added test to prove that our SecureHTTPServer implementation works
+
+    it should show that pyopenssl shutdown problems should not happen anymore
+
+    Change-Id: I5d1c95ec35c878808e0b2f37ad00678e98041ea6
+
+
+
+-   2012-06-01 Marcel Huber
+
+    improved searching for files in relative paths when using findFiles
+
+    Change-Id: I203fa8715f31953fb707e256735aa0dcb415c393
+
+
+
+-   2012-06-01 Marcel Huber
+
+    added scons build files for IBM WebSphereMQ, XMS and RSa
+
+    Change-Id: I8ba10f87f9b6ea441c3c6ff39090aef8394b20ad
+
+
+
+-   2012-05-31 Marcel Huber
+
+    extended to replace names in sniff shared files also
+
+    added more library names to rename
+
+    Change-Id: I59eceb283da9d22b48b0485484e3a03fd79bdead
+
+
+
+-   2012-05-31 Marcel Huber
+
+    --3rdparty option is a list of directories now
+
+    readded third party library package files for loki
+
+    This reverts commit 476490fd66312bca2bff4e15712a0fa8df2d2164.
+
+    Change-Id: Ifb0fe2f1d1cfca347eaea14e13c89ce43e85672e
+
+
+
+-   2012-02-01 Marcel Huber
+
+    added rt library for non windows systems to support posix clock_get*
+    functions
+
+    Change-Id: I11d8b0a83a033aef7fff646580b0ecbec5e20a21
+
+
+
+-   2012-01-30 Marcel Huber
+
+    Eclipse debug functionality with gdbserver
+
+    Change-Id: I191e49c2f1edd537d2c63b2a23186e58ce02ea41
+
+
+
+-   2011-10-25 Marcel Huber
+
+    simple comment added
+
+    Change-Id: I1171974b7adb16fc2750d586bd5028b81ec0ca07
+
+
+
+-   2011-09-30 Marcel Huber
+
+    eliminated --no-undefined linker flag as it seems to be duplicate of -z
+    defs
+
+
+
+-   2011-09-16 Marcel Huber
+
+    added filter function matching BASEOUTDIR path prefixes
+
+    this allows creating a distributable package even when compiling into
+    another directory tree
+
+
+
+-   2011-08-18 Marcel Huber
+
+    corrections according to PEP8
+
+    namely not using len() on sequences to test emptyness
+
+    also using is (not) None instead of != or == None
+
+
+
+-   2011-07-19 Marcel Huber
+
+    adjusted name of precompiled mysql client library as it was in the binary
+    distribution downloaded
+
+
+
+-   2011-07-15 Marcel Huber
+
+    64bit: added new precompiler macro ARCHBITS carrying either the value of 32
+    or 64
+
+
+
+-   2011-07-12 Marcel Huber
+
+    changed trace description reference from Dbg.h to Tracer.h
+
+
+
+-   2011-07-07 Marcel Huber
+
+    corrected version comparison error
+
+    adjusted helping text where to rename directories for ubuntu
+
+
+
+-   2011-05-16 Marcel Huber
+
+    added more information to help the user using python2.7 why the secure
+    server might not work
+
+    Some hints are presented to lead the user to a hopefully successful
+    pyopenssl setup
+
+
+
+-   2011-05-11 Marcel Huber
+
+    conditionally adding shutdown_request method when incompatible python and
+    pyopenssl version is detected
+
+
+
+-   2011-04-12 Marcel Huber
+
+    corrected variant strings for MACs
+
+
+
+-   2011-04-12 Marcel Huber
+
+    added mac support with DYLD_LIBRARY_PATH
+
+
+
+-   2011-04-12 Marcel Huber
+
+    implemented lazy linking for mac - do not abort when unresolved symbols are
+    found
+
+    -> needs to be fixed as not all libs are expected to have unresolved
+    symbols
+
+
+
+-   2011-04-12 HSR
+
+    added MacFinder to resolve own and system libraries
+
+
+
+-   2011-04-08 Marcel Huber
+
+    license header added
+
+
+
+-   2011-04-08 Marcel Huber
+
+    apple specific linker extensions
+
+
+
+-   2011-04-08 Marcel Huber
+
+    fixes for mac 32/64 bit compilation
+
+
+
+-   2011-03-28 Marcel Huber
+
+    appending buildcfg name to compilation variant string
+
+
+
+-   2011-03-25 Michael Rüegg
+
+    fixed bug in libc location detection mechanism
+
+
+
+-   2011-03-21 Marcel Huber
+
+    factored out and enhanced code to retrieve (e)glibc version number on
+    posix/linux compliant systems
+
+
+
+-   2011-03-03 Michael Rüegg
+
+    temporary fix to get rid of doxygen problems with 3rdparty packages (#286)
+
+
+
+-   2011-03-01 Michael Rüegg
+
+    got rid of loki features (#24)
+
+
+
+-   2011-02-25 Dominik Wild
+
+    fixed a small bug in LibFinder and SystemLibsInstallBuilder
+
+
+
+-   2011-02-18 Marcel Huber
+
+    using more random file name for compiling as multiple builds might run in
+    parallel...
+
+
+
+-   2011-02-18 Marcel Huber
+
+    adjusted use of shlex when composing execution arguments by not shlex'ing
+    the command itself as it might contain spaces
+
+    I also needed to adjust the script builder as I had to escape every
+    location related to paths
+
+    finally the gdb command wrapper script needed adjusting too
+
+    fixes #285
+
+
+
+-   2011-02-17 Marcel Huber
+
+    need to extend libdirlist by LibFinder.GetSystemLibDirs() to find/use
+    compiler specific libs
+
+
+
+-   2011-02-17 Marcel Huber
+
+    replaced superfluous registerCallback/runCallback calls
+
+    replaced with simple and transparent direct env.Append calls
+
+
+
+-   2011-02-17 Marcel Huber
+
+    fixed a dependency bug with --ignore-missing (#189)
+
+
+
+-   2011-02-17 Marcel Huber
+
+    implemented new binary distribution form (#189)
+
+    fixed the help bug
+
+
+
+-   2011-02-17 Marcel Huber
+
+    replaced PseudoFile with InstallBinary
+
+
+
+-   2011-02-17 Marcel Huber
+
+    modified CompilerLibsInstallBuilder to copy all system libs the build
+    depends on
+
+    renamed to SystemLibsInstallBuilder
+
+
+
+-   2011-02-17 Marcel Huber
+
+    extracted LibFinder
+
+
+
+-   2011-02-17 Marcel Huber
+
+    refactored third party system sconsider files (#189)
+
+
+
+-   2011-02-17 Marcel Huber
+
+    split of third party sconsiders into separate files (#189)
+
+
+
+-   2011-02-17 Marcel Huber
+
+    fixed bugs in sconsider for mysql, openss, oracle and sybase (#189)
+
+
+
+-   2011-02-17 Marcel Huber
+
+    enabled option '3rdparty' which allows to configure the directory which
+    contains the 3rdparty sconsider definitions (#189)
+
+
+
+-   2011-02-17 Marcel Huber
+
+    ignore non existing targets and targets which depend on them (#189)
+
+
+
+-   2011-02-17 Marcel Huber
+
+    blub, blub, ... (#189)
+
+
+
+-   2011-02-17 Marcel Huber
+
+    ignore env['BUILDDIR'] instead of hardcoded '.build' (#189)
+
+
+
+-   2011-02-17 Marcel Huber
+
+    experimental improvement for third party handling
+
+    Command line example: scons iplanetLDAP --usetool=ThirdParty
+    --with-src-zlib=3rdparty/zlib --with-src-loki=3rdparty/loki
+    --with-src-boost=3rdparty/boost --with-src-cute=3rdparty/cute
+    --with-iplanetLDAP=3rdparty/iplanet_ldap --with-mysql=3rdparty/mysql
+    --with-openssl=3rdparty/openssl --with-oracle=3rdparty/oracle
+    --with-sybase=3rdparty/sybase
+
+    Known bugs, limitations, improvements, etc.
+    * All libraries have to be configure using either --with-LIB=PATH or
+    --with-src-LIB=PATH
+    * If no --with-(src-)-XYZ is given, we try to configure the system
+    libraries.
+     But we don't copy them over in the current implementation.
+    * Our third party sconsider files do all look more or less the same...
+    refactoring possible?
+    * '.build' is fixed in ThirdParty module because the tool is loaded before
+    env['BUILDDIR'] has been set
+    * Binary distributions still expect our current directory structure
+    * Precompiled(Binary|Library)InstallBuilders need the absolute path.
+    Because the sourceFile given is more
+     a description to find the library than a real filename, it's not possible
+    to easily resolve the sourceFile
+     in the repository using rfile() or similar.
+
+
+
+-   2011-02-10 Marcel Huber
+
+    outputting stdout/stderr in case of compiler detection errors
+
+
+
+-   2011-01-28 Marcel Huber
+
+    factored out packagename/targetname separator
+
+    added function to retrieve unique targetname (without any dots) into
+    createUniqueTargetname
+
+
+
+-   2011-01-26 Marcel Huber
+
+    refactored runCommandWithFile to work for both cases and renamed back to
+    runCommand
+
+
+
+-   2011-01-21 Marcel Huber
+
+    factored in runCommandWith[File|Input]
+
+    both functions should be further refactored
+
+
+
+-   2011-01-14 Marcel Huber
+
+    factored out HTTPS/SMTP specific servers into this module
+
+
+
+-   2011-01-14 Marcel Huber
+
+    added wrapper around socket.getfqdn to hopefully provide a stable method of
+    retrieving the fqdn of the current host
+
+
+
+-   2011-01-04 Dominik Wild
+
+    include original headers and not the copies
+
+
+
+-   2010-12-21 Dominik Wild
+
+    baseoutdir as default target is no longer needed
+
+    package aliases are added as default targets and are built anyway
+
+
+Release (tag: coast_2010_1.2)
+-------------
+
+-   2010-12-09 Marcel Huber
+
+    only adding baseoutdir when no BUILD_TARGETS collected so far
+
+    fixes doxygen-only build
+
+
+
+-   2010-11-25 Dominik Wild
+
+    fixed the behaviour of -u, -U and -D
+
+
+
+-   2010-11-24 Dominik Wild
+
+    used SCons.Utils.print_tree() instead of render_tree()
+
+
+
+-   2010-11-24 Dominik Wild
+
+    set baseoutdir as default target
+
+
+
+-   2010-11-22 Dominik Wild
+
+    fixed TestfwTransformer to support latest changes
+
+
+
+-   2010-11-22 Dominik Wild
+
+    fixed a ugly dependency cycle
+
+
+
+-   2010-11-19 Dominik Wild
+
+    removed ONLY_STD_IOSTREAM leftovers
+
+
+
+-   2010-11-19 Dominik Wild
+
+    updated TargetPrinter to use SCons.Util.render_tree()
+
+
+
+-   2010-11-19 Dominik Wild
+
+    always convert replacement to str in SubstInFileBuilder
+
+
+
+-   2010-11-19 Dominik Wild
+
+    fixes for win32 build
+
+
+
+-   2010-11-19 Dominik Wild
+
+    fixed Windows CRLF
+
+
+
+-   2010-11-04 Dominik Wild
+
+    fixed python anything to support escaped points and colons (#244)
+
+
+
+-   2010-10-29 Michael Rüegg
+
+    fixed wrong help message for the language support commandline option
+
+
+
+-   2010-10-22 Dominik Wild
+
+    fixed a bug in RunBuilder which was caused because of SCons issue 2460
+
+    The following bug seems to be fixed in newer versions of SCons (2.0+). 
+    Alias with depends instead of sources is never rebuilt:
+    http://scons.tigris.org/issues/show_bug.cgi?id=2460
+
+
+
+-   2010-10-22 Dominik Wild
+
+    implemented more tests for SomeUtils and WorkingSetWriter
+
+
+
+-   2010-10-22 Dominik Wild
+
+    corrected relations to be projectname from .project and not packagename
+    (#206)
+
+
+
+-   2010-10-22 Dominik Wild
+
+    implemented partial update of working sets (#206)
+
+
+
+-   2010-10-21 Dominik Wild
+
+    implemented tool to write Eclipse working sets (#206)
+
+
+
+-   2010-10-18 Dominik Wild
+
+    fixed a RunBuilder bug, introduced ComposedRunner instead (#241)
+
+
+
+-   2010-10-15 Dominik Wild
+
+    slightly modified RunBuilder behaviour
+
+
+
+-   2010-10-14 Marcel Huber
+
+    replaces WD_ with COAST_
+
+
+
+-   2010-10-11 Michael Rüegg
+
+    Added command line options for scons to define language features (C++0x,
+    TR+, Boost)
+
+
+
+-   2010-09-14 Dominik Wild
+
+    fixed tests
+
+
+
+-   2010-09-14 Dominik Wild
+
+    replace WD_ prefix with COAST_
+
+
+
+-   2010-09-14 Dominik Wild
+
+    changed name of resulting lib/executable to PackagenameTargetname
+
+
+
+-   2010-09-13 Dominik Wild
+
+    fixed includeSubdir bug
+
+
+
+-   2010-09-13 Dominik Wild
+
+    fixed RunBuilder dependencies (fixes #225)
+
+
+
+-   2010-09-13 Dominik Wild
+
+    pass env to value function
+
+
+
+-   2010-09-10 Marcel Huber
+
+    putting sconsign file to same location as basoutdir this allows using the
+    same source tree at different locations without the need to recompile every
+    time you switch environment given that you specified
+    --baseoutdir=/location/dependent/dir
+
+
+
+-   2010-09-09 Michael Rüegg
+
+    Allow doxygen to generate include dependency graphs
+
+
+
+-   2010-09-08 Marcel Huber
+
+    removed threading option as python is not able to support concurrency quite
+    well yet
+
+
+
+-   2010-08-31 Marcel Huber
+
+    added awk extension to files with shell comment syntax corrected regular
+    expression of shell style copyright message
+
+
+
+-   2010-08-19 Dominik Wild
+
+    skip packages containing a test target for global doxygen target
+
+
+
+-   2010-08-17 Michael Rüegg
+
+    Merge branch 'master' of
+    ssh://sifs-coast1.hsr.ch/var/repositories/git/sconsider
+
+
+
+-   2010-08-17 Michael Rüegg
+
+    Allow doxygen to process multiple dot files in one run and use two threads
+    per default
+
+
+
+-   2010-08-13 Dominik Wild
+
+    added SubstInFileBuilder, use the third tuple value in copyFiles slot as
+    replacement dict (fixes #217)
+
+
+
+-   2010-08-13 Dominik Wild
+
+    improved Anything parsing performance
+
+
+
+-   2010-08-12 Dominik Wild
+
+    added --doxygen-only which skips building of all targets except doxygen
+
+
+
+-   2010-08-11 Michael Rüegg
+
+    setting for preventing doxygen deleting the generated dot files
+
+
+
+-   2010-08-10 Dominik Wild
+
+    refactored doxygen creation (3rdparty packages linked using tagfiles),
+    fixed small Anything glitch
+
+
+Release (tag: coast_2010_1.1)
+-------------
+
+-   2010-08-09 Marcel Huber
+
+    replaced readlink -f with cd && pwd
+
+
+
+-   2010-08-09 Marcel Huber
+
+    added possibility to reset env of Anything added IOError exception test
+    when loading Anything from file fails
+
+
+
+-   2010-08-06 Dominik Wild
+
+    should fix the failing tests in mockito 0.5.1 in TestfwTransformer_Test,
+    but seems actually to be caused due to a bug in mockito
+
+
+
+-   2010-07-29 Marcel Huber
+
+    only registering doxygen callbacks when corresponding command line option
+    was specified
+
+
+
+-   2010-07-29 Michael Rüegg
+
+    fixed doxygen target dependencies bug and got rid of latex doxygen impl
+
+
+
+-   2010-07-29 Marcel Huber
+
+    initialized dirs3rdParty variable added missing BUILD_TARGETS path segment
+    in assigment
+
+
+
+-   2010-07-28 Michael Rüegg
+
+    doxygen support for overall documentation
+
+
+
+-   2010-07-13 Marcel Huber
+
+    replaced build_dir by variant_dir according to deprecation warning of scons
+    2.0
+
+
+
+-   2010-06-21 Marcel Huber
+
+    added code to read away stdout from popened-proc object when interrupt
+    signal is sent
+
+
+
+-   2010-06-16 Marcel Huber
+
+    added try block around Dir() creation because in case a directory segment
+    also evaluates to a target, the call will fail
+
+
+
+-   2010-06-14 Dominik Wild
+
+    fixed TLS initialization
+
+
+
+-   2010-06-08 Dominik Wild
+
+    chdir before rmtree...
+
+
+
+-   2010-06-08 Dominik Wild
+
+    replaced os.mknod which doesn't exist on solaris
+    (http://bugs.python.org/issue3928)
+
+
+
+-   2010-06-08 Dominik Wild
+
+    changed loadFromFile to resolve filename and return first Anything
+
+
+
+-   2010-06-08 Dominik Wild
+
+    path adjustments
+
+
+
+-   2010-06-08 Dominik Wild
+
+    removed debugging code... blub blub ;)
+
+
+
+-   2010-06-08 Dominik Wild
+
+    optimized some tests
+
+
+
+-   2010-06-08 Dominik Wild
+
+    moved local env cleanup
+
+
+
+-   2010-06-08 Dominik Wild
+
+    enhanced tls.env
+
+
+
+-   2010-06-08 Dominik Wild
+
+    store root/path in tls
+
+
+
+-   2010-06-08 Dominik Wild
+
+    implemented references, refined parsing
+
+
+
+-   2010-06-08 Dominik Wild
+
+    changed internal storage, implemented sort
+
+
+
+-   2010-06-08 Dominik Wild
+
+    fixed +=
+
+
+
+-   2010-06-08 Dominik Wild
+
+    implemented parsing
+
+
+
+-   2010-06-08 Dominik Wild
+
+    added tests for index, count
+
+
+
+-   2010-06-08 Dominik Wild
+
+    implemented __add__, reverse, fixed str
+
+
+
+-   2010-06-08 Dominik Wild
+
+    converted tabs to spaces
+
+
+
+-   2010-06-08 Dominik Wild
+
+    implemented extend, sliceing
+
+
+
+-   2010-06-08 Dominik Wild
+
+    modified output of __str__
+
+
+
+-   2010-06-08 Dominik Wild
+
+    implemented copy, __eq__
+
+
+
+-   2010-06-08 Dominik Wild
+
+    implemented pop, popitem, values, __repr__, keyword initialization
+
+
+
+-   2010-06-08 Dominik Wild
+
+    implemented itervalues
+
+
+
+-   2010-06-08 Dominik Wild
+
+    implemented initialization with merge
+
+
+
+-   2010-06-08 Dominik Wild
+
+    simplified __str__
+
+
+
+-   2010-06-08 Dominik Wild
+
+    implemented update, merge
+
+
+
+-   2010-06-08 Dominik Wild
+
+    fixed insert/delete
+
+
+
+-   2010-06-08 Dominik Wild
+
+    initial commit
+
+
+
+-   2010-06-08 Marcel Huber
+
+    passing back returncode of subprocess was not safe
+
+    explicitly returning code of executed program using exit $?
+
+
+
+-   2010-06-04 Dominik Wild
+
+    fixed getPackageTarget
+
+
+
+-   2010-06-02 Marcel Huber
+
+    corrected findFiles method
+
+
+
+-   2010-05-28 Marcel Huber
+
+    using shlex to correctly split runparams
+
+    escaping run parameters passed when using gdb (-d)
+
+
+
+-   2010-05-28 Marcel Huber
+
+    outputting runParams when executing target
+
+
+
+-   2010-05-28 Marcel Huber
+
+    moved some more compiler warning flags to the mdeium section
+
+    added more warning flags to the full section
+
+
+
+-   2010-05-25 Marcel Huber
+
+    added -Wold-style-cast to print out potential cast problem locations, use
+    with --warnlevel=full
+
+
+
+-   2010-05-23 Marcel Huber
+
+    test and app runners can use setUp/tearDown hooks now
+
+    refactored setUp/tearDown setup into addRunConfigHooks method
+
+
+
+-   2010-05-23 Marcel Huber
+
+    refactored common parts of appTest and programTest into separate methods
+
+    if 'usedTarget' is present and can be found in package registry, it will be
+    used as target, otherwise a Program builder will be used
+
+    therefor, AppTest is deprecated and ProgramTest should be used instead
+
+
+
+-   2010-05-21 Dominik Wild
+
+    removed deprecated gdb option
+
+
+
+-   2010-05-21 Marcel Huber
+
+    added more specific default settings for doxygen
+
+    these settings should be moved into a separate file
+
+
+
+-   2010-05-21 Dominik Wild
+
+    added Package as default tool
+
+
+
+-   2010-05-21 Dominik Wild
+
+    removed targetType requirement
+
+
+
+-   2010-05-18 Dominik Wild
+
+    fixed tests
+
+
+
+-   2010-05-17 Dominik Wild
+
+    use archbits to evaluate sysincludes
+
+
+
+-   2010-05-17 Dominik Wild
+
+    fixed callable check
+
+
+
+-   2010-05-17 Dominik Wild
+
+    skipping tests (fixes #210), always touch test result file
+
+
+
+-   2010-05-14 Dominik Wild
+
+    suppress helper aliases, fixed bug in RunBuilder (fixes #213)
+
+
+
+-   2010-05-14 Dominik Wild
+
+    flatten env['ENV']
+
+
+
+-   2010-05-14 Dominik Wild
+
+    small Package tool cleanups
+
+
+
+-   2010-05-13 Marcel Huber
+
+    corrected RE used to find correct version numbers, fixes #212
+
+
+
+-   2010-05-13 Marcel Huber
+
+    fixed subcommand environment to get compiler libs
+
+    BaseEnv must be used as env param for Popen because specific compiler paths
+    (when given) will only be prepended in this environment
+
+
+
+-   2010-05-13 Marcel Huber
+
+    added -- separator to default params for tests
+
+
+
+-   2010-05-13 Marcel Huber
+
+    added missing global default tool CompilerLibsInstallBuilder
+
+
+
+-   2010-05-12 Dominik Wild
+
+    fixed Package tool to collect targets added in the build phase
+
+
+
+-   2010-05-12 Dominik Wild
+
+    copy compiler libs
+
+
+
+-   2010-05-10 Dominik Wild
+
+    add libstdc++ only if needed
+
+
+
+-   2010-05-09 Marcel Huber
+
+    changed to using nodefaultlibs and specifying needed libs
+
+    unfortunately it will not work for c-targets anymore
+
+
+
+-   2010-05-09 Marcel Huber
+
+    fully sh'ified generated script
+
+
+
+-   2010-05-08 Marcel Huber
+
+    added options to not change directory before executing target
+
+    added option to start target within gdb
+
+
+
+-   2010-05-07 Dominik Wild
+
+    inject variables into execution environment using ['public']['execEnv'],
+    added RELTARGETDIR to PrecompiledBinary/LibraryInstallBuilder
+
+
+
+-   2010-05-03 Dominik Wild
+
+    fixed RunBuilder bug
+
+
+
+-   2010-04-30 Marcel Huber
+
+    corrected binary/library emitter where we are looking for a corresponding
+    source-node
+
+    a problematic case has been fixed, where the source name to look for was
+    equal to an existing Alias
+
+
+
+-   2010-04-22 Dominik Wild
+
+    passing env['ENV'] instead of the env of the current process
+
+
+
+-   2010-04-21 Dominik Wild
+
+    add include path to .scb of the enclosing project
+
+
+
+-   2010-04-16 HSR
+
+    added initial settings for compilation on mac
+
+
+
+-   2010-04-16 Dominik Wild
+
+    fixed bug: Alias defined with same name as filenode before Program
+
+
+
+-   2010-04-15 Dominik Wild
+
+    fixed missing import
+
+
+
+-   2010-04-09 Dominik Wild
+
+    some cleanups
+
+
+
+-   2010-04-08 Dominik Wild
+
+    use executor to get targets
+
+    If multiple targets are emitted by a builder, we remember only the first
+    one in our PackageRegistry. But the others will be built nonetheless
+    because they are remembered in the executor. The only possibility to get
+    this implicit "sideeffect" dependency is therefore through the executor.
+
+
+
+-   2010-04-07 Dominik Wild
+
+    strip variant dir in package
+
+
+
+-   2010-04-07 Dominik Wild
+
+    moved maintenance scripts
+
+
+
+-   2010-04-07 Dominik Wild
+
+    fix to handle install targets
+
+
+
+-   2010-04-06 Dominik Wild
+
+    implemented package tool
+
+
+
+-   2010-04-01 Dominik Wild
+
+    implemented dependency output
+
+
+
+-   2010-03-26 Dominik Wild
+
+    introduced stripSubdir flag
+
+
+
+-   2010-03-26 Dominik Wild
+
+    removed types import
+
+
+
+-   2010-03-26 Dominik Wild
+
+    fixed no given build target and not found package cases
+
+
+
+-   2010-03-26 Dominik Wild
+
+    more cleanups and deprecation of SConscripts (#48)
+
+
+
+-   2010-03-26 Dominik Wild
+
+    some refactorings, removed EnvVarDict
+
+
+
+-   2010-03-26 Dominik Wild
+
+    name of dummyfile is now target dependent
+
+
+
+-   2010-03-26 Marcel Huber
+
+    allow simple str type files, but sconsify them before continueing
+
+
+
+-   2010-03-23 Marcel Huber
+
+    changed eclipse project name
+
+
+
+-   2010-03-17 Marcel Huber
+
+    added re-replacefunc map
+
+    disabled threading due to global interpreter lock
+
+
+
+-   2010-03-16 Marcel Huber
+
+    added regex to correct QUOTE macro uses
+
+
+
+-   2010-03-12 Marcel Huber
+
+    added tests for ChangeImportLines
+
+    changed or added patterns
+
+
+
+-   2010-03-03 Marcel Huber
+
+    corrected regex to remove ident strings
+
+
+
+-   2010-02-01 Dominik Wild
+
+    renamed StanfordUtils to SConsider
+
+
+
+-   2010-01-29 Dominik Wild
+
+    fixed a bug in Callback
+
+
+
+-   2010-01-28 Dominik Wild
+
+    initial test setup
+
+
+
+-   2010-01-27 Dominik Wild
+
+    added multiple_replace()
+
+
+
+-   2010-01-05 Dominik Wild
+
+    changed timing information from msecs to secs (finally fixes #114)
+
+
+
+-   2010-01-04 Dominik Wild
+
+    parses timing information of a single testcase (fixes #114)
+
+
+
+-   2010-01-04 Dominik Wild
+
+    fixed xml test reports to support package information (fixes #113)
+
+
+
+-   2009-12-22 Marcel Huber
+
+    added missing nsl library
+
+
+
+-   2009-12-15 Marcel Huber
+
+    factored out regex replacing in files into SomeUtils.py
+
+
+
+-   2009-11-29 Marcel Huber
+
+    refactored - generalized - regex replacement in fgi
+
+
+
+-   2009-11-20 Marcel Huber
+
+    removed -fast option because it breaks static initialization (closes #100)
+
+
+
+-   2009-11-20 Marcel Huber
+
+    added test for sun specific g++ to adjust optimize options accordingly
+
+
+
+-   2009-11-20 Marcel Huber
+
+    changed to using default python interpreter
+
+
+
+-   2009-11-19 Marcel Huber
+
+    lowered gcc optimize flag on sun to O1, higher values break static
+    initializers
+
+
+
+-   2009-10-25 Marcel Huber
+
+    added python code to regex-remove #ident sections from source files
+
+
+
+-   2009-09-07 Dominik Wild
+
+    corrected file copying
+
+
+
+-   2009-09-04 Marcel Huber
+
+    Merge branch 'master' of
+    ssh://sifs-coast1.hsr.ch/var/repositories/git/sconsider
+
+
+
+-   2009-09-04 Marcel Huber
+
+    factor out unrelated part of copyFileNodes
+
+
+
+-   2009-09-04 Dominik Wild
+
+    doxygen builder considers defines (#71)
+
+
+
+-   2009-09-04 Marcel Huber
+
+    added --env-cfg switch to specify site specific configuration directory
+    (#85)
+
+    exception handling adjusted to work with python<2.6
+
+
+
+-   2009-09-03 Dominik Wild
+
+    moved generated scripts to RELTARGETDIR (#81)
+
+
+
+-   2009-09-03 Dominik Wild
+
+    moved monkey patching of os.path.relpath to SomeUtils
+
+
+
+-   2009-09-03 Dominik Wild
+
+    deleted already replaced doxygen
+
+
+
+-   2009-09-03 Dominik Wild
+
+    targets with linkDependencies to a target in an unavailable package are
+    ignored (#89)
+
+
+
+-   2009-09-02 Marcel Huber
+
+    added replaceRegexInFile method to search and replace regular expression in
+    a file
+
+
+
+-   2009-09-02 Marcel Huber
+
+    removed deprecated warning option from C compilation flags
+
+
+
+-   2009-09-02 Marcel Huber
+
+    added still missing build flags, closes #32
+
+
+
+-   2009-09-01 Marcel Huber
+
+    corrected iostream callback
+
+
+
+-   2009-09-01 Dominik Wild
+
+    ensure setState gets the correct type$
+
+
+
+-   2009-09-01 Dominik Wild
+
+    adapted to new testfw output
+
+    refactored state handling
+
+
+
+-   2009-09-01 Dominik Wild
+
+    refactored some parts of TestfwTransformer for easier tests
+
+
+
+-   2009-09-01 Marcel Huber
+
+    changed to using threading.Thread because ctypes is not fully available on
+    solaris
+
+
+
+-   2009-09-01 Marcel Huber
+
+    socket helpers for location independent socket tests (#85)
+
+
+
+-   2009-08-31 Dominik Wild
+
+    switched from PostAction to Callback
+
+
+
+-   2009-08-31 Dominik Wild
+
+    fixes a bug with multiple failures of one testcase
+
+
+
+-   2009-08-28 Marcel Huber
+
+    added support for different compiler versions in same directory (resolved
+    #78)
+
+    using callback methods to collect compiler specific build options (#32 80%
+    done)
+
+
+
+-   2009-08-28 Dominik Wild
+
+    TestfwTransformer transforms Testfw logs to JUnit XML (support to allow
+    #21)
+
+
+
+-   2009-08-28 Dominik Wild
+
+    added xmlbuilder 0.9
+
+    see http://pypi.python.org/pypi/xmlbuilder
+
+
+
+-   2009-08-28 Dominik Wild
+
+    added callback hooks, changed to new-style classes
+
+
+
+-   2009-08-27 Dominik Wild
+
+    refactored log file writing
+
+
+
+-   2009-08-27 Dominik Wild
+
+    logfile creation for tests
+
+
+
+-   2009-08-27 Dominik Wild
+
+    refactored callback feature
+
+
+
+-   2009-08-27 Dominik Wild
+
+    extracted callback class
+
+
+
+-   2009-08-27 Marcel Huber
+
+    removed unused files
+
+
+
+-   2009-08-26 Marcel Huber
+
+    changed config file copying slotname to copyFiles
+
+
+
+-   2009-08-26 Marcel Huber
+
+    removed unused files
+
+
+
+-   2009-08-20 Dominik Wild
+
+    prefer p.e. libtargetname.so over libtargetname64.so
+
+
+
+-   2009-08-20 Dominik Wild
+
+    fixed SCBWriter not finding env['SYSINCLUDES']
+
+
+
+-   2009-08-20 Dominik Wild
+
+    corrected alias targets 'tests' and 'all'
+
+
+
+-   2009-08-19 Dominik Wild
+
+    added tool to print target (#72)
+
+
+
+-   2009-08-19 Dominik Wild
+
+    removed risky Clean in copyFileNodes
+
+
+
+-   2009-08-12 Dominik Wild
+
+    extracted test/run target creation to tool using a callback
+
+
+
+-   2009-08-12 Dominik Wild
+
+    refactored using callback hooks
+
+
+
+-   2009-08-12 Dominik Wild
+
+    source dirs are written to .scb
+
+    add run/test targets later in build process
+
+    some cosmetic refactorings
+
+
+
+-   2009-08-11 Dominik Wild
+
+    minor renames in RunBuilder and generateScript
+
+    copy headers without includeSubdir
+
+    copy headers and config read only
+
+
+
+-   2009-08-10 Dominik Wild
+
+    simplified header copying
+
+    added includes alias
+
+
+
+-   2009-08-10 Dominik Wild
+
+    minimal gdb script fix
+
+    extracted scb creation to function
+
+
+
+-   2009-08-07 Dominik Wild
+
+    fixed a bug causing unnecessary rebuilds with doxygen
+
+
+
+-   2009-08-04 Marcel Huber
+
+    /bin/sh'ified some sections
+
+
+
+-   2009-07-31 Marcel Huber
+
+    Merge branch 'SconsSetup' of
+    ssh://m1huber@sifs-coast1/var/repositories/git/coast into SconsSetup
+
+
+
+-   2009-07-31 Dominik Wild
+
+    experimentally fixed a bug wiht empty Aliases in includeOnly-targets
+
+    targets depend now on xyLib.py
+
+
+
+-   2009-07-31 Dominik Wild
+
+    added windows relpath for python 2.5
+
+
+
+-   2009-07-31 Dominik Wild
+
+    minimal refactoring of determining doxygen dependencies using lambda
+
+
+
+-   2009-07-31 Marcel Huber
+
+    Merge branch 'MemLeak' into SconsSetup
+
+
+
+-   2009-07-30 Marcel Huber
+
+    Merge branch 'SconsSetup' of
+    ssh://m1huber@sifs-coast1/var/repositories/git/coast into SconsSetup
+
+
+
+-   2009-07-30 Marcel Huber
+
+    prepared for changes to script where options are possible
+
+
+
+-   2009-07-30 Marcel Huber
+
+    Merge branch 'SconsSetup' of
+    ssh://m1huber@sifs-coast1/var/repositories/git/coast into MemLeak
+
+
+
+-   2009-07-30 Dominik Wild
+
+    supplied os.path.relpath for python 2.5 compatibility
+
+
+
+-   2009-07-30 Dominik Wild
+
+    added clean for doxygen targets
+
+
+
+-   2009-07-30 Dominik Wild
+
+    now doxygen and doxyfile targets dependend on tool file
+
+
+
+-   2009-07-30 Dominik Wild
+
+    reorganised doxygen dependencies
+
+
+
+-   2009-07-30 Dominik Wild
+
+    added resursive tagfile dependencies
+
+
+
+-   2009-07-30 Dominik Wild
+
+    refactored doxygen builder and added tagfile support
+
+
+
+-   2009-07-30 Dominik Wild
+
+    initial DoxygenBuilder version without tag file support
+
+
+
+-   2009-07-30 Dominik Wild
+
+    refactored .scb creation
+
+
+
+-   2009-07-30 Marcel Huber
+
+    Merge branch 'SconsSetup' of
+    ssh://m1huber@sifs-coast1/var/repositories/git/coast into MemLeak
+
+
+
+-   2009-07-22 Dominik Wild
+
+    corrected includeSubdir handling
+
+
+
+-   2009-07-22 Dominik Wild
+
+    use AddMethod to add custom builder wrappers to env
+
+
+
+-   2009-07-22 Dominik Wild
+
+    Merge branch 'SconsSetup' of
+    ssh://dwild@sifs-coast1.hsr.ch/var/repositories/git/coast into SconsSetup
+
+
+
+-   2009-07-22 Dominik Wild
+
+    refactored linkDependencies, requires, copyConfigFiles, etc
+
+
+
+-   2009-07-17 Dominik Wild
+
+    generate separate script if gdb-option is active
+
+
+
+-   2009-07-16 Dominik Wild
+
+    added run-force option to RunBuilder
+
+
+
+-   2009-07-15 Marcel Huber
+
+    changed back to using OCI API
+
+    implemented resultsets and so on
+
+
+
+-   2009-07-14 Marcel Huber
+
+    added --gdb option to let the target run within gdb
+
+
+
+-   2009-07-10 Marcel Huber
+
+    Squashed commit of the following:
+
+    commit 95be261bdac8a0676e2878e391424239c23b8bef Author: Marcel Huber
+    <m1huber@hsr.ch> Date:   Fri Jul 10 17:58:04 2009 +0200
+
+        adjusted sniff project file
+
+    commit 37ecf9bd3b9568087c4e1c4392379997cd46a329 Author: Marcel Huber
+    <m1huber@hsr.ch> Date:   Fri Jul 10 17:53:58 2009 +0200
+
+        resultsets implemented
+
+        completed oci to occi refactoring
+
+        added IFS copyright header
+
+        cleanup of old files
+
+    commit ba4abe8490674f590661c7c8ac6f5efc5862e511 Merge: cfecd9d f10e5a9 
+    Author: Marcel Huber <m1huber@hsr.ch> Date:   Fri Jul 10 08:02:13 2009
+    +0200
+
+        Merge branch 'SconsSetup' of
+    ssh://m1huber@sifs-coast1/var/repositories/git/coast into OcciMigration
+
+    commit cfecd9d0728839d8b405af42a7a1985b8a038884 Author: Marcel Huber
+    <m1huber@hsr.ch> Date:   Thu Jul 9 18:48:07 2009 +0200
+
+        bare implementation of select statement execution
+
+    commit 10bac86d7abb3ec4781b00f7f9211dd74e1e4fb8 Author: Marcel Huber
+    <m1huber@hsr.ch> Date:   Thu Jul 9 18:47:13 2009 +0200
+
+        not used anymore with occi
+
+    commit 5a7086847dcf660e0a23837b1175637499e74aa0 Author: Marcel Huber
+    <m1huber@hsr.ch> Date:   Thu Jul 9 11:15:21 2009 +0200
+
+        refactoring of oracle statement specific code into separate clas
+
+    commit e2b5f70a3869fbd3a4ff25552bdd449c9c15f4e5 Author: Marcel Huber
+    <m1huber@hsr.ch> Date:   Wed Jul 8 18:14:22 2009 +0200
+
+        intermediary commit
+
+
+
+-   2009-07-08 Marcel Huber
+
+    refactoring of include file copying
+
+
+
+-   2009-07-08 Marcel Huber
+
+    replaced copyConfigFiles with copyConfigFilesTarget
+
+    changed env.Require to env.Depends to correct dependency handling on
+    changed config files
+
+
+
+-   2009-07-08 Marcel Huber
+
+    dir variable cleanup
+
+    adjusted path names in RunBuilder
+
+    creating logdir/files when build setup produces stderr/stdout output
+
+
+
+-   2009-07-07 Marcel Huber
+
+    added with feature from future (according to python 2.5.x)
+
+    sorting sys and cpp includes prior to adding them to .scb file
+
+    changed minimal requirements of scons and python
+
+
+
+-   2009-07-07 Dominik Wild
+
+    fixed a bug causing setUp und tearDown to be run every time
+
+
+
+-   2009-07-07 Dominik Wild
+
+    added setUp and tearDown
+
+
+
+-   2009-07-07 Dominik Wild
+
+    Refactored RunBuilder to get rid of duplicated code
+
+
+
+-   2009-07-07 Dominik Wild
+
+    Added Builder for Run and Test targets
+
+
+
+-   2009-07-06 Marcel Huber
+
+    added g++ include search path into scons plugin build settings file
+
+
+
+-   2009-07-06 Marcel Huber
+
+    set platform to win32 depending if mingw was specified in usetool
+
+
+
+-   2009-07-06 Marcel Huber
+
+    added initial settings for win32 compilation
+
+
+
+-   2009-07-02 Marcel Huber
+
+    added tool to generate doxygen documentation
+
+
+
+-   2009-07-02 Marcel Huber
+
+    added feature to create .scb (scons plugin build settings) file to enable
+    include file resolving in eclipse
+
+    corrected bug in someutils when file is not a scons File object
+
+
+
+-   2009-07-02 Marcel Huber
+
+    Merge branch 'SconsSetup' of
+    ssh://m1huber@sifs-coast1/var/repositories/git/coast into SconsSetup
+
+
+
+-   2009-07-01 Dominik Wild
+
+    fixed usedTarget bug
+
+
+
+-   2009-06-17 Marcel Huber
+
+    added requires feature for library target
+
+
+
+-   2009-06-16 Marcel Huber
+
+    corrected bitwidth print format flag
+
+
+
+-   2009-06-16 Marcel Huber
+
+    added --enable-Trace compilation setting/variant for using WebDisplay
+    Traces
+
+    using requires targets for programApp and programTest too
+
+
+
+-   2009-06-12 Marcel Huber
+
+    whitespace cleanup
+
+
+
+-   2009-06-11 Marcel Huber
+
+    removed code lines used for testing
+
+
+
+-   2009-06-11 Marcel Huber
+
+    implemented version and libstring settings for sunOS
+
+    corrected handling of os version comparison, needed to change to int's
+
+
+
+-   2009-06-11 Dominik Wild
+
+    added precompiled library support
+
+
+
+-   2009-06-05 Marcel Huber
+
+    eliminated registerObjects and replaced with appropriate functions
+
+    enhanced program lookup to be able to deal with packagename.targetname
+    targets
+
+
+
+-   2009-05-28 Marcel Huber
+
+    added useTargetNames flag to create script for every target specified and
+    not only for wrapping package
+
+
+
+-   2009-05-28 Marcel Huber
+
+    changed testfwFoundation to use new build mode
+
+
+
+-   2009-05-28 Marcel Huber
+
+    nested target specific build settings using the targetname as key
+
+    added generic funtions to create Program and SharedLibrary targets
+
+
+
+-   2009-05-28 Marcel Huber
+
+    applied some changes to enable g++ link work on cygwin
+
+
+
+-   2009-05-28 Marcel Huber
+
+    generalized includePath handling by adding basedir param
+
+
+
+-   2009-05-28 Marcel Huber
+
+    factored out generate mechanism into StanfordUtils
+
+
+
+-   2009-05-27 Marcel Huber
+
+    Squashed commit of the following:
+
+    commit d0a938c5418006a15f9af55443a9ab6bf7e26f4c Author: Marcel Huber
+    <m1huber@hsr.ch> Date:   Wed May 27 09:50:59 2009 +0200
+
+        removed unused modules
+
+    commit 36ca8310bae2298c2b407925dfd0d85827bd95f0 Author: Marcel Huber
+    <m1huber@hsr.ch> Date:   Wed May 27 09:42:40 2009 +0200
+
+        re-added regex methods to replace different things
+
+    commit f3bd69b49389580a4f71db09016f4c46531de012 Author: Marcel Huber
+    <m1huber@hsr.ch> Date:   Wed May 27 09:41:41 2009 +0200
+
+        changed to simplified module style
+
+    commit 841b92456bd0a33df468866276b8e6d0c37295db Author: Marcel Huber
+    <m1huber@hsr.ch> Date:   Wed May 27 09:33:29 2009 +0200
+
+        changed to using getPackageName method to get packagename
+
+
+
+-   2009-05-26 Marcel Huber
+
+    removal of unnecessary stuff
+
+
+
+-   2009-05-26 Dominik Wild
+
+    replaced the scons tool mechanism
+
+
+
+-   2009-05-26 Marcel Huber
+
+    Squashed commit of the following:
+
+    commit 2916f1189e047d96e0aa8748863bea419fe92603 Author: Marcel Huber
+    <m1huber@hsr.ch> Date:   Tue May 26 15:49:52 2009 +0200
+
+        small corrections applied to fix all target mode
+
+    commit d863de12e41442ae8ce6dd389f087d0a51fdf9fc Author: Marcel Huber
+    <m1huber@hsr.ch> Date:   Tue May 26 15:38:50 2009 +0200
+
+        changed listFiles method to StanfordUtils.listFiles
+
+    commit aa255aa02eab615e8c2f84ca6feec2362b15fc15 Author: Marcel Huber
+    <m1huber@hsr.ch> Date:   Tue May 26 15:10:47 2009 +0200
+
+        removed commented env.Dump calls
+
+    commit 4ae8c9e0d83fe180e3bf6fb5fac6f3920cda9c92 Author: Marcel Huber
+    <m1huber@hsr.ch> Date:   Tue May 26 15:10:34 2009 +0200
+
+        added function to remove commented env.Dump calls
+
+    commit 70b179f53f1c3807f794d10e14f513232962f864 Author: Marcel Huber
+    <m1huber@hsr.ch> Date:   Tue May 26 15:02:20 2009 +0200
+
+        converted env.Tool to StanfordUtils.DependsOn
+
+        replaced baseEnv.Clone with StanfordUtils.CloneBaseEnv
+
+    commit b413dbb811ece975b3ad064b41bcb88be3fbe2b0 Author: Marcel Huber
+    <m1huber@hsr.ch> Date:   Tue May 26 15:00:15 2009 +0200
+
+        converted env.Tool to StanfordUtils.DependsOn
+
+    commit 9546ea19e5601a7da6640c20fe4f00c42e7bf490 Author: Marcel Huber
+    <m1huber@hsr.ch> Date:   Tue May 26 13:59:24 2009 +0200
+
+        adjusted regular expression
+
+    commit cd94faefa306b5cef4b56e6b79ab8b50555a2031 Author: Marcel Huber
+    <m1huber@hsr.ch> Date:   Tue May 26 13:49:07 2009 +0200
+
+        many conversion changes applied already
+
+    commit d7e72cafeb89e3f7b5732f59c1f3c3ea293005af Author: Marcel Huber
+    <m1huber@hsr.ch> Date:   Tue May 26 13:48:39 2009 +0200
+
+        added Lib tool for wdapp
+
+        added new conversion script
+
+
+
+-   2009-05-22 Marcel Huber
+
+    changed the way of using libraries as other targets dependencies
+
+
+
+-   2009-05-20 Marcel Huber
+
+    corrected re.match to re.search
+
+
+
+-   2009-05-20 Marcel Huber
+
+    python script to change old to new library names in Anythings
+
+
+
+-   2009-05-19 Marcel Huber
+
+    removed src directory from inclusion list
+
+
+
+-   2009-05-19 Marcel Huber
+
+    corrected file copying when no path segment exists
+
+
+
+-   2009-05-19 Marcel Huber
+
+    adjusted scons build settings and libnames
+
+    added missing libs
+
+
+
+-   2009-05-18 Marcel Huber
+
+    Merge branch 'SconsSetup' of
+    ssh://m1huber@sifs-coast1/var/repositories/git/coast into SconsSetup
+
+
+
+-   2009-05-13 Marcel Huber
+
+    optimized handling of files to install
+
+
+
+-   2009-05-12 Marcel Huber
+
+    removed externals.sons inclusion
+
+    changed to using self contained files for all external libs
+
+
+
+-   2009-05-08 Marcel Huber
+
+    added openssl scons support
+
+
+
+-   2009-05-07 Marcel Huber
+
+    removed stanford package retrieval function
+
+
+
+-   2009-05-07 Marcel Huber
+
+    intermediary commit to have both package retrieval functions handy
+
+
+
+-   2009-05-01 Marcel Huber
+
+    customized sun-link tool
+
+    taking care of correct c-shared-lib linking
+
+    adding -lCrun when linking in c++ mode
+
+
+
+-   2009-04-30 Marcel Huber
+
+    removed explicit setting of SHCCFLAGS; values copied from CCFLAGS
+
+
+
+-   2009-04-30 Marcel Huber
+
+    Revert "few lines rewritten to be more python-like" -> because older python
+    version (< 2.6) are not able to interpret new format This reverts commit
+    5533d990ed249990c83802f938d26e576523837a.
+
+    Signed-off-by: Marcel Huber <marcel.huber@hsr.ch>
+
+
+
+-   2009-04-30 Marcel Huber
+
+    Merge branch 'SconsSetup' of
+    ssh://m1huber@sifs-coast1/var/repositories/git/coast into SconsSetup
+
+
+
+-   2009-04-30 Marcel Huber
+
+    added -z linker flags again because I found a workaround ;)
+
+
+
+-   2009-04-30 Dominik Wild
+
+    few lines rewritten to be more python-like
+
+
+
+-   2009-04-30 Marcel Huber
+
+    updated zlib version
+
+    restoring platf after selecting build tools
+
+
+
+-   2009-04-30 Marcel Huber
+
+    added more libraries to link with
+
+
+
+-   2009-04-28 Marcel Huber
+
+    building end executing tests improved
+
+    test execution script corrected
+
+    copying configuration files to temporary test directory
+
+
+
+-   2009-04-24 Marcel Huber
+
+    disable use of rpath when using sunCC
+
+
+
+-   2009-04-24 Marcel Huber
+
+    moved some POSIX relevant compilation flags to setupBuildTools
+
+
+
+-   2009-04-24 Marcel Huber
+
+    moved iostream option to setupBuildTools
+
+
+
+-   2009-04-24 Marcel Huber
+
+    added sun-CC specific options to use stl features and non-classic iostreams
+
+
+
+-   2009-04-24 Marcel Huber
+
+    added option to select target architecture bit width
+
+
+
+-   2009-04-23 Marcel Huber
+
+    library files (yyyLib.py) refactoring
+
+    package name is now the same as the Lib-files name
+
+    yyyLib.py now also contains section to specify public header files
+
+
+
+-   2009-04-21 Marcel Huber
+
+    added tool to specify g++ compiler to use
+
+
+
+-   2009-04-17 Marcel Huber
+
+    added missing libraries for sun-gcc compilation
+
+    used hardcoded path to gcc in /opt/brz/gcc/bin
+
+
+
+-   2009-04-17 Marcel Huber
+
+    corrected shell variable exports
+
+
+
+-   2009-04-17 Marcel Huber
+
+    adjusted platform variant string
+
+
+
+-   2009-04-16 Marcel Huber
+
+    prepared for baseoutdir when it is not inside the source tree
+
+
+
+-   2009-04-16 Marcel Huber
+
+    added AddOption guard
+
+
+
+-   2009-04-16 Marcel Huber
+
+    moved optional things out of StanfordUtils.py
+
+    made coast_options a global tool dependency of environment
+
+
+
+-   2009-04-15 Marcel Huber
+
+    build working up to mtoundation tests
+
+    factored out flags into specific tool file
+
+
+
+-   2009-04-15 Marcel Huber
+
+    corrected small things
+
+
+
+-   2009-04-05 Marcel Huber
+
+    file cleanup
+
+
+
+-   2009-04-03 Marcel Huber
+
+    scons build working with limitations using stanford utilities
+
+    * recursive collection/build of dependant libs still needs investigation
+
+
+
+-   2009-04-02 Marcel Huber
+
+    re-added missing stanford utility parts
+
+
+
+-   2009-04-02 Marcel Huber
+
+    initially working stanford scons build
+
+
+
+-   2009-04-02 Marcel Huber
+
+    moved stanford specific files into site_scons directory
+
+
+
+-   2009-03-24 Marcel Huber
+
+    stanford scons support added
+
+    testfw library project instrumented
+
