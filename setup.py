@@ -71,6 +71,7 @@ setup(name="SConsider",
           'scons >=1.3, <=2.3.0',
           'pyaml',
           'pyopenssl',
+          'ordereddict',    # required for python < 2.7
           'lepl'],
       setup_requires=['gitegginfo', 'flake8'],
       test_suite='tests',

@@ -31,7 +31,7 @@ from logging import getLogger
 from SCons.Tool import DefaultToolpath
 
 __author__ = "Marcel Huber <marcel.huber@hsr.ch>"
-__version__ = "0.3.7.dev"
+__version__ = "0.3.7"
 
 _base_path = os.path.dirname(__file__)
 sys.path[:0] = [_base_path]
@@ -134,7 +134,12 @@ AddOption(
     help='SCons tools to use for constructing the default environment. Default\
  tools are %s' % Flatten(globaltools))
 
-from collections import OrderedDict
+try:
+    from collections import OrderedDict
+except:
+    # support python < 2.7
+    from ordereddict import OrderedDict
+
 """Keep order of tools in list but remove duplicates"""
 usetools = OrderedDict.fromkeys(
     globaltools +

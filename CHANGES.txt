@@ -1,7 +1,25 @@
 Changelog
 =========
 
-Release (HEAD, tag: 0.3.6, master)
+Release (HEAD, tag: 0.3.7, master)
+-------------
+
+-   2014-12-03 Marcel Huber
+
+    backward compatibility (py2.6.x) for OrderedDict
+
+    Change-Id: I9584bc34e176cad9755e0a5a7d6ad59924d9197a
+
+
+
+-   2014-12-03 Marcel Huber
+
+    prepared for 0.3.7 version
+
+    Change-Id: I3ffbd6c947205563079a54887c70bdb1b34d3e58
+
+
+Release (tag: 0.3.6)
 -------------
 
 -   2014-12-03 Marcel Huber
