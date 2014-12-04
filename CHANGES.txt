@@ -1,7 +1,31 @@
 Changelog
 =========
 
-Release (HEAD, tag: 0.3.7, master)
+Release (HEAD, tag: 0.3.8, master)
+-------------
+
+-   2014-12-04 Marcel Huber
+
+    getOsVersionTuple fixed for solaris
+
+    version bumped to 0.3.8
+
+    Change-Id: I14a18b2486ee606bbdea331e70712cc9e07eaa8b
+
+
+
+-   2014-12-04 Marcel Huber
+
+    fixed env.getOsVersionTuple which caused solaris builds to fail
+
+    fixed wrong abspath/get_abspath() replacement on os.path
+
+    improved naming of variables
+
+    Change-Id: Ie04f676aad9d33fc33303113d0f3baadfb38426b
+
+
+Release (tag: 0.3.7)
 -------------
 
 -   2014-12-03 Marcel Huber
