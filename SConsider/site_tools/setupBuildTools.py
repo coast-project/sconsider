@@ -187,7 +187,7 @@ def generate(env, **kw):
     env.AddMethod(lambda env: bitwidth, "getBitwidth")
 
     current_os_version = extractOsVersion(platf)
-    env.AddMethod(lambda env: current_os_version, "getOsVersionTuple")
+    env.AddMethod(lambda env: extractOsVersion(env['PLATFORM']), "getOsVersionTuple")
 
     # tool initialization, previously done in <scons>/Tool/default.py
     for t in SCons.Tool.tool_list(platf, env):

@@ -37,22 +37,22 @@ def findPlatformTargets(
         dir_has_to_match=True,
         strict_lib_name_matching=False):
     bitwidth = env.getBitwidth()
-    libRE = ''
+    targetRE = ''
     for pre in prefixes:
-        if libRE:
-            libRE += '|'
-        libRE += re.escape(env.subst(pre))
-    libRE = '(' + libRE + ')'
+        if targetRE:
+            targetRE += '|'
+        targetRE += re.escape(env.subst(pre))
+    targetRE = '(' + targetRE + ')'
     # probably there are files like 'targetname64' or 'targetname_r':
-    libRE += '(' + targetname + (
+    targetRE += '(' + targetname + (
         '' if strict_lib_name_matching else '[^.]*') + ')'
-    libSFX = ''
+    targetSFX = ''
     for suf in suffixes:
-        if libSFX:
-            libSFX += '|'
-        libSFX += re.escape(env.subst(suf))
-    libRE += '(' + libSFX + ')(.*)'
-    reLibname = re.compile(libRE)
+        if targetSFX:
+            targetSFX += '|'
+        targetSFX += re.escape(env.subst(suf))
+    targetRE += '(' + targetSFX + ')(.*)'
+    reTargetname = re.compile(targetRE)
 
     if dir_has_to_match:
         osStringSep = '[_-]'
@@ -79,28 +79,28 @@ def findPlatformTargets(
             continue
 
         for name in filenames:
-            libMatch = reLibname.match(name)
-            if not libMatch:
+            targetMatch = reTargetname.match(name)
+            if not targetMatch:
                 continue
             bits = '32'
             reM = None
-            lib_os_version = None
+            target_os_version = None
             if len(dirMatch.groups()) > 2:
                 reM = reBits.match(dirMatch.group(3))
                 if reM:
                     bits = reM.group(1)
-                lib_os_version = tuple([int(x)
+                target_os_version = tuple([int(x)
                                         for x in dirMatch.group(1).split('.')])
 
             files.append(
-                {'lib_os_version': lib_os_version, 'bits': bits,
-                 'file': libMatch.group(0),
-                 'path': dirpath, 'linkfile': libMatch.group(0).replace(
-                     libMatch.group(4),
+                {'target_os_version': target_os_version, 'bits': bits,
+                 'file': targetMatch.group(0),
+                 'path': dirpath, 'linkfile': targetMatch.group(0).replace(
+                     targetMatch.group(4),
                      ''),
-                 'filewoext': libMatch.group(2),
-                 'suffix': libMatch.group(3),
-                 'libVersion': libMatch.group(4), })
+                 'filewoext': targetMatch.group(2),
+                 'suffix': targetMatch.group(3),
+                 'libVersion': targetMatch.group(4), })
 
     if not dir_has_to_match:
         return files
@@ -112,21 +112,21 @@ def findPlatformTargets(
     # filter out wrong bit sizes
     files = [entry for entry in files if entry['bits'] == bitwidth]
 
-    # check for best matching lib_os_version entry, downgrade if non exact
+    # check for best matching target_os_version entry, downgrade if non exact
     # match
     files.sort(
         cmp=lambda l,
         r: cmp(
-            l['lib_os_version'],
-            r['lib_os_version']),
+            l['target_os_version'],
+            r['target_os_version']),
         reverse=True)
     osvermatch = None
     current_os_version = env.getOsVersionTuple()
     for entry in files:
-        if entry['lib_os_version'] <= current_os_version:
-            osvermatch = entry['lib_os_version']
+        if entry['target_os_version'] <= current_os_version:
+            osvermatch = entry['target_os_version']
             break
-    files = [entry for entry in files if entry['lib_os_version'] == osvermatch]
+    files = [entry for entry in files if entry['target_os_version'] == osvermatch]
     # shorter names are sorted first to prefer libtargetname.so over
     # libtargetname64.so
     files.sort(cmp=lambda l, r: cmp(len(l['filewoext']), len(r['filewoext'])))

@@ -210,7 +210,7 @@ class Win32Finder(LibFinder):
     def __findFileInPath(self, filename, paths):
         for path in paths:
             if os.path.isfile(os.path.join(path, filename)):
-                return os.path.get_abspath()(os.path.join(path, filename))
+                return os.path.abspath(os.path.join(path, filename))
         return None
 
     def getLibs(self, env, source, libnames=None, libdirs=None):
