@@ -31,7 +31,7 @@ from logging import getLogger
 from SCons.Tool import DefaultToolpath
 
 __author__ = "Marcel Huber <marcel.huber@hsr.ch>"
-__version__ = "0.3.8"
+__version__ = "0.3.9"
 
 _base_path = os.path.dirname(__file__)
 sys.path[:0] = [_base_path]
@@ -256,15 +256,16 @@ try:
                 exc_info=False)
 
     launchDir = Dir(SCons.Script.GetLaunchDir())
+    dirfilter = lambda directory: True
+    def namefilter(packagename):
+        return dirfilter(
+            packageRegistry.getPackageDir(packagename))
+
     if GetOption("climb_up") in [1, 3]:  # 1: -u, 3: -U
         if GetOption("climb_up") == 1:
             dirfilter = lambda directory: directory.is_under(launchDir)
         else:
             dirfilter = lambda directory: directory == launchDir
-
-        def namefilter(packagename):
-            return dirfilter(
-                packageRegistry.getPackageDir(packagename))
 
     try:
         buildtargets = SCons.Script.BUILD_TARGETS
