@@ -249,7 +249,7 @@ try:
             #  from TargetNotFound
             raise
         except PackageRegistry.TargetNotFound as e:
-            if not GetOption('ignore-missing'):
+            if not GetOption('ignore-missing') and not GetOption('help'):
                 raise
             logger.warning(
                 '{0}'.format(e),
@@ -299,7 +299,7 @@ try:
 
 except (PackageRegistry.PackageNotFound, PackageRegistry.TargetNotFound, PackageRegistry.PackageRequirementsNotFulfilled) as e:
     if not isinstance(e, PackageRegistry.PackageRequirementsNotFulfilled):
-        logger.error('{0}'.format(e), exc_info=True)
+        logger.error('{0}'.format(e), exc_info=False)
     if not GetOption('help'):
         raise SCons.Errors.UserError(
             '{0}, build aborted!'.format(e))

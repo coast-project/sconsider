@@ -110,9 +110,16 @@ class TargetNotFound(Exception):
 
     def __init__(self, name):
         self.name = name
+        self.lookupStack = []
+
+    def prependItem(self, lookupItem):
+        self.lookupStack[0:0] = [lookupItem]
 
     def __str__(self):
-        return 'Target [{0}] not found'.format(self.name)
+        message = 'Target [{0}] not found'.format(self.name)
+        if len(self.lookupStack):
+            message += ', required by [{0}]'.format('>'.join(self.lookupStack))
+        return message
 
 
 class PackageNotFound(TargetNotFound):
@@ -147,6 +154,7 @@ class PackageRegistry:
         import SCons
         self.env = env
         self.packages = {}
+        self.lookupStack = []
         if not SCons.Util.is_List(scan_dirs):
             scan_dirs = [scan_dirs]
         startDir = SCons.Script.Dir('#')
@@ -369,14 +377,17 @@ class PackageRegistry:
                     packagedir.path).Dir(
                     self.env.getRelativeBuildDirectory()).Dir(
                     self.env.getRelativeVariantDirectory())
-                logger.info(
-                    'executing [%s] as SConscript for package [%s]',
+                message = 'executing [{0}] as SConscript for package [{1}]'.format(
                     packagefile.path,
                     packagename)
+                if self.lookupStack:
+                    message += ' required by [{0}]'.format('>'.join(self.lookupStack))
+                logger.info(message)
                 exports = {
                     'packagename': packagename,
                     'registry': self
                 }
+                self.lookupStack.append(fulltargetname)
                 try:
                     self.env.SConscript(
                         packagefile,
@@ -391,7 +402,11 @@ class PackageRegistry:
                         packagefile,
                         e)
                 except TargetNotFound as e:
+                    e.prependItem(fulltargetname)
                     raise e
+                finally:
+                    if len(self.lookupStack):
+                        del self.lookupStack[len(self.lookupStack)-1]
             if targetname:
                 return self.getPackageTarget(packagename, targetname)
         return None
