@@ -23,7 +23,7 @@ from SConsider.PackageRegistry import targetnameseparator,\
     splitTargetname, createUniqueTargetname, generateFulltargetname,\
     PackageNotFound, TargetNotFound
 from SCons.Script import Dir, File, GetOption
-from SomeUtils import copyFileNodes, multiple_replace
+import SomeUtils
 from logging import getLogger
 logger = getLogger(__name__)
 
@@ -147,7 +147,7 @@ class TargetMaker:
             if str(env['PLATFORM']) not in ["cygwin", "win32"]:
                 mode = stat.S_IREAD
                 mode |= stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
-            instTargets = copyFileNodes(
+            instTargets = SomeUtils.copyFileNodes(
                 env,
                 self.prepareFileNodeTuples(
                     ifiles,
@@ -175,7 +175,7 @@ class TargetMaker:
             if str(env['PLATFORM']) in ["cygwin", "win32"]:
                 mode = None
             instTargets.extend(
-                copyFileNodes(
+                SomeUtils.copyFileNodes(
                     env,
                     self.prepareFileNodeTuples(
                         files,
@@ -373,7 +373,10 @@ class TargetMaker:
                     targetname)
                 public_execenv = settings.get('public', {}).get('execEnv', {})
                 for key, value in public_execenv.iteritems():
-                    env['ENV'][key] = target.env.subst(value)
+                    if callable(value):
+                        env['ENV'][key] = value(target.env)
+                    else:
+                        env['ENV'][key] = target.env.subst(value)
                 reqTargets = settings.get(
                     'linkDependencies', []) + settings.get('requires', [])
                 self.setExecEnv(env, reqTargets)
@@ -409,7 +412,7 @@ class TargetMaker:
             try:
                 strTargetType = plaintarget.builder.get_name(plaintarget.env)
                 if strTargetType.find('Library') != -1:
-                    libname = multiple_replace([
+                    libname = SomeUtils.multiple_replace([
                         ('^' + re.escape(env.subst("$LIBPREFIX")), ''),
                         (re.escape(env.subst("$LIBSUFFIX")) + '$', ''),
                         ('^' + re.escape(env.subst("$SHLIBPREFIX")), ''),
