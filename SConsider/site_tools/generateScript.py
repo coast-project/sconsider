@@ -60,7 +60,7 @@ def generateShellScript(scriptFile, env, binpath):
             stringToReturn += exportvars + '\n'
         return stringToReturn
 
-    scriptText = """#!/bin/sh
+    scriptText = """#!/bin/bash
 # -------------------------------------------------------------------------
 # Copyright (c) """ + datetime.date.today().strftime('%Y') + """, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
@@ -83,21 +83,27 @@ doChangeDir=1
 doDebug=0
 doDebugServer=0
 doTrace=0
+declare -a cmdArr
+doCommandWithArgs=0
 
 showhelp()
 {
     echo ''
     echo 'usage: '$MYNAME' [options]'
     echo 'where options are:'
-    echo ' -d            : run under debugger control (gdb)'
-    echo ' -e            : run under debugger control in your IDE (gdbserver)'
-    echo ' -S            : do not change directory before executing target, eg. Stay in current directory'
-    echo ' -v            : verbose mode'
+    echo ' -d             : run under debugger control (gdb)'
+    echo ' -e             : run under debugger control in your IDE (gdbserver)'
+    echo ' -S             : do not change directory before executing target'
+    echo '                  eg. stay in current directory for executino'
+    echo ' -x <tool|opts> : run <tool tool-opts server-command server-options>'
+    echo '                  to specify tool options, use multiple -x <opts> options'
+    echo ' -v             : verbose mode'
     echo .
     exit 3;
 }
 
-while getopts ":deSv-" opt
+OPTIND=1
+while getopts ":deSvx:-" opt
 do
     case $opt in
         :)
@@ -115,6 +121,9 @@ do
         ;;
         v)
             doTrace=1;
+        ;;
+        x)
+            cmdArr=(${cmdArr[@]} $OPTARG);
         ;;
         -)
             break;
@@ -146,11 +155,16 @@ searchBaseDirUp()
     echo "$basePath";
 }
 
+die() {
+    printf "%s\n" "$@";
+    exit 1;
+}
+
 """ + expandvars(env, defaultExpansions) + """
 # find the base directory
 LIBDIR_BASE="`searchBaseDirUp \\"${SCRIPTPATH}\\" \\"${LIBDIR}\\"`"
 
-test -n "${LIBDIR_BASE}" || ( echo "Base directory not found containing [$LIBDIR], exiting."; exit 1 )
+test -n "${LIBDIR_BASE}" || die "No base directory found containing library directory [$LIBDIR], exiting."
 
 ABS_LIBDIR="${LIBDIR_BASE}/${LIBDIR}"
 test -d "${ABS_LIBDIR}/${VARIANTDIR}" && ABS_LIBDIR="${ABS_LIBDIR}/$VARIANTDIR"
@@ -160,7 +174,7 @@ export """ + libpathvariable + """
 
 BINDIR_BASE="`searchBaseDirUp \\"${SCRIPTPATH}\\" \\"${BINDIR}\\"`"
 
-test -n "${BINDIR_BASE}" || ( echo "Base directory not found containing [$BINDIR], exiting."; exit 1 )
+test -n "${BINDIR_BASE}" || die "No base directory found containing binary directory [$BINDIR], exiting."
 
 ABS_BINDIR="${BINDIR_BASE}/${BINDIR}"
 test -d "${ABS_BINDIR}/${VARIANTDIR}" && ABS_BINDIR="${ABS_BINDIR}/$VARIANTDIR"
@@ -214,25 +228,32 @@ EOF
 }
 
 CMD="${ABS_BINDIR}/${BINARYNAME}"
-test -x "${CMD}" || ( echo "binary [${CMD}] is not executable, aborting!"; exit 1 )
+test -x "${CMD}" || die "binary [${CMD}] is not executable, aborting!"
 
 test ${doChangeDir} -eq 1 -a -d "${BINDIR_BASE}" && cd "${BINDIR_BASE}"
 
 test ${doTrace} -eq 1 && ( cat <<EOF
 Executing command [${CMD}]
-`test -z "$@" || echo " with arguments   [$@]"`
+ with arguments   [$@]
  in directory     [`pwd`]
 EOF
 )
 
+toolPath=$(which ${cmdArr[0]} 2>/dev/null)
+if [ -n "$toolPath" ]; then
+    doCommandWithArgs=1
+fi
 if [ ${doDebug:-0} -eq 1 ]; then
     cfg_gdbcommands=\"""" + (tempfile.gettempdir() + os.sep).replace('\\', '/') + """`basename \\"$0\\"`_$$";
     generateGdbCommandFile "${cfg_gdbcommands}" "$CMD" 0 "$@"
     test ${doTrace} -eq 1 && echo "Generated gdb command file:"
     test ${doTrace} -eq 1 && cat ${cfg_gdbcommands}
     gdb --command ${cfg_gdbcommands}
-elif [ ${doDebugServer:-0} -eq 1 ]; then
-    gdbserver :${GDBSERVERPORT} "${CMD}"
+elif [ ${doDebugServer:-0} -eq 1 -a -x "$(which gdbserver)" ]; then
+    gdbserver :${GDBSERVERPORT} "${CMD}" "$@"
+elif [ ${doCommandWithArgs:-0} -eq 1 ]; then
+    test ${doTrace} -eq 1 && echo "executing command [${cmdArr[*]} ${CMD} $@]"
+    eval "${cmdArr[*]} ${CMD} $@"
 else
     "$CMD" "$@"
 fi
