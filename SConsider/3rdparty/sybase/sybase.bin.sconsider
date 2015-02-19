@@ -47,7 +47,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5.dev"):
             'appendUnique': {'RELTARGETDIR': os.path.join('globals', packagename)},
             'public': {
                 'execEnv': {
-                    'SYBASE': os.path.join('$BASEOUTDIR', '$RELTARGETDIR'),
+                    'SYBASE': lambda env: env.getTargetBaseInstallDir().abspath,
                     'LANG': 'C',
                 },
             },

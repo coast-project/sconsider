@@ -169,6 +169,18 @@ replaceDoCheckStoresInTestCode = (
         'anyFailureStrings, '
 )
 
+replaceBaseoutdirReltargetdir = (
+    re.compile(r'\b(?P<envname>[\w.]+)\b\[(?P<quote1>.)BASEOUTDIR(?P=quote1)\]\.Dir\s*\(\s*(?P=envname)\[(?P<quote2>.)RELTARGETDIR(?P=quote2)\]\)', re.M),
+    lambda mo:
+        str(mo.group(1)) + '.getTargetBaseInstallDir()'
+)
+
+replaceLogInstallDir = (
+    re.compile(r'\b(?P<envname>[\w.]+)\b\[(?P<quote1>.)BASEOUTDIR(?P=quote1)\]\.Dir\s*\(\s*(?P=envname)\[(?P<quote2>.)RELTARGETDIR(?P=quote2)\]\)\.Dir\s*\(\s*(?P=envname)\[(?P<quote3>.)LOGDIR(?P=quote3)\]\).Dir\s*\(\s*(?P=envname)\[(?P<quote4>.)VARIANTDIR(?P=quote4)\]\)', re.M),
+    lambda mo:
+        str(mo.group(1)) + '.getLogInstallDir()'
+)
+
 from ChangeImportLines import reAny, reShell, reCpp, reHeader, reSconsider
 
 
@@ -224,4 +236,6 @@ def extendReplaceFuncMap(extensionToReplaceFuncMap):
         adjustUniqueIdGen,
     ])
     extensionToReplaceFuncMap[reSconsider].extend([
+        replaceLogInstallDir,
+        replaceBaseoutdirReltargetdir,
     ])
