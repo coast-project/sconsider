@@ -156,6 +156,50 @@ replacementFromDate = time.mktime(
         '%Y%m%d%H%M%S'))
 reCopyYear = re.compile(r"(Copyright \(c\) )(\d{4})?(, Peter Sommerlad)?")
 
+"""
+//--- interface include --------------------------------------------------------
+#include "TraceUtilsTest.h"
+
+//--- module under test --------------------------------------------------------
+#include "TraceUtils.h"
+
+//--- test modules used --------------------------------------------------------
+#include "TestSuite.h"
+
+//--- project modules used -----------------------------------------------------
+#include "PDNEMsg.h"
+#include "MutterGeraet.h"
+#include "Router.h"
+
+//--- standard modules used ----------------------------------------------------
+#include "Tracer.h"
+#include "System.h"
+#include "StringStream.h"
+"""
+#reIncludeCommentBloat = re.compile(r"(^[ \t]*$\s)*^//[- ]--*[ \t]*.*[ \t]*--+[ \t]*$\s+#", re.M)
+reIncludeCommentBloat = re.compile(r"(^[ \t]*$\s)*^//[- ]--*[ \t]*.*[ \t]*--+[ \t]*$\s(^[ \t]*$\s)*", re.M)
+def insertNewLineIfAtLeastOneWasThere(mo):
+    if mo.group(1) or mo.group(2):
+        return "\n"
+    return ""
+
+includeCommentBloatReplace = (
+    reIncludeCommentBloat,
+    lambda mo: insertNewLineIfAtLeastOneWasThere(mo))
+
+"""
+//---- TraceUtilsTest ----------------------------------------------------------------
+TraceUtilsTest::TraceUtilsTest...
+"""
+reClassnameCommentHeader = re.compile(r"(^[ \t]*$\s)*^//--*[ \t]*(?P<classname>\w+)[ \t]*--+[ \t]*$\s+(?P<classline>^(class\s*(?P=classname)|(?P=classname)::))", re.M)
+classnameCommentHeaderReplace = (
+    reClassnameCommentHeader,
+    lambda mo: "\n"+mo.group('classline'))
+
+reTestsuiteHeader = re.compile(r"^// builds up a suite of testcases, add a line for each testmethod\s*", re.M)
+testsuiteHeaderReplace = (
+    reTestsuiteHeader,
+    "")
 
 def multiple_replace(replist, text):
     """Using a list of tuples (pattern, replacement) replace all occurrences of
@@ -372,6 +416,9 @@ fgExtensionToReplaceFuncMap = {
         cleanWebDisplay,
         cleanWD2,
         cleanEXPORTDECL,
+        includeCommentBloatReplace,
+        classnameCommentHeaderReplace,
+        testsuiteHeaderReplace,
     ],
     reHeader: [
         rcsidReplace,
@@ -383,6 +430,8 @@ fgExtensionToReplaceFuncMap = {
         cleanWebDisplay,
         cleanWD2,
         cleanEXPORTDECL,
+        includeCommentBloatReplace,
+        classnameCommentHeaderReplace,
     ],
     reText: [],
     reDoxy: [

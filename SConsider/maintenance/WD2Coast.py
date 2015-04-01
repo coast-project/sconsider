@@ -130,10 +130,10 @@ replaceMetathing5 = (
         ' = Anything(Anything::ArrayMarker());'
 )
 
-# putAnyMapperReplacements = (
-#     re.compile(
-#         r'(Do(Final)?PutAny(\w+)?\(\s*const\s*char([^,]+)?,\s*Anything)\s+(value)'),
-#     lambda mo: str(mo.group(1)) + ' const &' + str(mo.group(5)))
+putAnyMapperReplacements = (
+    re.compile(
+        r'(Do(Final)?PutAny(\w+)?\(\s*const\s*char([^,]+)?,\s*Anything)\s+(value)'),
+    lambda mo: str(mo.group(1)) + ' &' + str(mo.group(5)))
 
 removeConfigIncludes = (
     re.compile(r'^#include\s*.config_[^.]*\.h.*\s*$\s', re.M),
@@ -181,6 +181,24 @@ replaceLogInstallDir = (
         str(mo.group(1)) + '.getLogInstallDir()'
 )
 
+replaceStringNposForCharacterFindFunctionsFailure = (
+    re.compile(r'^(?P<function>Contains|FirstCharOf|ContainsCharAbove|LastCharOf|StrChr|StrRChr)(?P<fnargs>\([^)]*\))'
+               '\s*(?P<comparison><\s*0|==\s*-1L?)', re.M),
+    lambda mo:
+        str(mo.group('function')) +
+        str(mo.group('fnargs')) +
+        '== String::npos'
+)
+
+replaceStringNposForCharacterFindFunctionsSuccess = (
+    re.compile(r'^(?P<function>Contains|FirstCharOf|ContainsCharAbove|LastCharOf|StrChr|StrRChr)(?P<fnargs>\([^)]*\))'
+               '\s*(?P<comparison>!=\s*-1L?|>=?\s*0L?)', re.M),
+    lambda mo:
+        str(mo.group('function')) +
+        str(mo.group('fnargs')) +
+        '!= String::npos'
+)
+
 from ChangeImportLines import reAny, reShell, reCpp, reHeader, reSconsider
 
 
@@ -207,12 +225,14 @@ def extendReplaceFuncMap(extensionToReplaceFuncMap):
         replaceMetathing3,
         replaceMetathing4,
         replaceMetathing5,
-#         putAnyMapperReplacements,
+        putAnyMapperReplacements,
         removeConfigIncludes,
         removeOnlyStdIostream,
         adjustUniqueIdGen,
         replaceDoCheckStores,
         replaceDoCheckStoresInTestCode,
+#        replaceStringNposForCharacterFindFunctionsFailure,
+#        replaceStringNposForCharacterFindFunctionsSuccess,
     ])
     extensionToReplaceFuncMap[reHeader].extend([
         lowerCaseNamespaces,
@@ -230,7 +250,7 @@ def extendReplaceFuncMap(extensionToReplaceFuncMap):
         replaceMetathing2,
         replaceMetathing3,
         replaceMetathing4,
-#         putAnyMapperReplacements,
+        putAnyMapperReplacements,
         removeConfigIncludes,
         removeOnlyStdIostream,
         adjustUniqueIdGen,
