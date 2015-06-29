@@ -540,7 +540,7 @@ def processFiles(
                             astyleFiles.append(fname)
                     break
             if didMatch and didReplace and options.verbose:
-                print "replaced in file %s" % (fname)
+                print('replaced in file {0}'.format(fname))
 
     if astyleFiles and doAstyle:
         astyleCmd = ["astyle", "--quiet", "--suffix=none", "--mode=c"]
@@ -625,7 +625,7 @@ def healDictFile(options, filesToProcess):
                 print >> sys.stderr, line
 
     for k, v in remainDict.iteritems():
-        print "%s %s" % (k, v)
+        print('{0} {1}'.format(k, v))
 
     writeDictToFile(options.dictfilename, newDict)
     sys.exit()

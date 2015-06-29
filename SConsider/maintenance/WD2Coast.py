@@ -199,12 +199,44 @@ replaceStringNposForCharacterFindFunctionsSuccess = (
         '!= String::npos'
 )
 
+def prefixfun(mo, pref):
+    out = ''
+    if not mo.group('prefix'):
+        out += str(mo.group(1))
+    else:
+        out += pref
+    return out
+
+lookupStringPrefix = r'((?P<prefix>\b[\w]+\b\.)|[\t {])'
+replaceClientInfoLookups = (
+    re.compile(lookupStringPrefix + r'\b(?P<slotname>REMOTE_ADDR|REMOTE_PORT|HTTPS)\b', re.M),
+    lambda mo:
+        prefixfun(mo, '') + 'ClientInfo.' + str(mo.group('slotname'))
+)
+
+requestReaderMapping = { 'HttpStatusCode': 'ResponseCode',
+                        'HttpResponseMsg': 'ResponseMsg',
+                        'Reason': 'ErrorMessage',
+                        'FaultyRequestLine': 'FaultyContent'
+                        }
+
+replaceRequestReaderSlotnames = (
+    re.compile(lookupStringPrefix + r'\b(?P<slotname>'+ '|'.join(requestReaderMapping.keys()) + r')\b', re.M),
+    lambda mo:
+        prefixfun(mo, '') +
+        '{ /Lookup { RequestProcessorErrorSlot } ":0.' +
+        requestReaderMapping.get(str(mo.group('slotname')),'MappingFor['+str(mo.group('slotname'))+']NotExisting') +
+        '" }'
+)
+
 from ChangeImportLines import reAny, reShell, reCpp, reHeader, reSconsider
 
 
 def extendReplaceFuncMap(extensionToReplaceFuncMap):
     extensionToReplaceFuncMap[reAny] = [
         replaceDoCheckStores,
+        replaceClientInfoLookups,
+        replaceRequestReaderSlotnames
     ]
     extensionToReplaceFuncMap[reShell].extend([
     ])
