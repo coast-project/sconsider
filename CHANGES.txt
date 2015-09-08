@@ -1,7 +1,130 @@
-Changelog
-=========
+Release (HEAD -> master, tag: 0.3.10)
+-------------
 
-Release (HEAD, tag: 0.3.9, master)
+-   2015-09-09 Marcel Huber
+
+    SConsider 0.3.10: improvements and bugfixes
+
+    - internal restructuring for better error hinting in case of
+     tool or sconsider file errors
+    - wrapper script extension to allow execution of any program with
+     its options
+    - check CHANGES.txt for more detailed change description
+
+    Change-Id: I6f113b2f7932d57f0a7c1260b2750119f36dd509
+
+
+
+-   2015-09-08 Marcel Huber
+
+    PackageRegistry: getRealTarget moved in from TargetMaker
+
+    - getRealTarget acts as a helper when wanting to find a real target,
+     not an Alias node, from either a simple target string or an existing
+     scons target
+
+    Change-Id: I75bb4c75c54bff236968891c2f3e053e1a78eaef
+
+
+
+-   2015-09-08 Marcel Huber
+
+    scons tools: better hinting in case a tool fails to load
+
+    - during environment cloning, a failing tool will not be reported
+     in case of an error, we now load each tool separately to get more
+     specific hints of the cause
+
+    Change-Id: I65978e48548548c1940f8d6318010233648a274f
+
+
+
+-   2015-09-08 Marcel Huber
+
+    PackageRegistry: Exception handling fixed, moved static functions
+
+    - Exceptions from PackageRegistry were not referenced correctly
+     It is vital to fully qualify their location when using from keyword
+    - functions like splitFulltargetname and others are now static methods
+     of PackageRegistry
+    - adapted tests too
+    - using ssl._create_unverified_context(), if available, in
+    SecureHTTPSServerTest
+     to not fail with our self signed certificate
+
+    Change-Id: I068b2e7bf72f8664dadb22a031d14fda76fa77c1
+
+
+
+-   2015-06-29 Marcel Huber
+
+    update of WD2Coast search/replace expressions
+
+    Change-Id: I4a5464b3003a5e97dd5d4bd04ccb3f498aaecfa7
+
+
+
+-   2015-04-01 Marcel Huber
+
+    extended/corrected search/replace expressions
+
+    new REs to find/replace String::npos stuff
+
+    Change-Id: I84fdbdb889c9eba7638ceae9c68d4dbc6f8f57e3
+
+
+
+-   2015-04-01 Marcel Huber
+
+    aborting with user error in case setupBuildTools is not loaded
+
+    Change-Id: I6c03d749ced0eae33f2361e9b57cf57ace2ea651
+
+
+
+-   2015-02-19 Marcel Huber
+
+    added -x option to execute the real binary from within any other tool
+
+    you might add -x valgrind -x --trace-children=yes for example to let
+    valgrind analyze your executable
+
+    corrected exiting in case requirements are not met
+
+    Change-Id: I459ca28d8b30ec1d431430452279a47b9b310ca8
+
+
+
+-   2015-02-19 Marcel Huber
+
+    allowing callables from within public.execEnv
+
+    only using fully qualified external methods
+
+    Change-Id: Ib0b46dd19243af5acf578a137901ebef7a691509
+
+
+
+-   2015-02-19 Marcel Huber
+
+    improved message in case a Target can not be found
+
+    added printing of requiring target to better found source of error
+
+    Change-Id: I0ad13607770cebc927c2ef274d3591245f87ef4b
+
+
+
+-   2015-02-19 Marcel Huber
+
+    consequently using getTargetBaseInstallDir and getLogInstallDir
+
+    extended ChangeImportLines to automatically replace these
+
+    Change-Id: Id094d63a0cf65fc19d3890bc866a98d2c45815fe
+
+
+Release (tag: 0.3.9)
 -------------
 
 -   2014-12-08 Marcel Huber
@@ -133,7 +256,7 @@ Release (tag: 0.3.6)
     added feature to add symlinks to installed and versioned third party
     libraries
 
-    exchanged env var accesses with corresponding environment methods where 
+    exchanged env var accesses with corresponding environment methods where
     applicable, see OutputDirectoryHelper.py for available methods
 
     moved variantdir handling from SConsider into OutputDirectoryHelper tool
@@ -204,7 +327,7 @@ Release (tag: 0.3.5)
 
     sconsider: version specific target creation
 
-    moved current buildSettings target creation into version specific section 
+    moved current buildSettings target creation into version specific section
     which allows for future extension
 
     Change-Id: I669b6feb00f48edfe0b7a53ed5b73ff60e969c2d
@@ -1107,7 +1230,7 @@ Release (tag: coast_2010_1.2)
 
     fixed a bug in RunBuilder which was caused because of SCons issue 2460
 
-    The following bug seems to be fixed in newer versions of SCons (2.0+). 
+    The following bug seems to be fixed in newer versions of SCons (2.0+).
     Alias with depends instead of sources is never rebuilt:
     http://scons.tigris.org/issues/show_bug.cgi?id=2460
 
@@ -2453,7 +2576,7 @@ Release (tag: coast_2010_1.1)
 
         cleanup of old files
 
-    commit ba4abe8490674f590661c7c8ac6f5efc5862e511 Merge: cfecd9d f10e5a9 
+    commit ba4abe8490674f590661c7c8ac6f5efc5862e511 Merge: cfecd9d f10e5a9
     Author: Marcel Huber <m1huber@hsr.ch> Date:   Fri Jul 10 08:02:13 2009
     +0200
 
