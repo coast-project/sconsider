@@ -55,8 +55,8 @@ def collectPackages(directory, direxcludesrel=[]):
         packages.setdefault(
             match.group('packagename'), {})[
             match.group('type')] = fileobj
-    from PackageRegistry import collectPackageFiles
-    collectPackageFiles(
+    import SConsider.PackageRegistry
+    SConsider.PackageRegistry.PackageRegistry.collectPackageFiles(
         directory,
         '^(?P<packagename>.*)\.(?P<type>sys|src|bin)\.sconsider$',
         scanmatchfun,

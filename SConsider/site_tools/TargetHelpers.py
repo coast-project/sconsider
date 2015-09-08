@@ -20,8 +20,20 @@ from logging import getLogger
 logger = getLogger(__name__)
 
 
+def getUsedTarget(env, buildSettings):
+    from SConsider import getRegistry, splitTargetname
+    plaintarget = None
+    usedFullTargetname = buildSettings.get('usedTarget', None)
+    if usedFullTargetname:
+        usedPackagename, usedTargetname = splitTargetname(
+            usedFullTargetname, default=True)
+        plaintarget = getRegistry().loadPackagePlaintarget(
+            usedPackagename,
+            usedTargetname)
+    return plaintarget
+
+
 def usedOrProgramTarget(env, name, sources, buildSettings):
-    from PackageRegistry import getUsedTarget
     plaintarget = getUsedTarget(env, buildSettings)
     if not plaintarget:
         # env.File is a workaround, otherwise if an Alias with the same 'name'

@@ -106,7 +106,17 @@ class SecureHTTPServerTest(unittest.TestCase):
 
     def testStopWithoutException(self):
         try:
-            urllib.urlopen('https://%s:%d/' % self.server_address)
+            import ssl
+            try:
+                urllib.urlopen(
+                    'https://%s:%d/' %
+                    self.server_address,
+                    context=ssl._create_unverified_context())
+            except (TypeError, AttributeError):
+                # old version does not take a context argument
+                # or _create_unverified_context might not be defined in ssl
+                # module
+                urllib.urlopen('https://%s:%d/' % self.server_address)
             exc = self.bucket.get(block=True, timeout=1)
             exc_type, exc_obj, exc_trace = exc
             if exc_type is TypeError:

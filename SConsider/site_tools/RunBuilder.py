@@ -28,7 +28,7 @@ import SCons.Action
 import SCons.Builder
 import SCons.Script
 from SCons.Script import AddOption, GetOption
-from SConsider.PackageRegistry import createFulltargetname, splitFulltargetname
+import SConsider.PackageRegistry
 from TargetMaker import getRealTarget
 import Callback
 from SomeUtils import hasPathPart, isFileNode, isDerivedNode,\
@@ -318,7 +318,8 @@ def createRunTarget(
 
     if not SCons.Util.is_List(source):
         source = [source]
-    fullTargetName = createFulltargetname(packagename, targetname)
+    fullTargetName = SConsider.PackageRegistry.PackageRegistry.createFulltargetname(
+        packagename, targetname)
 
     logfile = env.getLogInstallDir().File(targetname + '.run.log')
     runner = env.RunBuilder(
@@ -353,12 +354,14 @@ def composeRunTargets(
         buildSettings,
         defaultRunParams=''):
     targets = []
-    for ftname in buildSettings.get('requires', []) + buildSettings.get('linkDependencies', []):
-        otherPackagename, otherTargetname = splitFulltargetname(ftname)
+    for ftname in buildSettings.get(
+            'requires', []) + buildSettings.get('linkDependencies', []):
+        otherPackagename, otherTargetname = SConsider.PackageRegistry.PackageRegistry.splitFulltargetname(
+            ftname)
         targets.extend(getTargets(otherPackagename, otherTargetname))
     return env.Alias(
         'dummyRunner_' +
-        createFulltargetname(
+        SConsider.PackageRegistry.PackageRegistry.createFulltargetname(
             packagename,
             targetname),
         targets)
@@ -441,7 +444,8 @@ def generate(env):
 
     def addBuildTargetCallback(**kw):
         for ftname in SCons.Script.COMMAND_LINE_TARGETS:
-            packagename, targetname = splitFulltargetname(ftname)
+            packagename, targetname = SConsider.PackageRegistry.PackageRegistry.splitFulltargetname(
+                ftname)
             SCons.Script.BUILD_TARGETS.extend(
                 getTargets(
                     packagename,

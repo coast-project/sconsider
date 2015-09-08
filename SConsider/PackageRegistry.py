@@ -22,90 +22,6 @@ from logging import getLogger
 logger = getLogger(__name__)
 
 
-targetnameseparator = '.'
-
-
-def splitFulltargetname(fulltargetname, default=False):
-    """Split fulltargetname into packagename and targetname."""
-    parts = fulltargetname.split(targetnameseparator)
-    pkgname = parts[0]
-    targetname = None
-    if len(parts) > 1:
-        targetname = parts[1]
-    elif default:
-        targetname = pkgname
-    return (pkgname, targetname)
-
-
-def splitTargetname(fulltargetname, default=False):
-    return splitFulltargetname(fulltargetname, default)
-
-
-def createFulltargetname(packagename, targetname=None, default=False):
-    """Generate fulltargetname using packagename and targetname."""
-    if not targetname:
-        if default:
-            return packagename + targetnameseparator + packagename
-        else:
-            return packagename
-    else:
-        return packagename + targetnameseparator + targetname
-
-
-def generateFulltargetname(packagename, targetname=None, default=False):
-    return createFulltargetname(packagename, targetname, default)
-
-
-def createUniqueTargetname(packagename, targetname):
-    return packagename + targetname if packagename != targetname else targetname
-
-
-def getUsedTarget(env, buildSettings):
-    plaintarget = None
-    usedFullTargetname = buildSettings.get('usedTarget', None)
-    if usedFullTargetname:
-        usedPackagename, usedTargetname = splitTargetname(
-            usedFullTargetname, default=True)
-        from SConsider import getRegistry
-        plaintarget = getRegistry().loadPackagePlaintarget(
-            usedPackagename,
-            usedTargetname)
-    return plaintarget
-
-
-def collectPackageFiles(
-        directory,
-        filename_re,
-        matchfun,
-        file_ext='sconsider',
-        excludes_rel=[],
-        excludes_abs=[]):
-    """Recursively collects SConsider packages.
-
-    Walks recursively through 'directory' to collect package files
-    but skipping dirs in 'excludes_rel' and absolute dirs
-    from 'exclude_abs'.
-
-    """
-    import fnmatch
-    package_re = re.compile(filename_re)
-    followlinks = False
-    if sys.version_info[:2] >= (2, 6):
-        followlinks = True
-    for root, dirnames, filenames in os.walk(directory,
-                                             followlinks=followlinks):
-        _root_pathabs = os.path.abspath(root)
-        dirnames[:] = filter(
-            lambda dirname: dirname not in excludes_rel and os.path.join(
-                _root_pathabs,
-                dirname) not in excludes_abs,
-            dirnames)
-        for filename in fnmatch.filter(filenames, '*.' + file_ext):
-            match = package_re.match(filename)
-            if match:
-                matchfun(root, filename, match)
-
-
 class TargetNotFound(Exception):
 
     def __init__(self, name):
@@ -144,6 +60,76 @@ class PackageRequirementsNotFulfilled(Exception):
 
 
 class PackageRegistry:
+    targetnameseparator = '.'
+
+    @staticmethod
+    def splitFulltargetname(fulltargetname, default=False):
+        """Split fulltargetname into packagename and targetname."""
+        parts = fulltargetname.split(PackageRegistry.targetnameseparator)
+        pkgname = parts[0]
+        targetname = None
+        if len(parts) > 1:
+            targetname = parts[1]
+        elif default:
+            targetname = pkgname
+        return (pkgname, targetname)
+
+    @staticmethod
+    def splitTargetname(fulltargetname, default=False):
+        return PackageRegistry.splitFulltargetname(fulltargetname, default)
+
+    @staticmethod
+    def createFulltargetname(packagename, targetname=None, default=False):
+        """Generate fulltargetname using packagename and targetname."""
+        if not targetname:
+            if default:
+                return packagename + PackageRegistry.targetnameseparator + packagename
+            else:
+                return packagename
+        else:
+            return packagename + PackageRegistry.targetnameseparator + targetname
+
+    @staticmethod
+    def generateFulltargetname(packagename, targetname=None, default=False):
+        return PackageRegistry.createFulltargetname(
+            packagename, targetname, default)
+
+    @staticmethod
+    def createUniqueTargetname(packagename, targetname):
+        return packagename + targetname if packagename != targetname else targetname
+
+    @staticmethod
+    def collectPackageFiles(
+            directory,
+            filename_re,
+            matchfun,
+            file_ext='sconsider',
+            excludes_rel=[],
+            excludes_abs=[]):
+        """Recursively collects SConsider packages.
+
+        Walks recursively through 'directory' to collect package files
+        but skipping dirs in 'excludes_rel' and absolute dirs
+        from 'exclude_abs'.
+
+        """
+        import fnmatch
+        package_re = re.compile(filename_re)
+        followlinks = False
+        if sys.version_info[:2] >= (2, 6):
+            followlinks = True
+        for root, dirnames, filenames in os.walk(directory,
+                                                 followlinks=followlinks):
+            _root_pathabs = os.path.abspath(root)
+            dirnames[:] = filter(
+                lambda dirname: dirname not in excludes_rel and os.path.join(
+                    _root_pathabs,
+                    dirname) not in excludes_abs,
+                dirnames)
+            for filename in fnmatch.filter(filenames, '*.' + file_ext):
+                match = package_re.match(filename)
+                if match:
+                    matchfun(root, filename, match)
 
     def __init__(
             self,
@@ -169,7 +155,7 @@ class PackageRegistry:
             self.setPackage(match.group('packagename'), _filename, rootDir)
 
         for scandir in scan_dirs:
-            collectPackageFiles(
+            self.collectPackageFiles(
                 scandir,
                 '^(?P<packagename>.*)\.sconsider$',
                 scanmatchfun,
@@ -272,10 +258,14 @@ class PackageRegistry:
     def isValidFulltargetname(self, fulltargetname):
         if self.hasPackage(str(fulltargetname)):
             return True
-        packagename, targetname = splitTargetname(str(fulltargetname))
+        packagename, targetname = self.splitTargetname(str(fulltargetname))
         return self.hasPackageTarget(packagename, targetname)
 
-    def getPackageTargetDependencies(self, packagename, targetname, callerdeps=None):
+    def getPackageTargetDependencies(
+            self,
+            packagename,
+            targetname,
+            callerdeps=None):
         targetBuildSettings = self.getBuildSettings(
             packagename).get(targetname, {})
         if callerdeps is None:
@@ -287,12 +277,12 @@ class PackageRegistry:
         targetlist.extend([targetBuildSettings.get('usedTarget', '')])
         for dep_fulltargetname in targetlist:
             if dep_fulltargetname:
-                dep_packagename, dep_targetname = splitTargetname(
+                dep_packagename, dep_targetname = self.splitTargetname(
                     dep_fulltargetname)
                 if not dep_targetname:
                     dep_targetname = dep_packagename
                 deps[
-                    generateFulltargetname(
+                    self.generateFulltargetname(
                         dep_packagename,
                         dep_targetname)] = self.getPackageTargetDependencies(
                             dep_packagename,
@@ -327,7 +317,7 @@ class PackageRegistry:
         target = loadfunc(packagename, targetname)
         if targetname and not target:
             raise TargetNotFound(
-                generateFulltargetname(
+                self.generateFulltargetname(
                     packagename,
                     targetname))
         return target
@@ -350,7 +340,7 @@ class PackageRegistry:
         deps = dict()
         for targetname in self.getPackageTargetNames(packagename):
             deps[
-                generateFulltargetname(
+                self.generateFulltargetname(
                     packagename,
                     targetname)] = self.getPackageTargetDependencies(
                         packagename,
@@ -365,7 +355,7 @@ class PackageRegistry:
         self.packages[packagename]['loaded'] = True
 
     def lookup(self, fulltargetname, **kw):
-        packagename, targetname = splitFulltargetname(fulltargetname)
+        packagename, targetname = self.splitFulltargetname(fulltargetname)
         logger.debug('looking up [%s]', fulltargetname)
         if self.hasPackage(packagename):
             if not self.isPackageLoaded(packagename):
@@ -378,10 +368,10 @@ class PackageRegistry:
                     self.env.getRelativeBuildDirectory()).Dir(
                     self.env.getRelativeVariantDirectory())
                 message = 'executing [{0}] as SConscript for package [{1}]'.format(
-                    packagefile.path,
-                    packagename)
+                    packagefile.path, packagename)
                 if self.lookupStack:
-                    message += ' required by [{0}]'.format('>'.join(self.lookupStack))
+                    message += ' required by [{0}]'.format(
+                        '>'.join(self.lookupStack))
                 logger.info(message)
                 exports = {
                     'packagename': packagename,
@@ -396,7 +386,7 @@ class PackageRegistry:
                         exports=exports)
                 except ResolutionError as e:
                     raise PackageRequirementsNotFulfilled(
-                        generateFulltargetname(
+                        self.generateFulltargetname(
                             packagename,
                             targetname),
                         packagefile,
@@ -406,7 +396,7 @@ class PackageRegistry:
                     raise e
                 finally:
                     if len(self.lookupStack):
-                        del self.lookupStack[len(self.lookupStack)-1]
+                        del self.lookupStack[len(self.lookupStack) - 1]
             if targetname:
                 return self.getPackageTarget(packagename, targetname)
         return None

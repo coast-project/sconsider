@@ -21,7 +21,7 @@ import SCons.Action
 import SCons.Builder
 import SCons.Util
 from SCons.Script import AddOption, GetOption
-from SConsider.PackageRegistry import splitFulltargetname, createFulltargetname
+import SConsider.PackageRegistry
 import SomeUtils
 
 
@@ -41,7 +41,8 @@ def printTargets(registry, **kw):
     env = cloneBaseEnv()
 
     def isPackage(alias):
-        pkg, target = splitFulltargetname(alias)
+        pkg, target = SConsider.PackageRegistry.PackageRegistry.splitFulltargetname(
+            alias)
         return registry.hasPackage(pkg)
     filters = [lambda alias: not isPackage(alias)]
     if not GetOption("showallaliases"):
@@ -84,11 +85,11 @@ def printTree(registry, buildTargets, **kw):
         targets = registry.getPackageNames()
 
     for fulltargetname in targets:
-        packagename, targetname = splitFulltargetname(
+        packagename, targetname = SConsider.PackageRegistry.PackageRegistry.splitFulltargetname(
             fulltargetname, True)
         if existsTarget(registry, packagename, targetname):
             node = Node(
-                createFulltargetname(
+                SConsider.PackageRegistry.PackageRegistry.createFulltargetname(
                     packagename, targetname), getDependencies(
                     registry, packagename, targetname))
             SCons.Util.print_tree(node, lambda node: node.children)

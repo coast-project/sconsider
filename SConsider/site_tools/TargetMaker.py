@@ -19,18 +19,15 @@ import re
 import os
 import stat
 import SConsider
-from SConsider.PackageRegistry import targetnameseparator,\
-    splitTargetname, createUniqueTargetname, generateFulltargetname,\
-    PackageNotFound, TargetNotFound
 from SCons.Script import Dir, File, GetOption
 import SomeUtils
 from logging import getLogger
+from SConsider.PackageRegistry import TargetNotFound, PackageNotFound
 logger = getLogger(__name__)
 
 
 def getRealTarget(target, doThrow=False, messagePrefix='', fullTargetName=''):
     from SCons.Util import is_Tuple, is_List
-    from SConsider import getRegistry
     if (is_Tuple(target) and target[0] is None) or (
             is_List(target) and not len(target)):
         if doThrow:
@@ -50,7 +47,7 @@ def getRealTarget(target, doThrow=False, messagePrefix='', fullTargetName=''):
     if is_List(target) and len(target) <= 1:
         target = target[0]
     if SCons.Util.is_String(target):
-        target = getRegistry().lookup(target)
+        target = SConsider.getRegistry().lookup(target)
     if isinstance(target, SCons.Node.Alias.Alias):
         if doThrow:
             raise SCons.Errors.UserError(
@@ -58,9 +55,7 @@ def getRealTarget(target, doThrow=False, messagePrefix='', fullTargetName=''):
                 (messagePrefix, str(target), fullTargetName))
         logger.error(
             '{0} [{1}] for target [{2}] must be a string entry, not an alias node'.format(
-                messagePrefix,
-                str(target),
-                fullTargetName))
+                messagePrefix, str(target), fullTargetName))
     return target
 
 
@@ -88,9 +83,10 @@ class TargetMaker:
                 item
                 for item in v.get('requires', []) + v.get(
                     'linkDependencies', []) + [v.get('usedTarget', '')]
-                if item.startswith(self.packagename + targetnameseparator)]
+                if item.startswith(
+                    self.packagename + SConsider.targetnameseparator)]
             for ftn in depList:
-                pkgname, tname = splitTargetname(ftn)
+                pkgname, tname = SConsider.splitTargetname(ftn)
                 if self.packagename == pkgname and tname in self.targetlist:
                     self.recurseCreate(tname)
             return self.doCreateTarget(self.packagename, k, v)
@@ -194,7 +190,7 @@ class TargetMaker:
             env.Depends(
                 target,
                 self.registry.loadPackageTarget(
-                    *splitTargetname(
+                    *SConsider.splitTargetname(
                         targ,
                         default=True)))
 
@@ -221,7 +217,7 @@ class TargetMaker:
                 sources = targetBuildSettings.get('sourceFiles', [])
                 name = targetBuildSettings.get(
                     'targetName',
-                    createUniqueTargetname(
+                    SConsider.createUniqueTargetname(
                         packagename,
                         targetname))
                 targets = func(*[name, sources], **kw)
@@ -242,7 +238,7 @@ class TargetMaker:
                 # sources)
                 plaintarget = target = targetEnv.Alias(
                     packagename +
-                    targetnameseparator +
+                    SConsider.targetnameseparator +
                     targetname,
                     self.registry.getPackageFile(packagename))
 
@@ -296,7 +292,7 @@ class TargetMaker:
             logger.warning(
                 '{0} (referenced by [{1}]), ignoring as requested'.format(
                     e,
-                    generateFulltargetname(
+                    SConsider.generateFulltargetname(
                         packagename,
                         targetname)
                 ),
@@ -346,7 +342,7 @@ class TargetMaker:
 
     def setModuleDependencies(self, env, modules, **kw):
         for fulltargetname in modules:
-            packagename, targetname = splitTargetname(
+            packagename, targetname = SConsider.splitTargetname(
                 fulltargetname, default=True)
             plaintarget = self.registry.loadPackagePlaintarget(
                 packagename,
@@ -363,7 +359,8 @@ class TargetMaker:
 
     def setExecEnv(self, env, requiredTargets):
         for targ in requiredTargets:
-            packagename, targetname = splitTargetname(targ, default=True)
+            packagename, targetname = SConsider.splitTargetname(
+                targ, default=True)
             if self.registry.hasPackageTarget(packagename, targetname):
                 settings = self.registry.getBuildSettings(
                     packagename,

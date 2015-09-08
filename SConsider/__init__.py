@@ -185,7 +185,7 @@ logger.debug(
 
 _sconsider_toplevel_scandirs = filter(
     lambda dirname: os.path.isdir(dirname)
-        and dirname not in baseEnv.toplevelExcludeDirs(),
+    and dirname not in baseEnv.toplevelExcludeDirs(),
     os.listdir(Dir('#').path))
 logger.debug(
     "Toplevel dirs to scan for package files: {0}".format(
@@ -193,18 +193,20 @@ logger.debug(
 
 logger.info("Collecting .sconsider packages ...")
 import PackageRegistry
-from PackageRegistry import targetnameseparator,\
-    splitTargetname, createUniqueTargetname, generateFulltargetname
 packageRegistry = PackageRegistry.PackageRegistry(
     baseEnv,
     _sconsider_toplevel_scandirs,
     baseEnv.relativeExcludeDirs(),
     baseEnv.absoluteExcludeDirs())
 
+targetnameseparator = PackageRegistry.PackageRegistry.targetnameseparator
+splitTargetname = PackageRegistry.PackageRegistry.splitTargetname
+createUniqueTargetname = PackageRegistry.PackageRegistry.createUniqueTargetname
+generateFulltargetname = PackageRegistry.PackageRegistry.generateFulltargetname
+
 
 def getRegistry():
     return packageRegistry
-
 
 baseEnv.lookup_list.append(packageRegistry.lookup)
 
@@ -257,6 +259,7 @@ try:
 
     launchDir = Dir(SCons.Script.GetLaunchDir())
     dirfilter = lambda directory: True
+
     def namefilter(packagename):
         return dirfilter(
             packageRegistry.getPackageDir(packagename))
@@ -281,7 +284,7 @@ try:
             buildtargets[buildtargets.index('.')] = builddir
 
         for ftname in buildtargets:
-            packagename, targetname = PackageRegistry.splitTargetname(ftname)
+            packagename, targetname = splitTargetname(ftname)
             tryLoadPackageTarget(packagename, targetname)
 
     except PackageRegistry.PackageNotFound as e:
