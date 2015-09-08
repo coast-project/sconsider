@@ -79,12 +79,9 @@ class TargetMaker:
                 v = self.targetlist.pop(k)
             else:
                 k, v = self.targetlist.popitem()
-            depList = [
-                item
-                for item in v.get('requires', []) + v.get(
-                    'linkDependencies', []) + [v.get('usedTarget', '')]
-                if item.startswith(
-                    self.packagename + SConsider.targetnameseparator)]
+            depList = [SConsider.targetnameseparator.join(SConsider.splitTargetname(item, True)) for item in v.get('requires', []) + v.get(
+                    'linkDependencies', []) + [v.get('usedTarget', '')] if item]
+
             for ftn in depList:
                 pkgname, tname = SConsider.splitTargetname(ftn)
                 if self.packagename == pkgname and tname in self.targetlist:

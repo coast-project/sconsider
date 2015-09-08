@@ -18,7 +18,6 @@ through Run->Debug Configurations...->targetname.
 
 from __future__ import with_statement
 import os
-import optparse
 import SCons
 
 
@@ -58,6 +57,7 @@ def generateEclipseLaunchConfiguration(target, source, env):
 
 
 def generate(env):
+    import optparse
     try:
         SCons.Script.AddOption(
             '--workspace',

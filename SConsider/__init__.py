@@ -153,7 +153,21 @@ DefaultToolpath.insert(
     os.path.join(
         _base_path,
         'site_tools'))
-baseEnv = dEnv.Clone(tools=usetools)
+try:
+    baseEnv = dEnv.Clone(tools=usetools)
+except SCons.Errors.EnvironmentError as e:
+    import optparse
+    for t in usetools:
+        if t not in dEnv['TOOLS']:
+            try:
+                dEnv.Tool(t)
+            except optparse.OptionConflictError:
+                pass
+            except SCons.Errors.EnvironmentError as e:
+                logger.error(
+                    'loading Tool [{1}] failed'.format(e, t),
+                    exc_info=False)
+                raise
 
 
 def cloneBaseEnv():
