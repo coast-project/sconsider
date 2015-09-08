@@ -29,7 +29,6 @@ import SCons.Builder
 import SCons.Script
 from SCons.Script import AddOption, GetOption
 import SConsider.PackageRegistry
-from TargetMaker import getRealTarget
 import Callback
 from SomeUtils import hasPathPart, isFileNode, isDerivedNode,\
     getNodeDependencies, getFlatENV

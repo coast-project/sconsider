@@ -14,49 +14,16 @@ SCons extension to create target environments using EnvBuilder
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
 
-import SCons
 import re
 import os
 import stat
+import SCons
 import SConsider
 from SCons.Script import Dir, File, GetOption
 import SomeUtils
 from logging import getLogger
 from SConsider.PackageRegistry import TargetNotFound, PackageNotFound
 logger = getLogger(__name__)
-
-
-def getRealTarget(target, doThrow=False, messagePrefix='', fullTargetName=''):
-    from SCons.Util import is_Tuple, is_List
-    if (is_Tuple(target) and target[0] is None) or (
-            is_List(target) and not len(target)):
-        if doThrow:
-            raise TargetNotFound(
-                target[1] if len(target) == 2 else '<unknown target>')
-        return None
-    target_name = None
-    if is_List(target) and is_Tuple(target[0]):
-        target = target[0]
-    if is_Tuple(target):
-        target_name = target[1]
-        target = target[0]
-        if not SCons.Util.is_String(target_name) and doThrow:
-            raise SCons.Errors.UserError(
-                "%s '%s' for target '%s' is not a valid string entry" %
-                (messagePrefix, target_name, fullTargetName))
-    if is_List(target) and len(target) <= 1:
-        target = target[0]
-    if SCons.Util.is_String(target):
-        target = SConsider.getRegistry().lookup(target)
-    if isinstance(target, SCons.Node.Alias.Alias):
-        if doThrow:
-            raise SCons.Errors.UserError(
-                "%s '%s' for target '%s' must be a string entry, not an alias node" %
-                (messagePrefix, str(target), fullTargetName))
-        logger.error(
-            '{0} [{1}] for target [{2}] must be a string entry, not an alias node'.format(
-                messagePrefix, str(target), fullTargetName))
-    return target
 
 
 class TargetMaker:

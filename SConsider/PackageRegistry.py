@@ -401,7 +401,45 @@ class PackageRegistry:
                 return self.getPackageTarget(packagename, targetname)
         return None
 
+    @staticmethod
+    def loadNode(env, name):
+        return env.arg2nodes(name, node_factory=None)
+
     def loadPackage(self, packagename):
         if not self.hasPackage(packagename):
             raise PackageNotFound(packagename)
         return self.lookup(packagename)
+
+    def getRealTarget(self, target, doThrow=False, messagePrefix='', fullTargetName=''):
+        from SCons.Util import is_Tuple, is_List, is_String
+        from SCons.Errors import UserError
+        from SCons.Node.Alias import Alias
+        if (is_Tuple(target) and target[0] is None) or (
+                is_List(target) and not len(target)):
+            if doThrow:
+                raise TargetNotFound(
+                    target[1] if len(target) == 2 else '<unknown target>')
+            return None
+        target_name = None
+        if is_List(target) and is_Tuple(target[0]):
+            target = target[0]
+        if is_Tuple(target):
+            target_name = target[1]
+            target = target[0]
+            if not is_String(target_name) and doThrow:
+                raise UserError(
+                    "%s '%s' for target '%s' is not a valid string entry" %
+                    (messagePrefix, target_name, fullTargetName))
+        if is_List(target) and len(target) <= 1:
+            target = target[0]
+        if is_String(target):
+            target = self.lookup(target)
+        if isinstance(target, Alias):
+            if doThrow:
+                raise UserError(
+                    "%s '%s' for target '%s' must be a string entry, not an alias node" %
+                    (messagePrefix, str(target), fullTargetName))
+            logger.error(
+                '{0} [{1}] for target [{2}] must be a string entry, not an alias node'.format(
+                    messagePrefix, str(target), fullTargetName))
+        return target

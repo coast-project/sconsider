@@ -19,7 +19,6 @@ import functools
 import threading
 import SCons
 import LibFinder
-from TargetMaker import getRealTarget
 
 # needs locking because it is manipulated during multi-threaded build phase
 systemLibTargets = {}
@@ -34,7 +33,8 @@ def notInDir(env, dir, path):
 def installSystemLibs(source):
     """This function is called during the build phase and adds targets
     dynamically to the dependency tree."""
-    sourcenode = getRealTarget(source)
+    from SConsider import getRegistry
+    sourcenode = getRegistry().getRealTarget(source)
     if not sourcenode:
         return None
     source = [sourcenode]
@@ -99,7 +99,8 @@ def generate(env, *args, **kw):
     def createDeferredTarget(env, source):
         # bind 'source' parameter to an Action which is called in the build phase and
         # create a dummy target which always will be built
-        sourcenode = getRealTarget(source)
+        from SConsider import getRegistry
+        sourcenode = getRegistry().getRealTarget(source)
         if not sourcenode:
             return []
         source = [sourcenode]

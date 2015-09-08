@@ -222,7 +222,11 @@ generateFulltargetname = PackageRegistry.PackageRegistry.generateFulltargetname
 def getRegistry():
     return packageRegistry
 
-baseEnv.lookup_list.append(packageRegistry.lookup)
+"""Using LoadNode and extending the lookup_list has the advantage that SCons
+is looking for a matching Alias node when our own lookup returns no result.
+"""
+baseEnv.AddMethod(PackageRegistry.PackageRegistry.loadNode, 'LoadNode')
+baseEnv.lookup_list.insert(0, packageRegistry.lookup)
 
 logger.debug("calling PostPackageCollection callback")
 runCallback(
@@ -312,7 +316,7 @@ try:
             packageRegistry.getPackageNames())
 
         for packagename in buildtargets:
-            packageRegistry.loadPackage(packagename)
+            baseEnv.LoadNode(packagename)
 
 except (PackageRegistry.PackageNotFound, PackageRegistry.TargetNotFound, PackageRegistry.PackageRequirementsNotFulfilled) as e:
     if not isinstance(e, PackageRegistry.PackageRequirementsNotFulfilled):
