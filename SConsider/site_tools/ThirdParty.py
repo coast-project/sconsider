@@ -165,8 +165,19 @@ def postPackageCollection(env, registry, **kw):
                     SCons.Script.Exit(1)
                 path = SCons.Script.GetOption('with-' + packagename)
                 if path:
-                    env.AppendUnique(LIBPATH=env.Dir(path).Dir('lib'))
-                    env.PrependENVPath('PATH', env.Dir(path).Dir('bin'))
+                    baseDir = env.Dir(path)
+                    env.AppendUnique(LIBPATH=baseDir.Dir('lib'))
+                    # add first available include dir
+                    includeDirList = os.getenv('INCLUDEDIRLIST', 'include:inc:.').split(':')
+                    for incdir in includeDirList:
+                        try:
+                            includeDir = baseDir.Dir(incdir)
+                            if includeDir.isdir():
+                                env.AppendUnique(CPPPATH=[includeDir])
+                                break
+                        except TypeError:
+                            pass
+                    env.PrependENVPath('PATH', baseDir.Dir('bin').get_abspath())
                 logger.debug(
                     'using package [{0}]({1}) in [{2}]'.format(
                         packagename,
