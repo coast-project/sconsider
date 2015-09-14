@@ -106,5 +106,14 @@ if _sconsider_dist < pkg_resources.parse_version("0.5.dev"):
                 ],
                 'targetType': 'InstallBinary',
             }
+            buildSettings['script_isql'] = {
+                'targetType': 'ProgramApp',
+                'runConfig': {
+                },
+                'requires': [
+                    packagename + '.isql',
+                ],
+                'usedTarget': packagename + '.isql',
+            }
 
     SConsider.createTargets(packagename, buildSettings)

@@ -65,5 +65,6 @@ if _sconsider_dist < pkg_resources.parse_version("0.5.dev"):
                 ],
                 'usedTarget': packagename + '.opensslbin',
             }
+            buildSettings['script_openssl'] = buildSettings['openSSL']
 
     SConsider.createTargets(packagename, buildSettings)

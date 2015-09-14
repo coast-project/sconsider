@@ -44,5 +44,14 @@ if _sconsider_dist < pkg_resources.parse_version("0.5.dev"):
                 'sourceFiles': [mysqlbin],
                 'targetType': 'InstallBinary',
             }
+            buildSettings['script_mysql'] = {
+                'targetType': 'ProgramApp',
+                'runConfig': {
+                },
+                'requires': [
+                    packagename + '.mysqlclient',
+                ],
+                'usedTarget': packagename + '.mysqlbin',
+            },
 
     SConsider.createTargets(packagename, buildSettings)

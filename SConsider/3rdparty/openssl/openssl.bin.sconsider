@@ -51,6 +51,16 @@ if _sconsider_dist < pkg_resources.parse_version("0.5.dev"):
             ],
             'usedTarget': packagename + '.opensslbin',
         },
+        'script_openssl': {
+            'targetType': 'ProgramApp',
+            'runConfig': {
+            },
+            'requires': [
+                packagename + '.ssl',
+                packagename + '.crypto',
+            ],
+            'usedTarget': packagename + '.opensslbin',
+        },
     }
 
     SConsider.createTargets(packagename, buildSettings)
