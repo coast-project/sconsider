@@ -249,7 +249,7 @@ if [ ${doDebug:-0} -eq 1 ]; then
     test ${doTrace} -eq 1 && echo "Generated gdb command file:"
     test ${doTrace} -eq 1 && cat ${cfg_gdbcommands}
     gdb --command ${cfg_gdbcommands}
-elif [ ${doDebugServer:-0} -eq 1 -a -x "$(which gdbserver)" ]; then
+elif [ ${doDebugServer:-0} -eq 1 -a -x "$(which gdbserver 2>/dev/null)" ]; then
     gdbserver :${GDBSERVERPORT} "${CMD}" "$@"
 elif [ ${doCommandWithArgs:-0} -eq 1 ]; then
     test ${doTrace} -eq 1 && echo "executing command [${cmdArr[*]} ${CMD} $@]"
