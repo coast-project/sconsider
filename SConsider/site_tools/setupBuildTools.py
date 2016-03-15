@@ -116,8 +116,8 @@ def generate(env, **kw):
         str(buildchoices) +
         ', default=' +
         builddefault)
-    langchoices = ['boost', 'c++0x', 'tr1']
-    langdefault = 'boost'
+    langchoices = ['c++03', 'c++11', 'c++14', 'c++17', 'c++0x', 'c++1y', 'c++1z', 'tr1']
+    langdefault = 'c++03'
     AddOption(
         '--use-lang-features',
         dest='whichlangfeat',
@@ -176,8 +176,9 @@ def generate(env, **kw):
     # select language features
     langfeature = GetOption('whichlangfeat')
 
-    if langfeature == 'c++0x':
-        env.AppendUnique(CPPDEFINES=['USE_STD0X'])
+    if langfeature in ['c++03', 'c++11', 'c++14', 'c++17', 'c++0x', 'c++1y', 'c++1z']:
+        env.AppendUnique(CPPDEFINES=['USE_STD'+langfeature[-2:].upper()])
+        env.AppendUnique(CCFLAGS=['-std='+langfeature])
     elif langfeature == 'tr1':
         env.AppendUnique(CPPDEFINES=['USE_TR1'])
 
