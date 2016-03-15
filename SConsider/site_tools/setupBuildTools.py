@@ -101,7 +101,7 @@ def generate(env, **kw):
         str(bitchoices) +
         ', default=' +
         bitdefault)
-    buildchoices = ['debug', 'optimized', 'profile']
+    buildchoices = ['debug', 'optimized', 'profile', 'coverage']
     builddefault = 'optimized'
     AddOption(
         '--build-cfg',

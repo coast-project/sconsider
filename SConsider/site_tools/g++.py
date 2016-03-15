@@ -157,10 +157,12 @@ def generate(env):
         env.AppendUnique(CPPDEFINES=['_LARGEFILE64_SOURCE'])
 
     buildmode = SCons.Script.GetOption('buildcfg')
-    if buildmode == 'debug':
+    if buildmode == 'debug' or buildmode=='coverage':
         env.AppendUnique(
             CXXFLAGS=[
                 '-ggdb3' if str(platf) == 'sunos' else '-g'])
+        if buildmode == 'coverage':
+            env.AppendUnique(CXXFLAGS=['-fprofile-arcs', '-ftest-coverage'])
     elif buildmode == 'optimized':
         if str(platf) == 'sunos':
             if gccfss:

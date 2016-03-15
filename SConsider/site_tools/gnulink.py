@@ -92,12 +92,16 @@ def generate(env):
         env.AppendUnique(LIBS=['socket', 'resolv', 'posix4', 'aio'])
 
     buildmode = SCons.Script.GetOption('buildcfg')
-    if buildmode == 'debug':
+    if buildmode == 'debug' or buildmode=='coverage':
         env.AppendUnique(SHLINKFLAGS=['-v'])
         env.AppendUnique(
             SHLINKFLAGS=[
                 '-ggdb3' if str(platf) == 'sunos' else '-g'])
         env.AppendUnique(LINKFLAGS=['-v'])
+        if buildmode == 'coverage':
+            env.AppendUnique(LINKFLAGS=['-fprofile-arcs', '-ftest-coverage'])
+            env.AppendUnique(SHLINKFLAGS=['-fprofile-arcs', '-ftest-coverage'])
+            env.PrependUnique(LIBS=['gcov'])
     elif buildmode == 'optimized':
         pass
     elif buildmode == 'profile':
