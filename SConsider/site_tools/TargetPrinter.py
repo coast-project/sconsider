@@ -80,13 +80,17 @@ class Node(object):
 
 
 def printTree(registry, buildTargets, **kw):
+    from SCons.Node.Alias import Alias
     targets = buildTargets
     if not targets:
         targets = registry.getPackageNames()
 
     for fulltargetname in targets:
-        packagename, targetname = SConsider.PackageRegistry.PackageRegistry.splitFulltargetname(
-            fulltargetname, True)
+        if isinstance(fulltargetname, Alias):
+            packagename, targetname = (fulltargetname.name, None)
+        else:
+            packagename, targetname = SConsider.PackageRegistry.PackageRegistry.splitFulltargetname(
+                fulltargetname, True)
         if existsTarget(registry, packagename, targetname):
             node = Node(
                 SConsider.PackageRegistry.PackageRegistry.createFulltargetname(

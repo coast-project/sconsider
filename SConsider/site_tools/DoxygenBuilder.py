@@ -35,8 +35,8 @@ def __getDependencies(registry, packagename, fnobj, recursive=False):
             deps.append(usedTarget)
 
         for ftn in deps:
-            import SConsider
-            depPkgname, depTname = SConsider.splitFulltargetname(ftn)
+            import SConsider.PackageRegistry
+            depPkgname, depTname = SConsider.PackageRegistry.PackageRegistry.splitFulltargetname(ftn)
             if not depPkgname == packagename:
                 value = fnobj(depPkgname)
                 if value:
