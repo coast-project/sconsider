@@ -58,7 +58,7 @@ adjustCloneFunctionDecl = (
         re.M),
     lambda mo:
         str(mo.group(2)) +
-        '/*! @copydoc IFAObject::Clone(Allocator *) */\n' +
+        '/*! @copydoc IFAObject::Clone(Allocator *) const */\n' +
         str(mo.group(2)) +
         str(mo.group(3)) +
         'Allocator *a' +
