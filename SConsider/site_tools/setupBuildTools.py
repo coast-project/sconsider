@@ -116,7 +116,7 @@ def generate(env, **kw):
         str(buildchoices) +
         ', default=' +
         builddefault)
-    langchoices = ['c++03', 'c++11', 'c++14', 'c++17', 'c++0x', 'c++1y', 'c++1z', 'tr1']
+    langchoices = ['c++03', 'c++11', 'c++14', 'c++17', 'c++0x', 'c++1y', 'c++1z', 'tr1', '']
     langdefault = 'c++03'
     AddOption(
         '--use-lang-features',
@@ -195,11 +195,12 @@ def generate(env, **kw):
         SCons.Tool.Tool(t)(env)
 
     logger.info(
-        'using CXX compiler and version: %s(%s)',
+        'using CXX compiler and version: %s(%s)%s',
         env['CXX'],
         env.get(
             'CXXVERSION',
-            'unknown'))
+            'unknown'),
+        '('+langfeature+')' if langfeature else '')
     logger.info(
         'using CC compiler and version: %s(%s)',
         env['CC'],
