@@ -91,7 +91,9 @@ showhelp()
     echo ''
     echo 'usage: '$MYNAME' [options]'
     echo 'where options are:'
-    echo ' -d             : run under debugger control (gdb)'
+    echo ' -d             : run under debugger control (gdb) in foreground'
+    echo '                  second -d runs executable in background mode'
+    echo '                  and logs stacktrace on failure'
     echo ' -e             : run under debugger control in your IDE (gdbserver)'
     echo ' -S             : do not change directory before executing target'
     echo '                  eg. stay in current directory for executino'
@@ -111,7 +113,7 @@ do
             showhelp;
         ;;
         d)
-            doDebug=1;
+            doDebug=`expr $doDebug + 1`;
         ;;
         e)
             doDebugServer=1;
@@ -198,31 +200,44 @@ generateGdbCommandFile()
     ggcfServerOptions="$@";
     # <<-EOF ignore tabs, nice for formatting heredocs
 cat > ${ggcfBatchFile} <<-EOF
-	handle SIGSTOP nostop nopass
-	handle SIGLWP  nostop pass
-	handle SIGTERM nostop pass
-	handle SIGINT  nostop pass
-	set environment PATH=${PATH}
-	set environment COAST_ROOT=${COAST_ROOT}
-	set environment COAST_PATH=${COAST_PATH}
-	set environment """ + libpathvariable + """=${""" + libpathvariable + """}
-	set auto-solib-add 1
-	# convert to Windows path on mingw (msys supplies it automatically to non-msys tools)
-	file \"""" + ("`cmd //c echo ${ggcfBinaryToExecute}`" if "mingw" in env["TOOLS"] else "${ggcfBinaryToExecute}") + """\"
-	set args ${ggcfServerOptions}
+    handle SIGSTOP nostop nopass
+    handle SIGLWP  nostop pass
+    handle SIGTERM nostop pass
+    handle SIGINT  nostop pass
+    set environment PATH=${PATH}
+    set environment COAST_ROOT=${COAST_ROOT}
+    set environment COAST_PATH=${COAST_PATH}
+    set environment """ + libpathvariable + """=${""" + libpathvariable + """}
+    set auto-solib-add 1
+    # convert to Windows path on mingw (msys supplies it automatically to non-msys tools)
+    file \"""" + ("`cmd //c echo ${ggcfBinaryToExecute}`" if "mingw" in env["TOOLS"] else "${ggcfBinaryToExecute}") + """\"
+    set args ${ggcfServerOptions}
 EOF
-    if [ $ggcfRunInBackground -eq 1 ]; then
+    if [ $ggcfRunInBackground -eq 2 ]; then
 cat >> ${ggcfBatchFile} <<-EOF
-	set pagination 0
-	run
-	! echo "\`date +'%Y%m%d%H%M%S'\`: ========== GDB backtrace =========="
-	backtrace full
-	info registers
-	x/16i \$pc
-	thread apply all backtrace
-	continue
-	shell rm ${ggcfBatchFile}
-	quit
+    set pagination 0
+    run
+    if \$_isvoid(\$_siginfo)
+        shell rm ${ggcfBatchFile}
+        if \$_isvoid(\$_exitcode)
+            set \$_exitcode=0
+        end
+        quit \$_exitcode
+    else
+        ! echo "\`date +'%Y%m%d%H%M%S'\`: ========== GDB backtrace =========="
+        backtrace full
+        info registers
+        x/16i \$pc
+        thread apply all backtrace
+        if !\$_isvoid(\$_siginfo)
+            set \$_exitcode=\$_siginfo.si_signo
+        end
+        if \$_isvoid(\$_exitcode)
+            set \$_exitcode=55
+        end
+        shell rm ${ggcfBatchFile}
+        quit \$_exitcode
+    end
 EOF
     fi;
 }
@@ -239,17 +254,19 @@ Executing command [${CMD}]
 EOF
 )
 
-toolPath=$(which ${cmdArr[0]} 2>/dev/null)
+toolPath=$(type -fP ${cmdArr[0]} 2>/dev/null)
 if [ -n "$toolPath" ]; then
     doCommandWithArgs=1
 fi
-if [ ${doDebug:-0} -eq 1 ]; then
+if [ ${doDebug:-0} -ge 1 ]; then
     cfg_gdbcommands=\"""" + (tempfile.gettempdir() + os.sep).replace('\\', '/') + """`basename \\"$0\\"`_$$";
-    generateGdbCommandFile "${cfg_gdbcommands}" "$CMD" 0 "$@"
+    generateGdbCommandFile "${cfg_gdbcommands}" "$CMD" $doDebug "$@"
     test ${doTrace} -eq 1 && echo "Generated gdb command file:"
     test ${doTrace} -eq 1 && cat ${cfg_gdbcommands}
-    gdb --command ${cfg_gdbcommands}
-elif [ ${doDebugServer:-0} -eq 1 -a -x "$(which gdbserver 2>/dev/null)" ]; then
+    cfg_gdbcommands="--command $cfg_gdbcommands";
+    test $doDebug -gt 1 && cfg_gdbcommands="--batch $cfg_gdbcommands";
+    eval gdb ${cfg_gdbcommands}
+elif [ ${doDebugServer:-0} -eq 1 -a -x "$(type -fP gdbserver 2>/dev/null)" ]; then
     gdbserver :${GDBSERVERPORT} "${CMD}" "$@"
 elif [ ${doCommandWithArgs:-0} -eq 1 ]; then
     test ${doTrace} -eq 1 && echo "executing command [${cmdArr[*]} ${CMD} $@]"
