@@ -192,54 +192,54 @@ test -d "${ABS_BINDIR}/${VARIANTDIR}" && ABS_BINDIR="${ABS_BINDIR}/$VARIANTDIR"
 #
 generateGdbCommandFile()
 {
-    ggcfBatchFile="${1}";
-    ggcfBinaryToExecute="${2}";
-    ggcfRunInBackground=${3};
-    test $# -ge 3 || return 1;
-    shift 3
-    ggcfServerOptions="$@";
-    # <<-EOF ignore tabs, nice for formatting heredocs
+	ggcfBatchFile="${1}";
+	ggcfBinaryToExecute="${2}";
+	ggcfRunInBackground=${3};
+	test $# -ge 3 || return 1;
+	shift 3
+	ggcfServerOptions="$@";
+	# <<-EOF ignore tabs, nice for formatting heredocs
 cat > ${ggcfBatchFile} <<-EOF
-    handle SIGSTOP nostop nopass
-    handle SIGLWP  nostop pass
-    handle SIGTERM nostop pass
-    handle SIGINT  nostop pass
-    set environment PATH=${PATH}
-    set environment COAST_ROOT=${COAST_ROOT}
-    set environment COAST_PATH=${COAST_PATH}
-    set environment """ + libpathvariable + """=${""" + libpathvariable + """}
-    set auto-solib-add 1
-    # convert to Windows path on mingw (msys supplies it automatically to non-msys tools)
-    file \"""" + ("`cmd //c echo ${ggcfBinaryToExecute}`" if "mingw" in env["TOOLS"] else "${ggcfBinaryToExecute}") + """\"
-    set args ${ggcfServerOptions}
+	handle SIGSTOP nostop nopass
+	handle SIGLWP  nostop pass
+	handle SIGTERM nostop pass
+	handle SIGINT  nostop pass
+	set environment PATH=${PATH}
+	set environment COAST_ROOT=${COAST_ROOT}
+	set environment COAST_PATH=${COAST_PATH}
+	set environment """ + libpathvariable + """=${""" + libpathvariable + """}
+	set auto-solib-add 1
+	# convert to Windows path on mingw (msys supplies it automatically to non-msys tools)
+	file \"""" + ("`cmd //c echo ${ggcfBinaryToExecute}`" if "mingw" in env["TOOLS"] else "${ggcfBinaryToExecute}") + """\"
+	set args ${ggcfServerOptions}
 EOF
-    if [ $ggcfRunInBackground -eq 2 ]; then
+	if [ $ggcfRunInBackground -eq 2 ]; then
 cat >> ${ggcfBatchFile} <<-EOF
-    set pagination 0
-    run
-    if \$_isvoid(\$_siginfo)
-        shell rm ${ggcfBatchFile}
-        if \$_isvoid(\$_exitcode)
-            set \$_exitcode=0
-        end
-        quit \$_exitcode
-    else
-        ! echo "\`date +'%Y%m%d%H%M%S'\`: ========== GDB backtrace =========="
-        backtrace full
-        info registers
-        x/16i \$pc
-        thread apply all backtrace
-        if !\$_isvoid(\$_siginfo)
-            set \$_exitcode=\$_siginfo.si_signo
-        end
-        if \$_isvoid(\$_exitcode)
-            set \$_exitcode=55
-        end
-        shell rm ${ggcfBatchFile}
-        quit \$_exitcode
-    end
+	set pagination 0
+	run
+	if \$_isvoid(\$_siginfo)
+			shell rm ${ggcfBatchFile}
+			if \$_isvoid(\$_exitcode)
+					set \$_exitcode=0
+			end
+			quit \$_exitcode
+	else
+			! echo "\`date +'%Y%m%d%H%M%S'\`: ========== GDB backtrace =========="
+			backtrace full
+			info registers
+			x/16i \$pc
+			thread apply all backtrace
+			if !\$_isvoid(\$_siginfo)
+					set \$_exitcode=\$_siginfo.si_signo
+			end
+			if \$_isvoid(\$_exitcode)
+					set \$_exitcode=55
+			end
+			shell rm ${ggcfBatchFile}
+			quit \$_exitcode
+	end
 EOF
-    fi;
+	fi;
 }
 
 CMD="${ABS_BINDIR}/${BINARYNAME}"
