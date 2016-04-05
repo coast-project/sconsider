@@ -116,8 +116,8 @@ def generate(env, **kw):
         str(buildchoices) +
         ', default=' +
         builddefault)
-    langchoices = ['c++03', 'c++11', 'c++14', 'c++17', 'c++0x', 'c++1y', 'c++1z', 'tr1', '']
-    langdefault = 'c++03'
+    langchoices = ['c++03', 'c++11', 'c++14', 'c++17', 'c++0x', 'c++1y', 'c++1z', '']
+    langdefault = ''
     AddOption(
         '--use-lang-features',
         dest='whichlangfeat',

@@ -17,8 +17,8 @@ SConsider-specific g++ tool initialization
 import os
 import re
 import subprocess
-import SCons.Util
 import SCons.Tool
+import SCons.Util
 from logging import getLogger
 logger = getLogger(__name__)
 
@@ -29,10 +29,14 @@ def generate(env):
     """Add Builders and construction variables for g++ to an Environment."""
     static_obj, shared_obj = SCons.Tool.createObjBuilders(env)
 
+    # save potential setting of CXXFLAGS
+    current_cxxflags = env.get('CXXFLAGS')
     SCons.Tool.Tool('c++')(env)
 
     if env.get('_CXXPREPEND_'):
         compilers.insert(0, env.get('_CXXPREPEND_'))
+    if current_cxxflags:
+        env['CXXFLAGS'] = current_cxxflags
     env['CXX'] = compiler_subject = env.Detect(compilers)
 
     # platform specific settings
