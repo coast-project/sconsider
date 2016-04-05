@@ -154,13 +154,7 @@ def generate(env):
             env.AppendUnique(CFLAGS=['-O0'])
         else:
             env.AppendUnique(
-                CFLAGS=[
-                    '-O0',
-                    '-fdefer-pop',
-                    '-fmerge-constants',
-                    '-fthread-jumps',
-                    '-fguess-branch-probability',
-                    '-fcprop-registers'])
+                CFLAGS=['-O0'])
     elif buildmode == 'profile':
         env.AppendUnique(CFLAGS=['-fprofile'])
 

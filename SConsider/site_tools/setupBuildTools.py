@@ -178,7 +178,7 @@ def generate(env, **kw):
 
     if langfeature in ['c++03', 'c++11', 'c++14', 'c++17', 'c++0x', 'c++1y', 'c++1z']:
         env.AppendUnique(CPPDEFINES=['USE_STD'+langfeature[-2:].upper()])
-        env.AppendUnique(CCFLAGS=['-std='+langfeature])
+        env.AppendUnique(CXXFLAGS=['-std='+langfeature])
     elif langfeature == 'tr1':
         env.AppendUnique(CPPDEFINES=['USE_TR1'])
 
