@@ -110,7 +110,7 @@ def prepareVariantDir(env):
 
 
 def verifyBaseoutDirWritable(baseoutdir):
-    testfile = os.path.join(baseoutdir.get_abspath(), '.writefiletest')
+    testfile = os.path.join(baseoutdir.get_abspath(), '.writefiletest.'+str(os.getpid()))
     try:
         if not os.path.isdir(baseoutdir.get_abspath()):
             os.makedirs(baseoutdir.get_abspath()) # test if we are able to create a file

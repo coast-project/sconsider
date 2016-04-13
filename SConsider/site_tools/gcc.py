@@ -68,7 +68,7 @@ def generate(env):
 
         # own extension to detect system include paths
         import time
-        fName = '.code2Compile.' + str(time.time())
+        fName = '.code2Compile.' + str(time.time()) + '.' + str(os.getpid())
         tFile = os.path.join(SCons.Script.Dir('.').get_abspath(), fName)
         outFile = os.path.join(SCons.Script.Dir('.').get_abspath(), fName + '.o')
         try:

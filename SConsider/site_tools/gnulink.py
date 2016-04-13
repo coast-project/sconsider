@@ -27,8 +27,8 @@ def FileNodeComparer(left, right):
     command line."""
     nleft = left.srcnode().get_abspath()
     nright = right.srcnode().get_abspath()
-    ldirname, lbasename = os.path.split(nleft)
-    rdirname, rbasename = os.path.split(nright)
+    _, lbasename = os.path.split(nleft)
+    _, rbasename = os.path.split(nright)
     # l < r, -1
     # l == r, 0
     # l > r, 1
