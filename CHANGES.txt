@@ -1,4 +1,150 @@
-Release (HEAD -> master, tag: 0.3.10)
+Release (origin/master, tag: 0.3.11)
+-------------
+
+-   2016-04-13 Marcel Huber
+
+    SConsider 0.3.11: improvements and fixes
+
+    - allow extension of include dirs
+    - extended for more language flags
+    - use c++ language flags only for c++ compilation
+    - allow for parallel builds in same directory
+    - preparing target names for 3rdparty targets to naming scheme of next
+    release
+
+    Change-Id: I4176fbc67e3831f31d7b1f08ed7d3fa997de5be5
+
+
+
+-   2016-04-13 Marcel Huber
+
+    extending temporary filenames with pid to prevent name clashes
+
+    Change-Id: Ie843b193c42b60803fbbea32c84b2e9b6c92b0dc
+
+
+
+-   2016-04-05 Marcel Huber
+
+    fix overwriting CXXFLAGS from g++.py tool
+
+    as scons probably assumes the g++ tool to be very early in tools loading,
+    it overwrites settings we defined from within setupBuildTools.py
+
+    Change-Id: Ic98269dc1a30105530b81bbf67ad7bcb194f274e
+
+
+
+-   2016-04-05 Marcel Huber
+
+    use -std only in CXXFLAGS
+
+    got rid of some optimizer flags for C-compilation as they were used for c++
+
+    Change-Id: I4804c03895d4492253f7efc2b4ff964a6622e782
+
+
+
+-   2016-04-01 Marcel Huber
+
+    here document fixed: must use tabs instead of spaces
+
+    As the generateScript file itself is python formatted using spaces, the
+    here document code for generating the gdb batch file was converted to use
+    spaces instead of tabs. This lead to incorrectly formatted gdb batch file.
+
+    Change-Id: Ib1f25ff66ece6235ce7754c7a03d2b851fc3b8b5
+
+
+
+-   2016-04-01 Marcel Huber
+
+    gdb batch extension: allow background execution of gdb in batch mode
+
+    supplying a second '-d' option causes the script to start gdb in batch mode 
+    which allows dumping a stack trace only in case of a program anomaly
+
+    Change-Id: I1e5ae5a03f3e5fb8a3ba654b26ad34290ba2070e
+
+
+
+-   2016-03-16 Marcel Huber
+
+    langfeatures: allow empty argument and print info
+
+    The empty argument is to comply with the previous default. To be smart, we 
+    append a little note which feature is in use.
+
+    Change-Id: Ib39357cea214faed53e8ac3a3bc44e78e8dc5541
+
+
+
+-   2016-03-15 Marcel Huber
+
+    language features extended
+
+    the following were added: c++03, c++11, c++14, c++17, c++1y, c++1z
+    'boost' was replaced with 'c++03'
+
+    Change-Id: I189b7845514bb0ca0f87ddab75e995d5c6675eb5
+
+
+
+-   2016-03-15 Marcel Huber
+
+    buildmode: extended for 'coverage' options
+
+    Change-Id: Ia6406262816441d77c1478ab04dc396a0be04179
+
+
+
+-   2016-03-15 Marcel Huber
+
+    WD2Coast: corrected copydoc reference for IFAObject::Clone
+
+    Change-Id: If87a77b856f8968ebcf385debfee83ebbd978b57
+
+
+
+-   2016-03-15 Marcel Huber
+
+    scons --showtree: corrected fulltargetname access with Alias
+
+    Change-Id: I28c464798d6a80a77e6ef20d176b30c32165557c
+
+
+
+-   2015-09-28 Marcel Huber
+
+    generated script: suppress error message without gdbserver
+
+    Change-Id: I2a450e1baf0fff947264f466764a6a1378ed1454
+
+
+
+-   2015-09-14 Marcel Huber
+
+    scripts target: should conform to script_<targetname> naming scheme
+
+    - added these targets to simplify migration to newer sconsider version
+
+    Change-Id: Ib18fc12551ec7365d44228cebd550148fa6ddad1
+
+
+
+-   2015-09-10 Marcel Huber
+
+    ThirdParty: extending CPPPATH with include dir for sys libraries
+
+    - in case using a third party library installed in a non standard location,
+     we try to extend CPPPATH with a matching include subdirectory
+     the default is to check for 'include:inc:.'
+     override the default by setting the environment variable INCLUDEDIRLIST
+
+    Change-Id: Id4e9187ea0979a59912f427b0bf33814abe5027e
+
+
+Release (tag: 0.3.10)
 -------------
 
 -   2015-09-09 Marcel Huber
@@ -256,7 +402,7 @@ Release (tag: 0.3.6)
     added feature to add symlinks to installed and versioned third party
     libraries
 
-    exchanged env var accesses with corresponding environment methods where
+    exchanged env var accesses with corresponding environment methods where 
     applicable, see OutputDirectoryHelper.py for available methods
 
     moved variantdir handling from SConsider into OutputDirectoryHelper tool
@@ -327,7 +473,7 @@ Release (tag: 0.3.5)
 
     sconsider: version specific target creation
 
-    moved current buildSettings target creation into version specific section
+    moved current buildSettings target creation into version specific section 
     which allows for future extension
 
     Change-Id: I669b6feb00f48edfe0b7a53ed5b73ff60e969c2d
@@ -1230,7 +1376,7 @@ Release (tag: coast_2010_1.2)
 
     fixed a bug in RunBuilder which was caused because of SCons issue 2460
 
-    The following bug seems to be fixed in newer versions of SCons (2.0+).
+    The following bug seems to be fixed in newer versions of SCons (2.0+). 
     Alias with depends instead of sources is never rebuilt:
     http://scons.tigris.org/issues/show_bug.cgi?id=2460
 
@@ -2576,7 +2722,7 @@ Release (tag: coast_2010_1.1)
 
         cleanup of old files
 
-    commit ba4abe8490674f590661c7c8ac6f5efc5862e511 Merge: cfecd9d f10e5a9
+    commit ba4abe8490674f590661c7c8ac6f5efc5862e511 Merge: cfecd9d f10e5a9 
     Author: Marcel Huber <m1huber@hsr.ch> Date:   Fri Jul 10 08:02:13 2009
     +0200
 
