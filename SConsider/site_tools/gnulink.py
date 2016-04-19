@@ -92,21 +92,22 @@ def generate(env):
         env.AppendUnique(LIBS=['socket', 'resolv', 'posix4', 'aio'])
 
     buildmode = SCons.Script.GetOption('buildcfg')
-    if buildmode == 'debug' or buildmode=='coverage':
-        env.AppendUnique(SHLINKFLAGS=['-v'])
+    if buildmode in ['debug', 'profile']:
         env.AppendUnique(
             SHLINKFLAGS=[
                 '-ggdb3' if str(platf) == 'sunos' else '-g'])
+    if buildmode == 'debug':
         env.AppendUnique(LINKFLAGS=['-v'])
-        if buildmode == 'coverage':
-            env.AppendUnique(LINKFLAGS=['-fprofile-arcs', '-ftest-coverage'])
-            env.AppendUnique(SHLINKFLAGS=['-fprofile-arcs', '-ftest-coverage'])
-            env.PrependUnique(LIBS=['gcov'])
+        env.AppendUnique(SHLINKFLAGS=['-v'])
     elif buildmode == 'optimized':
         pass
+    elif buildmode == 'coverage':
+        env.AppendUnique(LINKFLAGS=['-fprofile-arcs', '-ftest-coverage'])
+        env.AppendUnique(SHLINKFLAGS=['-fprofile-arcs', '-ftest-coverage'])
+        env.PrependUnique(LIBS=['gcov'])
     elif buildmode == 'profile':
-        env.AppendUnique(LINKFLAGS=['-fprofile'])
-        env.AppendUnique(SHLINKFLAGS=['-fprofile'])
+        env.AppendUnique(LINKFLAGS=['-pg'])
+        env.AppendUnique(SHLINKFLAGS=['-pg'])
     env.AddMethod(
         lambda env: env.Replace(
             _NONLAZYLINKFLAGS=''),

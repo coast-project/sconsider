@@ -161,12 +161,12 @@ def generate(env):
         env.AppendUnique(CPPDEFINES=['_LARGEFILE64_SOURCE'])
 
     buildmode = SCons.Script.GetOption('buildcfg')
-    if buildmode == 'debug' or buildmode=='coverage':
+    if buildmode in ['debug', 'profile']:
         env.AppendUnique(
             CXXFLAGS=[
                 '-ggdb3' if str(platf) == 'sunos' else '-g'])
-        if buildmode == 'coverage':
-            env.AppendUnique(CXXFLAGS=['-fprofile-arcs', '-ftest-coverage'])
+    if buildmode == 'debug':
+        pass
     elif buildmode == 'optimized':
         if str(platf) == 'sunos':
             if gccfss:
@@ -177,8 +177,10 @@ def generate(env):
                 env.AppendUnique(CXXFLAGS=['-O3'])
         else:
             env.AppendUnique(CXXFLAGS=['-O3'])
+    elif buildmode == 'coverage':
+        env.AppendUnique(CXXFLAGS=['-fprofile-arcs', '-ftest-coverage'])
     elif buildmode == 'profile':
-        env.AppendUnique(CXXFLAGS=['-fprofile'])
+        env.AppendUnique(CXXFLAGS=['-pg'])
 
     warnlevel = SCons.Script.GetOption('warnlevel')
     if warnlevel == 'medium' or warnlevel == 'full':

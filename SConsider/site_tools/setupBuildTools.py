@@ -115,7 +115,7 @@ def generate(env, **kw):
         help='Select build configuration, ' +
         str(buildchoices) +
         ', default=' +
-        builddefault)
+        builddefault + '. Use profile in conjunction with gprof and coverage in conjunction with gcov.')
     langchoices = ['c++03', 'c++11', 'c++14', 'c++17', 'c++0x', 'c++1y', 'c++1z', '']
     langdefault = ''
     AddOption(
@@ -130,7 +130,7 @@ def generate(env, **kw):
         help='Select which language features, ' +
         str(langchoices) +
         ', default=' +
-        langdefault)
+        langdefault + '. Default uses gnu++98 features.')
     warnchoices = ['none', 'medium', 'full']
     warndefault = 'medium'
     AddOption(
