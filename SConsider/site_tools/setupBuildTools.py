@@ -115,9 +115,19 @@ def generate(env, **kw):
         help='Select build configuration, ' +
         str(buildchoices) +
         ', default=' +
-        builddefault + '. Use profile in conjunction with gprof and coverage in conjunction with gcov.')
-    langchoices = ['c++03', 'c++11', 'c++14', 'c++17', 'c++0x', 'c++1y', 'c++1z', '']
-    langdefault = ''
+        builddefault +
+        '. Use profile in conjunction with gprof and coverage in conjunction with gcov.')
+    langchoices = [
+        'c++03',
+        'c++11',
+        'c++14',
+        'c++17',
+        'c++0x',
+        'c++1y',
+        'c++1z',
+        'gnu++98',
+        'tr1']
+    langdefault = 'gnu++98'
     AddOption(
         '--use-lang-features',
         dest='whichlangfeat',
@@ -130,7 +140,7 @@ def generate(env, **kw):
         help='Select which language features, ' +
         str(langchoices) +
         ', default=' +
-        langdefault + '. Default uses gnu++98 features.')
+        langdefault + '.')
     warnchoices = ['none', 'medium', 'full']
     warndefault = 'medium'
     AddOption(
@@ -176,11 +186,11 @@ def generate(env, **kw):
     # select language features
     langfeature = GetOption('whichlangfeat')
 
-    if langfeature in ['c++03', 'c++11', 'c++14', 'c++17', 'c++0x', 'c++1y', 'c++1z']:
-        env.AppendUnique(CPPDEFINES=['USE_STD'+langfeature[-2:].upper()])
-        env.AppendUnique(CXXFLAGS=['-std='+langfeature])
-    elif langfeature == 'tr1':
+    if langfeature == 'tr1':
         env.AppendUnique(CPPDEFINES=['USE_TR1'])
+    elif langfeature in langchoices:
+        env.AppendUnique(CPPDEFINES=['USE_STD' + langfeature[-2:].upper()])
+        env.AppendUnique(CXXFLAGS=['-std=' + langfeature])
 
     # select target architecture bits
     bitwidth = GetOption('archbits')
@@ -188,7 +198,10 @@ def generate(env, **kw):
     env.AddMethod(lambda env: bitwidth, "getBitwidth")
 
     current_os_version = extractOsVersion(platf)
-    env.AddMethod(lambda env: extractOsVersion(env['PLATFORM']), "getOsVersionTuple")
+    env.AddMethod(
+        lambda env: extractOsVersion(
+            env['PLATFORM']),
+        "getOsVersionTuple")
 
     # tool initialization, previously done in <scons>/Tool/default.py
     for t in SCons.Tool.tool_list(platf, env):
@@ -200,7 +213,7 @@ def generate(env, **kw):
         env.get(
             'CXXVERSION',
             'unknown'),
-        '('+langfeature+')' if langfeature else '')
+        '(' + langfeature + ')' if langfeature else '')
     logger.info(
         'using CC compiler and version: %s(%s)',
         env['CC'],
