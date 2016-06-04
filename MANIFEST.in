@@ -4,3 +4,5 @@ include SConsider/maintenance/*.py
 include SConsider/xmlbuilder/LICENSE
 include SConsider/site_tools/*.sh
 prune SConsider/3rdparty/*/.build
+include versioneer.py
+include SConsider/_version.py

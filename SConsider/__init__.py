@@ -31,7 +31,10 @@ from logging import getLogger
 from SCons.Tool import DefaultToolpath
 
 __author__ = "Marcel Huber <marcel.huber@hsr.ch>"
-__version__ = "0.3.12.dev"
+from ._version import get_versions
+__version__ = get_versions()['version']
+__date__ = get_versions().get('date')
+del get_versions
 
 _base_path = os.path.dirname(__file__)
 sys.path[:0] = [_base_path]

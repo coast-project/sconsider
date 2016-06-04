@@ -8,13 +8,9 @@ handling mechanism.
 Build a development version
 ---------------------------
 
-Given the fact that we use git as VCS, we can not use the tag_svn_revision
-feature of egg_info. Therefor we make use of the gitegginfo module.
+The following command installs a development version into the current virtualenv:
 
-The following command makes use of it and creates the necessary egg-info
-directory using the current commit hash appended:
-
-    `python setup.py gitegginfo --tag-git-desc --tag-build .dev develop`
+    `python setup.py develop`
 
 To uninstall a previously installed development version you need to use the following command:
 

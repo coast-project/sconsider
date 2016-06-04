@@ -16,11 +16,14 @@ Setup script to generate a python module from the sources.
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
 
-import os.path
+import os
+import versioneer
 import codecs
 import re
-
 from setuptools import setup
+from pip.req import parse_requirements
+
+PACKAGE = 'SConsider'
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = codecs.open(os.path.join(here, 'README.txt'), encoding='utf8').read()
@@ -30,15 +33,33 @@ CHANGES = codecs.open(
         'CHANGES.txt'),
     encoding='utf8').read()
 
-with codecs.open(os.path.join(os.path.dirname(__file__), 'SConsider', '__init__.py'),
-                 encoding='utf8') as version_file:
-    metadata = dict(
-        re.findall(
-            r"""__([a-z]+)__ = "([^"]+)""",
-            version_file.read()))
 
-setup(name="SConsider",
-      version=metadata['version'],
+def get_packages(package):
+    """
+    Return root package and all sub-packages.
+    """
+    return [dirpath
+            for dirpath, _, _ in os.walk(package)
+            if os.path.exists(os.path.join(dirpath, '__init__.py'))]
+
+
+def get_requirements():
+    requirements_file_path = os.path.join(
+        os.path.dirname(__file__),
+        'requirements.txt')
+    if os.path.exists(requirements_file_path):
+        parsed_requirements = parse_requirements(
+            requirements_file_path,
+            session=False)
+        requirements = [str(ir.req) for ir in parsed_requirements]
+    else:
+        requirements = []
+    return requirements
+
+
+setup(name=PACKAGE,
+      version=versioneer.get_version(),
+      cmdclass=versioneer.get_cmdclass(),
       description="scons build system extension",
       long_description=README + '\n\n' + CHANGES,
       # classifier list:
@@ -63,17 +84,9 @@ setup(name="SConsider",
       url="https://redmine.coast-project.org/projects/sconsider",
       keywords=['sconsider', 'scons', 'build'],
       license="BSD",
-      packages=[
-          'SConsider',
-          'SConsider.site_tools',
-          'SConsider.xmlbuilder'],
-      install_requires=[
-          'scons >=1.3, <=2.3.0',
-          'pyaml',
-          'pyopenssl',
-          'ordereddict',    # required for python < 2.7
-          'lepl'],
-      setup_requires=['gitegginfo', 'flake8'],
+      packages=get_packages(PACKAGE),
+      install_requires=get_requirements(),
+      setup_requires=['flake8'],
       test_suite='tests',
       tests_require=['nose', 'mockito'],
       include_package_data=True,
