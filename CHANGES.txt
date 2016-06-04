@@ -1,4 +1,65 @@
-Release (origin/master, tag: 0.3.11)
+Release (tag: 0.3.12)
+-------------
+
+-   2016-06-05 Marcel Huber
+
+    updated changes
+
+    Change-Id: I2389b8220eff1dd6b9a4eb336ea0567cd4f9e6e3
+
+
+
+-   2016-06-05 Marcel Huber
+
+    explicit command line target fails on missing dependencies
+
+    - in contrast to before, even when --ignore-missing option is set, an
+    explicit
+     command line package fails, when a dependency is not met
+
+    Change-Id: I034346e32c3f1d8af5335ab12c1bfd4cff593cfa
+
+
+
+-   2016-06-05 Marcel Huber
+
+    using versioneer to provide __version__ field
+
+    - versioneer is much more usable and automated than gitegginfo
+
+    Change-Id: Ib64cfc61a7b360c4ce4e1f5532d7fa1a7dbcceb0
+
+
+
+-   2016-06-04 Marcel Huber
+
+    corrected setting OS_* defines for sunos
+
+    Change-Id: I7a8c7f7b6aa4d445a753a2ac117f1fc33ae5a2c1
+
+
+
+-   2016-06-04 Marcel Huber
+
+    explicitly setting language default to gnu++98
+
+    - this is probably the best match for backward compatibility
+
+    Change-Id: I73cb50bfb36edb161e282d29ac5d3f679563e994
+
+
+
+-   2016-04-19 Marcel Huber
+
+    buildcfg corrections for profile/coverage option
+
+    profile setting should be used for gprof usage coverage setting should be
+    used for gcov usage
+
+    Change-Id: I72cbb278398d0a80dba0c5dcfcba059d621fdba6
+
+
+Release (tag: 0.3.11)
 -------------
 
 -   2016-04-13 Marcel Huber
