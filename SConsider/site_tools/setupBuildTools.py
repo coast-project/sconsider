@@ -162,7 +162,6 @@ def generate(env, **kw):
         action='store_true',
         help='Disable use of std libraries iostream headers')
 
-    platf = env['PLATFORM']
     cxxCompiler = checkCompiler(env, GetOption('whichcxx'), 'CXX')
     ccCompiler = checkCompiler(env, GetOption('whichcc'), 'CC')
     toolchainOverride = False
@@ -173,15 +172,15 @@ def generate(env, **kw):
         toolchainOverride = True
         env['_CCPREPEND_'] = ccCompiler
 
-    if toolchainOverride:
-        # this section is needed to select gnu toolchain on sun systems, default is sunCC
-        # -> see SCons.Tool.__init__.py tool_list method for explanation
-        if str(platf) == 'sunos':
-            platf = None
-
+    platf = env['PLATFORM']
     # if we are within cygwin and want to build a win32 target
     if "mingw" in GetOption('usetools'):
         platf = "win32"
+    current_os_version = extractOsVersion(platf)
+    env.AddMethod(
+        lambda env: extractOsVersion(
+            env['PLATFORM']),
+        "getOsVersionTuple")
 
     # select language features
     langfeature = GetOption('whichlangfeat')
@@ -197,14 +196,14 @@ def generate(env, **kw):
     env.AppendUnique(CCFLAGS=['-DARCHBITS=' + str(bitwidth)])
     env.AddMethod(lambda env: bitwidth, "getBitwidth")
 
-    current_os_version = extractOsVersion(platf)
-    env.AddMethod(
-        lambda env: extractOsVersion(
-            env['PLATFORM']),
-        "getOsVersionTuple")
+    platf_for_tool_list = platf
+    # this section is needed to select gnu toolchain on sun systems, default is sunCC
+    # -> see SCons.Tool.__init__.py tool_list method for explanation
+    if toolchainOverride and str(platf) == 'sunos':
+        platf_for_tool_list = None
 
     # tool initialization, previously done in <scons>/Tool/default.py
-    for t in SCons.Tool.tool_list(platf, env):
+    for t in SCons.Tool.tool_list(platf_for_tool_list, env):
         SCons.Tool.Tool(t)(env)
 
     logger.info(
@@ -221,9 +220,13 @@ def generate(env, **kw):
             'CCVERSION',
             'unknown'))
 
-    for val, valname in zip(current_os_version, ['OS_RELMAJOR', 'OS_RELMINOR', 'OS_RELMINSUB']):
+    _osreldefines = ['OS_RELMAJOR', 'OS_RELMINOR', 'OS_RELMINSUB']
+    for val, valname in zip(current_os_version, _osreldefines):
         env.AppendUnique(CCFLAGS=['-D' + valname + '=' + str(val)])
-
+    logger.debug("OS-Flags: {0}".format(', '.join(map(lambda x,
+                                                      y: str(y) + '=' + str(x),
+                                                      current_os_version,
+                                                      _osreldefines))))
     if str(platf) == 'sunos':
         env.AppendUnique(CCFLAGS=['-DOS_SYSV'])
         env.AppendUnique(CCFLAGS=['-DOS_SOLARIS'])
