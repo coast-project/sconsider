@@ -268,11 +268,11 @@ try:
         try:
             packageRegistry.loadPackageTarget(packagename, targetname)
         except (PackageRegistry.PackageNotFound) as e:
-            # catch PackageNotFound separately as we are derived
-            #  from TargetNotFound
+            # catch PackageNotFound separately as it is derived from
+            # TargetNotFound
             raise
         except PackageRegistry.TargetNotFound as e:
-            if not GetOption('ignore-missing') and not GetOption('help'):
+            if not int(GetOption('ignore-missing')) and not GetOption('help'):
                 raise
             logger.warning(
                 '{0}'.format(e),
@@ -320,6 +320,10 @@ try:
 
         for packagename in buildtargets:
             baseEnv.LoadNode(packagename)
+        logger.info(
+            "Completed loading possible targets and aliases from {0} available package files".format(
+                len(buildtargets)))
+
 
 except (PackageRegistry.PackageNotFound, PackageRegistry.TargetNotFound, PackageRegistry.PackageRequirementsNotFulfilled) as e:
     if not isinstance(e, PackageRegistry.PackageRequirementsNotFulfilled):
@@ -331,10 +335,10 @@ except (PackageRegistry.PackageNotFound, PackageRegistry.TargetNotFound, Package
 runCallback(
     "PreBuild",
     registry=packageRegistry,
-    buildTargets=SCons.Script.BUILD_TARGETS)
+    buildTargets=sorted(SCons.Script.BUILD_TARGETS))
 
 logger.info('BUILD_TARGETS is {0}'.format(
-    map(str, SCons.Script.BUILD_TARGETS)))
+    sorted(map(str, SCons.Script.BUILD_TARGETS))))
 
 
 def print_build_failures():

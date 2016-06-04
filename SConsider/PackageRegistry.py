@@ -52,10 +52,10 @@ class PackageRequirementsNotFulfilled(Exception):
         self.message = message
 
     def __str__(self):
-        return 'Package [{0}] not available (file {1}) '\
+        return 'Package [{0}] not complete (file {1}) '\
                'because of unsatisfied requirements: [{2}]'.format(
                    self.package,
-                   self.packagefile,
+                   self.packagefile if self.packagefile else '???',
                    self.message)
 
 
@@ -368,7 +368,8 @@ class PackageRegistry:
                     self.env.getRelativeBuildDirectory()).Dir(
                     self.env.getRelativeVariantDirectory())
                 message = 'executing [{0}] as SConscript for package [{1}]'.format(
-                    packagefile.path, packagename)
+                    packagefile.path,
+                    packagename)
                 if self.lookupStack:
                     message += ' required by [{0}]'.format(
                         '>'.join(self.lookupStack))
@@ -391,12 +392,11 @@ class PackageRegistry:
                             targetname),
                         packagefile,
                         e)
-                except TargetNotFound as e:
+                except (PackageNotFound, TargetNotFound) as e:
                     e.prependItem(fulltargetname)
                     raise e
                 finally:
-                    if len(self.lookupStack):
-                        del self.lookupStack[len(self.lookupStack) - 1]
+                    self.lookupStack = self.lookupStack[:-1]
             if targetname:
                 return self.getPackageTarget(packagename, targetname)
         return None
@@ -410,7 +410,12 @@ class PackageRegistry:
             raise PackageNotFound(packagename)
         return self.lookup(packagename)
 
-    def getRealTarget(self, target, doThrow=False, messagePrefix='', fullTargetName=''):
+    def getRealTarget(
+            self,
+            target,
+            doThrow=False,
+            messagePrefix='',
+            fullTargetName=''):
         from SCons.Util import is_Tuple, is_List, is_String
         from SCons.Errors import UserError
         from SCons.Node.Alias import Alias
@@ -441,5 +446,7 @@ class PackageRegistry:
                     (messagePrefix, str(target), fullTargetName))
             logger.error(
                 '{0} [{1}] for target [{2}] must be a string entry, not an alias node'.format(
-                    messagePrefix, str(target), fullTargetName))
+                    messagePrefix,
+                    str(target),
+                    fullTargetName))
         return target

@@ -22,7 +22,7 @@ import SConsider
 from SCons.Script import Dir, File, GetOption
 import SomeUtils
 from logging import getLogger
-from SConsider.PackageRegistry import TargetNotFound, PackageNotFound
+from SConsider.PackageRegistry import TargetNotFound, PackageNotFound, PackageRequirementsNotFulfilled
 logger = getLogger(__name__)
 
 
@@ -32,6 +32,13 @@ class TargetMaker:
         self.packagename = packagename
         self.targetlist = tlist.copy()
         self.registry = registry
+        self.lookupStack = []
+
+    def pushItem(self, current_target):
+        self.lookupStack.append(current_target)
+
+    def popItem(self):
+        self.lookupStack = self.lookupStack[:-1]
 
     def createTargets(self):
         while self.targetlist:
@@ -46,13 +53,19 @@ class TargetMaker:
                 v = self.targetlist.pop(k)
             else:
                 k, v = self.targetlist.popitem()
-            depList = [SConsider.targetnameseparator.join(SConsider.splitTargetname(item, True)) for item in v.get('requires', []) + v.get(
-                    'linkDependencies', []) + [v.get('usedTarget', '')] if item]
+            depList = [
+                SConsider.targetnameseparator.join(
+                    SConsider.splitTargetname(item, True))
+                for item in v.get('requires', []) + v.get(
+                    'linkDependencies', []) + [v.get('usedTarget', '')]
+                if item]
 
+            self.pushItem(k)
             for ftn in depList:
                 pkgname, tname = SConsider.splitTargetname(ftn)
                 if self.packagename == pkgname and tname in self.targetlist:
                     self.recurseCreate(tname)
+            self.popItem()
             return self.doCreateTarget(self.packagename, k, v)
         return False
 
@@ -167,11 +180,12 @@ class TargetMaker:
                 targetname,
                 targetBuildSettings,
                 envVars)
+            target_type = targetBuildSettings.get(
+                'targetType',
+                '__UNDEFINED_TARGETTYPE__')
             func = getattr(
                 targetEnv,
-                targetBuildSettings.get(
-                    'targetType',
-                    '__UNDEFINED_TARGETTYPE__'),
+                target_type,
                 None)
             if func:
                 kw = {}
@@ -189,6 +203,12 @@ class TargetMaker:
                     plaintarget, target = targets
                 else:
                     plaintarget = target = targets
+                if not plaintarget and not target:
+                    e = TargetNotFound(
+                        target_type + '(' + str(sources[0].name) + ')')
+                    for requirer in self.lookupStack:
+                        e.prependItem(requirer)
+                    raise e
 
             if plaintarget:
                 targetEnv.Depends(
@@ -206,9 +226,19 @@ class TargetMaker:
                     targetname,
                     self.registry.getPackageFile(packagename))
 
-            reqTargets = targetBuildSettings.get('linkDependencies', [])
-            reqTargets.extend(targetBuildSettings.get('requires', []))
-            self.requireTargets(targetEnv, target, reqTargets)
+            # handle hard dependencies and softer requirements differently
+            self.requireTargets(
+                targetEnv,
+                target,
+                targetBuildSettings.get(
+                    'linkDependencies',
+                    []))
+            self.requireTargets(
+                targetEnv,
+                target,
+                targetBuildSettings.get(
+                    'requires',
+                    []))
 
             includeTargets = self.copyIncludeFiles(
                 targetEnv,
@@ -251,16 +281,26 @@ class TargetMaker:
                 target)
             return True
         except (PackageNotFound, TargetNotFound) as e:
-            if not GetOption('ignore-missing'):
-                raise
+            # even when ignore-missing is set, we should not continue if a missing package target
+            # is required by an explicit command line target
+            raise_again = not bool(
+                GetOption('ignore-missing')) or SConsider.generateFulltargetname(
+                packagename,
+                targetname) in SCons.Script.BUILD_TARGETS or packagename in SCons.Script.BUILD_TARGETS
             logger.warning(
-                '{0} (referenced by [{1}]), ignoring as requested'.format(
+                '{0} (referenced by [{1}]){2}'.format(
                     e,
                     SConsider.generateFulltargetname(
                         packagename,
-                        targetname)
+                        targetname),
+                    ', ignoring as requested' if not raise_again else ''
                 ),
                 exc_info=False)
+            if raise_again:
+                raise PackageRequirementsNotFulfilled(
+                    packagename,
+                    self.registry.getPackageFile(packagename),
+                    e.name)
             return False
 
     def createTargetEnv(self, targetname, targetBuildSettings, envVars={}):
@@ -389,7 +429,11 @@ def generate(env):
     AddOption(
         '--ignore-missing',
         dest='ignore-missing',
-        action='store_true',
+        nargs='?',
+        action='store',
+        const=1,
+        default=0,
+        metavar='[*0*|1]',
         help='Ignore missing dependencies instead of failing the whole build.')
 
 

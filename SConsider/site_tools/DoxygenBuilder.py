@@ -27,7 +27,7 @@ def __getDependencies(registry, packagename, fnobj, recursive=False):
     dependencies = set()
 
     buildSettings = registry.getBuildSettings(packagename)
-    for targetname, settings in buildSettings.items():
+    for _, settings in buildSettings.items():
         deps = settings.get(
             'requires', []) + settings.get('linkDependencies', [])
         usedTarget = settings.get('usedTarget', '')
@@ -36,7 +36,8 @@ def __getDependencies(registry, packagename, fnobj, recursive=False):
 
         for ftn in deps:
             import SConsider.PackageRegistry
-            depPkgname, depTname = SConsider.PackageRegistry.PackageRegistry.splitFulltargetname(ftn)
+            depPkgname, _ = SConsider.PackageRegistry.PackageRegistry.splitFulltargetname(
+                ftn)
             if not depPkgname == packagename:
                 value = fnobj(depPkgname)
                 if value:

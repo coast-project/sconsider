@@ -51,6 +51,12 @@ loggers:
         propagate: no
         filters: []
 
+    TargetMaker:
+        level: WARNING
+        handlers: [console]
+        propagate: no
+        filters: []
+
     SConsider.PackageRegistry:
         level: INFO
         handlers: [console]
