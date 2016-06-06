@@ -16,7 +16,7 @@ import SConsider
 Import('*')
 
 _sconsider_dist = pkg_resources.get_distribution("SConsider").parsed_version
-if _sconsider_dist < pkg_resources.parse_version("0.5.dev"):
+if _sconsider_dist < pkg_resources.parse_version("0.5"):
     buildSettings = {
         'include': {
             'public': {
