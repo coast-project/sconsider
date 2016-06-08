@@ -332,10 +332,12 @@ except (PackageRegistry.PackageNotFound, PackageRegistry.TargetNotFound, Package
         raise SCons.Errors.UserError(
             '{0}, build aborted!'.format(e))
 
+# <!NOTE: buildTargets is passed by reference and might be extended
+# in callback functions!
 runCallback(
     "PreBuild",
     registry=packageRegistry,
-    buildTargets=sorted(SCons.Script.BUILD_TARGETS))
+    buildTargets=SCons.Script.BUILD_TARGETS)
 
 logger.info('BUILD_TARGETS is {0}'.format(
     sorted(map(str, SCons.Script.BUILD_TARGETS))))

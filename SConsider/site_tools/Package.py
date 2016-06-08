@@ -17,7 +17,6 @@ sources
 
 import re
 import os
-import optparse
 import functools
 import SomeUtils
 from logging import getLogger
@@ -131,9 +130,7 @@ def isInstalledNode(testnode, node):
 
 
 def filterBaseOutDir(path, **kw):
-    # FIXME: baseoutdir is always an absolute path except maybe windows?
     env = kw.get('env', {})
-    basedirprefix = ''
     if not path.startswith(os.sep):
         return path
     basedirprefix = env.getBaseOutDir().get_abspath()
