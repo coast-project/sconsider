@@ -10,7 +10,6 @@
 
 import unittest
 import PackageRegistry
-import os
 
 
 class SplitTargetnameTest(unittest.TestCase):

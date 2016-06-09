@@ -20,18 +20,28 @@ import os
 import platform
 import atexit
 import sys
+import optparse
+from logging import getLogger
+try:
+    from collections import OrderedDict
+except ImportError:
+    # support python < 2.7
+    from ordereddict import OrderedDict
+from pkg_resources import get_distribution as pkg_get_dist,\
+    get_build_platform, ResolutionError
+
 import SCons
 from SCons.Script import AddOption, GetOption, Dir, File, DefaultEnvironment,\
     Flatten, SConsignFile
-from SomeUtils import listFiles, findFiles, removeFiles,\
-    getfqdn
-from Callback import addCallbackFeature
-from Logging import setup_logging
-from logging import getLogger
 from SCons.Tool import DefaultToolpath
+from SConsider.SomeUtils import listFiles, findFiles, removeFiles,\
+    getfqdn
+from SConsider.Callback import addCallbackFeature
+from SConsider.Logging import setup_logging
+from SConsider.PackageRegistry import PackageRegistry, PackageNotFound, TargetNotFound, PackageRequirementsNotFulfilled
+from ._version import get_versions
 
 __author__ = "Marcel Huber <marcel.huber@hsr.ch>"
-from ._version import get_versions
 __version__ = get_versions()['version']
 __date__ = get_versions().get('date')
 del get_versions
@@ -41,15 +51,11 @@ sys.path[:0] = [_base_path]
 
 setup_logging(os.path.join(_base_path, 'logging.yaml'))
 logger = getLogger(__name__)
-
-"""add callback feature early as it might be used from tools"""
+# add callback feature early as it might be used from tools
 addCallbackFeature(__name__)
 
 SCons.Script.EnsureSConsVersion(1, 3, 0)
 SCons.Script.EnsurePythonVersion(2, 6)
-
-from pkg_resources import get_distribution as pkg_get_dist,\
-    get_build_platform, ResolutionError
 
 _project_name = 'SConsider'
 _project_version = __version__
@@ -60,58 +66,47 @@ try:
 except ResolutionError:
     pass
 finally:
-    logger.info("{0} version {1} ({2})".format(
-        _project_name,
-        _project_version,
-        get_build_platform()))
+    logger.info("%s version %s (%s)", _project_name, _project_version,
+                get_build_platform())
 
 
 class Null(SCons.Util.Null):
-
     def __getitem__(self, key):
         return self
 
     def __contains__(self, key):
         return False
 
-for platform_func in [platform.dist,
-                      platform.architecture,
-                      platform.machine,
-                      platform.libc_ver,
-                      platform.release,
-                      platform.version,
-                      platform.processor,
-                      platform.system,
-                      platform.uname]:
+
+for platform_func in [platform.dist, platform.architecture, platform.machine,
+                      platform.libc_ver, platform.release, platform.version,
+                      platform.processor, platform.system, platform.uname]:
     func_value = platform_func()
     if func_value:
         logger.debug("platform.%s: %s", platform_func.__name__, func_value)
 
 dEnv = DefaultEnvironment()
 
-AddOption(
-    '--appendPath',
-    dest='appendPath',
-    action='append',
-    nargs=1,
-    type='string',
-    metavar='DIR',
-    help='Append this directory to the PATH environment variable.')
-AddOption(
-    '--prependPath',
-    dest='prependPath',
-    action='append',
-    nargs=1,
-    type='string',
-    metavar='DIR',
-    help='Prepend this directory to the PATH environment variable.')
+AddOption('--appendPath',
+          dest='appendPath',
+          action='append',
+          nargs=1,
+          type='string',
+          metavar='DIR',
+          help='Append this directory to the PATH environment variable.')
+AddOption('--prependPath',
+          dest='prependPath',
+          action='append',
+          nargs=1,
+          type='string',
+          metavar='DIR',
+          help='Prepend this directory to the PATH environment variable.')
 if GetOption('prependPath'):
     dEnv.PrependENVPath('PATH', GetOption('prependPath'))
     logger.debug('prepended path is [%s]', dEnv['ENV']['PATH'])
 if GetOption('appendPath'):
     dEnv.AppendENVPath('PATH', GetOption('appendPath'))
     logger.debug('appended path is [%s]' % dEnv['ENV']['PATH'])
-
 
 globaltools = [
     "setupBuildTools",
@@ -137,39 +132,25 @@ AddOption(
     help='SCons tools to use for constructing the default environment. Default\
  tools are %s' % Flatten(globaltools))
 
-try:
-    from collections import OrderedDict
-except:
-    # support python < 2.7
-    from ordereddict import OrderedDict
-
-"""Keep order of tools in list but remove duplicates"""
-usetools = OrderedDict.fromkeys(
-    globaltools +
-    DefaultEnvironment().get('_SCONSIDER_TOOLS_', []) +
-    GetOption('usetools')).keys()
+# Keep order of tools in list but remove duplicates
+usetools = OrderedDict.fromkeys(globaltools + DefaultEnvironment().get(
+    '_SCONSIDER_TOOLS_', []) + GetOption('usetools')).keys()
 logger.debug('tools to use %s', Flatten(usetools))
 
 # insert the site_tools path for our own tools
-DefaultToolpath.insert(
-    0,
-    os.path.join(
-        _base_path,
-        'site_tools'))
+DefaultToolpath.insert(0, os.path.join(_base_path, 'site_tools'))
 try:
     baseEnv = dEnv.Clone(tools=usetools)
-except SCons.Errors.EnvironmentError as e:
-    import optparse
+except SCons.Errors.EnvironmentError as ex:
     for t in usetools:
         if t not in dEnv['TOOLS']:
             try:
                 dEnv.Tool(t)
             except optparse.OptionConflictError:
                 pass
-            except SCons.Errors.EnvironmentError as e:
-                logger.error(
-                    'loading Tool [{1}] failed'.format(e, t),
-                    exc_info=False)
+            except SCons.Errors.EnvironmentError as ex:
+                logger.error('loading Tool [{1}] failed'.format(ex, t),
+                             exc_info=False)
                 raise
 
 
@@ -190,52 +171,41 @@ SConsignFile(ssfile)
 baseEnv.AppendUnique(LIBPATH=[baseEnv.getLibraryInstallDir()])
 
 logger.debug("calling PrePackageCollection callback")
-runCallback(
-    'PrePackageCollection',
-    env=baseEnv
-)
+runCallback('PrePackageCollection', env=baseEnv)
 logger.debug("Exclude dirs rel: {0}".format(baseEnv.relativeExcludeDirs()))
 logger.debug("Exclude dirs abs: {0}".format(baseEnv.absoluteExcludeDirs()))
-logger.debug(
-    "Exclude dirs toplevel: {0}".format(
-        baseEnv.toplevelExcludeDirs()))
+logger.debug("Exclude dirs toplevel: {0}".format(baseEnv.toplevelExcludeDirs()))
 
-_sconsider_toplevel_scandirs = filter(
-    lambda dirname: os.path.isdir(dirname)
-    and dirname not in baseEnv.toplevelExcludeDirs(),
-    os.listdir(Dir('#').path))
-logger.debug(
-    "Toplevel dirs to scan for package files: {0}".format(
-        _sconsider_toplevel_scandirs))
+_sconsider_toplevel_scandirs = [
+    dirname for dirname in os.listdir(Dir('#').path)
+    if os.path.isdir(dirname) and dirname not in baseEnv.toplevelExcludeDirs()
+]
+logger.debug("Toplevel dirs to scan for package files: {0}".format(
+    _sconsider_toplevel_scandirs))
 
 logger.info("Collecting .sconsider packages ...")
-import PackageRegistry
-packageRegistry = PackageRegistry.PackageRegistry(
-    baseEnv,
-    _sconsider_toplevel_scandirs,
-    baseEnv.relativeExcludeDirs(),
-    baseEnv.absoluteExcludeDirs())
+packageRegistry = PackageRegistry(baseEnv, _sconsider_toplevel_scandirs,
+                                  baseEnv.relativeExcludeDirs(),
+                                  baseEnv.absoluteExcludeDirs())
 
-targetnameseparator = PackageRegistry.PackageRegistry.targetnameseparator
-splitTargetname = PackageRegistry.PackageRegistry.splitTargetname
-createUniqueTargetname = PackageRegistry.PackageRegistry.createUniqueTargetname
-generateFulltargetname = PackageRegistry.PackageRegistry.generateFulltargetname
+targetnameseparator = PackageRegistry.targetnameseparator
+splitTargetname = PackageRegistry.splitTargetname
+createUniqueTargetname = PackageRegistry.createUniqueTargetname
+generateFulltargetname = PackageRegistry.generateFulltargetname
 
 
 def getRegistry():
     return packageRegistry
 
+
 """Using LoadNode and extending the lookup_list has the advantage that SCons
 is looking for a matching Alias node when our own lookup returns no result.
 """
-baseEnv.AddMethod(PackageRegistry.PackageRegistry.loadNode, 'LoadNode')
+baseEnv.AddMethod(PackageRegistry.loadNode, 'LoadNode')
 baseEnv.lookup_list.insert(0, packageRegistry.lookup)
 
 logger.debug("calling PostPackageCollection callback")
-runCallback(
-    'PostPackageCollection',
-    env=baseEnv,
-    registry=packageRegistry)
+runCallback('PostPackageCollection', env=baseEnv, registry=packageRegistry)
 
 
 def createTargets(packagename, buildSettings):
@@ -250,40 +220,38 @@ def createTargets(packagename, buildSettings):
     # do not create/build empty packages like the ones where Configure() fails
     if not buildSettings:
         return
-    from TargetMaker import TargetMaker
+    from SConsider.site_tools.TargetMaker import TargetMaker
     tmk = TargetMaker(packagename, buildSettings, packageRegistry)
     if not tmk.createTargets():
         return
     SCons.Script.Default(packagename)
-    runCallback(
-        "PostCreatePackageTargets",
-        registry=packageRegistry,
-        packagename=packagename,
-        buildSettings=buildSettings)
+    runCallback("PostCreatePackageTargets",
+                registry=packageRegistry,
+                packagename=packagename,
+                buildSettings=buildSettings)
+
 
 logger.info("Loading packages and their targets ...")
 # we need to define the targets before entering the build phase:
 try:
+
     def tryLoadPackageTarget(packagename, targetname=None):
         try:
             packageRegistry.loadPackageTarget(packagename, targetname)
-        except (PackageRegistry.PackageNotFound) as e:
+        except (PackageNotFound) as ex:
             # catch PackageNotFound separately as it is derived from
             # TargetNotFound
             raise
-        except PackageRegistry.TargetNotFound as e:
+        except TargetNotFound as ex:
             if not int(GetOption('ignore-missing')) and not GetOption('help'):
                 raise
-            logger.warning(
-                '{0}'.format(e),
-                exc_info=False)
+            logger.warning('{0}'.format(ex), exc_info=False)
 
     launchDir = Dir(SCons.Script.GetLaunchDir())
     dirfilter = lambda directory: True
 
     def namefilter(packagename):
-        return dirfilter(
-            packageRegistry.getPackageDir(packagename))
+        return dirfilter(packageRegistry.getPackageDir(packagename))
 
     if GetOption("climb_up") in [1, 3]:  # 1: -u, 3: -U
         if GetOption("climb_up") == 1:
@@ -293,30 +261,28 @@ try:
 
     try:
         buildtargets = SCons.Script.BUILD_TARGETS
-        _launchdir_relative = launchDir.path
+        _LAUNCHDIR_RELATIVE = launchDir.path
         if not buildtargets:
-            buildtargets = filter(
-                namefilter,
-                packageRegistry.getPackageNames())
+            buildtargets = [item for item in packageRegistry.getPackageNames()
+                            if namefilter(item)]
         elif '.' in buildtargets:
-            builddir = baseoutdir.Dir(_launchdir_relative).Dir(
+            builddir = baseoutdir.Dir(_LAUNCHDIR_RELATIVE).Dir(
                 baseEnv.getRelativeBuildDirectory()).Dir(
-                baseEnv.getRelativeVariantDirectory()).get_abspath()
+                    baseEnv.getRelativeVariantDirectory()).get_abspath()
             buildtargets[buildtargets.index('.')] = builddir
 
         for ftname in buildtargets:
             packagename, targetname = splitTargetname(ftname)
             tryLoadPackageTarget(packagename, targetname)
 
-    except PackageRegistry.PackageNotFound as e:
+    except PackageNotFound as ex:
         logger.warning(
             '{0}, loading all packages to find potential alias target'.format(
-                e),
+                ex),
             exc_info=False)
 
-        buildtargets = filter(
-            namefilter,
-            packageRegistry.getPackageNames())
+        buildtargets = [item for item in packageRegistry.getPackageNames()
+                        if namefilter(item)]
 
         for packagename in buildtargets:
             baseEnv.LoadNode(packagename)
@@ -324,23 +290,20 @@ try:
             "Completed loading possible targets and aliases from {0} available package files".format(
                 len(buildtargets)))
 
-
-except (PackageRegistry.PackageNotFound, PackageRegistry.TargetNotFound, PackageRegistry.PackageRequirementsNotFulfilled) as e:
-    if not isinstance(e, PackageRegistry.PackageRequirementsNotFulfilled):
-        logger.error('{0}'.format(e), exc_info=False)
+except (PackageNotFound, TargetNotFound, PackageRequirementsNotFulfilled) as ex:
+    if not isinstance(ex, PackageRequirementsNotFulfilled):
+        logger.error('{0}'.format(ex), exc_info=False)
     if not GetOption('help'):
-        raise SCons.Errors.UserError(
-            '{0}, build aborted!'.format(e))
+        raise SCons.Errors.UserError('{0}, build aborted!'.format(ex))
 
 # <!NOTE: buildTargets is passed by reference and might be extended
 # in callback functions!
-runCallback(
-    "PreBuild",
-    registry=packageRegistry,
-    buildTargets=SCons.Script.BUILD_TARGETS)
+runCallback("PreBuild",
+            registry=packageRegistry,
+            buildTargets=SCons.Script.BUILD_TARGETS)
 
-logger.info('BUILD_TARGETS is {0}'.format(
-    sorted(map(str, SCons.Script.BUILD_TARGETS))))
+logger.info('BUILD_TARGETS is {0}'.format(sorted([str(
+    item) for item in SCons.Script.BUILD_TARGETS])))
 
 
 def print_build_failures():
@@ -351,5 +314,6 @@ def print_build_failures():
                 failednodes.append(str(bf.node))
         failednodes.append('scons: done printing failed nodes')
         logger.warning('\n'.join(failednodes))
+
 
 atexit.register(print_build_failures)

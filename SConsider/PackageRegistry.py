@@ -23,7 +23,6 @@ logger = getLogger(__name__)
 
 
 class TargetNotFound(Exception):
-
     def __init__(self, name):
         self.name = name
         self.lookupStack = []
@@ -39,13 +38,11 @@ class TargetNotFound(Exception):
 
 
 class PackageNotFound(TargetNotFound):
-
     def __str__(self):
         return 'Package [{0}] not found'.format(self.name)
 
 
 class PackageRequirementsNotFulfilled(Exception):
-
     def __init__(self, package, packagefile, message):
         self.package = package
         self.packagefile = packagefile
@@ -91,21 +88,20 @@ class PackageRegistry:
 
     @staticmethod
     def generateFulltargetname(packagename, targetname=None, default=False):
-        return PackageRegistry.createFulltargetname(
-            packagename, targetname, default)
+        return PackageRegistry.createFulltargetname(packagename, targetname,
+                                                    default)
 
     @staticmethod
     def createUniqueTargetname(packagename, targetname):
         return packagename + targetname if packagename != targetname else targetname
 
     @staticmethod
-    def collectPackageFiles(
-            directory,
-            filename_re,
-            matchfun,
-            file_ext='sconsider',
-            excludes_rel=[],
-            excludes_abs=[]):
+    def collectPackageFiles(directory,
+                            filename_re,
+                            matchfun,
+                            file_ext='sconsider',
+                            excludes_rel=[],
+                            excludes_abs=[]):
         """Recursively collects SConsider packages.
 
         Walks recursively through 'directory' to collect package files
@@ -122,21 +118,18 @@ class PackageRegistry:
                                                  followlinks=followlinks):
             _root_pathabs = os.path.abspath(root)
             dirnames[:] = filter(
-                lambda dirname: dirname not in excludes_rel and os.path.join(
-                    _root_pathabs,
-                    dirname) not in excludes_abs,
+                lambda dirname: dirname not in excludes_rel and os.path.join(_root_pathabs, dirname) not in excludes_abs,
                 dirnames)
             for filename in fnmatch.filter(filenames, '*.' + file_ext):
                 match = package_re.match(filename)
                 if match:
                     matchfun(root, filename, match)
 
-    def __init__(
-            self,
-            env,
-            scan_dirs,
-            scan_dirs_exclude_rel=[],
-            scan_dirs_exclude_abs=[]):
+    def __init__(self,
+                 env,
+                 scan_dirs,
+                 scan_dirs_exclude_rel=[],
+                 scan_dirs_exclude_abs=[]):
         import SCons
         self.env = env
         self.packages = {}
@@ -148,30 +141,23 @@ class PackageRegistry:
         def scanmatchfun(root, filename, match):
             rootDir = self.env.Dir(root)
             _filename = rootDir.File(filename)
-            logger.debug(
-                'found package [{0}] in [{1}]'.format(
-                    match.group('packagename'),
-                    startDir.rel_path(_filename)))
+            logger.debug('found package [{0}] in [{1}]'.format(
+                match.group('packagename'), startDir.rel_path(_filename)))
             self.setPackage(match.group('packagename'), _filename, rootDir)
 
         for scandir in scan_dirs:
-            self.collectPackageFiles(
-                scandir,
-                '^(?P<packagename>.*)\.sconsider$',
-                scanmatchfun,
-                excludes_rel=scan_dirs_exclude_rel,
-                excludes_abs=scan_dirs_exclude_abs)
+            self.collectPackageFiles(scandir,
+                                     '^(?P<packagename>.*)\.sconsider$',
+                                     scanmatchfun,
+                                     excludes_rel=scan_dirs_exclude_rel,
+                                     excludes_abs=scan_dirs_exclude_abs)
 
-    def setPackage(
-            self,
-            packagename,
-            packagefile,
-            packagedir,
-            duplicate=False):
+    def setPackage(self, packagename, packagefile, packagedir, duplicate=False):
         self.packages[packagename] = {
             'packagefile': packagefile,
             'packagedir': packagedir,
-            'duplicate': duplicate}
+            'duplicate': duplicate
+        }
 
     def hasPackage(self, packagename):
         """Check if packagename is found in list of packages.
@@ -207,8 +193,7 @@ class PackageRegistry:
         if not self.hasPackage(packagename):
             logger.warning(
                 'tried to register target [%s] for non existent package [%s]',
-                targetname,
-                packagename)
+                targetname, packagename)
             return
         theTargets = self.packages[packagename].setdefault('targets', {})
         if plaintarget and SCons.Util.is_List(plaintarget):
@@ -220,37 +205,27 @@ class PackageRegistry:
         theTargets[targetname] = {'plaintarget': plaintarget, 'target': target}
 
     def getPackageTarget(self, packagename, targetname):
-        return self.getPackageTargetTargets(
-            packagename,
-            targetname).get(
-                'target',
-                None)
+        return self.getPackageTargetTargets(packagename,
+                                            targetname).get('target', None)
 
     def hasPackageTarget(self, packagename, targetname):
-        return targetname in self.packages.get(
-            packagename,
-            {}).get(
-            'targets',
-            {})
+        return targetname in self.packages.get(packagename, {}).get('targets',
+                                                                    {})
 
     def getPackageTargetTargets(self, packagename, targetname):
         if not self.hasPackage(packagename):
             logger.warning(
                 'tried to access target [%s] of non existent package [%s]',
-                targetname,
-                packagename)
-        return self.packages.get(
-            packagename, {}).get(
-                'targets', {}).get(
-                    targetname, {
-                        'plaintarget': None, 'target': None})
+                targetname, packagename)
+        return self.packages.get(packagename, {}).get('targets',
+                                                      {}).get(targetname, {
+                                                          'plaintarget': None,
+                                                          'target': None
+                                                      })
 
     def getPackagePlaintarget(self, packagename, targetname):
-        return self.getPackageTargetTargets(
-            packagename,
-            targetname).get(
-                'plaintarget',
-                None)
+        return self.getPackageTargetTargets(packagename,
+                                            targetname).get('plaintarget', None)
 
     def getPackageTargetNames(self, packagename):
         return self.packages.get(packagename, {}).get('targets', {}).keys()
@@ -261,13 +236,12 @@ class PackageRegistry:
         packagename, targetname = self.splitTargetname(str(fulltargetname))
         return self.hasPackageTarget(packagename, targetname)
 
-    def getPackageTargetDependencies(
-            self,
-            packagename,
-            targetname,
-            callerdeps=None):
-        targetBuildSettings = self.getBuildSettings(
-            packagename).get(targetname, {})
+    def getPackageTargetDependencies(self,
+                                     packagename,
+                                     targetname,
+                                     callerdeps=None):
+        targetBuildSettings = self.getBuildSettings(packagename).get(targetname,
+                                                                     {})
         if callerdeps is None:
             callerdeps = dict()
         callerdeps.setdefault('pending', [])
@@ -281,12 +255,10 @@ class PackageRegistry:
                     dep_fulltargetname)
                 if not dep_targetname:
                     dep_targetname = dep_packagename
-                deps[
-                    self.generateFulltargetname(
-                        dep_packagename,
-                        dep_targetname)] = self.getPackageTargetDependencies(
-                            dep_packagename,
-                            dep_targetname)
+                deps[self.generateFulltargetname(
+                    dep_packagename,
+                    dep_targetname)] = self.getPackageTargetDependencies(
+                        dep_packagename, dep_targetname)
         return deps
 
     def setBuildSettings(self, packagename, buildSettings):
@@ -297,55 +269,41 @@ class PackageRegistry:
         if not targetname:
             return 'buildsettings' in self.packages.get(packagename, {})
         else:
-            return targetname in self.packages.get(
-                packagename,
-                {}).get(
-                'buildsettings',
-                {})
+            return targetname in self.packages.get(packagename, {}).get(
+                'buildsettings', {})
 
     def getBuildSettings(self, packagename, targetname=None):
         if not targetname:
             return self.packages.get(packagename, {}).get('buildsettings', {})
         else:
-            return self.packages.get(
-                packagename, {}).get(
-                'buildsettings', {}).get(
-                targetname, {})
+            return self.packages.get(packagename, {}).get(
+                'buildsettings', {}).get(targetname, {})
 
     def __loadPackageTarget(self, loadfunc, packagename, targetname):
         self.loadPackage(packagename)
         target = loadfunc(packagename, targetname)
         if targetname and not target:
-            raise TargetNotFound(
-                self.generateFulltargetname(
-                    packagename,
-                    targetname))
+            raise TargetNotFound(self.generateFulltargetname(packagename,
+                                                             targetname))
         return target
 
     def loadPackageTarget(self, packagename, targetname):
-        return self.__loadPackageTarget(
-            self.getPackageTarget,
-            packagename,
-            targetname)
+        return self.__loadPackageTarget(self.getPackageTarget, packagename,
+                                        targetname)
 
     def loadPackagePlaintarget(self, packagename, targetname):
-        return self.__loadPackageTarget(
-            self.getPackagePlaintarget,
-            packagename,
-            targetname)
+        return self.__loadPackageTarget(self.getPackagePlaintarget, packagename,
+                                        targetname)
 
     def getPackageDependencies(self, packagename, callerdeps=None):
         if callerdeps is None:
             callerdeps = dict()
         deps = dict()
         for targetname in self.getPackageTargetNames(packagename):
-            deps[
-                self.generateFulltargetname(
-                    packagename,
-                    targetname)] = self.getPackageTargetDependencies(
-                        packagename,
-                        targetname,
-                        callerdeps=callerdeps)
+            deps[self.generateFulltargetname(
+                packagename, targetname)] = self.getPackageTargetDependencies(
+                    packagename, targetname,
+                    callerdeps=callerdeps)
         return deps
 
     def isPackageLoaded(self, packagename):
@@ -363,38 +321,29 @@ class PackageRegistry:
                 packagedir = self.getPackageDir(packagename)
                 packagefile = self.getPackageFile(packagename)
                 packageduplicate = self.getPackageDuplicate(packagename)
-                builddir = self.env.getBaseOutDir().Dir(
-                    packagedir.path).Dir(
+                builddir = self.env.getBaseOutDir().Dir(packagedir.path).Dir(
                     self.env.getRelativeBuildDirectory()).Dir(
-                    self.env.getRelativeVariantDirectory())
+                        self.env.getRelativeVariantDirectory())
                 message = 'executing [{0}] as SConscript for package [{1}]'.format(
-                    packagefile.path,
-                    packagename)
+                    packagefile.path, packagename)
                 if self.lookupStack:
-                    message += ' required by [{0}]'.format(
-                        '>'.join(self.lookupStack))
+                    message += ' required by [{0}]'.format('>'.join(
+                        self.lookupStack))
                 logger.info(message)
-                exports = {
-                    'packagename': packagename,
-                    'registry': self
-                }
+                exports = {'packagename': packagename, 'registry': self}
                 self.lookupStack.append(fulltargetname)
                 try:
-                    self.env.SConscript(
-                        packagefile,
-                        variant_dir=builddir,
-                        duplicate=packageduplicate,
-                        exports=exports)
-                except ResolutionError as e:
+                    self.env.SConscript(packagefile,
+                                        variant_dir=builddir,
+                                        duplicate=packageduplicate,
+                                        exports=exports)
+                except ResolutionError as ex:
                     raise PackageRequirementsNotFulfilled(
-                        self.generateFulltargetname(
-                            packagename,
-                            targetname),
-                        packagefile,
-                        e)
-                except (PackageNotFound, TargetNotFound) as e:
-                    e.prependItem(fulltargetname)
-                    raise e
+                        self.generateFulltargetname(packagename, targetname),
+                        packagefile, ex)
+                except (PackageNotFound, TargetNotFound) as ex:
+                    ex.prependItem(fulltargetname)
+                    raise ex
                 finally:
                     self.lookupStack = self.lookupStack[:-1]
             if targetname:
@@ -410,20 +359,19 @@ class PackageRegistry:
             raise PackageNotFound(packagename)
         return self.lookup(packagename)
 
-    def getRealTarget(
-            self,
-            target,
-            doThrow=False,
-            messagePrefix='',
-            fullTargetName=''):
+    def getRealTarget(self,
+                      target,
+                      doThrow=False,
+                      messagePrefix='',
+                      fullTargetName=''):
         from SCons.Util import is_Tuple, is_List, is_String
         from SCons.Errors import UserError
         from SCons.Node.Alias import Alias
-        if (is_Tuple(target) and target[0] is None) or (
-                is_List(target) and not len(target)):
+        if (is_Tuple(target) and target[0] is None) or (is_List(target)
+                                                        and not len(target)):
             if doThrow:
-                raise TargetNotFound(
-                    target[1] if len(target) == 2 else '<unknown target>')
+                raise TargetNotFound(target[1] if len(target) == 2 else
+                                     '<unknown target>')
             return None
         target_name = None
         if is_List(target) and is_Tuple(target[0]):
@@ -442,11 +390,9 @@ class PackageRegistry:
         if isinstance(target, Alias):
             if doThrow:
                 raise UserError(
-                    "%s '%s' for target '%s' must be a string entry, not an alias node" %
-                    (messagePrefix, str(target), fullTargetName))
+                    "%s '%s' for target '%s' must be a string entry, not an alias node"
+                    % (messagePrefix, str(target), fullTargetName))
             logger.error(
                 '{0} [{1}] for target [{2}] must be a string entry, not an alias node'.format(
-                    messagePrefix,
-                    str(target),
-                    fullTargetName))
+                    messagePrefix, str(target), fullTargetName))
         return target

@@ -10,7 +10,6 @@
 
 from ServerExtensions import SecureHTTPServer
 from SimpleHTTPServer import SimpleHTTPRequestHandler
-from BaseHTTPServer import BaseHTTPRequestHandler
 import threading
 import unittest
 import socket
@@ -80,7 +79,6 @@ class StoppableHttpServer(StartStopMixin, SecureHTTPServer):
         try:
             self.shutdown_request(request)
         except:
-            import exceptions
             import sys
             (etype,) = sys.exc_info()[:2]
             if etype is TypeError:

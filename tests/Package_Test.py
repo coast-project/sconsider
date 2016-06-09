@@ -8,10 +8,8 @@
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
 
-import os
 import unittest
 import Package
-import functools
 import SomeUtils
 
 

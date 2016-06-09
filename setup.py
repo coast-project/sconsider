@@ -17,78 +17,74 @@ Setup script to generate a python module from the sources.
 # -------------------------------------------------------------------------
 
 import os
-import versioneer
 import codecs
-import re
 from setuptools import setup
 from pip.req import parse_requirements
+import versioneer
 
 PACKAGE = 'SConsider'
 
-here = os.path.abspath(os.path.dirname(__file__))
-README = codecs.open(os.path.join(here, 'README.txt'), encoding='utf8').read()
-CHANGES = codecs.open(
-    os.path.join(
-        here,
-        'CHANGES.txt'),
+_THISPATH = os.path.abspath(os.path.dirname(__file__))
+_README = codecs.open(
+    os.path.join(_THISPATH, 'README.txt'),
+    encoding='utf8').read()
+_CHANGES = codecs.open(
+    os.path.join(_THISPATH, 'CHANGES.txt'),
     encoding='utf8').read()
 
 
 def get_packages(package):
-    """
-    Return root package and all sub-packages.
-    """
-    return [dirpath
-            for dirpath, _, _ in os.walk(package)
+    """Return root package and all sub-packages."""
+    return [dirpath for dirpath, _, _ in os.walk(package)
             if os.path.exists(os.path.join(dirpath, '__init__.py'))]
 
 
 def get_requirements():
+    """Read and parse requirements from file"""
     requirements_file_path = os.path.join(
-        os.path.dirname(__file__),
-        'requirements.txt')
+        os.path.dirname(__file__), 'requirements.txt')
     if os.path.exists(requirements_file_path):
-        parsed_requirements = parse_requirements(
-            requirements_file_path,
-            session=False)
+        parsed_requirements = parse_requirements(requirements_file_path,
+                                                 session=False)
         requirements = [str(ir.req) for ir in parsed_requirements]
     else:
         requirements = []
     return requirements
 
 
-setup(name=PACKAGE,
-      version=versioneer.get_version(),
-      cmdclass=versioneer.get_cmdclass(),
-      description="scons build system extension",
-      long_description=README + '\n\n' + CHANGES,
-      # classifier list:
-      # https://pypi.python.org/pypi?%3Aaction=list_classifiers
-      classifiers=[
-          "Development Status :: 4 - Beta",
-          # "Development Status :: 5 - Production/Stable",
-          "Environment :: Console",
-          "Intended Audience :: Developers",
-          "License :: OSI Approved :: BSD License",
-          "Natural Language :: English",
-          "Operating System :: MacOS :: MacOS X",
-          "Operating System :: Microsoft :: Windows",
-          "Operating System :: POSIX :: Linux",
-          "Operating System :: POSIX :: SunOS/Solaris",
-          "Programming Language :: Python",
-          "Programming Language :: Python :: 2.6",
-          "Programming Language :: Python :: 2.7",
-          "Topic :: Software Development :: Build Tools"],
-      author="Marcel Huber",
-      author_email="marcel.huber@hsr.ch",
-      url="https://redmine.coast-project.org/projects/sconsider",
-      keywords=['sconsider', 'scons', 'build'],
-      license="BSD",
-      packages=get_packages(PACKAGE),
-      install_requires=get_requirements(),
-      setup_requires=['flake8'],
-      test_suite='tests',
-      tests_require=['nose', 'mockito'],
-      include_package_data=True,
-      zip_safe=False,
-      )
+setup(
+    name=PACKAGE,
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
+    description="scons build system extension",
+    long_description=_README + '\n\n' + _CHANGES,
+    # classifier list:
+    # https://pypi.python.org/pypi?%3Aaction=list_classifiers
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        # "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: BSD License",
+        "Natural Language :: English",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX :: Linux",
+        "Operating System :: POSIX :: SunOS/Solaris",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 2.6",
+        "Programming Language :: Python :: 2.7",
+        "Topic :: Software Development :: Build Tools"
+    ],
+    author="Marcel Huber",
+    author_email="marcel.huber@hsr.ch",
+    url="https://redmine.coast-project.org/projects/sconsider",
+    keywords=['sconsider', 'scons', 'build'],
+    license="BSD",
+    packages=get_packages(PACKAGE),
+    install_requires=get_requirements(),
+    setup_requires=[],
+    test_suite='tests',
+    tests_require=['mockito'],
+    include_package_data=True,
+    zip_safe=False, )

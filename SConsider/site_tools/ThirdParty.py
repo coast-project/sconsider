@@ -47,16 +47,13 @@ def collectPackages(directory, direxcludesrel=[]):
         dirobj = SCons.Script.Dir(root)
         fileobj = dirobj.File(filename)
         if 0:
-            logger.debug(
-                'found package [{0}]({1}) in [{2}]'.format(
-                    match.group('packagename'),
-                    match.group('type'),
-                    fileobj.path))
+            logger.debug('found package [{0}]({1}) in [{2}]'.format(
+                match.group('packagename'), match.group('type'), fileobj.path))
         packages.setdefault(
-            match.group('packagename'), {})[
-            match.group('type')] = fileobj
-    import SConsider.PackageRegistry
-    SConsider.PackageRegistry.PackageRegistry.collectPackageFiles(
+            match.group('packagename'), {})[match.group('type')] = fileobj
+
+    from SConsider.PackageRegistry import PackageRegistry
+    PackageRegistry.collectPackageFiles(
         directory,
         '^(?P<packagename>.*)\.(?P<type>sys|src|bin)\.sconsider$',
         scanmatchfun,
@@ -66,16 +63,9 @@ def collectPackages(directory, direxcludesrel=[]):
 
 def registerDist(registry, packagename, package, distType, distDir, duplicate):
     package_dir = package[distType].get_dir()
-    logger.debug(
-        'using package [{0}]({1}) in [{2}]'.format(
-            packagename,
-            distType,
-            package_dir))
-    registry.setPackage(
-        packagename,
-        package[distType],
-        package_dir,
-        duplicate)
+    logger.debug('using package [{0}]({1}) in [{2}]'.format(
+        packagename, distType, package_dir))
+    registry.setPackage(packagename, package[distType], package_dir, duplicate)
     package_dir.addRepository(distDir)
     thirdPartyPackages.setdefault(packagename, {})[distType] = distDir
 
@@ -84,91 +74,68 @@ def postPackageCollection(env, registry, **kw):
     thirdPartyPathList = SCons.Script.GetOption('3rdparty')
     packages = {}
     for packageDir in thirdPartyPathList:
-        packages.update(collectPackages(packageDir,
-                                        env.relativeExcludeDirs()))
+        packages.update(collectPackages(packageDir, env.relativeExcludeDirs()))
 
     for packagename, package in packages.iteritems():
         if registry.hasPackage(packagename):
             logger.warning(
                 'package [{0}] already registered, skipping [{1}]'.format(
-                    packagename,
-                    package.items()[0][1].get_dir().get_abspath()))
+                    packagename, package.items()[0][1].get_dir().get_abspath()))
             continue
         SCons.Script.AddOption(
-            '--with-src-' +
-            packagename,
-            dest='with-src-' +
-            packagename,
+            '--with-src-' + packagename,
+            dest='with-src-' + packagename,
             action='store',
             default='',
-            metavar=packagename +
-            '_SOURCEDIR',
-            help='Specify the ' +
-            packagename +
-            ' source directory')
+            metavar=packagename + '_SOURCEDIR',
+            help='Specify the ' + packagename + ' source directory')
         SCons.Script.AddOption(
-            '--with-bin-' +
-            packagename,
-            dest='with-bin-' +
-            packagename,
+            '--with-bin-' + packagename,
+            dest='with-bin-' + packagename,
             action='store',
             default='',
-            metavar=packagename +
-            '_DIR',
-            help='Specify the ' +
-            packagename +
-            ' legacy binary directory')
+            metavar=packagename + '_DIR',
+            help='Specify the ' + packagename + ' legacy binary directory')
         SCons.Script.AddOption(
-            '--with-' +
-            packagename,
-            dest='with-' +
-            packagename,
+            '--with-' + packagename,
+            dest='with-' + packagename,
             action='store',
             default='',
-            metavar=packagename +
-            '_DIR',
-            help='Specify the ' +
-            packagename +
-            ' binary directory')
+            metavar=packagename + '_DIR',
+            help='Specify the ' + packagename + ' binary directory')
 
         libpath = SCons.Script.GetOption('with-src-' + packagename)
         if libpath:
             if 'src' not in package:
                 logger.error(
-                    'Third party source distribution definition for {0} not found, aborting!'.format(packagename))
+                    'Third party source distribution definition for {0} not found, aborting!'.format(
+                        packagename))
                 SCons.Script.Exit(1)
-            registerDist(
-                registry,
-                packagename,
-                package,
-                'src',
-                env.Dir(libpath),
-                True)
+            registerDist(registry, packagename, package, 'src',
+                         env.Dir(libpath), True)
         else:
             distpath = SCons.Script.GetOption('with-bin-' + packagename)
             if distpath:
                 if 'bin' not in package:
                     logger.error(
-                        'Third party binary distribution definition for {0} not found, aborting!'.format(packagename))
+                        'Third party binary distribution definition for {0} not found, aborting!'.format(
+                            packagename))
                     SCons.Script.Exit(1)
-                registerDist(
-                    registry,
-                    packagename,
-                    package,
-                    'bin',
-                    env.Dir(distpath),
-                    False)
+                registerDist(registry, packagename, package, 'bin',
+                             env.Dir(distpath), False)
             else:
                 if 'sys' not in package:
                     logger.error(
-                        'Third party system definition for {0} not found, aborting!'.format(packagename))
+                        'Third party system definition for {0} not found, aborting!'.format(
+                            packagename))
                     SCons.Script.Exit(1)
                 path = SCons.Script.GetOption('with-' + packagename)
                 if path:
                     baseDir = env.Dir(path)
                     env.AppendUnique(LIBPATH=baseDir.Dir('lib'))
                     # add first available include dir
-                    includeDirList = os.getenv('INCLUDEDIRLIST', 'include:inc:.').split(':')
+                    includeDirList = os.getenv('INCLUDEDIRLIST',
+                                               'include:inc:.').split(':')
                     for incdir in includeDirList:
                         try:
                             includeDir = baseDir.Dir(incdir)
@@ -178,16 +145,10 @@ def postPackageCollection(env, registry, **kw):
                         except TypeError:
                             pass
                     env.PrependENVPath('PATH', baseDir.Dir('bin').get_abspath())
-                logger.debug(
-                    'using package [{0}]({1}) in [{2}]'.format(
-                        packagename,
-                        'sys',
-                        package['sys'].get_dir()))
-                registry.setPackage(
-                    packagename,
-                    package['sys'],
-                    package['sys'].get_dir(),
-                    False)
+                logger.debug('using package [{0}]({1}) in [{2}]'.format(
+                    packagename, 'sys', package['sys'].get_dir()))
+                registry.setPackage(packagename, package['sys'],
+                                    package['sys'].get_dir(), False)
 
 
 def prePackageCollection(env):
@@ -199,8 +160,7 @@ def prePackageCollection(env):
 def generate(env):
     import SCons.Script
     from SConsider import _base_path, registerCallback
-    siteDefault3rdparty = os.path.join(_base_path,
-                                       '3rdparty')
+    siteDefault3rdparty = os.path.join(_base_path, '3rdparty')
     SCons.Script.AddOption(
         '--3rdparty',
         dest='3rdparty',

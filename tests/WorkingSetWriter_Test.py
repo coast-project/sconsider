@@ -12,7 +12,6 @@ import os
 import unittest
 import WorkingSetWriter
 import shutil
-import SomeUtils
 import tempfile
 
 

@@ -32,13 +32,11 @@ def listFiles(files, **kw):
     for file in files:
         globFiles = SCons.Script.Glob(file)
         for globFile in globFiles:
-            if kw.get(
-                    'recursive',
-                    False) and isinstance(
-                    globFile,
-                    SCons.Node.FS.Dir):
-                allFiles += listFiles([str(SCons.Script.Dir('.').srcnode().rel_path(
-                    globFile.srcnode())) + "/*"], recursive=True)
+            if kw.get('recursive', False) and isinstance(globFile,
+                                                         SCons.Node.FS.Dir):
+                allFiles += listFiles([str(SCons.Script.Dir('.').srcnode(
+                ).rel_path(globFile.srcnode())) + "/*"],
+                                      recursive=True)
             else:
                 allFiles.append(globFile)
     allFiles.sort(cmp=FileNodeComparer)
@@ -73,12 +71,14 @@ def findFiles(directories, extensions=[], matchfiles=[], direxcludes=[]):
                 if extensions:
                     efiles = [
                         curDir.File(f) for f in filenames
-                        if os.path.splitext(f)[1] in extensions]
+                        if os.path.splitext(f)[1] in extensions
+                    ]
                     addfiles.extend(efiles)
                 if matchfiles:
                     mfiles = [
                         curDir.File(f) for f in filenames
-                        if os.path.split(f)[1] in matchfiles]
+                        if os.path.split(f)[1] in matchfiles
+                    ]
                     addfiles.extend(mfiles)
                 if addfiles:
                     files.extend(addfiles)
@@ -88,13 +88,12 @@ def findFiles(directories, extensions=[], matchfiles=[], direxcludes=[]):
     return files
 
 
-def copyFileNodes(
-        env,
-        nodetuples,
-        destDir,
-        stripRelDirs=[],
-        mode=None,
-        replaceDict={}):
+def copyFileNodes(env,
+                  nodetuples,
+                  destDir,
+                  stripRelDirs=[],
+                  mode=None,
+                  replaceDict={}):
     import SCons
     if not SCons.Util.is_List(stripRelDirs):
         stripRelDirs = [stripRelDirs]
@@ -105,8 +104,8 @@ def copyFileNodes(
             file = SCons.Script.File(file)
         installRelPath = baseDir.rel_path(file.get_dir())
 
-        if stripRelDirs and baseDir.get_abspath(
-        ) != file.get_dir().get_abspath():
+        if stripRelDirs and baseDir.get_abspath() != file.get_dir().get_abspath(
+        ):
             relPathParts = installRelPath.split(os.sep)
             delprefix = []
             for stripRelDir in stripRelDirs:
@@ -117,14 +116,13 @@ def copyFileNodes(
         if replaceDict:
             instTarg = env.SubstInFileBuilder(
                 destDir.Dir(installRelPath),
-                file,
-                SUBST_DICT=replaceDict)
+                file, SUBST_DICT=replaceDict)
         else:
             instTarg = env.Install(destDir.Dir(installRelPath), file)
 
         if mode:
-            env.AddPostAction(
-                instTarg, SCons.Defaults.Chmod(str(instTarg[0]), mode))
+            env.AddPostAction(instTarg, SCons.Defaults.Chmod(
+                str(instTarg[0]), mode))
         instTargs.extend(instTarg)
 
     return instTargs
@@ -150,11 +148,10 @@ def multiple_replace(replist, text):
     return text
 
 
-def replaceRegexInFile(
-        fname,
-        searchReplace,
-        multiReplFunc=multiple_replace,
-        replacedCallback=None):
+def replaceRegexInFile(fname,
+                       searchReplace,
+                       multiReplFunc=multiple_replace,
+                       replacedCallback=None):
     try:
         fo = open(fname)
         if fo:
@@ -177,12 +174,11 @@ def replaceRegexInFile(
     return None
 
 
-def RegexReplace(
-        filematch,
-        baseDir='.',
-        searchReplace=[],
-        excludelist=[],
-        replacedCallback=None):
+def RegexReplace(filematch,
+                 baseDir='.',
+                 searchReplace=[],
+                 excludelist=[],
+                 replacedCallback=None):
     for dirpath, dirnames, filenames in os.walk(baseDir):
         dirnames[:] = [d for d in dirnames if d not in excludelist]
         for name in filenames:
@@ -195,6 +191,7 @@ def RegexReplace(
 
 # monkey patch os.path to include relpath if python version is < 2.6
 if not hasattr(os.path, "relpath"):
+
     def relpath_posix(path, start):
         """Return a relative version of a path."""
 
@@ -228,13 +225,11 @@ if not hasattr(os.path, "relpath"):
             unc_path, rest = os.path.splitunc(path)
             unc_start, rest = os.path.splitunc(start)
             if bool(unc_path) ^ bool(unc_start):
-                raise ValueError(
-                    "Cannot mix UNC and non-UNC paths (%s and %s)" %
-                    (path, start))
+                raise ValueError("Cannot mix UNC and non-UNC paths (%s and %s)"
+                                 % (path, start))
             else:
-                raise ValueError(
-                    "path is on drive %s, start on drive %s" %
-                    (path_list[0], start_list[0]))
+                raise ValueError("path is on drive %s, start on drive %s" %
+                                 (path_list[0], start_list[0]))
 
         # Work out how much of the filepath is shared by start and path.
         for i in range(min(len(start_list), len(path_list))):
@@ -336,13 +331,12 @@ def getfqdn():
     return (hostname, domain, fqdn)
 
 
-def runCommand(
-        args,
-        logpath='',
-        filename=None,
-        stdincontent=None,
-        filter=None,
-        **kw):
+def runCommand(args,
+               logpath='',
+               filename=None,
+               stdincontent=None,
+               filter=None,
+               **kw):
     import subprocess
     res = 1
     if filename:
@@ -374,20 +368,19 @@ def runCommand(
             with open(outfilename, 'w') as outfile:
                 outfile.write(popen_out)
         res = popenObject.returncode
-    except OSError as e:
+    except OSError as ex:
         with open(errfilename, 'w') as errfile:
-            print >> errfile, e
+            print >> errfile, ex
             for line in popenObject.stderr:
                 print >> errfile, line
     return res
 
 
 def getLibCVersion(bits='32'):
-    import os
     import platform
     libcnames = []
     for directory in ['/lib' + bits, '/lib', '/lib32', '/lib64']:
-        for dirpath, dirnames, filenames in os.walk(directory):
+        for dirpath, _, filenames in os.walk(directory):
             filenames[:] = [f for f in filenames if f == 'libc.so.6']
             for f in filenames:
                 libcnames.append(os.path.join(dirpath, f))

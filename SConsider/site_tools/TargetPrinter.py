@@ -21,7 +21,7 @@ import SCons.Action
 import SCons.Builder
 import SCons.Util
 from SCons.Script import AddOption, GetOption
-import SConsider.PackageRegistry
+from SConsider.PackageRegistry import PackageRegistry
 import SomeUtils
 
 
@@ -41,9 +41,9 @@ def printTargets(registry, **kw):
     env = cloneBaseEnv()
 
     def isPackage(alias):
-        pkg, target = SConsider.PackageRegistry.PackageRegistry.splitFulltargetname(
-            alias)
+        pkg, _ = PackageRegistry.splitFulltargetname(alias)
         return registry.hasPackage(pkg)
+
     filters = [lambda alias: not isPackage(alias)]
     if not GetOption("showallaliases"):
         filters.append(lambda alias: not alias.startswith('_'))
@@ -70,7 +70,6 @@ def existsTarget(registry, packagename, targetname=None):
 
 
 class Node(object):
-
     def __init__(self, name, children):
         self.name = name
         self.children = [Node(k, v) for k, v in children.iteritems()]
@@ -89,13 +88,12 @@ def printTree(registry, buildTargets, **kw):
         if isinstance(fulltargetname, Alias):
             packagename, targetname = (fulltargetname.name, None)
         else:
-            packagename, targetname = SConsider.PackageRegistry.PackageRegistry.splitFulltargetname(
+            packagename, targetname = PackageRegistry.splitFulltargetname(
                 fulltargetname, True)
         if existsTarget(registry, packagename, targetname):
             node = Node(
-                SConsider.PackageRegistry.PackageRegistry.createFulltargetname(
-                    packagename, targetname), getDependencies(
-                    registry, packagename, targetname))
+                PackageRegistry.createFulltargetname(packagename, targetname),
+                getDependencies(registry, packagename, targetname))
             SCons.Util.print_tree(node, lambda node: node.children)
 
     print "\nOption 'showtree' active, exiting."
@@ -106,24 +104,21 @@ def generate(env):
     from SConsider import registerCallback
     """Add the options, builders and wrappers to the current Environment."""
     try:
-        AddOption(
-            '--showtargets',
-            dest='showtargets',
-            action='store_true',
-            default=False,
-            help='Show available targets')
-        AddOption(
-            '--showtree',
-            dest='showtree',
-            action='store_true',
-            default=False,
-            help='Show dependencytree')
-        AddOption(
-            '--showallaliases',
-            dest='showallaliases',
-            action='store_true',
-            default=False,
-            help='Show all defined aliases')
+        AddOption('--showtargets',
+                  dest='showtargets',
+                  action='store_true',
+                  default=False,
+                  help='Show available targets')
+        AddOption('--showtree',
+                  dest='showtree',
+                  action='store_true',
+                  default=False,
+                  help='Show dependencytree')
+        AddOption('--showallaliases',
+                  dest='showallaliases',
+                  action='store_true',
+                  default=False,
+                  help='Show all defined aliases')
     except optparse.OptionConflictError:
         pass
 
