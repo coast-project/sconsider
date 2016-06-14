@@ -40,7 +40,7 @@ def getBinaryDistDir(packagename):
     return thirdPartyPackages.get(packagename, {}).get('bin', '')
 
 
-def collectPackages(directory, direxcludesrel=[]):
+def collectPackages(directory, direxcludesrel=None):
     packages = {}
 
     def scanmatchfun(root, filename, match):

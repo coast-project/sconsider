@@ -253,7 +253,7 @@ class TargetMaker:
                     ex.name)
             return False
 
-    def createTargetEnv(self, targetname, targetBuildSettings, envVars={}):
+    def createTargetEnv(self, _, targetBuildSettings, envVars=None):
         # create environment for target
         targetEnv = SConsider.cloneBaseEnv()
 
@@ -279,7 +279,8 @@ class TargetMaker:
         targetVars = targetBuildSettings.get('public', {}).get('appendUnique',
                                                                {})
         targetEnv.AppendUnique(**targetVars)
-        targetEnv.AppendUnique(**envVars)
+        if envVars is not None:
+            targetEnv.AppendUnique(**envVars)
         return targetEnv
 
     def setModuleDependencies(self, env, modules, **kw):

@@ -54,9 +54,11 @@ def removeFiles(files, **kw):
             pass
 
 
-def findFiles(directories, extensions=[], matchfiles=[], direxcludes=[]):
+def findFiles(directories, extensions=None, matchfiles=None, direxcludes=None):
     import SCons
     files = []
+    if direxcludes is None:
+        direxcludes = []
     baseDir = SCons.Script.Dir('.').srcnode()
     basepathabs = baseDir.get_abspath()
     for directory in directories:
@@ -91,10 +93,12 @@ def findFiles(directories, extensions=[], matchfiles=[], direxcludes=[]):
 def copyFileNodes(env,
                   nodetuples,
                   destDir,
-                  stripRelDirs=[],
+                  stripRelDirs=None,
                   mode=None,
-                  replaceDict={}):
+                  replaceDict=None):
     import SCons
+    if stripRelDirs is None:
+        stripRelDirs = []
     if not SCons.Util.is_List(stripRelDirs):
         stripRelDirs = [stripRelDirs]
 
@@ -141,6 +145,8 @@ def multiple_replace(replist, text):
     Returns the new string.
 
     """
+    if replist is None:
+        replist = []
     for pattern, replacement in replist:
         if not pattern or not text:
             continue
@@ -176,9 +182,11 @@ def replaceRegexInFile(fname,
 
 def RegexReplace(filematch,
                  baseDir='.',
-                 searchReplace=[],
-                 excludelist=[],
+                 searchReplace=None,
+                 excludelist=None,
                  replacedCallback=None):
+    if excludelist is None:
+        excludelist = []
     for dirpath, dirnames, filenames in os.walk(baseDir):
         dirnames[:] = [d for d in dirnames if d not in excludelist]
         for name in filenames:
@@ -252,7 +260,7 @@ if not hasattr(os.path, "relpath"):
 def allFuncs(funcs, *args):
     """Returns True if all functions in 'funcs' return True."""
     for f in funcs:
-        if not f(*args):
+        if callable(f) and not f(*args):
             return False
     return True
 
@@ -305,12 +313,14 @@ def hasPathPart(node, pathpart):
     return match is not None
 
 
-def getNodeDependencies(target, filters=[]):
+def getNodeDependencies(target, filters=None):
     """Determines the recursive dependencies of a node.
 
     Specify node filters using 'filters'.
 
     """
+    if filters is None:
+        filters = []
     if not isinstance(filters, list):
         filters = [filters]
 

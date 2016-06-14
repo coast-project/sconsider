@@ -100,8 +100,8 @@ class PackageRegistry:
                             filename_re,
                             matchfun,
                             file_ext='sconsider',
-                            excludes_rel=[],
-                            excludes_abs=[]):
+                            excludes_rel=None,
+                            excludes_abs=None):
         """Recursively collects SConsider packages.
 
         Walks recursively through 'directory' to collect package files
@@ -109,6 +109,10 @@ class PackageRegistry:
         from 'exclude_abs'.
 
         """
+        if excludes_rel is None:
+            excludes_rel = []
+        if excludes_abs is None:
+            excludes_abs = []
         import fnmatch
         package_re = re.compile(filename_re)
         followlinks = False
@@ -128,8 +132,8 @@ class PackageRegistry:
     def __init__(self,
                  env,
                  scan_dirs,
-                 scan_dirs_exclude_rel=[],
-                 scan_dirs_exclude_abs=[]):
+                 scan_dirs_exclude_rel=None,
+                 scan_dirs_exclude_abs=None):
         import SCons
         self.env = env
         self.packages = {}

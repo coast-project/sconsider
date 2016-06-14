@@ -82,17 +82,10 @@ def makePackage(registry, buildTargets, env, destdir, **kw):
             copyPackage(tn, tdeps, env, destdir, copyfilters)
 
 
-def copyPackage(name, deps, env, destdir, filters=[]):
+def copyPackage(name, deps, env, destdir, filters=None):
     for target in deps:
-        copyTarget(
-            env,
-            determineDirInPackage(
-                name,
-                env,
-                destdir,
-                target,
-                filters),
-            target)
+        copyTarget(env, determineDirInPackage(name, env, destdir, target,
+                                              filters), target)
 
 
 def copyTarget(env, destdir, node):
@@ -161,14 +154,14 @@ def filterVariantPath(path, **kw):
     return re.sub(re.escape(variant) + os.sep + '?', '', path)
 
 
-def determineDirInPackage(name, env, destdir, target, filters=[]):
+def determineDirInPackage(name, env, destdir, target, filters=None):
     path = target.get_dir().path
-
-    if not isinstance(filters, list):
-        filters = [filters]
-    for current_filter in filters:
-        if path and callable(current_filter):
-            path = current_filter(path, env=env)
+    if filters is not None:
+        if not isinstance(filters, list):
+            filters = [filters]
+        for current_filter in filters:
+            if path and callable(current_filter):
+                path = current_filter(path, env=env)
 
     copydir = destdir.Dir(name)
     return copydir.Dir(path)
@@ -210,12 +203,14 @@ def exists(env):
     return 1
 
 
-def getTargetDependencies(target, filters=[]):
+def getTargetDependencies(target, filters=None):
     """Determines the recursive dependencies of a target (including itself).
 
     Specify additional target filters using 'filters'.
 
     """
+    if filters is None:
+        filters = []
     if not isinstance(filters, list):
         filters = [filters]
     filters = [SomeUtils.isFileNode] + filters
