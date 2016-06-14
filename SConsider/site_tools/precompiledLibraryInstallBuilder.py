@@ -28,29 +28,30 @@ from logging import getLogger
 logger = getLogger(__name__)
 
 
-def findPlatformTargets(
-        env,
-        basedir,
-        targetname,
-        prefixes=[],
-        suffixes=[],
-        dir_has_to_match=True,
-        strict_lib_name_matching=False):
+def findPlatformTargets(env,
+                        basedir,
+                        targetname,
+                        prefixes=None,
+                        suffixes=None,
+                        dir_has_to_match=True,
+                        strict_lib_name_matching=False):
     bitwidth = env.getBitwidth()
     targetRE = ''
-    for pre in prefixes:
-        if targetRE:
-            targetRE += '|'
-        targetRE += re.escape(env.subst(pre))
+    if prefixes is not None:
+        for pre in prefixes:
+            if targetRE:
+                targetRE += '|'
+            targetRE += re.escape(env.subst(pre))
     targetRE = '(' + targetRE + ')'
     # probably there are files like 'targetname64' or 'targetname_r':
-    targetRE += '(' + targetname + (
-        '' if strict_lib_name_matching else '[^.]*') + ')'
+    targetRE += '(' + targetname + ('' if strict_lib_name_matching else '[^.]*'
+                                    ) + ')'
     targetSFX = ''
-    for suf in suffixes:
-        if targetSFX:
-            targetSFX += '|'
-        targetSFX += re.escape(env.subst(suf))
+    if suffixes is not None:
+        for suf in suffixes:
+            if targetSFX:
+                targetSFX += '|'
+            targetSFX += re.escape(env.subst(suf))
     targetRE += '(' + targetSFX + ')(.*)'
     reTargetname = re.compile(targetRE)
 
@@ -59,10 +60,10 @@ def findPlatformTargets(
         if env['PLATFORM'] in ['cygwin', 'win32']:
             dirRE = 'Win' + osStringSep + 'i386'
         elif env['PLATFORM'] == 'sunos':
-            dirRE = platform.system() + osStringSep + '([0-9]+(\.[0-9]+)*)'
+            dirRE = platform.system() + osStringSep + r'([0-9]+(\.[0-9]+)*)'
         else:
             dirRE = platform.system(
-            ) + osStringSep + 'glibc' + osStringSep + '([0-9]+(\.[0-9]+)*)'
+            ) + osStringSep + 'glibc' + osStringSep + r'([0-9]+(\.[0-9]+)*)'
         dirRE += osStringSep + '?(.*)'
         reDirname = re.compile(dirRE)
     else:
@@ -72,8 +73,7 @@ def findPlatformTargets(
     files = []
     _relExcludeList = env.relativeExcludeDirs()
     for dirpath, dirnames, filenames in os.walk(basedir):
-        dirnames[:] = [
-            d for d in dirnames if not d in _relExcludeList]
+        dirnames[:] = [d for d in dirnames if not d in _relExcludeList]
         dirMatch = reDirname.match(os.path.split(dirpath)[1])
         if not dirMatch:
             continue
@@ -89,18 +89,18 @@ def findPlatformTargets(
                 reM = reBits.match(dirMatch.group(3))
                 if reM:
                     bits = reM.group(1)
-                target_os_version = tuple([int(x)
-                                        for x in dirMatch.group(1).split('.')])
+                target_os_version = tuple(
+                    [int(x) for x in dirMatch.group(1).split('.')])
 
-            files.append(
-                {'target_os_version': target_os_version, 'bits': bits,
-                 'file': targetMatch.group(0),
-                 'path': dirpath, 'linkfile': targetMatch.group(0).replace(
-                     targetMatch.group(4),
-                     ''),
-                 'filewoext': targetMatch.group(2),
-                 'suffix': targetMatch.group(3),
-                 'libVersion': targetMatch.group(4), })
+            files.append({'target_os_version': target_os_version,
+                          'bits': bits,
+                          'file': targetMatch.group(0),
+                          'path': dirpath,
+                          'linkfile': targetMatch.group(0).replace(
+                              targetMatch.group(4), ''),
+                          'filewoext': targetMatch.group(2),
+                          'suffix': targetMatch.group(3),
+                          'libVersion': targetMatch.group(4), })
 
     if not dir_has_to_match:
         return files
@@ -115,10 +115,7 @@ def findPlatformTargets(
     # check for best matching target_os_version entry, downgrade if non exact
     # match
     files.sort(
-        cmp=lambda l,
-        r: cmp(
-            l['target_os_version'],
-            r['target_os_version']),
+        cmp=lambda l, r: cmp(l['target_os_version'], r['target_os_version']),
         reverse=True)
     osvermatch = None
     current_os_version = env.getOsVersionTuple()
@@ -126,48 +123,42 @@ def findPlatformTargets(
         if entry['target_os_version'] <= current_os_version:
             osvermatch = entry['target_os_version']
             break
-    files = [entry for entry in files if entry['target_os_version'] == osvermatch]
+    files = [entry for entry in files
+             if entry['target_os_version'] == osvermatch]
     # shorter names are sorted first to prefer libtargetname.so over
     # libtargetname64.so
     files.sort(cmp=lambda l, r: cmp(len(l['filewoext']), len(r['filewoext'])))
     return files
 
 
-def findLibrary(
-        env,
-        basedir,
-        libname,
-        dir_has_to_match=True,
-        strict_lib_name_matching=False):
+def findLibrary(env,
+                basedir,
+                libname,
+                dir_has_to_match=True,
+                strict_lib_name_matching=False):
     # LIBPREFIXES = [ LIBPREFIX, SHLIBPREFIX ]
     # LIBSUFFIXES = [ LIBSUFFIX, SHLIBSUFFIX ]
-    files = findPlatformTargets(
-        env,
-        basedir,
-        libname,
-        env['LIBPREFIXES'],
-        env['LIBSUFFIXES'],
-        dir_has_to_match,
-        strict_lib_name_matching)
+    files = findPlatformTargets(env, basedir, libname, env['LIBPREFIXES'],
+                                env['LIBSUFFIXES'], dir_has_to_match,
+                                strict_lib_name_matching)
 
-    preferStaticLib = env.get(
-        'buildSettings',
-        {}).get(
-        'preferStaticLib',
-        False)
+    preferStaticLib = env.get('buildSettings', {}).get('preferStaticLib', False)
 
     staticLibs = [
         entry for entry in files
-        if entry['suffix'] == env.subst(env['LIBSUFFIX'])]
+        if entry['suffix'] == env.subst(env['LIBSUFFIX'])
+    ]
     sharedLibs = [
         entry for entry in files
-        if entry['suffix'] == env.subst(env['SHLIBSUFFIX'])]
+        if entry['suffix'] == env.subst(env['SHLIBSUFFIX'])
+    ]
 
     libVersion = env.get('buildSettings', {}).get('libVersion', '')
     # FIXME: libVersion on win
     if libVersion:
         sharedLibs = [
-            entry for entry in sharedLibs if entry['libVersion'] == libVersion]
+            entry for entry in sharedLibs if entry['libVersion'] == libVersion
+        ]
 
     if preferStaticLib:
         allLibs = staticLibs + sharedLibs
@@ -176,26 +167,21 @@ def findLibrary(
 
     if allLibs:
         entry = allLibs[0]
-        return (
-            entry['path'],
-            entry['file'],
-            entry['linkfile'],
-            (entry['suffix'] == env.subst(
-                env['LIBSUFFIX'])))
+        return (entry['path'], entry['file'], entry['linkfile'],
+                (entry['suffix'] == env.subst(env['LIBSUFFIX'])))
 
     logger.warning(
         'library [%s] not available for this platform [%s] and bitwidth[%s]',
-        libname,
-        env['PLATFORM'],
-        env.getBitwidth())
+        libname, env['PLATFORM'], env.getBitwidth())
     return (None, None, None, None)
 
 
 def findBinary(env, basedir, binaryname):
-    files = findPlatformTargets(
-        env, basedir, binaryname, [
-            env['PROGPREFIX']], [
-            env['PROGSUFFIX']])
+    files = findPlatformTargets(env, basedir, binaryname, [
+        env['PROGPREFIX']
+    ], [
+        env['PROGSUFFIX']
+    ])
 
     if files:
         entry = files[0]
@@ -203,9 +189,7 @@ def findBinary(env, basedir, binaryname):
 
     logger.warning(
         'binary [%s] not available for this platform [%s] and bitwidth[%s]',
-        binaryname,
-        env['PLATFORM'],
-        env.getBitwidth())
+        binaryname, env['PLATFORM'], env.getBitwidth())
     return (None, None, None)
 
 
@@ -243,8 +227,8 @@ def precompLibNamesEmitter(target, source, env):
         if not hasattr(src, 'srcnode'):
             src = env.File(str(src))
         path, libname = os.path.split(src.srcnode().get_abspath())
-        srcpath, srcfile, linkfile, isStaticLib = findLibrary(
-            env, path, libname)
+        srcpath, srcfile, linkfile, isStaticLib = findLibrary(env, path,
+                                                              libname)
         if srcfile:
             sourcenode = env.File(os.path.join(srcpath, srcfile))
             """replace default environment with the current one to propagate settings"""
@@ -269,8 +253,7 @@ def copyFunc(dest, source, env):
             if not os.path.isdir(dest):
                 raise SCons.Errors.UserError(
                     'cannot overwrite non-directory [{0}] with a directory [{1}]'.format(
-                        str(dest),
-                        str(source)))
+                        str(dest), str(source)))
         else:
             parent = os.path.split(dest)[0]
             if not os.path.exists(parent):
@@ -314,32 +297,25 @@ def prePackageCollection(env):
 def generate(env):
     from SConsider import registerCallback
     SymbolicLinkAction = SCons.Action.Action(
-        createSymLink,
-        "Generating symbolic link for '$SOURCE' as '$TARGET'")
+        createSymLink, "Generating symbolic link for '$SOURCE' as '$TARGET'")
     SymbolicLinkBuilder = SCons.Builder.Builder(action=[SymbolicLinkAction])
     env.Append(BUILDERS={"Symlink": SymbolicLinkBuilder})
 
     PrecompLibAction = SCons.Action.Action(
-        installFunc,
-        "Installing precompiled library '$SOURCE' as '$TARGET'")
+        installFunc, "Installing precompiled library '$SOURCE' as '$TARGET'")
     PrecompLibBuilder = SCons.Builder.Builder(action=[PrecompLibAction],
                                               emitter=precompLibNamesEmitter,
                                               single_source=True)
 
-    env.Append(
-        BUILDERS={
-            'PrecompiledLibraryInstallBuilder': PrecompLibBuilder})
+    env.Append(BUILDERS={'PrecompiledLibraryInstallBuilder': PrecompLibBuilder})
 
     PrecompBinAction = SCons.Action.Action(
-        installFunc,
-        "Installing precompiled binary '$SOURCE' as '$TARGET'")
+        installFunc, "Installing precompiled binary '$SOURCE' as '$TARGET'")
     PrecompBinBuilder = SCons.Builder.Builder(action=[PrecompBinAction],
                                               emitter=precompBinNamesEmitter,
                                               single_source=False)
 
-    env.Append(
-        BUILDERS={
-            'PrecompiledBinaryInstallBuilder': PrecompBinBuilder})
+    env.Append(BUILDERS={'PrecompiledBinaryInstallBuilder': PrecompBinBuilder})
     registerCallback('PrePackageCollection', prePackageCollection)
 
 

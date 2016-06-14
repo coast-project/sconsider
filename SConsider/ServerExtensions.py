@@ -17,7 +17,6 @@ testing
 
 import socket
 import os
-from SocketServer import BaseServer
 from BaseHTTPServer import HTTPServer
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 from OpenSSL import SSL
@@ -31,16 +30,15 @@ logger = getLogger(__name__)
 class SecureHTTPServer(HTTPServer):
     allow_reuse_address = True
 
-    def __init__(
-            self,
-            server_address,
-            HandlerClass,
-            certFile=None,
-            keyFile=None,
-            caChainFile=None,
-            sslContextMethod=SSL.SSLv23_METHOD,
-            ciphers="ALL"):
-        BaseServer.__init__(self, server_address, HandlerClass)
+    def __init__(self,
+                 server_address,
+                 HandlerClass,
+                 certFile=None,
+                 keyFile=None,
+                 caChainFile=None,
+                 sslContextMethod=SSL.SSLv23_METHOD,
+                 ciphers="ALL"):
+        HTTPServer.__init__(self, server_address, HandlerClass, False)
         ctx = SSL.Context(sslContextMethod)
         if keyFile:
             ctx.use_privatekey_file(keyFile)
@@ -53,11 +51,8 @@ class SecureHTTPServer(HTTPServer):
         ctx.set_timeout(60)
         if caChainFile:
             ctx.load_verify_locations(caChainFile)
-        self.socket = SSL.Connection(
-            ctx,
-            socket.socket(
-                self.address_family,
-                self.socket_type))
+        self.socket = SSL.Connection(ctx, socket.socket(self.address_family,
+                                                        self.socket_type))
         self.server_bind()
         self.server_activate()
         import sys
@@ -108,7 +103,6 @@ Aborting!""")
 
 
 class SecureHTTPRequestHandler(SimpleHTTPRequestHandler):
-
     def setup(self):
         self.connection = self.request
         self.rfile = socket._fileobject(self.request, "rb", self.rbufsize)
@@ -132,16 +126,14 @@ class SMTPFileSinkServer(SMTPServer):
             self.RECIPIENT_COUNTER[recipient] = count
             filename = os.path.join(self.path, "%s.%s" % (recipient, count))
             filename = filename.replace("<", "").replace(">", "")
-            f = file(filename, "w")
-            f.write(data + "\n")
-            f.close()
+            with open(filename, "w") as f:
+                f.write(data + "\n")
             self.message("Mail to %s saved" % recipient)
         self.message("Incoming mail dispatched")
 
     def message(self, text):
         if self.log_file is not None:
-            f = file(os.path.join(self.path, self.log_file), "a")
-            f.write(text + "\n")
-            f.close()
+            with open(os.path.join(self.path, self.log_file), "a") as f:
+                f.write(text + "\n")
         else:
             logger.info(text)

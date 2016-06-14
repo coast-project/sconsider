@@ -27,9 +27,8 @@ packageAliasName = 'makepackage'
 
 def addPackageTarget(registry, buildTargets, env, destdir, **kw):
     import SCons
-    createDeferredAction = SCons.Action.ActionFactory(
-        makePackage,
-        lambda *args, **kw: '')
+    createDeferredAction = SCons.Action.ActionFactory(makePackage,
+                                                      lambda *args, **kw: '')
 
     sources = []
     for tn in buildTargets:
@@ -49,9 +48,8 @@ def addPackageTarget(registry, buildTargets, env, destdir, **kw):
 
 def makePackage(registry, buildTargets, env, destdir, **kw):
     import SCons
-    isInBuilddir = functools.partial(
-        SomeUtils.hasPathPart,
-        pathpart=env.getRelativeBuildDirectory())
+    isInBuilddir = functools.partial(SomeUtils.hasPathPart,
+                                     pathpart=env.getRelativeBuildDirectory())
     notInBuilddir = lambda target: not isInBuilddir(target)
     includePathRel = env['INCDIR']
     includePathFull = includePathRel
@@ -60,25 +58,23 @@ def makePackage(registry, buildTargets, env, destdir, **kw):
                                        includePathRel)
 
     def isIncludeFile(target):
-        if os.path.splitext(
-                target.path)[1].lower() in [
-                '.h',
-                '.hpp',
-                '.hxx',
-                '.ipp']:
+        if os.path.splitext(target.path)[1].lower() in [
+                '.h', '.hpp', '.hxx', '.ipp'
+        ]:
             return target.path.startswith(
                 includePathRel) or target.path.startswith(includePathFull)
         return False
+
     isNotIncludeFile = lambda target: not isIncludeFile(target)
     copyfilters = [
-        filterBaseOutDir,
-        filterTestsAppsGlobalsPath,
-        filterVariantPath]
+        filterBaseOutDir, filterTestsAppsGlobalsPath, filterVariantPath
+    ]
     for tn in buildTargets:
         if registry.isValidFulltargetname(tn):
             tdeps = getTargetDependencies(
                 env.Alias(tn)[0], [
-                    SomeUtils.isDerivedNode, notInBuilddir, isNotIncludeFile])
+                    SomeUtils.isDerivedNode, notInBuilddir, isNotIncludeFile
+                ])
             copyPackage(tn, tdeps, env, destdir, copyfilters)
 
 
@@ -91,18 +87,13 @@ def copyPackage(name, deps, env, destdir, filters=None):
 def copyTarget(env, destdir, node):
     old = env.Alias(destdir.File(node.name))
     if old and old[0].sources:
-        if isInstalledNode(
-                node,
-                old[0].sources[0]) or isInstalledNode(
-                old[0].sources[0],
-                node):
+        if isInstalledNode(node, old[0].sources[0]) or isInstalledNode(
+                old[0].sources[0], node):
             return None
         else:
             logger.error(
                 "Ambiguous target [%s] copied from [%s] and [%s].\nCan't create package! See errors below...",
-                old[0].path,
-                node.path,
-                old[0].sources[0].path)
+                old[0].path, node.path, old[0].sources[0].path)
     target = env.Install(destdir, node)
     env.Alias(packageAliasName, target)
     return target
@@ -111,11 +102,8 @@ def copyTarget(env, destdir, node):
 def isInstalledNode(testnode, node):
     if testnode.path == node.path:
         return True
-    if not hasattr(
-            node,
-            'builder') or not hasattr(
-            node.builder,
-            'name') or node.builder.name != 'InstallBuilder':
+    if not hasattr(node, 'builder') or not hasattr(
+            node.builder, 'name') or node.builder.name != 'InstallBuilder':
         return False
     if len(node.sources) < 1:
         return False
@@ -192,11 +180,10 @@ def generate(env):
                 "given package destination path [{0}] doesn't exist".format(
                     destination))
         else:
-            SConsider.registerCallback(
-                "PreBuild",
-                addPackageTarget,
-                env=env,
-                destdir=SCons.Script.Dir(destination))
+            SConsider.registerCallback("PreBuild",
+                                       addPackageTarget,
+                                       env=env,
+                                       destdir=SCons.Script.Dir(destination))
 
 
 def exists(env):

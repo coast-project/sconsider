@@ -47,9 +47,8 @@ def checkCompiler(env, optionvalue, envVarName):
 def extractOsVersion(platf):
     current_os_version = (0, 0, 0)
     if str(platf) == "cygwin":
-        current_os_version = tuple([int(x)
-                                    for x in platform.system().split('-')
-                                    [1].split('.')])
+        current_os_version = tuple(
+            [int(x) for x in platform.system().split('-')[1].split('.')])
     elif str(platf) == 'win32':
         current_os_version = tuple(
             [int(x) for x in platform.version().split('.')])
@@ -60,47 +59,41 @@ def extractOsVersion(platf):
         current_os_version = tuple(
             [int(x) for x in platform.release().split('.')])
     elif platform.system() == 'Linux':
-        current_os_version = tuple([int(x)
-                                    for x in platform.release().split('-')
-                                    [0].split('.')])
+        current_os_version = tuple(
+            [int(x) for x in platform.release().split('-')[0].split('.')])
     return current_os_version
 
 
 def generate(env, **kw):
     """Add build tools."""
-    AddOption(
-        '--with-cxx',
-        dest='whichcxx',
-        action='store',
-        nargs=1,
-        type='string',
-        default=None,
-        metavar='PATH',
-        help='Fully qualified path and name to gnu g++ compiler')
-    AddOption(
-        '--with-cc',
-        dest='whichcc',
-        action='store',
-        nargs=1,
-        type='string',
-        default=None,
-        metavar='PATH',
-        help='Fully qualified path and name to gnu gcc compiler')
+    AddOption('--with-cxx',
+              dest='whichcxx',
+              action='store',
+              nargs=1,
+              type='string',
+              default=None,
+              metavar='PATH',
+              help='Fully qualified path and name to gnu g++ compiler')
+    AddOption('--with-cc',
+              dest='whichcc',
+              action='store',
+              nargs=1,
+              type='string',
+              default=None,
+              metavar='PATH',
+              help='Fully qualified path and name to gnu gcc compiler')
     bitchoices = ['32', '64']
     bitdefault = '32'
-    AddOption(
-        '--archbits',
-        dest='archbits',
-        action='store',
-        nargs=1,
-        type='choice',
-        choices=bitchoices,
-        default=bitdefault,
-        metavar='OPTIONS',
-        help='Select target bit width (if compiler supports it), ' +
-        str(bitchoices) +
-        ', default=' +
-        bitdefault)
+    AddOption('--archbits',
+              dest='archbits',
+              action='store',
+              nargs=1,
+              type='choice',
+              choices=bitchoices,
+              default=bitdefault,
+              metavar='OPTIONS',
+              help='Select target bit width (if compiler supports it), ' +
+              str(bitchoices) + ', default=' + bitdefault)
     buildchoices = ['debug', 'optimized', 'profile', 'coverage']
     builddefault = 'optimized'
     AddOption(
@@ -112,55 +105,40 @@ def generate(env, **kw):
         choices=buildchoices,
         default=builddefault,
         metavar='OPTIONS',
-        help='Select build configuration, ' +
-        str(buildchoices) +
-        ', default=' +
+        help='Select build configuration, ' + str(buildchoices) + ', default=' +
         builddefault +
         '. Use profile in conjunction with gprof and coverage in conjunction with gcov.')
     langchoices = [
-        'c++03',
-        'c++11',
-        'c++14',
-        'c++17',
-        'c++0x',
-        'c++1y',
-        'c++1z',
-        'gnu++98',
-        'tr1']
+        'c++03', 'c++11', 'c++14', 'c++17', 'c++0x', 'c++1y', 'c++1z',
+        'gnu++98', 'tr1'
+    ]
     langdefault = 'gnu++98'
-    AddOption(
-        '--use-lang-features',
-        dest='whichlangfeat',
-        action='store',
-        nargs=1,
-        type='choice',
-        choices=langchoices,
-        default=langdefault,
-        metavar='OPTIONS',
-        help='Select which language features, ' +
-        str(langchoices) +
-        ', default=' +
-        langdefault + '.')
+    AddOption('--use-lang-features',
+              dest='whichlangfeat',
+              action='store',
+              nargs=1,
+              type='choice',
+              choices=langchoices,
+              default=langdefault,
+              metavar='OPTIONS',
+              help='Select which language features, ' + str(langchoices) +
+              ', default=' + langdefault + '.')
     warnchoices = ['none', 'medium', 'full']
     warndefault = 'medium'
-    AddOption(
-        '--warnlevel',
-        dest='warnlevel',
-        action='store',
-        nargs=1,
-        type='choice',
-        choices=warnchoices,
-        default=warndefault,
-        metavar='OPTIONS',
-        help='Select compilation warning level, one of ' +
-        str(warnchoices) +
-        ', default=' +
-        warndefault)
-    AddOption(
-        '--no-largefilesupport',
-        dest='no-largefilesupport',
-        action='store_true',
-        help='Disable use of std libraries iostream headers')
+    AddOption('--warnlevel',
+              dest='warnlevel',
+              action='store',
+              nargs=1,
+              type='choice',
+              choices=warnchoices,
+              default=warndefault,
+              metavar='OPTIONS',
+              help='Select compilation warning level, one of ' +
+              str(warnchoices) + ', default=' + warndefault)
+    AddOption('--no-largefilesupport',
+              dest='no-largefilesupport',
+              action='store_true',
+              help='Disable use of std libraries iostream headers')
 
     cxxCompiler = checkCompiler(env, GetOption('whichcxx'), 'CXX')
     ccCompiler = checkCompiler(env, GetOption('whichcc'), 'CC')
@@ -174,13 +152,12 @@ def generate(env, **kw):
 
     platf = env['PLATFORM']
     # if we are within cygwin and want to build a win32 target
-    if "mingw" in GetOption('usetools'):
-        platf = "win32"
+    if GetOption('usetools') is not None:
+        if "mingw" in GetOption('usetools'):
+            platf = "win32"
     current_os_version = extractOsVersion(platf)
-    env.AddMethod(
-        lambda env: extractOsVersion(
-            env['PLATFORM']),
-        "getOsVersionTuple")
+    env.AddMethod(lambda env: extractOsVersion(env['PLATFORM']),
+                  "getOsVersionTuple")
 
     # select language features
     langfeature = GetOption('whichlangfeat')
@@ -193,8 +170,15 @@ def generate(env, **kw):
 
     # select target architecture bits
     bitwidth = GetOption('archbits')
-    env.AppendUnique(CCFLAGS=['-DARCHBITS=' + str(bitwidth)])
+    if bitwidth is None:
+        bitwidth = bitdefault
     env.AddMethod(lambda env: bitwidth, "getBitwidth")
+    buildcfg = GetOption('buildcfg')
+    if buildcfg is None:
+        buildcfg = builddefault
+    env.AddMethod(lambda env: buildcfg, "getBuildCfg")
+
+    env.AppendUnique(CCFLAGS=['-DARCHBITS=' + str(bitwidth)])
 
     platf_for_tool_list = platf
     # this section is needed to select gnu toolchain on sun systems, default is sunCC
@@ -232,7 +216,7 @@ def generate(env, **kw):
         env.Append(WINDOWS_INSERT_DEF=1)
 
     env.Append(VARIANT_SUFFIX=['-' + bitwidth])
-    env.Append(VARIANT_SUFFIX=['_' + GetOption('buildcfg')])
+    env.Append(VARIANT_SUFFIX=['_' + buildcfg])
 
     if "mingw" in env["TOOLS"]:
         # mingw appends .exe if a Program target is given without extension but scons still
@@ -242,12 +226,10 @@ def generate(env, **kw):
         def appendexe(target, source, env):
             newtgt = []
             for t in target:
-                newtgt.append(
-                    SCons.Util.adjustixes(
-                        str(t),
-                        env.subst('$PROGPREFIX'),
-                        env.subst('$PROGSUFFIX')))
+                newtgt.append(SCons.Util.adjustixes(
+                    str(t), env.subst('$PROGPREFIX'), env.subst('$PROGSUFFIX')))
             return newtgt, source
+
         env["PROGEMITTER"] = appendexe
 
         # find and append msys' bin path in order to execute shell scripts

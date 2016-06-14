@@ -133,8 +133,11 @@ AddOption(
  tools are %s' % Flatten(globaltools))
 
 # Keep order of tools in list but remove duplicates
+option_tools = GetOption('usetools')
+if option_tools is None:
+    option_tools = []
 usetools = OrderedDict.fromkeys(globaltools + DefaultEnvironment().get(
-    '_SCONSIDER_TOOLS_', []) + GetOption('usetools')).keys()
+    '_SCONSIDER_TOOLS_', []) + option_tools).keys()
 logger.debug('tools to use %s', Flatten(usetools))
 
 # insert the site_tools path for our own tools

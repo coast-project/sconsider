@@ -17,8 +17,8 @@ SCons extension to manage targets by name in a global registry
 import re
 import sys
 import os
-from pkg_resources import ResolutionError
 from logging import getLogger
+from pkg_resources import ResolutionError
 logger = getLogger(__name__)
 
 
@@ -56,7 +56,7 @@ class PackageRequirementsNotFulfilled(Exception):
                    self.message)
 
 
-class PackageRegistry:
+class PackageRegistry(object):
     targetnameseparator = '.'
 
     @staticmethod
@@ -121,9 +121,9 @@ class PackageRegistry:
         for root, dirnames, filenames in os.walk(directory,
                                                  followlinks=followlinks):
             _root_pathabs = os.path.abspath(root)
-            dirnames[:] = filter(
-                lambda dirname: dirname not in excludes_rel and os.path.join(_root_pathabs, dirname) not in excludes_abs,
-                dirnames)
+            dirnames[:] = [j for j in dirnames
+                           if j not in excludes_rel and os.path.join(
+                               _root_pathabs, j) not in excludes_abs]
             for filename in fnmatch.filter(filenames, '*.' + file_ext):
                 match = package_re.match(filename)
                 if match:
@@ -152,7 +152,7 @@ class PackageRegistry:
 
         for scandir in scan_dirs:
             self.collectPackageFiles(scandir,
-                                     '^(?P<packagename>.*)\.sconsider$',
+                                     r'^(?P<packagename>.*)\.sconsider$',
                                      scanmatchfun,
                                      excludes_rel=scan_dirs_exclude_rel,
                                      excludes_abs=scan_dirs_exclude_abs)

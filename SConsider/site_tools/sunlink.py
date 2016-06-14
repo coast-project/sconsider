@@ -38,6 +38,7 @@ def FileNodeComparer(left, right):
         return -1
     return cmp(nleft, nright)
 
+
 SomeUtils.FileNodeComparer = FileNodeComparer
 
 
@@ -89,7 +90,7 @@ def generate(env):
     env.AppendUnique(SHLINKFLAGS=bwopt(bitwidth))
     env.AppendUnique(SHLINKFLAGS='-library=stlport4')
 
-    buildmode = SCons.Script.GetOption('buildcfg')
+    buildmode = env.getBuildCfg()
     if buildmode == 'debug':
         env.AppendUnique(LINKFLAGS=['-v'])
         env.AppendUnique(SHLINKFLAGS=['-v'])

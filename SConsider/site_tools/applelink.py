@@ -29,7 +29,7 @@ def generate(env):
     finally:
         SCons.Tool.DefaultToolpath = defaulttoolpath
 
-    buildmode = SCons.Script.GetOption('buildcfg')
+    buildmode = env.getBuildCfg()
     if buildmode == 'debug':
         env.AppendUnique(LINKFLAGS=['-g', '-v'])
     elif buildmode == 'profile':
@@ -55,12 +55,9 @@ def generate(env):
 
     def smart_link(source, target, env, for_signature):
         import os
-        env.Append(
-            SHLINKFLAGS=[
-                '-install_name',
-                os.path.basename(
-                    str(target))])
+        env.Append(SHLINKFLAGS=['-install_name', os.path.basename(str(target))])
         return orig_smart_link(source, target, env, for_signature)
+
     env.Replace(SMARTLINK=smart_link)
 
 

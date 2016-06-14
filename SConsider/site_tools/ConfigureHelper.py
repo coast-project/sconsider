@@ -32,9 +32,7 @@ def CheckMultipleLibs(context, libraries=None, **kw):
         libraries = [libraries]
 
     return functools.reduce(
-        lambda x, y:
-            SCons.SConf.CheckLib(context, y, **kw) and x,
-        libraries,
+        lambda x, y: SCons.SConf.CheckLib(context, y, **kw) and x, libraries,
         True)
 
 
@@ -45,8 +43,8 @@ def Configure(env, *args, **kw):
 
     kw.setdefault('custom_tests', {})['CheckExecutable'] = CheckExecutable
     kw.setdefault('custom_tests', {})['CheckMultipleLibs'] = CheckMultipleLibs
-    env.Append(LINKFLAGS='-Wl,-rpath-link=' +
-               os.pathsep.join(map(str, env['LIBPATH'])))
+    env.Append(LINKFLAGS='-Wl,-rpath-link=' + os.path.join(
+        *[str(j) for j in env['LIBPATH']]))
     conf = env.Configure(*args, **kw)
     return conf
 
@@ -60,6 +58,7 @@ def ConfigureContext(env, *args, **kw):
 
 _sconf_tempdirrel = '.sconf_temp'
 
+
 def prePackageCollection(env, **kw):
     env.AppendUnique(EXCLUDE_DIRS_TOPLEVEL=[_sconf_tempdirrel])
 
@@ -67,7 +66,8 @@ def prePackageCollection(env, **kw):
 def generate(env):
     from SConsider import registerCallback
     env['CONFIGURELOG'] = env.getBaseOutDir().File("config.log").get_abspath()
-    env['CONFIGUREDIR'] = env.getBaseOutDir().Dir(_sconf_tempdirrel).get_abspath()
+    env['CONFIGUREDIR'] = env.getBaseOutDir().Dir(
+        _sconf_tempdirrel).get_abspath()
     registerCallback('PrePackageCollection', prePackageCollection)
 
 

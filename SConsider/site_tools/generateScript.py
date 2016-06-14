@@ -13,6 +13,7 @@ SConsider-specific stand alone script to execute programs
 # modify it under the terms of the license that is included with this
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
+# pylint: disable=bad-continuation
 
 import os
 import datetime
@@ -31,8 +32,7 @@ def generateShellScript(scriptFile, env, binpath):
         ('SCRIPTDIR', lambda env: env['SCRIPTDIR']),
         ('VARIANTDIR', lambda env: env.getRelativeVariantDirectory()),
         ('BINARYNAME', os.path.basename(binpath)),
-        ('BASEDIR',
-         '`searchBaseDirUp \\"${SCRIPTPATH}\\" \\"${SCRIPTDIR}\\"`'),
+        ('BASEDIR', '`searchBaseDirUp \\"${SCRIPTPATH}\\" \\"${SCRIPTDIR}\\"`'),
     ]
 
     specificExtensions = []
@@ -46,23 +46,25 @@ def generateShellScript(scriptFile, env, binpath):
     if 'GENERATESCRIPTVARS' in env:
         specificExtensions += env['GENERATESCRIPTVARS']
 
-    def expandvars(env, expansions=[]):
+    def expandvars(env, expansions=None):
         stringToReturn = ''
         exportvars = 'export'
-        for k, v in expansions:
-            try:
-                stringToReturn += k + '="' + (v(env)
-                                              if callable(v) else str(v)) + '"\n'
-                exportvars += ' ' + k
-            except:
-                pass
+        if expansions is not None:
+            for k, v in expansions:
+                try:
+                    stringToReturn += k + '="' + (v(env) if callable(v) else
+                                                  str(v)) + '"\n'
+                    exportvars += ' ' + k
+                except:
+                    pass
         if stringToReturn:
             stringToReturn += exportvars + '\n'
         return stringToReturn
 
     scriptText = """#!/bin/bash
 # -------------------------------------------------------------------------
-# Copyright (c) """ + datetime.date.today().strftime('%Y') + """, Peter Sommerlad and IFS Institute for Software
+# Copyright (c) """ + datetime.date.today().strftime(
+        '%Y') + """, Peter Sommerlad and IFS Institute for Software
 # at HSR Rapperswil, Switzerland
 # All rights reserved.
 #
@@ -77,7 +79,7 @@ GDBSERVERPORT=2345
 MYNAME="`basename \\"$0\\"`"
 SCRIPTPATH="`dirname \\"$0\\"`"
 SCRIPTPATH="`cd \\"$SCRIPTPATH\\" 2>/dev/null && """ + pwdCommand + """`"
-STARTPATH="`""" + pwdCommand + """`"
+STARTPATH="`""" + pwdCommand + r"""`"
 
 doChangeDir=1
 doDebug=0
@@ -147,8 +149,8 @@ searchBaseDirUp()
     start_dir="${1}";
     searchSegment="${2}";
     dirDefault="${3}";
-    basePath="`cd \\"$start_dir\\" &&
-        while [ ! -d \\"${searchSegment}\\" ] && [ \\"\`pwd\`\\" != / ]; do
+    basePath="`cd \"$start_dir\" &&
+        while [ ! -d \"${searchSegment}\" ] && [ \"\`pwd\`\" != / ]; do
             cd .. 2>/dev/null;
         done;
         """ + pwdCommand + """
@@ -210,7 +212,8 @@ cat > ${ggcfBatchFile} <<-EOF
 	set environment """ + libpathvariable + """=${""" + libpathvariable + """}
 	set auto-solib-add 1
 	# convert to Windows path on mingw (msys supplies it automatically to non-msys tools)
-	file \"""" + ("`cmd //c echo ${ggcfBinaryToExecute}`" if "mingw" in env["TOOLS"] else "${ggcfBinaryToExecute}") + """\"
+	file \"""" + ("`cmd //c echo ${ggcfBinaryToExecute}`"
+               if "mingw" in env["TOOLS"] else "${ggcfBinaryToExecute}") + r'''"
 	set args ${ggcfServerOptions}
 EOF
 	if [ $ggcfRunInBackground -eq 2 ]; then
@@ -259,7 +262,8 @@ if [ -n "$toolPath" ]; then
     doCommandWithArgs=1
 fi
 if [ ${doDebug:-0} -ge 1 ]; then
-    cfg_gdbcommands=\"""" + (tempfile.gettempdir() + os.sep).replace('\\', '/') + """`basename \\"$0\\"`_$$";
+    cfg_gdbcommands="''' + (tempfile.gettempdir() + os.sep).replace(
+                   '\\', '/') + """`basename \\"$0\\"`_$$";
     generateGdbCommandFile "${cfg_gdbcommands}" "$CMD" $doDebug "$@"
     test ${doTrace} -eq 1 && echo "Generated gdb command file:"
     test ${doTrace} -eq 1 && cat ${cfg_gdbcommands}
@@ -300,21 +304,16 @@ def generateScriptEmitter(target, source, env):
 
 def generateWrapperScript(env, target):
     return env.Depends(
-        env.GenerateScriptBuilder(target),
-        SomeUtils.getPyFilename(__file__))
+        env.GenerateScriptBuilder(target), SomeUtils.getPyFilename(__file__))
 
 
 def generate(env):
     GenerateScriptAction = SCons.Action.Action(
-        generatePosixScript,
-        "Creating wrapper script '$TARGET' for '$SOURCE'")
-    GenerateScriptBuilder = SCons.Builder.Builder(
-        action=[
-            GenerateScriptAction,
-            SCons.Defaults.Chmod(
-                '$TARGET',
-                0o755)],
-        emitter=generateScriptEmitter)
+        generatePosixScript, "Creating wrapper script '$TARGET' for '$SOURCE'")
+    GenerateScriptBuilder = SCons.Builder.Builder(action=[
+        GenerateScriptAction, SCons.Defaults.Chmod('$TARGET', 0o755)
+    ],
+                                                  emitter=generateScriptEmitter)
 
     env.Append(BUILDERS={'GenerateScriptBuilder': GenerateScriptBuilder})
     env.AddMethod(generateWrapperScript, "GenerateWrapperScript")

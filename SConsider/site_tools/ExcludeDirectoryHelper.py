@@ -20,13 +20,11 @@ import os
 from logging import getLogger
 logger = getLogger(__name__)
 
-
 relativeExcludeDirsList = ['CVS', '.git', '.gitmodules', '.svn']
 
 
 def prePackageCollection(env, **kw):
     from SCons.Tool import DefaultToolpath
-
     """We assume no sconsider files within tool directories"""
     for exclude_path in env.GetOption('exclude') + DefaultToolpath:
         absolute_path = exclude_path
@@ -43,15 +41,14 @@ def prePackageCollection(env, **kw):
 def generate(env):
     from SConsider import registerCallback
 
-    AddOption(
-        '--exclude',
-        dest='exclude',
-        action='append',
-        nargs=1,
-        type='string',
-        default=[],
-        metavar='DIR',
-        help='Exclude directory from being scanned for SConscript\
+    AddOption('--exclude',
+              dest='exclude',
+              action='append',
+              nargs=1,
+              type='string',
+              default=[],
+              metavar='DIR',
+              help='Exclude directory from being scanned for SConscript\
  (*.sconsider) files.')
 
     env.AppendUnique(EXCLUDE_DIRS_REL=relativeExcludeDirsList)
@@ -59,7 +56,8 @@ def generate(env):
     env.AppendUnique(EXCLUDE_DIRS_TOPLEVEL=relativeExcludeDirsList)
     env.AddMethod(lambda env: env['EXCLUDE_DIRS_REL'], 'relativeExcludeDirs')
     env.AddMethod(lambda env: env['EXCLUDE_DIRS_ABS'], 'absoluteExcludeDirs')
-    env.AddMethod(lambda env: env['EXCLUDE_DIRS_TOPLEVEL'], 'toplevelExcludeDirs')
+    env.AddMethod(lambda env: env['EXCLUDE_DIRS_TOPLEVEL'],
+                  'toplevelExcludeDirs')
 
     registerCallback('PrePackageCollection', prePackageCollection)
 

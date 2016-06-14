@@ -17,7 +17,6 @@ SConsider-specific 3rdparty library handling
 import os
 import SCons
 from SCons.Script import Clean
-from ConfigureHelper import Configure
 from logging import getLogger
 logger = getLogger(__name__)
 
@@ -56,7 +55,7 @@ def collectPackages(directory, direxcludesrel=None):
     from SConsider.PackageRegistry import PackageRegistry
     PackageRegistry.collectPackageFiles(
         directory,
-        '^(?P<packagename>.*)\.(?P<type>sys|src|bin)\.sconsider$',
+        r'^(?P<packagename>.*)\.(?P<type>sys|src|bin)\.sconsider$',
         scanmatchfun,
         excludes_rel=direxcludesrel)
     return packages

@@ -10,8 +10,25 @@
 
 import sys
 import os
-maindir = os.path.realpath(
+import pkg_resources
+
+
+def path_to_pkg(pkg_name, path_fallback=None):
+    try:
+        distro = pkg_resources.get_distribution(pkg_name)
+        for i in [distro.key, distro.project_name]:
+            for j in ['-'+distro.version, '']:
+                path_to_module = os.path.join(distro.location, i+j)
+                if os.path.isdir(path_to_module):
+                    return path_to_module
+    except DistributionNotFound as ex:
+        pass
+    return path_fallback if path_fallback is not None and os.path.isdir(path_fallback) else None
+
+local_sconsider_path = os.path.realpath(
     os.path.join(
         os.path.dirname(__file__),
         '../SConsider'))
-sys.path += [maindir, os.path.join(maindir, 'site_tools')]
+
+effective_sconsider_path = path_to_pkg('sconsider', local_sconsider_path)
+sys.path += [j for j in [effective_sconsider_path, os.path.join(effective_sconsider_path, 'site_tools'), path_to_pkg('scons')] if j]

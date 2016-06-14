@@ -17,16 +17,16 @@ SCons extension to create target environments using EnvBuilder
 import re
 import os
 import stat
+from logging import getLogger
 import SCons
-import SConsider
 from SCons.Script import Dir, File, GetOption
 import SomeUtils
-from logging import getLogger
+import SConsider
 from SConsider.PackageRegistry import TargetNotFound, PackageNotFound, PackageRequirementsNotFulfilled
 logger = getLogger(__name__)
 
 
-class TargetMaker:
+class TargetMaker(object):
     def __init__(self, packagename, tlist, registry):
         self.packagename = packagename
         self.targetlist = tlist.copy()
@@ -68,7 +68,8 @@ class TargetMaker:
             return self.doCreateTarget(self.packagename, k, v)
         return False
 
-    def prepareFileNodeTuples(self, nodes, baseDir, alternativeDir=None):
+    @staticmethod
+    def prepareFileNodeTuples(nodes, baseDir, alternativeDir=None):
         nodetuples = []
         for node in nodes:
             currentFile = node
@@ -147,7 +148,7 @@ class TargetMaker:
 
         return instTargets
 
-    def requireTargets(self, env, target, requiredTargets, **kw):
+    def requireTargets(self, env, target, requiredTargets, **_):
         if not SCons.Util.is_List(requiredTargets):
             requiredTargets = [requiredTargets]
         for targ in requiredTargets:
@@ -166,15 +167,15 @@ class TargetMaker:
                                                   '__UNDEFINED_TARGETTYPE__')
             func = getattr(targetEnv, target_type, None)
             if func:
-                kw = {}
-                kw['packagename'] = packagename
-                kw['targetname'] = targetname
-                kw['buildSettings'] = targetBuildSettings
+                kwargs = {}
+                kwargs['packagename'] = packagename
+                kwargs['targetname'] = targetname
+                kwargs['buildSettings'] = targetBuildSettings
                 sources = targetBuildSettings.get('sourceFiles', [])
                 name = targetBuildSettings.get(
                     'targetName', SConsider.createUniqueTargetname(packagename,
                                                                    targetname))
-                targets = func(*[name, sources], **kw)
+                targets = func(*[name, sources], **kwargs)
                 if isinstance(targets, tuple):
                     plaintarget, target = targets
                 else:
@@ -321,7 +322,7 @@ class TargetMaker:
                                 packagename,
                                 buildSettings,
                                 plaintarget=None,
-                                **kw):
+                                **_):
         linkDependencies = buildSettings.get('linkDependencies', [])
         if 'public' in buildSettings:
             appendUnique = buildSettings['public'].get('appendUnique', {})

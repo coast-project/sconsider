@@ -43,21 +43,19 @@ def getProjectNameFromProjectFile(projectFile):
 
 
 def determineProjectDependencies(dependencyDict, registry, topPath):
-    dependencies = set()
+    project_dependencies = set()
     for fulltargetname, depDict in dependencyDict.iteritems():
-        packagename, targetname = PackageRegistry.PackageRegistry.splitFulltargetname(
+        packagename, _ = PackageRegistry.PackageRegistry.splitFulltargetname(
             fulltargetname)
         packagePath = registry.getPackageDir(packagename).get_abspath()
         projectFilePath = determineProjectFilePath(packagePath, topPath)
         projectName = getProjectNameFromProjectFile(projectFilePath)
         if projectName:
-            dependencies.add(projectName)
-        dependencies.update(
-            determineProjectDependencies(
-                depDict,
-                registry,
-                topPath))
-    return dependencies
+            project_dependencies.add(projectName)
+        project_dependencies.update(determineProjectDependencies(
+            depDict, registry, topPath))
+    return project_dependencies
+
 
 dependencies = {}
 
@@ -67,19 +65,15 @@ def rememberWorkingSet(registry, packagename, buildSettings, **kw):
 
     dependencyDict = registry.getPackageDependencies(packagename)
     dependencies[packagename] = determineProjectDependencies(
-        dependencyDict, registry,
-        SCons.Script.Dir('#').srcnode().get_abspath())
+        dependencyDict, registry, SCons.Script.Dir('#').srcnode().get_abspath())
 
 
 def writeWorkingSets(**kw):
     import SCons
 
     workspacePath = os.path.abspath(SCons.Script.GetOption("workspace"))
-    workingsetsPath = os.path.join(
-        workspacePath,
-        '.metadata',
-        '.plugins',
-        'org.eclipse.ui.workbench')
+    workingsetsPath = os.path.join(workspacePath, '.metadata', '.plugins',
+                                   'org.eclipse.ui.workbench')
     if not os.path.isdir(workingsetsPath):
         workingsetsPath = SCons.Script.Dir('#').srcnode().get_abspath()
 
@@ -102,48 +96,48 @@ def writeWorkingSets(**kw):
         for dep in packagedeps:
             xmldeps[package]['items'].append(
                 {'factoryID': 'org.eclipse.cdt.ui.PersistableCElementFactory',
-                 'path': '/' + dep, 'type': '4'})
+                 'path': '/' + dep,
+                 'type': '4'})
 
     toXML(xmldeps, fname)
 
 
-def fromXML(file):
+def fromXML(filename):
     xmldeps = {}
-    if os.path.isfile(file):
+    if os.path.isfile(filename):
         tree = ElementTree()
-        tree.parse(file)
+        tree.parse(filename)
         workingSetManager = tree.getroot()
         for workingSet in workingSetManager:
             items = []
             for item in workingSet:
                 items.append(item.attrib)
-            xmldeps[
-                workingSet.get('label')] = {
+            xmldeps[workingSet.get('label')] = {
                 'attrs': workingSet.attrib,
-                'items': items}
+                'items': items
+            }
     return xmldeps
 
 
-def toXML(deps, file):
+def toXML(deps, filename):
     workingSetManager = Element('workingSetManager')
     for package in deps.itervalues():
         workingSet = Element('workingSet', package['attrs'])
         for packageitem in package['items']:
             workingSet.append(Element('item', packageitem))
         workingSetManager.append(workingSet)
-    ElementTree(workingSetManager).write(file, encoding="utf-8")
+    ElementTree(workingSetManager).write(filename, encoding="utf-8")
 
 
 def generate(env):
     import SCons
     import SConsider
 
-    SCons.Script.AddOption(
-        '--workspace',
-        dest='workspace',
-        action='store',
-        default='',
-        help='Select workspace directory')
+    SCons.Script.AddOption('--workspace',
+                           dest='workspace',
+                           action='store',
+                           default='',
+                           help='Select workspace directory')
 
     SConsider.registerCallback('PostCreatePackageTargets', rememberWorkingSet)
     SConsider.registerCallback('PreBuild', writeWorkingSets)

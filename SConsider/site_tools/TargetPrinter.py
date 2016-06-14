@@ -50,8 +50,8 @@ def printTargets(registry, **kw):
 
     predicate = functools.partial(SomeUtils.allFuncs, filters)
 
-    for alias in filter(predicate, env.ans.keys()):
-        print alias
+    for alias in sorted([j for j in env.ans.keys() if predicate(j)]):
+        print(alias)
 
     print "\nOption 'showtargets' active, exiting."
     exit()

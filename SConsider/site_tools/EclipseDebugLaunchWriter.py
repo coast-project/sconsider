@@ -32,20 +32,12 @@ def generateLaunchConfigFile(launchConfigFile, env, binpath):
 
 def generateEclipseLaunchEmitter(target, source, env):
     workspacePath = os.path.abspath(SCons.Script.GetOption("workspace"))
-    debugLaunchesPath = os.path.join(
-        workspacePath,
-        '.metadata',
-        '.plugins',
-        'org.eclipse.debug.core',
-        '.launches')
+    debugLaunchesPath = os.path.join(workspacePath, '.metadata', '.plugins',
+                                     'org.eclipse.debug.core', '.launches')
     target = []
     for src in source:
-        target.append(
-            env.Dir(debugLaunchesPath).File(
-                os.path.splitext(
-                    os.path.basename(
-                        src.get_abspath()))[0] +
-                '.launch'))
+        target.append(env.Dir(debugLaunchesPath).File(os.path.splitext(
+            os.path.basename(src.get_abspath()))[0] + '.launch'))
     return (target, source)
 
 
@@ -59,12 +51,11 @@ def generateEclipseLaunchConfiguration(target, source, env):
 def generate(env):
     import optparse
     try:
-        SCons.Script.AddOption(
-            '--workspace',
-            dest='workspace',
-            action='store',
-            default='',
-            help='Select workspace directory')
+        SCons.Script.AddOption('--workspace',
+                               dest='workspace',
+                               action='store',
+                               default='',
+                               help='Select workspace directory')
     except optparse.OptionConflictError:
         pass
 
@@ -74,10 +65,10 @@ def generate(env):
     GenerateEclipseDebugLaunchConfigBuilder = SCons.Builder.Builder(
         action=[GenerateEclipseDebugLaunchConfigAction],
         emitter=[generateEclipseLaunchEmitter])
-    env.Append(
-        BUILDERS={
-            'GenerateEclipseDebugLaunchConfigBuilder':
-            GenerateEclipseDebugLaunchConfigBuilder})
+    env.Append(BUILDERS={
+        'GenerateEclipseDebugLaunchConfigBuilder':
+        GenerateEclipseDebugLaunchConfigBuilder
+    })
 
 
 def exists(env):

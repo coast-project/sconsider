@@ -15,13 +15,13 @@ creation.
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
 
+import platform
+import os
+from logging import getLogger
 from SCons.Script import Dir, AddOption, GetOption
 from SCons.Platform import Platform
 from SCons.Errors import UserError
-import platform
-import os
-from SomeUtils import getLibCVersion
-from logging import getLogger
+from SConsider.SomeUtils import getLibCVersion
 logger = getLogger(__name__)
 
 
@@ -64,14 +64,12 @@ def getLibraryInstallDir(env, withRelTarget=False):
 
 
 def getScriptInstallDir(env):
-    return getTargetBaseInstallDir(env).Dir(
-        env['SCRIPTDIR']).Dir(
+    return getTargetBaseInstallDir(env).Dir(env['SCRIPTDIR']).Dir(
         env.getRelativeVariantDirectory())
 
 
 def getLogInstallDir(env):
-    return getTargetBaseInstallDir(env).Dir(
-        env['LOGDIR']).Dir(
+    return getTargetBaseInstallDir(env).Dir(env['LOGDIR']).Dir(
         env.getRelativeVariantDirectory())
 
 
@@ -82,11 +80,11 @@ def prepareVariantDir(env):
     if myplatf == "posix":
         bitwidth = env.getBitwidth()
         libcver = getLibCVersion(bitwidth)
-        variant = platform.system(
-        ) + "_" + libcver[0] + "_" + libcver[1] + "-" + platform.machine()
+        variant = platform.system() + "_" + libcver[0] + "_" + libcver[
+            1] + "-" + platform.machine()
     elif myplatf == "sunos":
-        variant = platform.system(
-        ) + "_" + platform.release() + "-" + platform.processor()
+        variant = platform.system() + "_" + platform.release(
+        ) + "-" + platform.processor()
     elif myplatf == "darwin":
         import commands
         version = commands.getoutput("sw_vers -productVersion")
@@ -103,37 +101,43 @@ def prepareVariantDir(env):
     elif myplatf == "cygwin":
         variant = platform.system() + "-" + platform.machine()
     elif myplatf == "win32":
-        variant = platform.system(
-        ) + "_" + platform.release() + "-" + platform.machine()
+        variant = platform.system() + "_" + platform.release(
+        ) + "-" + platform.machine()
 
     env.Append(VARIANTDIR=variant)
 
 
 def verifyBaseoutDirWritable(baseoutdir):
-    testfile = os.path.join(baseoutdir.get_abspath(), '.writefiletest.'+str(os.getpid()))
+    testfile = os.path.join(baseoutdir.get_abspath(),
+                            '.writefiletest.' + str(os.getpid()))
     try:
         if not os.path.isdir(baseoutdir.get_abspath()):
-            os.makedirs(baseoutdir.get_abspath()) # test if we are able to create a file
+            os.makedirs(baseoutdir.get_abspath(
+            ))  # test if we are able to create a file
         fp = open(testfile, 'w+')
         fp.close()
     except (os.error, IOError):
-        logger.error('Output directory [{0}] not writable'.format(baseoutdir.get_abspath()), exc_info=True)
-        raise UserError(
-            'Build aborted, baseoutdir [' + baseoutdir.get_abspath() + '] not writable for us!')
+        logger.error('Output directory [%s] not writable',
+                     baseoutdir.get_abspath(),
+                     exc_info=True)
+        raise UserError('Build aborted, baseoutdir [' + baseoutdir.get_abspath()
+                        + '] not writable for us!')
     finally:
         os.unlink(testfile)
+
 
 def prePackageCollection(env, **kw):
     _sconstruct_dir = Dir('#')
     env.AppendUnique(EXCLUDE_DIRS_REL=[env['BUILDDIR']])
     if env.getBaseOutDir() == _sconstruct_dir:
         env.AppendUnique(EXCLUDE_DIRS_TOPLEVEL=[
-                env[varname] for varname in [
-                                    'BINDIR',
-                                    'LIBDIR',
-                                    'LOGDIR',
-                                    'INCDIR',
-                                    ]])
+            env[varname] for varname in [
+                'BINDIR',
+                'LIBDIR',
+                'LOGDIR',
+                'INCDIR',
+            ]
+        ])
 
 
 def generate(env):
@@ -150,7 +154,8 @@ def generate(env):
         default=_baseout_dir_default,
         metavar='DIR',
         help='Directory to store build target files. Helps keeping your source\
-     directory clean, default="' + Dir(_baseout_dir_default).get_abspath() + '"')
+     directory clean, default="' + Dir(_baseout_dir_default).get_abspath() +
+        '"')
 
     # ensure we have getBitwidth() available
     if 'setupBuildTools' not in env['TOOLS']:

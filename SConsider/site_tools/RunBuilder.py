@@ -30,7 +30,7 @@ import SCons.Script
 from SCons.Script import AddOption, GetOption
 from SConsider.PackageRegistry import PackageRegistry
 import Callback
-from SomeUtils import hasPathPart, isFileNode, isDerivedNode,\
+from SConsider.SomeUtils import hasPathPart, isFileNode, isDerivedNode,\
     getNodeDependencies, getFlatENV
 from logging import getLogger
 logger = getLogger(__name__)
@@ -50,18 +50,16 @@ def getTargets(packagename=None, targetname=None):
     if not packagename:
         alltargets = []
         for packagename in runtargets:
-            for tname, target in runtargets.get(packagename, {}).iteritems():
+            for _, target in runtargets.get(packagename, {}).iteritems():
                 alltargets.append(target)
         return alltargets
     elif not targetname:
         return [
-            target
-            for tname, target in runtargets.get(packagename, {}).iteritems()
+            target for _, target in runtargets.get(packagename, {}).iteritems()
         ]
     else:
-        return filter(bool, [
-            runtargets.get(packagename, {}).get(targetname, None)
-        ])
+        return [j for j in runtargets.get(packagename, {}).get(targetname, None)
+                if j]
 
 
 class Tee(object):
@@ -72,13 +70,13 @@ class Tee(object):
         self.writers.append((writer, flush, close))
 
     def write(self, output):
-        for writer, flush, close in self.writers:
+        for writer, flush, _ in self.writers:
             writer.write(output)
             if flush:
                 writer.flush()
 
     def close(self):
-        for writer, flush, close in self.writers:
+        for writer, _, close in self.writers:
             if close:
                 writer.close()
 
@@ -143,8 +141,8 @@ def doTest(target, source, env):
 
     res = execute(source[0].get_abspath(), env)
     if res == 0:
-        with open(target[0].get_abspath(), 'w') as file:
-            file.write("PASSED\n")
+        with open(target[0].get_abspath(), 'w') as f:
+            f.write("PASSED\n")
     runCallback('__PostTestOrRun')
     runCallback('__PostAction_' + str(id(target[0])))
     return res

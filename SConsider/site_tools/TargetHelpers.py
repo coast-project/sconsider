@@ -25,11 +25,10 @@ def getUsedTarget(env, buildSettings):
     plaintarget = None
     usedFullTargetname = buildSettings.get('usedTarget', None)
     if usedFullTargetname:
-        usedPackagename, usedTargetname = splitTargetname(
-            usedFullTargetname, default=True)
-        plaintarget = getRegistry().loadPackagePlaintarget(
-            usedPackagename,
-            usedTargetname)
+        usedPackagename, usedTargetname = splitTargetname(usedFullTargetname,
+                                                          default=True)
+        plaintarget = getRegistry().loadPackagePlaintarget(usedPackagename,
+                                                           usedTargetname)
     return plaintarget
 
 
@@ -44,12 +43,8 @@ def usedOrProgramTarget(env, name, sources, buildSettings):
     return plaintarget
 
 
-def setupTargetDirAndWrapperScripts(
-        env,
-        name,
-        packagename,
-        plaintarget,
-        basetargetdir):
+def setupTargetDirAndWrapperScripts(env, name, packagename, plaintarget,
+                                    basetargetdir):
     env.setRelativeTargetDirectory(os.path.join(basetargetdir, packagename))
     instApps = env.InstallAs(env.getBinaryInstallDir().File(name), plaintarget)
     if 'generateScript' not in env['TOOLS']:
@@ -67,32 +62,16 @@ def programApp(env, name, sources, packagename, buildSettings, **kw):
     return (plaintarget, wrappers)
 
 
-def programTest(
-        env,
-        name,
-        sources,
-        packagename,
-        targetname,
-        buildSettings,
-        **kw):
+def programTest(env, name, sources, packagename, targetname, buildSettings,
+                **kw):
     plaintarget = usedOrProgramTarget(env, name, sources, buildSettings)
     buildSettings.setdefault("runConfig", {}).setdefault("type", "test")
-    return setupTargetDirAndWrapperScripts(
-        env,
-        name,
-        packagename,
-        plaintarget,
-        'tests')
+    return setupTargetDirAndWrapperScripts(env, name, packagename, plaintarget,
+                                           'tests')
 
 
-def sharedLibrary(
-        env,
-        name,
-        sources,
-        packagename,
-        targetname,
-        buildSettings,
-        **kw):
+def sharedLibrary(env, name, sources, packagename, targetname, buildSettings,
+                  **kw):
     libBuilder = env.SharedLibrary
     # @!FIXME: we should move this section out to the libraries needing it
     if buildSettings.get('lazylinking', False):
@@ -111,14 +90,8 @@ def sharedLibrary(
     return (plaintarget, instTarg)
 
 
-def staticLibrary(
-        env,
-        name,
-        sources,
-        packagename,
-        targetname,
-        buildSettings,
-        **kw):
+def staticLibrary(env, name, sources, packagename, targetname, buildSettings,
+                  **kw):
     env['_NONLAZYLINKFLAGS'] = ''
 
     plaintarget = env.StaticLibrary(name, sources)
@@ -131,14 +104,8 @@ def staticLibrary(
     return (plaintarget, instTarg)
 
 
-def installPrecompiledBinary(
-        env,
-        name,
-        sources,
-        packagename,
-        targetname,
-        buildSettings,
-        **kw):
+def installPrecompiledBinary(env, name, sources, packagename, targetname,
+                             buildSettings, **kw):
     env.setRelativeTargetDirectory(os.path.join('globals', packagename))
     target = env.PrecompiledBinaryInstallBuilder(name, sources)
     # use symlink target at index 1 if available
@@ -146,28 +113,16 @@ def installPrecompiledBinary(
     return (target, target)
 
 
-def installPrecompiledLibrary(
-        env,
-        name,
-        sources,
-        packagename,
-        targetname,
-        buildSettings,
-        **kw):
+def installPrecompiledLibrary(env, name, sources, packagename, targetname,
+                              buildSettings, **kw):
     lib = env.PrecompiledLibraryInstallBuilder(name, sources)
     # use symlink target at index 1 if available
     lib = lib[-1:]
     return (lib, lib)
 
 
-def installBinary(
-        env,
-        name,
-        sources,
-        packagename,
-        targetname,
-        buildSettings,
-        **kw):
+def installBinary(env, name, sources, packagename, targetname, buildSettings,
+                  **kw):
     env.setRelativeTargetDirectory(os.path.join('globals', packagename))
     instTarg = env.Install(env.getBinaryInstallDir(), sources)
     env.Requires(instTarg[0], instTarg[1:])

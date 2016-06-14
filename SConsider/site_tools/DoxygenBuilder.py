@@ -437,8 +437,8 @@ def emitDoxygen(target, source, env):
             target.append(env.Dir(path))
 
     env.Clean(target, outputpath)
-    for t in target:
-        env.Clean(target, t)
+    for j in target:
+        env.Clean(target, j)
 
     return (target, source)
 

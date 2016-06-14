@@ -16,8 +16,9 @@ syntax
 # -------------------------------------------------------------------------
 
 import re
-
-from SCons.Script import *
+import SCons.Node
+import SCons.Action
+from SCons.Script import Depends, Builder
 
 
 def substInFile(target, source, searchre, subfn):
@@ -32,13 +33,10 @@ def substInFile(target, source, searchre, subfn):
 
 def getLogMessage(target, source, env):
     items = [
-        'Substituting vars from {source} to {target}'.format(
-            source=str(s),
-            target=str(t)) for (
-            t,
-            s) in zip(
-                target,
-            source)]
+        'Substituting vars from {source} to {target}'.format(source=str(s),
+                                                             target=str(t))
+        for (t, s) in zip(target, source)
+    ]
     return '\n'.join(items)
 
 

@@ -15,7 +15,6 @@ Collection of helper functions
 # -------------------------------------------------------------------------
 
 import os
-import string
 import re
 
 
@@ -29,8 +28,8 @@ def listFiles(files, **kw):
     import SCons
 
     allFiles = []
-    for file in files:
-        globFiles = SCons.Script.Glob(file)
+    for file_pattern in files:
+        globFiles = SCons.Script.Glob(file_pattern)
         for globFile in globFiles:
             if kw.get('recursive', False) and isinstance(globFile,
                                                          SCons.Node.FS.Dir):
@@ -103,13 +102,13 @@ def copyFileNodes(env,
         stripRelDirs = [stripRelDirs]
 
     instTargs = []
-    for file, baseDir in nodetuples:
-        if isinstance(file, str):
-            file = SCons.Script.File(file)
-        installRelPath = baseDir.rel_path(file.get_dir())
+    for filename, baseDir in nodetuples:
+        if isinstance(filename, str):
+            filename = SCons.Script.File(filename)
+        installRelPath = baseDir.rel_path(filename.get_dir())
 
-        if stripRelDirs and baseDir.get_abspath() != file.get_dir().get_abspath(
-        ):
+        if stripRelDirs and baseDir.get_abspath() != filename.get_dir(
+        ).get_abspath():
             relPathParts = installRelPath.split(os.sep)
             delprefix = []
             for stripRelDir in stripRelDirs:
@@ -120,9 +119,10 @@ def copyFileNodes(env,
         if replaceDict:
             instTarg = env.SubstInFileBuilder(
                 destDir.Dir(installRelPath),
-                file, SUBST_DICT=replaceDict)
+                filename,
+                SUBST_DICT=replaceDict)
         else:
-            instTarg = env.Install(destDir.Dir(installRelPath), file)
+            instTarg = env.Install(destDir.Dir(installRelPath), filename)
 
         if mode:
             env.AddPostAction(instTarg, SCons.Defaults.Chmod(
@@ -133,7 +133,7 @@ def copyFileNodes(env,
 
 
 def getPyFilename(filename):
-    if (filename.endswith(".pyc") or filename.endswith(".pyo")):
+    if filename.endswith(".pyc") or filename.endswith(".pyo"):
         filename = filename[:-1]
     return filename
 
@@ -230,8 +230,8 @@ if not hasattr(os.path, "relpath"):
         start_list = os.path.abspath(start).split(os.sep)
         path_list = os.path.abspath(path).split(os.sep)
         if start_list[0].lower() != path_list[0].lower():
-            unc_path, rest = os.path.splitunc(path)
-            unc_start, rest = os.path.splitunc(start)
+            unc_path, _ = os.path.splitunc(path)
+            unc_start, _ = os.path.splitunc(start)
             if bool(unc_path) ^ bool(unc_start):
                 raise ValueError("Cannot mix UNC and non-UNC paths (%s and %s)"
                                  % (path, start))
@@ -279,7 +279,7 @@ def getFlatENV(env):
             # because that's a pretty common list-like value to stick
             # in an environment variable:
             value = SCons.Util.flatten_sequence(value)
-            newENV[key] = string.join(map(str, value), os.pathsep)
+            newENV[key] = os.path.join(*[str(j) for j in value])
         else:
             # It's either a string or something else.  If it's a string,
             # we still want to call str() because it might be a *Unicode*
@@ -341,20 +341,22 @@ def getfqdn():
     return (hostname, domain, fqdn)
 
 
-def runCommand(args,
-               logpath='',
-               filename=None,
-               stdincontent=None,
-               filter=None,
-               **kw):
+def runCommand(args, logpath='', filename=None, stdincontent=None, **kw):
     import subprocess
     res = 1
     if filename:
-        with open(filename) as file:
-            stdincontent = file.read()
+        with open(filename) as f:
+            stdincontent = f.read()
 
-    if callable(filter):
-        stdincontent = filter(stdincontent)
+    filter_func = None
+    for k in ['filter_func', 'filter']:
+        try:
+            filter_func = kw.pop(k)
+            break
+        except KeyError:
+            pass
+    if callable(filter_func):
+        stdincontent = filter_func(stdincontent)
 
     popenObject = subprocess.Popen(args,
                                    stdin=subprocess.PIPE,

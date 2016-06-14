@@ -84,7 +84,8 @@ def generate(env):
         import time
         fName = '.code2Compile.' + str(time.time()) + '.' + str(os.getpid())
         tFile = os.path.join(SCons.Script.Dir('.').get_abspath(), fName)
-        outFile = os.path.join(SCons.Script.Dir('.').get_abspath(), fName + '.o')
+        outFile = os.path.join(
+            SCons.Script.Dir('.').get_abspath(), fName + '.o')
         try:
             outf = open(tFile, 'w')
             outf.write('#include <cstdlib>\nint main(){return 0;}')
@@ -95,13 +96,8 @@ def generate(env):
                 exc_info=True)
             return
         pipe = SCons.Action._subproc(env,
-                                     [compiler_subject,
-                                      '-v',
-                                      '-xc++',
-                                      tFile,
-                                      '-o',
-                                      outFile,
-                                      '-m' + bitwidth],
+                                     [compiler_subject, '-v', '-xc++', tFile,
+                                      '-o', outFile, '-m' + bitwidth],
                                      stdin='devnull',
                                      stderr=subprocess.PIPE,
                                      stdout=subprocess.PIPE)
@@ -109,13 +105,12 @@ def generate(env):
         os.remove(tFile)
 
         def formattedStdOutAndStdErr(the_pipe, prefix_text=None):
-            text_to_join = ['---- stdout ----',
-                            the_pipe.stdout.read(),
-                            '---- stderr ----',
-                            the_pipe.stderr.read()]
+            text_to_join = ['---- stdout ----', the_pipe.stdout.read(),
+                            '---- stderr ----', the_pipe.stderr.read()]
             if prefix_text:
                 text_to_join[:0] = [prefix_text]
             return os.linesep.join(text_to_join)
+
         try:
             os.remove(outFile)
         except:
@@ -123,8 +118,8 @@ def generate(env):
                 formattedStdOutAndStdErr(
                     pipe,
                     prefix_text="{0} {1}, check compiler output for errors:".format(
-                        outFile,
-                        'could not be deleted' if os.path.exists(outFile) else 'was not created')),
+                        outFile, 'could not be deleted'
+                        if os.path.exists(outFile) else 'was not created')),
                 exc_info=True)
             raise SCons.Errors.UserError(
                 'Build aborted, {0} compiler detection failed!'.format(
@@ -138,7 +133,7 @@ def generate(env):
                 'Build aborted, {0} compiler detection failed!'.format(
                     compiler_subject))
         pout = pipe.stderr.read()
-        reIncl = re.compile('#include <\.\.\.>.*:$\s((^ .*\s)*)', re.M)
+        reIncl = re.compile(r'#include <\.\.\.>.*:$\s((^ .*\s)*)', re.M)
         match = reIncl.search(pout)
         sysincludes = []
         if match:
@@ -160,11 +155,9 @@ def generate(env):
     if not SCons.Script.GetOption('no-largefilesupport'):
         env.AppendUnique(CPPDEFINES=['_LARGEFILE64_SOURCE'])
 
-    buildmode = SCons.Script.GetOption('buildcfg')
+    buildmode = env.getBuildCfg()
     if buildmode in ['debug', 'profile']:
-        env.AppendUnique(
-            CXXFLAGS=[
-                '-ggdb3' if str(platf) == 'sunos' else '-g'])
+        env.AppendUnique(CXXFLAGS=['-ggdb3' if str(platf) == 'sunos' else '-g'])
     if buildmode == 'debug':
         pass
     elif buildmode == 'optimized':

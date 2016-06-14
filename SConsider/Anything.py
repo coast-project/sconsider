@@ -26,7 +26,6 @@ from lepl.matchers.operators import Separator
 
 
 class AnythingEntry(object):
-
     def __init__(self, key, value=None):
         if isinstance(key, AnythingEntry):
             self.key = key.key
@@ -44,6 +43,7 @@ class AnythingEntry(object):
 
     def set_value(self, newvalue):
         self.__value = newvalue
+
     value = property(get_value, set_value)
 
     def __eq__(self, other):
@@ -59,7 +59,6 @@ class AnythingEntry(object):
 
 
 class Anything(collections.MutableSequence, collections.MutableMapping):
-
     def __init__(self, other=None, **kw):
         self.__data = []
         self.__keys = {}
@@ -84,7 +83,7 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 
     def merge(self, other):
         if isinstance(other, Anything):
-            for data in other.iteritems(all=True):
+            for data in other.iteritems(all_items=True):
                 self.__mergeData(data)
         if isinstance(other, collections.Mapping):
             for data in other.iteritems():
@@ -161,17 +160,15 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
             if data.key:
                 del self.__keys[data.key]
         if isinstance(other, Anything):
-            self.__data[
-                start:stop:step] = [
-                AnythingEntry(
-                    key, value) for key, value in other.items(
-                    all=True)]
+            self.__data[start:stop:step] = [
+                AnythingEntry(key, value)
+                for key, value in other.items(all_items=True)
+            ]
         elif isinstance(other, collections.Sequence):
-            self.__data[
-                start:stop:step] = [
-                AnythingEntry(
-                    key, value) for key, value in Anything(other).items(
-                    all=True)]
+            self.__data[start:stop:step] = [
+                AnythingEntry(key, value)
+                for key, value in Anything(other).items(all_items=True)
+            ]
         self.__updateKeys(start)
 
     def __setitem__(self, key, value):
@@ -194,41 +191,41 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
     def iterkeys(self):
         return self.__keys.iterkeys()
 
-    def items(self, all=False):
-        if all:
+    def items(self, all_items=False):
+        if all_items:
             return [(self.slotname(pos), value)
                     for pos, value in enumerate(self)]
         else:
             return [(key, self.__data[pos].value)
                     for key, pos in self.__keys.iteritems()]
 
-    def iteritems(self, all=False):
-        if all:
+    def iteritems(self, all_items=False):
+        if all_items:
             for pos, value in enumerate(self):
                 yield (self.slotname(pos), value)
         else:
             for key, pos in self.__keys.iteritems():
                 yield (key, self.__data[pos].value)
 
-    def itervalues(self, all=False):
-        if all:
+    def itervalues(self, all_items=False):
+        if all_items:
             for value in self:
                 yield value
         else:
             for _, pos in self.__keys.iteritems():
                 yield self.__data[pos].value
 
-    def values(self, all=False):
-        if all:
+    def values(self, all_items=False):
+        if all_items:
             return list(self)
         else:
             return [
-                self.__data[pos].value for _,
-                pos in self.__keys.iteritems()]
+                self.__data[pos].value for _, pos in self.__keys.iteritems()
+            ]
 
     def popitem(self):
         try:
-            key, value = next(self.iteritems(all=True))
+            key, value = next(self.iteritems(all_items=True))
         except StopIteration:
             raise KeyError
         del self[0]
@@ -245,7 +242,7 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 
     def __pprint(self, level=1):
         content = ''
-        for key, value in self.iteritems(all=True):
+        for key, value in self.iteritems(all_items=True):
             content += '\t' * level
             if key:
                 content += '/' + str(key) + ' '
@@ -259,8 +256,9 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
         return self.__pprint()
 
     def __repr__(self):
-        return 'Anything(' + str(map(lambda data:
-                                     data if data[0] else data[1], self.iteritems(all=True))) + ')'
+        return 'Anything(' + str([data if data[0] else data[1]
+                                  for data in self.iteritems(all_items=True)
+                                  ]) + ')'
 
     def copy(self):
         return Anything(self)
@@ -270,10 +268,8 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
         self.__updateKeys()
 
     def __eq__(self, other):
-        return isinstance(
-            other, Anything) and self.items(
-            all=True) == other.items(
-            all=True)
+        return isinstance(other, Anything) and self.items(
+            all_items=True) == other.items(all_items=True)
 
     def __add__(self, other):
         return self.copy().extend(other)
@@ -290,10 +286,9 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 
 
 class AnythingReference(object):
-
-    def __init__(self, keys, file=None):
+    def __init__(self, keys, filename=None):
         self.keys = keys
-        self.file = file
+        self.file = filename
         self.context = None
 
     def resolve(self, context=None):
@@ -339,9 +334,9 @@ class AnythingReference(object):
 
 
 class TLS(threading.local):
-
     def __init__(self):
         self.env = {}
+
 
 tls = TLS()
 
@@ -353,6 +348,7 @@ def setLocalEnv(env=None, **kw):
     if env is not None:
         tls.env = env
     tls.env.update(kw)
+
 
 resolvers = [
     lambda key: tls.env.get(key, None) if hasattr(tls, 'env') else None,
@@ -376,9 +372,8 @@ def resolvePath(filename, root=None, path=None):
         root = first(resolvers + [lambda key: os.getcwd()], 'COAST_ROOT')
 
     if not path:
-        path = first(
-            resolvers + [lambda key: ['.', 'config', 'src']],
-            'COAST_PATH')
+        path = first(resolvers + [lambda key: ['.', 'config', 'src']],
+                     'COAST_PATH')
     if isinstance(path, basestring):
         path = path.split(':')
 
@@ -388,6 +383,7 @@ def resolvePath(filename, root=None, path=None):
             return absfilepath
     raise IOError(filename)
 
+
 anythingCache = {}
 anythingCacheLock = threading.Lock()
 
@@ -396,8 +392,8 @@ def loadAllFromFile(filename):
     filename = resolvePath(filename)
     with anythingCacheLock:
         if filename not in anythingCache:
-            with open(filename, "r") as file:
-                anythingCache[filename] = parse(file.read())
+            with open(filename, "r") as f:
+                anythingCache[filename] = parse(f.read())
         return anythingCache[filename]
 
 
@@ -416,9 +412,8 @@ def createAnythingReferenceGrammar():
     indexstart = Literal(':')
     keystart = Literal('.')
     escape = Literal('\\')
-    key = Optional(
-        ~keystart) & Word(
-        And(~escape, keystart | indexstart) | AnyBut(keystart | indexstart))
+    key = Optional(~keystart) & Word(And(~escape, keystart | indexstart) |
+                                     AnyBut(keystart | indexstart))
     index = ~indexstart & Integer() >> int
     internalref = (key | index)[:] > list
 
@@ -430,6 +425,7 @@ def createAnythingReferenceGrammar():
 
     fullref = (~Literal('!') & externalref) | (~Literal('%') & internalref)
     return fullref
+
 
 refgrammar = createAnythingReferenceGrammar()
 
@@ -457,6 +453,7 @@ def createAnythingGrammar():
     with Separator(~Star(AnyBut(anystart | anystop))):
         document = ~AnyBut(anystart)[:] & anything[:] & ~Any()[:]
     return document
+
 
 anygrammar = createAnythingGrammar()
 

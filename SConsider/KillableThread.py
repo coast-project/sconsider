@@ -24,9 +24,8 @@ def _async_raise(tid, exctype):
     """raises the exception, performs cleanup if needed."""
     if not inspect.isclass(exctype):
         raise TypeError("Only types can be raised (not instances)")
-    res = ctypes.pythonapi.PyThreadState_SetAsyncExc(
-        tid,
-        ctypes.py_object(exctype))
+    res = ctypes.pythonapi.PyThreadState_SetAsyncExc(tid,
+                                                     ctypes.py_object(exctype))
     if res == 0:
         raise ValueError("invalid thread id")
     elif res != 1:
@@ -38,7 +37,6 @@ def _async_raise(tid, exctype):
 
 
 class KillableThread(threading.Thread):
-
     def __init__(self):
         threading.Thread.__init__(self)
 

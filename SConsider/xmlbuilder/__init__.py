@@ -4,6 +4,7 @@ from __future__ import with_statement
 #-------------------------------------------------------------------------
 from xml.etree.ElementTree import TreeBuilder, tostring
 #-------------------------------------------------------------------------
+# pylint: skip-file
 __all__ = ["XMLBuilder"]
 __doc__ = """
 XMLBuilder is simple library build on top of ElementTree.TreeBuilder to
@@ -22,11 +23,11 @@ with x.root(a = 1):
 etree_node = ~x
 print str(x)
 """
+
 #-------------------------------------------------------------------------
 
 
 class _XMLNode(object):
-
     """Class for internal usage."""
 
     def __init__(self, parent, name, builder):
@@ -64,7 +65,6 @@ class _XMLNode(object):
 
 
 class XMLBuilder(object):
-
     """XmlBuilder(encoding = 'utf-8', # result xml file encoding
             builder = None, #etree.TreeBuilder or compatible class
             tab_level = None, #current tabulation level - string
@@ -74,7 +74,8 @@ class XMLBuilder(object):
     ~builder to obtaine etree.ElementTree
     """
 
-    def __init__(self, encoding='utf-8',
+    def __init__(self,
+                 encoding='utf-8',
                  builder=None,
                  tab_level=None,
                  format=False,
@@ -88,8 +89,8 @@ class XMLBuilder(object):
             if not format:
                 raise ValueError("format is False, but tab_level not None")
         self.__tab_level = tab_level  # current format level
-        self.__tab_step = tab_step   # format step
-        self.__has_sub_tag = False   # True, if current tag had childrens
+        self.__tab_step = tab_step  # format step
+        self.__has_sub_tag = False  # True, if current tag had childrens
         self.__node = None
     # called from _XMLNode when tag opened
 
@@ -128,9 +129,11 @@ class XMLBuilder(object):
         else:
             self.__has_sub_tag = True
             assert hasattr(
-                val, '__len__'), 'Shifted value should be tuple or list like object not %r' % val
+                val,
+                '__len__'), 'Shifted value should be tuple or list like object not %r' % val
             assert hasattr(
-                val, '__getitem__'), 'Shifted value should be tuple or list like object not %r' % val
+                val,
+                '__getitem__'), 'Shifted value should be tuple or list like object not %r' % val
             name = val[0]
             if len(val) == 3:
                 text = val[1]
@@ -147,8 +150,8 @@ class XMLBuilder(object):
                     attrs = val[1]
             if self.__tab_level is not None:
                 self.__builder.data("\n" + self.__tab_level)
-            self.__builder.start(name,
-                                 dict((k, str(v)) for k, v in attrs.items()))
+            self.__builder.start(name, dict((k, str(v))
+                                            for k, v in attrs.items()))
             if text:
                 self.__builder.data(text)
             self.__builder.end(name)

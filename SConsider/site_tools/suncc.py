@@ -49,7 +49,7 @@ def generate(env):
     if not SCons.Script.GetOption('no-largefilesupport'):
         env.AppendUnique(CPPDEFINES=['_LARGEFILE64_SOURCE'])
 
-    buildmode = SCons.Script.GetOption('buildcfg')
+    buildmode = env.getBuildCfg()
     if buildmode == 'debug':
         pass
     elif buildmode == 'optimized':

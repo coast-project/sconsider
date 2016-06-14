@@ -38,7 +38,6 @@ def unique(iterable):
 
 
 class FinderFactory(object):
-
     @staticmethod
     def getForPlatform(platform):
         if platform == 'win32':
@@ -49,7 +48,6 @@ class FinderFactory(object):
 
 
 class LibFinder(object):
-
     def getLibs(self, env, source, libnames=None, libdirs=None):
         raise NotImplementedError()
 
@@ -58,18 +56,12 @@ class LibFinder(object):
 
 
 class UnixFinder(LibFinder):
-
     def __filterLibs(self, env, filename, libnames):
         basename = os.path.basename(filename)
-        libNamesStr = '(' + '|'.join(map(re.escape, libnames)) + ')'
-        match = re.match(
-            r'^' +
-            re.escape(
-                env.subst('$SHLIBPREFIX')) +
-            libNamesStr +
-            re.escape(
-                env.subst('$SHLIBSUFFIX')),
-            basename)
+        libNamesStr = '(' + '|'.join([re.escape(j) for j in libnames]) + ')'
+        match = re.match(r'^' + re.escape(env.subst('$SHLIBPREFIX')) +
+                         libNamesStr + re.escape(env.subst('$SHLIBSUFFIX')),
+                         basename)
         return bool(match)
 
     @staticmethod
@@ -80,23 +72,23 @@ class UnixFinder(LibFinder):
 
     def getLibs(self, env, source, libnames=None, libdirs=None):
         if libdirs:
-            env.AppendENVPath('LD_LIBRARY_PATH', map(self.absolutify, libdirs))
+            env.AppendENVPath('LD_LIBRARY_PATH',
+                              [self.absolutify(j) for j in libdirs])
         ldd = subprocess.Popen(
             ['ldd', os.path.basename(source[0].get_abspath())],
-            stdout=subprocess.PIPE, cwd=os.path.dirname(source[0].get_abspath()),
+            stdout=subprocess.PIPE,
+            cwd=os.path.dirname(source[0].get_abspath()),
             env=SomeUtils.getFlatENV(env))
         out, _ = ldd.communicate()
-        libs = filter(
-            functools.partial(
-                operator.ne, 'not found'), re.findall(
-                '^.*=>\s*(not found|[^\s^\(]+)', out, re.MULTILINE))
+        libs = [j
+                for j in re.findall(r'^.*=>\s*(not found|[^\s^\(]+)', out,
+                                    re.MULTILINE)
+                if functools.partial(operator.ne, 'not found')(j)]
         if libnames:
-            libs = filter(
-                functools.partial(
-                    self.__filterLibs,
-                    env,
-                    libnames=libnames),
-                libs)
+            libs = [j for j in libs
+                    if functools.partial(self.__filterLibs,
+                                         env,
+                                         libnames=libnames)(j)]
         return libs
 
     def getSystemLibDirs(self, env):
@@ -105,37 +97,27 @@ class UnixFinder(LibFinder):
         if not linkercmd:
             return libdirs
         cmdargs = [
-            linkercmd,
-            '-print-search-dirs'] + env.subst('$LINKFLAGS').split(' ')
-        linker = subprocess.Popen(
-            cmdargs,
-            stdout=subprocess.PIPE,
-            env=SomeUtils.getFlatENV(env))
+            linkercmd, '-print-search-dirs'
+        ] + env.subst('$LINKFLAGS').split(' ')
+        linker = subprocess.Popen(cmdargs,
+                                  stdout=subprocess.PIPE,
+                                  env=SomeUtils.getFlatENV(env))
         out, _ = linker.communicate()
         match = re.search('^libraries.*=(.*)$', out, re.MULTILINE)
         if match:
-            libdirs.extend(
-                unique(
-                    filter(
-                        os.path.exists, map(
-                            os.path.abspath, match.group(1).split(
-                                os.pathsep)))))
+            libdirs.extend(unique([os.path.abspath(j)
+                                   for j in match.group(1).split(os.pathsep)
+                                   if os.path.exists(os.path.abspath(j))]))
         return libdirs
 
 
 class MacFinder(LibFinder):
-
     def __filterLibs(self, env, filename, libnames):
         basename = os.path.basename(filename)
-        libNamesStr = '(' + '|'.join(map(re.escape, libnames)) + ')'
-        match = re.match(
-            r'^' +
-            re.escape(
-                env.subst('$SHLIBPREFIX')) +
-            libNamesStr +
-            re.escape(
-                env.subst('$SHLIBSUFFIX')),
-            basename)
+        libNamesStr = '(' + '|'.join([re.escape(j) for j in libnames]) + ')'
+        match = re.match(r'^' + re.escape(env.subst('$SHLIBPREFIX')) +
+                         libNamesStr + re.escape(env.subst('$SHLIBSUFFIX')),
+                         basename)
         return bool(match)
 
     @staticmethod
@@ -146,65 +128,50 @@ class MacFinder(LibFinder):
 
     def getLibs(self, env, source, libnames=None, libdirs=None):
         if libdirs:
-            env.AppendENVPath(
-                'DYLD_LIBRARY_PATH', map(
-                    self.absolutify, libdirs))
+            env.AppendENVPath('DYLD_LIBRARY_PATH',
+                              [self.absolutify(j) for j in libdirs])
         ldd = subprocess.Popen(
             ['otool', '-L', os.path.basename(source[0].get_abspath())],
-            stdout=subprocess.PIPE, cwd=os.path.dirname(source[0].get_abspath()),
+            stdout=subprocess.PIPE,
+            cwd=os.path.dirname(source[0].get_abspath()),
             env=SomeUtils.getFlatENV(env))
         out, _ = ldd.communicate()
-        libs = filter(
-            functools.partial(
-                operator.ne, 'not found'), re.findall(
-                '^.*=>\s*(not found|[^\s^\(]+)', out, re.MULTILINE))
+        libs = [j
+                for j in re.findall(r'^.*=>\s*(not found|[^\s^\(]+)', out,
+                                    re.MULTILINE)
+                if functools.partial(operator.ne, 'not found')(j)]
         if libnames:
-            libs = filter(
-                functools.partial(
-                    self.__filterLibs,
-                    env,
-                    libnames=libnames),
-                libs)
+            libs = [j for j in libs
+                    if functools.partial(self.__filterLibs,
+                                         env,
+                                         libnames=libnames)(j)]
         return libs
 
     def getSystemLibDirs(self, env):
         libdirs = []
         linkercmd = env.subst('$LINK')
         cmdargs = [
-            linkercmd,
-            '-print-search-dirs'] + env.subst('$LINKFLAGS').split(' ')
-        linker = subprocess.Popen(
-            cmdargs,
-            stdout=subprocess.PIPE,
-            env=SomeUtils.getFlatENV(env))
+            linkercmd, '-print-search-dirs'
+        ] + env.subst('$LINKFLAGS').split(' ')
+        linker = subprocess.Popen(cmdargs,
+                                  stdout=subprocess.PIPE,
+                                  env=SomeUtils.getFlatENV(env))
         out, _ = linker.communicate()
         match = re.search('^libraries.*=(.*)$', out, re.MULTILINE)
         if match:
-            libdirs.extend(
-                unique(
-                    filter(
-                        os.path.exists, map(
-                            os.path.abspath, match.group(1).split(
-                                os.pathsep)))))
+            libdirs.extend(unique([os.path.abspath(j)
+                                   for j in match.group(1).split(os.pathsep)
+                                   if os.path.exists(os.path.abspath(j))]))
         return libdirs
 
 
 class Win32Finder(LibFinder):
-
     def __filterLibs(self, env, filename, libnames):
         basename = os.path.basename(filename)
-        libNamesStr = '(' + '|'.join(map(re.escape, libnames)) + ')'
+        libNamesStr = '(' + '|'.join([re.escape(j) for j in libnames]) + ')'
         match = re.match(
-            r'^(' +
-            re.escape(
-                env.subst('$LIBPREFIX')) +
-            ')?' +
-            libNamesStr +
-            '.*' +
-            re.escape(
-                env.subst('$SHLIBSUFFIX')) +
-            '$',
-            basename)
+            r'^(' + re.escape(env.subst('$LIBPREFIX')) + ')?' + libNamesStr +
+            '.*' + re.escape(env.subst('$SHLIBSUFFIX')) + '$', basename)
         return bool(match)
 
     def __findFileInPath(self, filename, paths):
@@ -216,26 +183,23 @@ class Win32Finder(LibFinder):
     def getLibs(self, env, source, libnames=None, libdirs=None):
         ldd = subprocess.Popen(
             ['objdump', '-p', os.path.basename(source[0].get_abspath())],
-            stdout=subprocess.PIPE, cwd=os.path.dirname(source[0].get_abspath()),
+            stdout=subprocess.PIPE,
+            cwd=os.path.dirname(source[0].get_abspath()),
             env=SomeUtils.getFlatENV(env))
         out, _ = ldd.communicate()
-        deplibs = re.findall('DLL Name:\s*(\S*)', out, re.MULTILINE)
+        deplibs = re.findall(r'DLL Name:\s*(\S*)', out, re.MULTILINE)
         if not libdirs:
             libdirs = self.getSystemLibDirs(env)
         if libnames:
-            deplibs = filter(
-                functools.partial(
-                    self.__filterLibs,
-                    env,
-                    libnames=libnames),
-                deplibs)
-        return filter(
-            lambda val: bool(val),
-            itertools.imap(
-                functools.partial(
-                    self.__findFileInPath,
-                    paths=libdirs),
-                deplibs))
+            deplibs = [j for j in deplibs
+                       if functools.partial(self.__filterLibs,
+                                            env,
+                                            libnames=libnames)(j)]
+        return [j
+                for j in itertools.imap(
+                    functools.partial(self.__findFileInPath,
+                                      paths=libdirs),
+                    deplibs) if bool(j)]
 
     def getSystemLibDirs(self, env):
         return os.environ['PATH'].split(os.pathsep)

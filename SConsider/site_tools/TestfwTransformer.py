@@ -14,6 +14,7 @@ most programs
 # modify it under the terms of the license that is included with this
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
+# pylint: disable=bad-continuation
 
 from __future__ import with_statement
 import os
@@ -24,7 +25,6 @@ from xmlbuilder import XMLBuilder
 
 
 class Result(object):
-
     def __init__(self):
         self.sections = []
         self.currentSection = None
@@ -33,11 +33,10 @@ class Result(object):
     def newSection(self, name):
         self.currentSection = {
             'name': name,
-            'time': time.strftime(
-                '%Y-%m-%dT%H:%M:%SZ',
-                time.gmtime()),
+            'time': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
             'hostname': socket.gethostname(),
-            'testcases': {}}
+            'testcases': {}
+        }
 
     def setSectionData(self, name, value):
         self.currentSection[name] = value
@@ -47,9 +46,7 @@ class Result(object):
         self.currentSection[name] += value
 
     def addTest(self, name):
-        self.currentSection['testcases'][name] = {
-            'passed': True,
-            'message': ''}
+        self.currentSection['testcases'][name] = {'passed': True, 'message': ''}
 
     def setTestData(self, name, key, value):
         if name in self.currentSection['testcases']:
@@ -87,27 +84,24 @@ class Result(object):
                         # Testfw prints 'Testcase.Testmethod', but we just need
                         # 'Testmethod' here
                         testname = re.sub(
-                            '^' +
-                            section.get(
-                                'name',
-                                'unknown') +
-                            '\.',
-                            '',
+                            '^' + section.get('name', 'unknown') + r'\.', '',
                             name)
-                        with xml.testcase(name=testname, classname=classname, time=float(testcase.get('msecs', 0)) / 1000):
+                        with xml.testcase(name=testname,
+                                          classname=classname,
+                                          time=float(testcase.get('msecs', 0)) /
+                                          1000):
                             if not testcase['passed']:
-                                xml << (
-                                    'failure', testcase.get(
-                                        'message', ''), {
-                                        'message': testcase.get(
-                                            'cause', ''), 'type': 'Assertion'})
+                                xml << ('failure', testcase.get(
+                                    'message', ''), {
+                                        'message': testcase.get('cause', ''),
+                                        'type': 'Assertion'
+                                    })
                     xml << ('system-out', section.get('content', '').strip())
                     xml << ('system-err', '')
         return str(xml)
 
 
 class State(object):
-
     def __init__(self, context):
         self.context = context
         self.result = context.result
@@ -115,11 +109,11 @@ class State(object):
     def __getattr__(self, attr):
         def method_missing(*args, **kw):
             pass
+
         return method_missing
 
 
 class StartedState(State):
-
     def end(self, tests, assertions, msecs, **kw):
         self.result.setSectionData('tests', tests)
         self.result.setSectionData('assertions', assertions)
@@ -142,24 +136,20 @@ class StartedState(State):
         return 'ended'
 
     def handle(self, line, **kw):
-        pattern = re.compile('\((\d+)[\)]*ms\)')
+        pattern = re.compile(r'\((\d+)[\)]*ms\)')
         match = re.search(pattern, line)
         if match:
-            self.result.setTestData(
-                self.current_testcase,
-                'msecs',
-                match.group(1))
+            self.result.setTestData(self.current_testcase, 'msecs',
+                                    match.group(1))
 
 
 class EndedState(State):
-
     def start(self, name, **kw):
         self.result.newSection(name)
         return 'started'
 
 
 class FailedState(State):
-
     def start(self, name, **kw):
         self.result.storeSection()
         self.result.newSection(name)
@@ -197,7 +187,6 @@ class FailedState(State):
 
 
 class Parser(object):
-
     def __init__(self):
         self.result = Result()
         self.states = {
@@ -210,7 +199,7 @@ class Parser(object):
              lambda line, match: self.state.start(
                  line=line, name=match.group(1))),
             (re.compile(
-                '^OK \((\d+)\D*test\D*(\d+)\D*assertion\D*(\d+)\D*ms.*\)'),
+                r'^OK \((\d+)\D*test\D*(\d+)\D*assertion\D*(\d+)\D*ms.*\)'),
              lambda line, match: self.state.end(
                  line=line, tests=match.group(1),
                  assertions=match.group(2),
@@ -220,21 +209,21 @@ class Parser(object):
                  line=line, name=match.group(1))),
             (re.compile('^!!!FAILURES!!!'),
              lambda line, match: self.state.fail(line=line)),
-            (re.compile('^(\d+)\D*assertion\D*(\d+)\D*ms\D*(\d+)\D*failure.*'),
+            (re.compile(r'^(\d+)\D*assertion\D*(\d+)\D*ms\D*(\d+)\D*failure.*'),
              lambda line, match: self.state.stop(
                  line=line, assertions=match.group(1),
                  msecs=match.group(2),
                  failures=match.group(3))),
-            (re.compile('^Run\D*(\d+)\D*Failure\D*(\d+)\D*Error\D*(\d+)'),
+            (re.compile(r'^Run\D*(\d+)\D*Failure\D*(\d+)\D*Error\D*(\d+)'),
              lambda line, match: self.state.failResult(
                  line=line, runs=match.group(1),
                  failures=match.group(2),
                  errors=match.group(3))),
-            (re.compile('^\((\d+)\D*assertion\D*(\d+)\D*ms.*\)'),
+            (re.compile(r'^\((\d+)\D*assertion\D*(\d+)\D*ms.*\)'),
              lambda line, match: self.state.failSuccess(
                  line=line, assertions=match.group(1),
                  msecs=match.group(2))),
-            (re.compile('^\d+\)\s+([^\s]+):\s*(.*:\d+:\s*(.*))'),
+            (re.compile(r'^\d+\)\s+([^\s]+):\s*(.*:\d+:\s*(.*))'),
              lambda line, match: self.state.failStartFailure(
                  line=line, testcase=match.group(1),
                  message=match.group(2),
@@ -273,17 +262,19 @@ def dependsOnTestfw(target, registry):
     if SCons.Util.is_List(target):
         target = target[0]
     plaintarget = registry.getPackagePlaintarget('testfw', 'testfw')
-    return 'testfw' in target.get_env(
-    )['LIBS'] or plaintarget.name in target.get_env()['LIBS']
+    return 'testfw' in target.get_env()[
+        'LIBS'] or plaintarget.name in target.get_env()['LIBS']
 
 
 def callPostTest(target, registry, packagename, targetname, logfile, **kw):
     if dependsOnTestfw(target, registry):
         parser = Parser()
         if os.path.isfile(logfile.get_abspath()):
-            with open(logfile.get_abspath()) as file:
-                result = parser.parse(file)
-                with open(logfile.dir.File(targetname + '.test.xml').get_abspath(), 'w') as xmlfile:
+            with open(logfile.get_abspath()) as f:
+                result = parser.parse(f)
+                with open(
+                        logfile.dir.File(targetname + '.test.xml').get_abspath(
+                        ), 'w') as xmlfile:
                     xmlfile.write(result.toXML(packagename + '.' + targetname))
 
 

@@ -38,6 +38,7 @@ def FileNodeComparer(left, right):
         return 1
     return cmp(nleft, nright)
 
+
 SomeUtils.FileNodeComparer = FileNodeComparer
 
 
@@ -72,6 +73,7 @@ def generate(env):
         except:
             pass
         return orig_smart_link(source, target, env, for_signature)
+
     env.Replace(SMARTLINK=smart_link)
 
     # ensure we have getBitwidth() available
@@ -91,11 +93,11 @@ def generate(env):
         # this lib is needed when using sun-CC or gcc on sunos systems
         env.AppendUnique(LIBS=['socket', 'resolv', 'posix4', 'aio'])
 
-    buildmode = SCons.Script.GetOption('buildcfg')
+    buildmode = env.getBuildCfg()
     if buildmode in ['debug', 'profile']:
-        env.AppendUnique(
-            SHLINKFLAGS=[
-                '-ggdb3' if str(platf) == 'sunos' else '-g'])
+        env.AppendUnique(SHLINKFLAGS=[
+            '-ggdb3' if str(platf) == 'sunos' else '-g'
+        ])
     if buildmode == 'debug':
         env.AppendUnique(LINKFLAGS=['-v'])
         env.AppendUnique(SHLINKFLAGS=['-v'])
@@ -108,10 +110,8 @@ def generate(env):
     elif buildmode == 'profile':
         env.AppendUnique(LINKFLAGS=['-pg'])
         env.AppendUnique(SHLINKFLAGS=['-pg'])
-    env.AddMethod(
-        lambda env: env.Replace(
-            _NONLAZYLINKFLAGS=''),
-        'allowUnresolvedLinkSymbols')
+    env.AddMethod(lambda env: env.Replace(_NONLAZYLINKFLAGS=''),
+                  'allowUnresolvedLinkSymbols')
 
 
 def exists(env):

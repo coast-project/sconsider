@@ -16,9 +16,8 @@ Provides logging initialization and a regular expression based filter.
 
 import os
 import logging
-import yaml
 import re
-
+import yaml
 """Work around missing dictConfig in python < 2.7
 http://www.calazan.com/how-to-configure-the-logging-module-using-dictionaries-in-python-2-6/
 """
@@ -26,17 +25,16 @@ try:
     from logging.config import dictConfig as from_dictConfig
     from logging import captureWarnings
 except:
-    from dictconfig import dictConfig as from_dictConfig
+    from SConsider.dictconfig import dictConfig as from_dictConfig
 
     def captureWarnings(arg):
         pass
 
 
-def setup_logging(
-        default_path='logging.yaml',
-        default_level=logging.WARNING,
-        env_key='LOG_CFG',
-        capture_warnings=True):
+def setup_logging(default_path='logging.yaml',
+                  default_level=logging.WARNING,
+                  env_key='LOG_CFG',
+                  capture_warnings=True):
     """Setup logging configuration
 
     Based on http://victorlin.me/posts/2012/08/good-logging-practice-in-python/
@@ -55,7 +53,6 @@ def setup_logging(
 
 
 class RegexFilter(logging.Filter):
-
     def __init__(self, pattern=None, flags=0):
         self.compiled = None
         if pattern:

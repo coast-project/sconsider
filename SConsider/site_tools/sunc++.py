@@ -37,12 +37,12 @@ def get_cppc(env):
         version = None
         path = None
         for package in ['SPROcpl']:
-            cmd = "%s -l %s 2>/dev/null | grep '^ *VERSION:'" % (
-                pkginfo, package)
+            cmd = "%s -l %s 2>/dev/null | grep '^ *VERSION:'" % (pkginfo,
+                                                                 package)
             line = os.popen(cmd).readline()
             if line:
                 version = line.split()[-1]
-                cmd = "%s -l %s 2>/dev/null | grep '^Pathname:.*/bin/CC$' | grep -v '/SC[0-9]*\.[0-9]*/'" % (
+                cmd = r"%s -l %s 2>/dev/null | grep '^Pathname:.*/bin/CC$' | grep -v '/SC[0-9]*\.[0-9]*/'" % (
                     pkgchk, package)
                 line = os.popen(cmd).readline()
                 if line:
@@ -95,7 +95,7 @@ def generate(env):
     if not SCons.Script.GetOption('no-largefilesupport'):
         env.AppendUnique(CPPDEFINES=['_LARGEFILE64_SOURCE'])
 
-    buildmode = SCons.Script.GetOption('buildcfg')
+    buildmode = env.getBuildCfg()
     if buildmode == 'debug':
         pass
     elif buildmode == 'optimized':
