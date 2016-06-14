@@ -206,27 +206,18 @@ def generate(env, **kw):
     for t in SCons.Tool.tool_list(platf_for_tool_list, env):
         SCons.Tool.Tool(t)(env)
 
-    logger.info(
-        'using CXX compiler and version: %s(%s)%s',
-        env['CXX'],
-        env.get(
-            'CXXVERSION',
-            'unknown'),
-        '(' + langfeature + ')' if langfeature else '')
-    logger.info(
-        'using CC compiler and version: %s(%s)',
-        env['CC'],
-        env.get(
-            'CCVERSION',
-            'unknown'))
+    logger.info('using CXX compiler and version: %s(%s)%s', env['CXX'],
+                env.get('CXXVERSION', 'unknown'), '(' + langfeature + ')'
+                if langfeature else '')
+    logger.info('using CC compiler and version: %s(%s)', env['CC'],
+                env.get('CCVERSION', 'unknown'))
 
     _osreldefines = ['OS_RELMAJOR', 'OS_RELMINOR', 'OS_RELMINSUB']
     for val, valname in zip(current_os_version, _osreldefines):
         env.AppendUnique(CCFLAGS=['-D' + valname + '=' + str(val)])
-    logger.debug("OS-Flags: {0}".format(', '.join(map(lambda x,
-                                                      y: str(y) + '=' + str(x),
-                                                      current_os_version,
-                                                      _osreldefines))))
+    logger.debug("OS-Flags: %s", ', '.join(
+        [str(i) + '=' + str(j)
+         for j, i in zip(current_os_version, _osreldefines)]))
     if str(platf) == 'sunos':
         env.AppendUnique(CCFLAGS=['-DOS_SYSV'])
         env.AppendUnique(CCFLAGS=['-DOS_SOLARIS'])

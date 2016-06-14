@@ -47,8 +47,9 @@ def collectPackages(directory, direxcludesrel=[]):
         dirobj = SCons.Script.Dir(root)
         fileobj = dirobj.File(filename)
         if 0:
-            logger.debug('found package [{0}]({1}) in [{2}]'.format(
-                match.group('packagename'), match.group('type'), fileobj.path))
+            logger.debug('found package [%s](%s) in [%s]',
+                         match.group('packagename'), match.group('type'),
+                         fileobj.path)
         packages.setdefault(
             match.group('packagename'), {})[match.group('type')] = fileobj
 
@@ -63,8 +64,8 @@ def collectPackages(directory, direxcludesrel=[]):
 
 def registerDist(registry, packagename, package, distType, distDir, duplicate):
     package_dir = package[distType].get_dir()
-    logger.debug('using package [{0}]({1}) in [{2}]'.format(
-        packagename, distType, package_dir))
+    logger.debug('using package [%s](%s) in [%s]', packagename, distType,
+                 package_dir)
     registry.setPackage(packagename, package[distType], package_dir, duplicate)
     package_dir.addRepository(distDir)
     thirdPartyPackages.setdefault(packagename, {})[distType] = distDir
@@ -78,9 +79,9 @@ def postPackageCollection(env, registry, **kw):
 
     for packagename, package in packages.iteritems():
         if registry.hasPackage(packagename):
-            logger.warning(
-                'package [{0}] already registered, skipping [{1}]'.format(
-                    packagename, package.items()[0][1].get_dir().get_abspath()))
+            logger.warning('package [%s] already registered, skipping [%s]',
+                           packagename,
+                           package.items()[0][1].get_dir().get_abspath())
             continue
         SCons.Script.AddOption(
             '--with-src-' + packagename,
@@ -108,8 +109,8 @@ def postPackageCollection(env, registry, **kw):
         if libpath:
             if 'src' not in package:
                 logger.error(
-                    'Third party source distribution definition for {0} not found, aborting!'.format(
-                        packagename))
+                    'Third party source distribution definition for %s not found, aborting!',
+                    packagename)
                 SCons.Script.Exit(1)
             registerDist(registry, packagename, package, 'src',
                          env.Dir(libpath), True)
@@ -118,16 +119,16 @@ def postPackageCollection(env, registry, **kw):
             if distpath:
                 if 'bin' not in package:
                     logger.error(
-                        'Third party binary distribution definition for {0} not found, aborting!'.format(
-                            packagename))
+                        'Third party binary distribution definition for %s not found, aborting!',
+                        packagename)
                     SCons.Script.Exit(1)
                 registerDist(registry, packagename, package, 'bin',
                              env.Dir(distpath), False)
             else:
                 if 'sys' not in package:
                     logger.error(
-                        'Third party system definition for {0} not found, aborting!'.format(
-                            packagename))
+                        'Third party system definition for %s not found, aborting!',
+                        packagename)
                     SCons.Script.Exit(1)
                 path = SCons.Script.GetOption('with-' + packagename)
                 if path:
@@ -145,8 +146,8 @@ def postPackageCollection(env, registry, **kw):
                         except TypeError:
                             pass
                     env.PrependENVPath('PATH', baseDir.Dir('bin').get_abspath())
-                logger.debug('using package [{0}]({1}) in [{2}]'.format(
-                    packagename, 'sys', package['sys'].get_dir()))
+                logger.debug('using package [%s](%s) in [%s]', packagename,
+                             'sys', package['sys'].get_dir())
                 registry.setPackage(packagename, package['sys'],
                                     package['sys'].get_dir(), False)
 

@@ -241,10 +241,12 @@ class TargetMaker:
                 'ignore-missing')) or SConsider.generateFulltargetname(
                     packagename,
                     targetname) in SCons.Script.BUILD_TARGETS or packagename in SCons.Script.BUILD_TARGETS
-            logger.warning('{0} (referenced by [{1}]){2}'.format(
-                ex, SConsider.generateFulltargetname(packagename, targetname),
-                ', ignoring as requested' if not raise_again else ''),
-                           exc_info=False)
+            logger.warning(
+                '%s (referenced by [%s])%s',
+                ex,
+                SConsider.generateFulltargetname(packagename, targetname),
+                ', ignoring as requested' if not raise_again else '',
+                exc_info=False)
             if raise_again:
                 raise PackageRequirementsNotFulfilled(
                     packagename, self.registry.getPackageFile(packagename),

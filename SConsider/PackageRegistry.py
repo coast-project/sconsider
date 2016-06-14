@@ -141,8 +141,9 @@ class PackageRegistry:
         def scanmatchfun(root, filename, match):
             rootDir = self.env.Dir(root)
             _filename = rootDir.File(filename)
-            logger.debug('found package [{0}] in [{1}]'.format(
-                match.group('packagename'), startDir.rel_path(_filename)))
+            logger.debug('found package [%s] in [%s]',
+                         match.group('packagename'),
+                         startDir.rel_path(_filename))
             self.setPackage(match.group('packagename'), _filename, rootDir)
 
         for scandir in scan_dirs:
@@ -393,6 +394,6 @@ class PackageRegistry:
                     "%s '%s' for target '%s' must be a string entry, not an alias node"
                     % (messagePrefix, str(target), fullTargetName))
             logger.error(
-                '{0} [{1}] for target [{2}] must be a string entry, not an alias node'.format(
-                    messagePrefix, str(target), fullTargetName))
+                '%s [%s] for target [%s] must be a string entry, not an alias node',
+                messagePrefix, str(target), fullTargetName)
         return target

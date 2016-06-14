@@ -130,10 +130,10 @@ def generate(env):
                 'Build aborted, {0} compiler detection failed!'.format(
                     compiler_subject))
         if pRet != 0:
-            logger.error(
-                formattedStdOutAndStdErr(
-                    pipe,
-                    prefix_text="compile command failed with return code {0}:".format(pRet)))
+            logger.error(formattedStdOutAndStdErr(
+                pipe,
+                prefix_text="compile command failed with return code {0}:".format(
+                    pRet)))
             raise SCons.Errors.UserError(
                 'Build aborted, {0} compiler detection failed!'.format(
                     compiler_subject))
