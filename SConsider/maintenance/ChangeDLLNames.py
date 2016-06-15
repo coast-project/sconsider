@@ -14,95 +14,93 @@ Usually it will be applied to Config.any and test configuration files using dyna
 # modify it under the terms of the license that is included with this
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
+# pylint: skip-file
 import os
 import re
 
 excludelist = [
-    'build',
-    'CVS',
-    'data',
-    'xml',
-    'doc',
-    'bin',
-    'lib',
-    '.git',
-    '.gitmodules']
+    'build', 'CVS', 'data', 'xml', 'doc', 'bin', 'lib', '.git', '.gitmodules'
+]
 list2 = []
 excludelist.extend(list2)
 print excludelist
-libdict = {'renderers': 'CoastRenderers',
-           'renderer': 'CoastRenderers',
-           'actions': 'CoastActions',
-           'stddataaccess': 'CoastStdDataAccess',
-           'security': 'CoastSecurity',
-           'SSL': 'CoastSSL',
-           'ITOSSL': 'CoastSSL',
-           'ldapdataaccess': 'CoastLDAPDataAccess',
-           'ldapdataaccess2': 'CoastLDAP',
-           'dataaccess': 'CoastDataAccess',
-           'perftest': 'CoastPerfTest',
-           'perftesttest': 'CoastPerfTestTest',
-           'applog': 'CoastAppLog',
-           'TKFFunctionalRenderers': 'CoastFunctionalRenderers',
-           'TKFFunctionalActions': 'CoastFunctionalActions',
-           'TKFHTMLRenderers': 'CoastHTMLRenderers',
-           'TKFStringRenderers': 'CoastStringRenderers',
-           'TKFAppAndUserRights': 'AppAndUserRights',
-           'TKSAppLog': 'TKSAppLog',
-           'EDICommon': 'EDICommon',
-           'Queueing': 'CoastQueueing',
-           'sybaseCT': 'CoastSybaseCT',
-           'radiusdataaccess': 'RadiusDataAccess',
-           'workerpoolmanagermodule': 'CoastWorkerPoolManager',
-           'fdcore': 'fdCore',
-           'dnscachemodule': 'DNSCacheModule',
-           'rsamodule': 'RSAModule',
-           'dataserver': 'HIKUDataServer',
-           'DataServer': 'HIKUDataServer',
-           'HIKUDataServer': 'KFF_DataServer',
-           'DataServerPerfTest': 'HIKUDataServerPerfTest',
-           'HIKUDataServerPerfTest': 'KFF_DataServerPerfTest',
-           'calcserver': 'HIKUCalcServer',
-           'CalcServer': 'HIKUCalcServer',
-           'HIKUCalcServer': 'KFF_CalcServer',
-           'HPSComm': 'HIKUHPSComm',
-           'HIKUHPSComm': 'KFF_HPSMessage',
-           'HPSPerfTest': 'HIKUHPSCommPerfTest',
-           'HIKUHPSCommPerfTest': 'KFF_HPSMessagePerfTest',
-           'SystemFunctions': 'CoastSystemFunctions',
-           'wdbase': 'CoastWDBase',
-           'mtfoundation': 'CoastMTFoundation',
-           'regex': 'CoastRegex',
-           'foundation': 'CoastFoundation',
-           'testbases': 'testfwWDBase',
-           'EBCDIC': 'CoastEBCDIC',
-           'TestLib': 'CoastWDBaseTestTestLib',
-           'compress': 'CoastCompress',
-           'MySQL': 'CoastMySQL',
-           'SynMySQL': 'CoastMySQL',
-           'NTLMAuth': 'CoastNTLMAuth',
-           'accesscontrol': 'CoastAccessControl',
-           'cachehandler': 'CoastCacheHandler',
-           'HTTP': 'CoastHTTP',
-           'ldapdaicachehdlr': 'CoastLDAPDAICacheHandler',
-           'cachehdlr': 'CoastCacheHandler',
-           'CoastOracle': 'CoastOracle',
-           'HIKU_common': 'HIKUCommon',
-           'HIKU_ChunkHandling': 'HIKUChunkHandling',
-           'BPL': 'HIKUBPL',
-           'DCD': 'HIKUDCD',
-           'HIKU': 'HIKUPflegeSystem',
-           'PoolFiller': 'HIKUPoolFiller',
-           'momsmsg': 'MomsMsg',
-           'deliverer': 'HIKUDeliverer',
-           'dsverifier': 'HIKUDSVerifier',
-           'helloworld': 'Helloworld',
-           'loki': 'lokiObjects',
-           'Topic': 'HIKUTopic',
-           #           '':'',
-           #           '':'',
-           #           '':'',
-           }
+libdict = {
+    'renderers': 'CoastRenderers',
+    'renderer': 'CoastRenderers',
+    'actions': 'CoastActions',
+    'stddataaccess': 'CoastStdDataAccess',
+    'security': 'CoastSecurity',
+    'SSL':
+    'CoastSSL',
+    'ITOSSL': 'CoastSSL',
+    'ldapdataaccess': 'CoastLDAPDataAccess',
+    'ldapdataaccess2': 'CoastLDAP',
+    'dataaccess': 'CoastDataAccess',
+    'perftest': 'CoastPerfTest',
+    'perftesttest': 'CoastPerfTestTest',
+    'applog': 'CoastAppLog',
+    'TKFFunctionalRenderers': 'CoastFunctionalRenderers',
+    'TKFFunctionalActions': 'CoastFunctionalActions',
+    'TKFHTMLRenderers': 'CoastHTMLRenderers',
+    'TKFStringRenderers': 'CoastStringRenderers',
+    'TKFAppAndUserRights': 'AppAndUserRights',
+    'TKSAppLog': 'TKSAppLog',
+    'EDICommon': 'EDICommon',
+    'Queueing': 'CoastQueueing',
+    'sybaseCT': 'CoastSybaseCT',
+    'radiusdataaccess': 'RadiusDataAccess',
+    'workerpoolmanagermodule': 'CoastWorkerPoolManager',
+    'fdcore': 'fdCore',
+    'dnscachemodule': 'DNSCacheModule',
+    'rsamodule': 'RSAModule',
+    'dataserver': 'HIKUDataServer',
+    'DataServer': 'HIKUDataServer',
+    'HIKUDataServer': 'KFF_DataServer',
+    'DataServerPerfTest': 'HIKUDataServerPerfTest',
+    'HIKUDataServerPerfTest': 'KFF_DataServerPerfTest',
+    'calcserver': 'HIKUCalcServer',
+    'CalcServer': 'HIKUCalcServer',
+    'HIKUCalcServer': 'KFF_CalcServer',
+    'HPSComm': 'HIKUHPSComm',
+    'HIKUHPSComm': 'KFF_HPSMessage',
+    'HPSPerfTest': 'HIKUHPSCommPerfTest',
+    'HIKUHPSCommPerfTest': 'KFF_HPSMessagePerfTest',
+    'SystemFunctions': 'CoastSystemFunctions',
+    'wdbase': 'CoastWDBase',
+    'mtfoundation': 'CoastMTFoundation',
+    'regex': 'CoastRegex',
+    'foundation': 'CoastFoundation',
+    'testbases': 'testfwWDBase',
+    'EBCDIC': 'CoastEBCDIC',
+    'TestLib': 'CoastWDBaseTestTestLib',
+    'compress': 'CoastCompress',
+    'MySQL': 'CoastMySQL',
+    'SynMySQL': 'CoastMySQL',
+    'NTLMAuth': 'CoastNTLMAuth',
+    'accesscontrol': 'CoastAccessControl',
+    'cachehandler': 'CoastCacheHandler',
+    'HTTP': 'CoastHTTP',
+    'ldapdaicachehdlr': 'CoastLDAPDAICacheHandler',
+    'cachehdlr': 'CoastCacheHandler',
+    'CoastOracle': 'CoastOracle',
+    'HIKU_common': 'HIKUCommon',
+    'HIKU_ChunkHandling': 'HIKUChunkHandling',
+    'BPL':
+    'HIKUBPL',
+    'DCD':
+    'HIKUDCD',
+    'HIKU': 'HIKUPflegeSystem',
+    'PoolFiller': 'HIKUPoolFiller',
+    'momsmsg': 'MomsMsg',
+    'deliverer': 'HIKUDeliverer',
+    'dsverifier': 'HIKUDSVerifier',
+    'helloworld': 'Helloworld',
+    'loki': 'lokiObjects',
+    'Topic': 'HIKUTopic',
+    #           '':'',
+    #           '':'',
+    #           '':'',
+}
 for dirpath, dirnames, filenames in os.walk('.'):
     dirnames[:] = [d for d in dirnames if d not in excludelist]
     reDLL = re.compile(r"^[\s]*/DLL\s*{([^}]+)}[\s]*$", re.M)
@@ -122,7 +120,9 @@ for dirpath, dirnames, filenames in os.walk('.'):
                         outstr = mo.string[:mo.start(1)]
                         strGroup = mo.group(1)
                         strout = ''
-                        for it in re.finditer(r"^([^#\S]+)(\"?(lib)?(\w+)(\.so)?\"?)([\s]*)$", strGroup, re.M):
+                        for it in re.finditer(
+                                r"^([^#\S]+)(\"?(lib)?(\w+)(\.so)?\"?)([\s]*)$",
+                                strGroup, re.M):
                             if len(strout):
                                 strout += '\n'
                             g = it.groups()
@@ -138,9 +138,8 @@ for dirpath, dirnames, filenames in os.walk('.'):
                                 print lname, "MISSING"
                                 strout += it.string[it.start(0):it.end(0)]
                         if len(strout):
-                            if outstr[
-                                    len(outstr) -
-                                    1] != '\n' and strout[0] != '\n':
+                            if outstr[len(outstr) - 1] != '\n' and strout[
+                                    0] != '\n':
                                 outstr += '\n'
                             outstr += strout
                         else:

@@ -21,7 +21,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     env = SConsider.cloneBaseEnv()
     conf = Configure(env)
     if conf.CheckCHeader('cmqc.h') and conf.CheckMultipleLibs(
-            ['mqic', 'mqiz', 'mqmcs']):
+        ['mqic', 'mqiz', 'mqmcs']):
         conf.env.Append(CPPDEFINES='HAS_MQM')
     env = conf.Finish()
 

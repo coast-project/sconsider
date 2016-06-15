@@ -13,6 +13,7 @@ Simple helper tool to search/replace old-style c++ file contents in WebDisplay2 
 # modify it under the terms of the license that is included with this
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
+# pylint: skip-file
 import os
 import re
 import time
@@ -41,7 +42,7 @@ reHtml = re.compile(r'\.html?$')
 # within .h
 """#define ATTFlowController_H_ID "itopia, ($Id$)" """
 strReHidOnly = r"define\s+\w+_H_ID"
-strReHID = re.compile(r"(^\s*#[ \t]*" + strReHidOnly + ".*\s*$\s+)", re.M)
+strReHID = re.compile(r"(^\s*#[ \t]*" + strReHidOnly + r".*\s*$\s+)", re.M)
 hidReplace = (strReHID, "\n")
 
 # within .cpp
@@ -72,11 +73,11 @@ USE1(static_c_rcs_id)
 strReStaticRcsId = r"[ \t]*static[ \t]+char[ \t]+.*rcs_id"
 strReIdentOld = re.compile(
     r"((^(\s*#if.*$\s+))((^([ \t]*#[ \t]*(pragma\s+(nomargins|implementation|interface)|define\s+(USE|\w+_H_ID)|undef\s+USE|ident)|[ \t]*#[ \t]*e(?!ndif)\w*|[ \t]*USE|"
-    + strReStaticRcsId + ").*$\s+)+)([ \t]*#endif\s*$\s+))", re.M)
+    + strReStaticRcsId + r").*$\s+)+)([ \t]*#endif\s*$\s+))", re.M)
 identoldReplace = (strReIdentOld, "\n")
 
 strReRCSId = re.compile(
-    r"(^([ \t]*/\*\s*RCS\s*Id\s*\*/\s*$\s)|(" + strReStaticRcsId + ".*$\s))",
+    r"(^([ \t]*/\*\s*RCS\s*Id\s*\*/\s*$\s)|(" + strReStaticRcsId + r".*$\s))",
     re.M)
 rcsidReplace = (strReRCSId, "")
 """#ifdef __370__
@@ -340,7 +341,7 @@ def correctQuote(mo):
     return mo.group(1) + multiple_replace(cleanQuotedSpaces, mo.group(2))
 
 
-quoteCorrect = (re.compile("(_QUOTE_\s*\()([^)]+)", re.M), correctQuote)
+quoteCorrect = (re.compile(r"(_QUOTE_\s*\()([^)]+)", re.M), correctQuote)
 
 fgExcludeDirs = excludelist
 fgExcludeDirs.extend(['3rdparty', 'site_scons', 'scripts', 'helloworld',

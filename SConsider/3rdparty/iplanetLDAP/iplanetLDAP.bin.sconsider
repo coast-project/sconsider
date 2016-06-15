@@ -21,7 +21,8 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     buildSettings = {
         packagename: {
             'linkDependencies': [
-                packagename + '.ldap50'],
+                packagename + '.ldap50'
+            ],
             'targetType': 'IncludeOnly',
             'public': {
                 'includeSubdir': 'include',
@@ -29,7 +30,8 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
         },
         'ldap50': {
             'sourceFiles': [
-                ThirdParty.getBinaryDistDir(packagename).File('ldap50')],
+                ThirdParty.getBinaryDistDir(packagename).File('ldap50')
+            ],
             'targetType': 'PrecompiledLibrary',
         },
     }

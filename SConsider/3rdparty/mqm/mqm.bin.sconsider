@@ -31,15 +31,18 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             },
         },
         'mqic': {
-            'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('mqic')],
+            'sourceFiles':
+            [ThirdParty.getBinaryDistDir(packagename).File('mqic')],
             'targetType': 'PrecompiledLibrary',
         },
         'mqiz': {
-            'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('mqiz')],
+            'sourceFiles':
+            [ThirdParty.getBinaryDistDir(packagename).File('mqiz')],
             'targetType': 'PrecompiledLibrary',
         },
         'mqmcs': {
-            'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('mqmcs')],
+            'sourceFiles':
+            [ThirdParty.getBinaryDistDir(packagename).File('mqmcs')],
             'targetType': 'PrecompiledLibrary',
         },
     }

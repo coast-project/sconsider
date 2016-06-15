@@ -20,10 +20,8 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     from ConfigureHelper import Configure
     env = SConsider.cloneBaseEnv()
     conf = Configure(env)
-    if conf.CheckLibWithHeader(
-            'ssl',
-            'openssl/ssl.h',
-            'C') and conf.CheckLib('crypto'):
+    if conf.CheckLibWithHeader('ssl', 'openssl/ssl.h',
+                               'C') and conf.CheckLib('crypto'):
         conf.env.Append(CPPDEFINES='HAS_OPENSSL')
     opensslbin = conf.CheckExecutable('openssl')
     env = conf.Finish()

@@ -26,7 +26,6 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
 
     buildSettings = {}
     if 'HAS_CUTE' in env['CPPDEFINES']:
-        buildSettings['include'] = {
-        }
+        buildSettings['include'] = {}
 
     SConsider.createTargets(packagename, buildSettings)

@@ -26,8 +26,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
 
     buildSettings = {}
     if 'HAS_LOKI' in env['CPPDEFINES']:
-        buildSettings['include'] = {
-        }
+        buildSettings['include'] = {}
         buildSettings['lokiObjects'] = {
             'public': {
                 'appendUnique': {
