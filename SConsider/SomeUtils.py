@@ -325,7 +325,10 @@ def getNodeDependencies(target, filters=None):
         filters = [filters]
 
     deps = set()
-    for t in target.sources + target.depends + target.prerequisites:
+    prerequisites = target.prerequisites
+    if prerequisites is None:
+        prerequisites = []
+    for t in target.sources + target.depends + prerequisites:
         if allFuncs(filters, t):
             deps.update(t.get_executor().get_all_targets())
         deps.update(getNodeDependencies(t, filters))

@@ -54,9 +54,10 @@ logger = getLogger(__name__)
 # add callback feature early as it might be used from tools
 addCallbackFeature(__name__)
 
-SCons.Script.EnsureSConsVersion(1, 3, 0)
+SCons.Script.EnsureSConsVersion(2, 3, 0)
 SCons.Script.EnsurePythonVersion(2, 6)
 
+logger.info("SCons version %s", SCons.__version__)
 _project_name = 'SConsider'
 _project_version = __version__
 try:
