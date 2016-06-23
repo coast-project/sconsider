@@ -95,9 +95,9 @@ def generate(env):
                 "failed to create compiler input file, check folder permissions and retry",
                 exc_info=True)
             return
-        pipe = SCons.Action._subproc(env,
-                                     [compiler_subject, '-v', '-xc++', tFile,
-                                      '-o', outFile, '-m' + bitwidth],
+        pipe = SCons.Action._subproc(env, [compiler_subject, '-v', '-xc++',
+                                           tFile, '-o', outFile,
+                                           '-m' + bitwidth],
                                      stdin='devnull',
                                      stderr=subprocess.PIPE,
                                      stdout=subprocess.PIPE)

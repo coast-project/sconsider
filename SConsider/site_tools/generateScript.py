@@ -295,10 +295,11 @@ def generatePosixScript(target, source, env):
 def generateScriptEmitter(target, source, env):
     target = []
     for src in source:
-        script_name = os.path.basename(src.get_abspath()) + '.sh'
+        script_name = src.name + '.sh'
         if script_name.startswith('bin_'):
             script_name = script_name.partition('_')[2]
-        target.append(env.getScriptInstallDir().File(script_name))
+        target_basepath = env.getScriptInstallDir().File(script_name).path
+        target.append(src.builder.target_factory(target_basepath))
     return (target, source)
 
 

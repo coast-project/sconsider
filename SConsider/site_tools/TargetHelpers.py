@@ -46,7 +46,8 @@ def usedOrProgramTarget(env, name, sources, buildSettings):
 def setupTargetDirAndWrapperScripts(env, name, packagename, plaintarget,
                                     basetargetdir):
     env.setRelativeTargetDirectory(os.path.join(basetargetdir, packagename))
-    instApps = env.InstallAs(env.getBinaryInstallDir().File(name), plaintarget)
+    instApps = env.InstallAs(env.getBinaryInstallDir().File(name).path,
+                             plaintarget)
     if 'generateScript' not in env['TOOLS']:
         env.Tool('generateScript')
     wrappers = env.GenerateWrapperScript(instApps)
@@ -80,7 +81,7 @@ def sharedLibrary(env, name, sources, packagename, targetname, buildSettings,
             libBuilder = env.StaticLibrary
 
     plaintarget = libBuilder(name, sources)
-    instTarg = env.Install(env.getLibraryInstallDir(), plaintarget)
+    instTarg = env.Install(env.getLibraryInstallDir().path, plaintarget)
     env.Requires(instTarg[0], instTarg[1:])
 
     compLibs = env.InstallSystemLibs(plaintarget)
@@ -95,7 +96,7 @@ def staticLibrary(env, name, sources, packagename, targetname, buildSettings,
     env['_NONLAZYLINKFLAGS'] = ''
 
     plaintarget = env.StaticLibrary(name, sources)
-    instTarg = env.Install(env.getLibraryInstallDir(), plaintarget)
+    instTarg = env.Install(env.getLibraryInstallDir().path, plaintarget)
     env.Requires(instTarg[0], instTarg[1:])
 
     compLibs = env.InstallSystemLibs(plaintarget)
@@ -124,7 +125,7 @@ def installPrecompiledLibrary(env, name, sources, packagename, targetname,
 def installBinary(env, name, sources, packagename, targetname, buildSettings,
                   **kw):
     env.setRelativeTargetDirectory(os.path.join('globals', packagename))
-    instTarg = env.Install(env.getBinaryInstallDir(), sources)
+    instTarg = env.Install(env.getBinaryInstallDir().path, sources)
     env.Requires(instTarg[0], instTarg[1:])
 
     return (instTarg, instTarg)

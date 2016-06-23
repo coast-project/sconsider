@@ -122,7 +122,7 @@ def copyFileNodes(env,
                 filename,
                 SUBST_DICT=replaceDict)
         else:
-            instTarg = env.Install(destDir.Dir(installRelPath), filename)
+            instTarg = env.Install(destDir.Dir(installRelPath).path, filename)
 
         if mode:
             env.AddPostAction(instTarg, SCons.Defaults.Chmod(
