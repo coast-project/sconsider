@@ -5,3 +5,6 @@ nosetests.xml
 SConsider.egg-info/
 build/
 dist/
+*.log
+.venv*/
+.tox/

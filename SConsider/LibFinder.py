@@ -20,7 +20,7 @@ import subprocess
 import functools
 import itertools
 import operator
-import SomeUtils
+from SomeUtils import getFlatENV
 
 
 def uniquelist(iterable):
@@ -78,7 +78,7 @@ class UnixFinder(LibFinder):
             ['ldd', os.path.basename(source[0].get_abspath())],
             stdout=subprocess.PIPE,
             cwd=os.path.dirname(source[0].get_abspath()),
-            env=SomeUtils.getFlatENV(env))
+            env=getFlatENV(env))
         out, _ = ldd.communicate()
         libs = [j
                 for j in re.findall(r'^.*=>\s*(not found|[^\s^\(]+)', out,
@@ -101,7 +101,7 @@ class UnixFinder(LibFinder):
         ] + env.subst('$LINKFLAGS').split(' ')
         linker = subprocess.Popen(cmdargs,
                                   stdout=subprocess.PIPE,
-                                  env=SomeUtils.getFlatENV(env))
+                                  env=getFlatENV(env))
         out, _ = linker.communicate()
         match = re.search('^libraries.*=(.*)$', out, re.MULTILINE)
         if match:
@@ -134,7 +134,7 @@ class MacFinder(LibFinder):
             ['otool', '-L', os.path.basename(source[0].get_abspath())],
             stdout=subprocess.PIPE,
             cwd=os.path.dirname(source[0].get_abspath()),
-            env=SomeUtils.getFlatENV(env))
+            env=getFlatENV(env))
         out, _ = ldd.communicate()
         libs = [j
                 for j in re.findall(r'^.*=>\s*(not found|[^\s^\(]+)', out,
@@ -155,7 +155,7 @@ class MacFinder(LibFinder):
         ] + env.subst('$LINKFLAGS').split(' ')
         linker = subprocess.Popen(cmdargs,
                                   stdout=subprocess.PIPE,
-                                  env=SomeUtils.getFlatENV(env))
+                                  env=getFlatENV(env))
         out, _ = linker.communicate()
         match = re.search('^libraries.*=(.*)$', out, re.MULTILINE)
         if match:
@@ -185,7 +185,7 @@ class Win32Finder(LibFinder):
             ['objdump', '-p', os.path.basename(source[0].get_abspath())],
             stdout=subprocess.PIPE,
             cwd=os.path.dirname(source[0].get_abspath()),
-            env=SomeUtils.getFlatENV(env))
+            env=getFlatENV(env))
         out, _ = ldd.communicate()
         deplibs = re.findall(r'DLL Name:\s*(\S*)', out, re.MULTILINE)
         if not libdirs:

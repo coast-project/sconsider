@@ -31,7 +31,7 @@ from SCons.Script import AddOption, GetOption
 from SConsider.PackageRegistry import PackageRegistry
 import Callback
 from SConsider.SomeUtils import hasPathPart, isFileNode, isDerivedNode,\
-    getNodeDependencies, getFlatENV
+    getNodeDependencies
 from logging import getLogger
 logger = getLogger(__name__)
 
@@ -123,6 +123,7 @@ def emitPassedFile(target, source, env):
 
 def execute(command, env):
     import shlex
+    from SConsider.SomeUtils import getFlatENV
     args = [command]
     args.extend(shlex.split(
         env.get('runParams', ''),
