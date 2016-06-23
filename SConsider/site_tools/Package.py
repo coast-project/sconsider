@@ -17,10 +17,15 @@ sources
 
 import re
 import os
+import threading
 import functools
 import SomeUtils
 from logging import getLogger
 logger = getLogger(__name__)
+
+# needs locking because it is manipulated during multi-threaded build phase
+packageTargets = {}
+packageTargetsRLock = threading.RLock()
 
 packageAliasName = 'makepackage'
 
@@ -84,17 +89,51 @@ def copyPackage(name, deps, env, destdir, filters=None):
                                               filters), target)
 
 
+def install_or_link_node(env, destdir, node):
+    def install_node_to_destdir(targets_list, node, destdir):
+        from stat import S_IRUSR, S_IRGRP, S_IROTH, S_IXUSR
+        from SCons.Defaults import Chmod
+        # ensure executable flag on installed shared libs
+        mode = S_IRUSR | S_IRGRP | S_IROTH | S_IXUSR
+        node_name = node.name
+        if node_name in targets_list:
+            return targets_list[node_name]
+        target = env.Install(destdir.path, node)
+        env.AddPostAction(target, Chmod(str(target[0]), mode))
+        targets_list[node_name] = target
+        return target
+
+    # build phase could be multi-threaded
+    with packageTargetsRLock:
+        # take care of already created targets otherwise we would have
+        # multiple ways to build the same target
+        global packageTargets
+        node_name = node.name
+        if node_name in packageTargets:
+            target = packageTargets[node_name]
+        else:
+            install_node = node
+            is_link = node.islink()
+            if is_link:
+                install_node = node.sources[0]
+            target = install_node_to_destdir(packageTargets, install_node,
+                                             destdir)
+            if is_link:
+                target = env.Symlink(target[0].get_dir().File(node_name),
+                                     target)
+
+                packageTargets[node_name] = target
+
+    return target
+
+
 def copyTarget(env, destdir, node):
     old = env.Alias(destdir.File(node.name))
     if old and old[0].sources:
         if isInstalledNode(node, old[0].sources[0]) or isInstalledNode(
                 old[0].sources[0], node):
             return None
-        else:
-            logger.error(
-                "Ambiguous target [%s] copied from [%s] and [%s].\nCan't create package! See errors below...",
-                old[0].path, node.path, old[0].sources[0].path)
-    target = env.Install(destdir, node)
+    target = install_or_link_node(env, destdir, node)
     env.Alias(packageAliasName, target)
     return target
 
