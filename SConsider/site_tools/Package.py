@@ -204,7 +204,9 @@ def getTargetDependencies(target, filters=None):
 
     deps = set()
     if SomeUtils.allFuncs(filters, target):
-        deps.update(target.get_executor().get_all_targets())
+        executor = target.get_executor()
+        if executor is not None:
+            deps.update(executor.get_all_targets())
     deps.update(SomeUtils.getNodeDependencies(target, filters))
 
     return deps
