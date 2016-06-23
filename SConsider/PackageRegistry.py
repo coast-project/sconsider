@@ -24,6 +24,7 @@ logger = getLogger(__name__)
 
 class TargetNotFound(Exception):
     def __init__(self, name):
+        Exception.__init__(self, name)
         self.name = name
         self.lookupStack = []
 
@@ -44,6 +45,7 @@ class PackageNotFound(TargetNotFound):
 
 class PackageRequirementsNotFulfilled(Exception):
     def __init__(self, package, packagefile, message):
+        Exception.__init__(self, package, packagefile, message)
         self.package = package
         self.packagefile = packagefile
         self.message = message
@@ -54,6 +56,15 @@ class PackageRequirementsNotFulfilled(Exception):
                    self.package,
                    self.packagefile if self.packagefile else '???',
                    self.message)
+
+
+class TargetIsAliasException(Exception):
+    def __init__(self, target_name):
+        Exception.__init__(self, target_name)
+        self.name = target_name
+
+    def __str__(self):
+        return 'Target {0} is an Alias node'.format(self.name)
 
 
 class PackageRegistry(object):
@@ -364,40 +375,26 @@ class PackageRegistry(object):
             raise PackageNotFound(packagename)
         return self.lookup(packagename)
 
-    def getRealTarget(self,
-                      target,
-                      doThrow=False,
-                      messagePrefix='',
-                      fullTargetName=''):
+    def getRealTarget(self, target, resolve_alias=False):
         from SCons.Util import is_Tuple, is_List, is_String
-        from SCons.Errors import UserError
         from SCons.Node.Alias import Alias
         if (is_Tuple(target) and target[0] is None) or (is_List(target)
                                                         and not len(target)):
-            if doThrow:
-                raise TargetNotFound(target[1] if len(target) == 2 else
-                                     '<unknown target>')
             return None
-        target_name = None
         if is_List(target) and is_Tuple(target[0]):
             target = target[0]
         if is_Tuple(target):
-            target_name = target[1]
             target = target[0]
-            if not is_String(target_name) and doThrow:
-                raise UserError(
-                    "%s '%s' for target '%s' is not a valid string entry" %
-                    (messagePrefix, target_name, fullTargetName))
         if is_List(target) and len(target) <= 1:
             target = target[0]
         if is_String(target):
             target = self.lookup(target)
         if isinstance(target, Alias):
-            if doThrow:
-                raise UserError(
-                    "%s '%s' for target '%s' must be a string entry, not an alias node"
-                    % (messagePrefix, str(target), fullTargetName))
-            logger.error(
-                '%s [%s] for target [%s] must be a string entry, not an alias node',
-                messagePrefix, str(target), fullTargetName)
+            if resolve_alias:
+                logger.info("Resolving real target for Alias (%s)", str(target))
+                logger.info("Alias target has %d source nodes",
+                            len(target.sources))
+                if len(target.sources) == 1:
+                    return self.getRealTarget(target.sources[0], resolve_alias)
+            raise TargetIsAliasException(str(target))
         return target
