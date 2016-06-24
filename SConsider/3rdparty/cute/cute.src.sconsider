@@ -11,12 +11,13 @@
 
 import pkg_resources
 pkg_resources.require(["SConsider"])
-import SConsider
-
 Import('*')
 
 _sconsider_dist = pkg_resources.get_distribution("SConsider").parsed_version
 if _sconsider_dist < pkg_resources.parse_version("0.5"):
+    from SConsider import createTargets
+    from SConsider.PackageRegistry import PackageRegistry
+    from SomeUtils import listFiles
     buildSettings = {
         'include': {
             'public': {
@@ -26,12 +27,12 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
         'tests': {
             'targetType': 'ProgramTest',
             'linkDependencies': [
-                SConsider.generateFulltargetname(packagename, 'include'),
-                SConsider.generateFulltargetname('boost', 'include'),
+                PackageRegistry.generateFulltargetname(packagename, 'include'),
+                PackageRegistry.generateFulltargetname('boost', 'include'),
             ],
             'includeSubdir': 'cute_tests',
-            'sourceFiles': SConsider.listFiles(['cute_tests/*.cpp']),
+            'sourceFiles': listFiles(['cute_tests/*.cpp']),
         },
     }
 
-    SConsider.createTargets(packagename, buildSettings)
+    createTargets(packagename, buildSettings)

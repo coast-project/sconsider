@@ -11,13 +11,12 @@
 
 import pkg_resources
 pkg_resources.require(["SConsider"])
-import SConsider
-
 Import('*')
 
 _sconsider_dist = pkg_resources.get_distribution("SConsider").parsed_version
 if _sconsider_dist < pkg_resources.parse_version("0.5"):
-    import ThirdParty
+    from SConsider import createTargets
+    from ThirdParty import getBinaryDistDir
     buildSettings = {
         packagename: {
             'linkDependencies': [
@@ -30,15 +29,15 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             },
         },
         'ssl': {
-            'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('ssl')],
+            'sourceFiles': [getBinaryDistDir(packagename).File('ssl')],
             'targetType': 'PrecompiledLibrary',
         },
         'crypto': {
-            'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('crypto')],
+            'sourceFiles': [getBinaryDistDir(packagename).File('crypto')],
             'targetType': 'PrecompiledLibrary',
         },
         'opensslbin': {
-            'sourceFiles': [ThirdParty.getBinaryDistDir(packagename).File('openssl')],
+            'sourceFiles': [getBinaryDistDir(packagename).File('openssl')],
             'targetType': 'PrecompiledBinary',
         },
         'openSSL': {
@@ -63,4 +62,4 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
         },
     }
 
-    SConsider.createTargets(packagename, buildSettings)
+    createTargets(packagename, buildSettings)

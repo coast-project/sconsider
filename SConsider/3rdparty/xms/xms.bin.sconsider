@@ -11,13 +11,12 @@
 
 import pkg_resources
 pkg_resources.require(["SConsider"])
-import SConsider
-
 Import('*')
 
 _sconsider_dist = pkg_resources.get_distribution("SConsider").parsed_version
 if _sconsider_dist < pkg_resources.parse_version("0.5"):
-    import ThirdParty
+    from SConsider import createTargets
+    from ThirdParty import getBinaryDistDir
     buildSettings = {
         packagename: {
             'linkDependencies': [
@@ -39,54 +38,54 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
         },
         'gxi': {
             'sourceFiles':
-            [ThirdParty.getBinaryDistDir(packagename).File('gxi')],
+            [getBinaryDistDir(packagename).File('gxi')],
             'targetType': 'PrecompiledLibrary',
         },
         'gxibasicmatch': {
             'sourceFiles':
-            [ThirdParty.getBinaryDistDir(packagename).File('gxibasicmatch')],
+            [getBinaryDistDir(packagename).File('gxibasicmatch')],
             'targetType': 'PrecompiledLibrary',
         },
         'gxical': {
             'sourceFiles':
-            [ThirdParty.getBinaryDistDir(packagename).File('gxical')],
+            [getBinaryDistDir(packagename).File('gxical')],
             'targetType': 'PrecompiledLibrary',
         },
         'gxiosa': {
             'sourceFiles':
-            [ThirdParty.getBinaryDistDir(packagename).File('gxiosa')],
+            [getBinaryDistDir(packagename).File('gxiosa')],
             'targetType': 'PrecompiledLibrary',
         },
         'gxiplugin': {
             'sourceFiles':
-            [ThirdParty.getBinaryDistDir(packagename).File('gxiplugin')],
+            [getBinaryDistDir(packagename).File('gxiplugin')],
             'targetType': 'PrecompiledLibrary',
         },
         'gxiwmqprot': {
             'sourceFiles':
-            [ThirdParty.getBinaryDistDir(packagename).File('gxiwmqprot')],
+            [getBinaryDistDir(packagename).File('gxiwmqprot')],
             'targetType': 'PrecompiledLibrary',
         },
         'gxiwmqmsg': {
             'sourceFiles':
-            [ThirdParty.getBinaryDistDir(packagename).File('gxiwmqmsg')],
+            [getBinaryDistDir(packagename).File('gxiwmqmsg')],
             'targetType': 'PrecompiledLibrary',
         },
         'gxixil': {
             'sourceFiles':
-            [ThirdParty.getBinaryDistDir(packagename).File('gxixil')],
+            [getBinaryDistDir(packagename).File('gxixil')],
             'targetType': 'PrecompiledLibrary',
         },
         'icudata': {
             'sourceFiles':
-            [ThirdParty.getBinaryDistDir(packagename).File('icudata')],
+            [getBinaryDistDir(packagename).File('icudata')],
             'targetType': 'PrecompiledLibrary',
         },
         'icuuc': {
             'sourceFiles':
-            [ThirdParty.getBinaryDistDir(packagename).File('icuuc')],
+            [getBinaryDistDir(packagename).File('icuuc')],
             'targetType': 'PrecompiledLibrary',
         },
     }
 
-    SConsider.createTargets(packagename, buildSettings)
+    createTargets(packagename, buildSettings)

@@ -11,14 +11,13 @@
 
 import pkg_resources
 pkg_resources.require(["SConsider"])
-import SConsider
-
 Import('*')
 
 _sconsider_dist = pkg_resources.get_distribution("SConsider").parsed_version
 if _sconsider_dist < pkg_resources.parse_version("0.5"):
     from ConfigureHelper import Configure
-    env = SConsider.cloneBaseEnv()
+    from SConsider import createTargets, cloneBaseEnv
+    env = cloneBaseEnv()
     conf = Configure(env)
     if conf.CheckLibWithHeader('aceclnt', 'acclnt.h', 'C'):
         conf.env.Append(CPPDEFINES='HAS_RSA')
@@ -39,4 +38,4 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             },
         }
 
-    SConsider.createTargets(packagename, buildSettings)
+    createTargets(packagename, buildSettings)

@@ -11,13 +11,12 @@
 
 import pkg_resources
 pkg_resources.require(["SConsider"])
-import SConsider
-
 Import('*')
 
 _sconsider_dist = pkg_resources.get_distribution("SConsider").parsed_version
 if _sconsider_dist < pkg_resources.parse_version("0.5"):
-    import ThirdParty
+    from SConsider import createTargets
+    from ThirdParty import getBinaryDistDir
     buildSettings = {
         packagename: {
             'linkDependencies': [
@@ -32,19 +31,19 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
         },
         'mqic': {
             'sourceFiles':
-            [ThirdParty.getBinaryDistDir(packagename).File('mqic')],
+            [getBinaryDistDir(packagename).File('mqic')],
             'targetType': 'PrecompiledLibrary',
         },
         'mqiz': {
             'sourceFiles':
-            [ThirdParty.getBinaryDistDir(packagename).File('mqiz')],
+            [getBinaryDistDir(packagename).File('mqiz')],
             'targetType': 'PrecompiledLibrary',
         },
         'mqmcs': {
             'sourceFiles':
-            [ThirdParty.getBinaryDistDir(packagename).File('mqmcs')],
+            [getBinaryDistDir(packagename).File('mqmcs')],
             'targetType': 'PrecompiledLibrary',
         },
     }
 
-    SConsider.createTargets(packagename, buildSettings)
+    createTargets(packagename, buildSettings)
