@@ -81,7 +81,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
         'isql': {
             'sourceFiles': [getBinaryDistDir(packagename).File('isql')],
             'requires': [
-                PackageRegistry.generateFulltargetname(packagename, 'config'),
+                PackageRegistry.createFulltargetname(packagename, 'config'),
             ],
             'targetType': 'PrecompiledBinary',
         },

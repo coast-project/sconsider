@@ -28,7 +28,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             'targetType': 'LibraryShared',
             'linkDependencies': [
                 # used to pass public include dirs of boost
-                PackageRegistry.generateFulltargetname(packagename, 'include'),
+                PackageRegistry.createFulltargetname(packagename, 'include'),
             ],
             'sourceFiles': listFiles(['libs/regex/src/*.cpp']),
             # 'appendUnique'     : {
@@ -40,7 +40,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             'targetType': 'LibraryShared',
             'linkDependencies': [
                 # used to pass public include dirs of boost
-                PackageRegistry.generateFulltargetname(packagename, 'include'),
+                PackageRegistry.createFulltargetname(packagename, 'include'),
             ],
             'sourceFiles': listFiles(['libs/system/src/*.cpp']),
         },

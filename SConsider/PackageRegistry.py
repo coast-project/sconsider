@@ -19,6 +19,7 @@ import sys
 import os
 from logging import getLogger
 from pkg_resources import ResolutionError
+from deprecation import deprecated
 logger = getLogger(__name__)
 
 
@@ -83,6 +84,8 @@ class PackageRegistry(object):
         return (pkgname, targetname)
 
     @staticmethod
+    @deprecated(
+        "Use the static method splitFulltargetname of PackageRegistry instead.")
     def splitTargetname(fulltargetname, default=False):
         return PackageRegistry.splitFulltargetname(fulltargetname, default)
 
@@ -98,6 +101,9 @@ class PackageRegistry(object):
             return packagename + PackageRegistry.targetnameseparator + targetname
 
     @staticmethod
+    @deprecated(
+        "Use the static method createFulltargetname of PackageRegistry instead."
+    )
     def generateFulltargetname(packagename, targetname=None, default=False):
         return PackageRegistry.createFulltargetname(packagename, targetname,
                                                     default)
@@ -116,8 +122,8 @@ class PackageRegistry(object):
         """Recursively collects SConsider packages.
 
         Walks recursively through 'directory' to collect package files
-        but skipping dirs in 'excludes_rel' and absolute dirs
-        from 'exclude_abs'.
+        but skipping dirs in 'excludes_rel' and absolute dirs from
+        'exclude_abs'.
 
         """
         if excludes_rel is None:
@@ -249,7 +255,7 @@ class PackageRegistry(object):
     def isValidFulltargetname(self, fulltargetname):
         if self.hasPackage(str(fulltargetname)):
             return True
-        packagename, targetname = self.splitTargetname(str(fulltargetname))
+        packagename, targetname = self.splitFulltargetname(str(fulltargetname))
         return self.hasPackageTarget(packagename, targetname)
 
     def getPackageTargetDependencies(self,
@@ -267,7 +273,7 @@ class PackageRegistry(object):
         targetlist.extend([targetBuildSettings.get('usedTarget', '')])
         for dep_fulltargetname in targetlist:
             if dep_fulltargetname:
-                dep_packagename, dep_targetname = self.splitTargetname(
+                dep_packagename, dep_targetname = self.splitFulltargetname(
                     dep_fulltargetname)
                 if not dep_targetname:
                     dep_targetname = dep_packagename

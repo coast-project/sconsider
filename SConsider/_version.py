@@ -113,9 +113,11 @@ def run_command(commands,
 def versions_from_parentdir(parentdir_prefix, root, verbose):
     """Try to determine the version from the parent directory name.
 
-    Source tarballs conventionally unpack into a directory that includes both
-    the project name and a version string. We will also support searching up
-    two directory levels for an appropriately named parent directory
+    Source tarballs conventionally unpack into a directory that includes
+    both the project name and a version string. We will also support
+    searching up two directory levels for an appropriately named parent
+    directory
+
     """
     rootdirs = []
 
@@ -222,6 +224,7 @@ def git_pieces_from_vcs(tag_prefix, root, verbose, run_command=run_command):
     This only gets called if the git-archive 'subst' keywords were *not*
     expanded, and _version.py hasn't already been rewritten with a short
     version string, meaning we're inside a checked out source tree.
+
     """
     GITS = ["git"]
     if sys.platform == "win32":
@@ -363,6 +366,7 @@ def render_pep440_post(pieces):
 
     Exceptions:
     1: no tags. 0.postDISTANCE[.dev0]
+
     """
     if pieces["closest-tag"]:
         rendered = pieces["closest-tag"]
@@ -388,6 +392,7 @@ def render_pep440_old(pieces):
 
     Eexceptions:
     1: no tags. 0.postDISTANCE[.dev0]
+
     """
     if pieces["closest-tag"]:
         rendered = pieces["closest-tag"]

@@ -23,8 +23,8 @@ import SomeUtils
 
 def FileNodeComparer(left, right):
     """Specialized implementation of file node sorting based on the fact that
-    config_ files must get placed before any other object on the linker
-    command line."""
+    config_ files must get placed before any other object on the linker command
+    line."""
     nleft = left.srcnode().get_abspath()
     nright = right.srcnode().get_abspath()
     _, lbasename = os.path.split(nleft)

@@ -19,8 +19,8 @@ import SCons.Tool
 
 
 def generate(env):
-    """Add Builders and construction variables for Forte C and C++ compilers
-    to an Environment."""
+    """Add Builders and construction variables for Forte C and C++ compilers to
+    an Environment."""
 
     SCons.Tool.Tool('cc')(env)
 

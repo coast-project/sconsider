@@ -134,8 +134,8 @@ def generate(env, *args, **kw):
             target = env.Command(sourcenode.name + '_syslibs_dummy', sourcenode,
                                  createDeferredAction(source))
             if env.GetOption('clean'):
-                """It makes no sense to find nodes to delete when target doesn't
-                exist..."""
+                """It makes no sense to find nodes to delete when target
+                doesn't exist..."""
                 if not sourcenode.exists():
                     return []
                 env = sourcenode.get_env()

@@ -104,8 +104,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             buildSettings['isql'] = {
                 'sourceFiles': [isqlbin],
                 'requires': [
-                    PackageRegistry.generateFulltargetname(packagename,
-                                                           'config'),
+                    PackageRegistry.createFulltargetname(packagename, 'config'),
                 ],
                 'targetType': 'InstallBinary',
             }

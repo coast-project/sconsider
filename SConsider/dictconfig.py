@@ -135,9 +135,7 @@ class ConvertingTuple(tuple):
 
 
 class BaseConfigurator(object):
-    """
-    The configurator base class which defines some useful defaults.
-    """
+    """The configurator base class which defines some useful defaults."""
 
     CONVERT_PATTERN = re.compile(r'^(?P<prefix>[a-z]+)://(?P<suffix>.*)$')
 
@@ -159,10 +157,8 @@ class BaseConfigurator(object):
         self.config.configurator = self
 
     def resolve(self, s):
-        """
-        Resolve strings to objects using standard import and attribute
-        syntax.
-        """
+        """Resolve strings to objects using standard import and attribute
+        syntax."""
         name = s.split('.')
         used = name.pop(0)
         try:

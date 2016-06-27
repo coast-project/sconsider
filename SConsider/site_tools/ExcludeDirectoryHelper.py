@@ -1,7 +1,7 @@
 """SConsider.site_tools.OutputDirectoryHelper.
 
-A bunch of simple methods to access output directory values during target
-creation.
+A bunch of simple methods to access output directory values during
+target creation.
 
 """
 # vim: set et ai ts=4 sw=4:

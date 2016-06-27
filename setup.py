@@ -40,7 +40,7 @@ def get_packages(package):
 
 
 def get_requirements():
-    """Read and parse requirements from file"""
+    """Read and parse requirements from file."""
     requirements_file_path = os.path.join(
         os.path.dirname(__file__), 'requirements.txt')
     if os.path.exists(requirements_file_path):

@@ -1,7 +1,7 @@
 """SConsider.site_tools.TargetHelpers.
 
-Just a bunch of simple methods to help creating targets. Methods will be added
-to the environment supplied in the generate call.
+Just a bunch of simple methods to help creating targets. Methods will be
+added to the environment supplied in the generate call.
 
 """
 # vim: set et ai ts=4 sw=4:
@@ -21,12 +21,12 @@ logger = getLogger(__name__)
 
 
 def getUsedTarget(env, buildSettings):
-    from SConsider import getRegistry, splitTargetname
+    from SConsider import getRegistry
     plaintarget = None
     usedFullTargetname = buildSettings.get('usedTarget', None)
     if usedFullTargetname:
-        usedPackagename, usedTargetname = splitTargetname(usedFullTargetname,
-                                                          default=True)
+        usedPackagename, usedTargetname = getRegistry().splitFulltargetname(
+            usedFullTargetname, default=True)
         plaintarget = getRegistry().loadPackagePlaintarget(usedPackagename,
                                                            usedTargetname)
     return plaintarget

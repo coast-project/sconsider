@@ -53,15 +53,15 @@ class TargetMaker(object):
             else:
                 k, v = self.targetlist.popitem()
             depList = [
-                SConsider.targetnameseparator.join(SConsider.splitTargetname(
-                    item, True))
+                self.registry.createFulltargetname(
+                    *self.registry.splitFulltargetname(item, True))
                 for item in v.get('requires', []) + v.get(
                     'linkDependencies', []) + [v.get('usedTarget', '')] if item
             ]
 
             self.pushItem(k)
             for ftn in depList:
-                pkgname, tname = SConsider.splitTargetname(ftn)
+                pkgname, tname = self.registry.splitFulltargetname(ftn)
                 if self.packagename == pkgname and tname in self.targetlist:
                     self.recurseCreate(tname)
             self.popItem()
@@ -152,9 +152,10 @@ class TargetMaker(object):
         if not SCons.Util.is_List(requiredTargets):
             requiredTargets = [requiredTargets]
         for targ in requiredTargets:
-            env.Depends(target,
-                        self.registry.loadPackageTarget(
-                            *SConsider.splitTargetname(targ, default=True)))
+            env.Depends(
+                target,
+                self.registry.loadPackageTarget(
+                    *self.registry.splitFulltargetname(targ, default=True)))
 
     def doCreateTarget(self, packagename, targetname, targetBuildSettings):
         plaintarget = None
@@ -173,8 +174,8 @@ class TargetMaker(object):
                 kwargs['buildSettings'] = targetBuildSettings
                 sources = targetBuildSettings.get('sourceFiles', [])
                 name = targetBuildSettings.get(
-                    'targetName', SConsider.createUniqueTargetname(packagename,
-                                                                   targetname))
+                    'targetName', self.registry.createUniqueTargetname(
+                        packagename, targetname))
                 targets = func(*[name, sources], **kwargs)
                 if isinstance(targets, tuple):
                     plaintarget, target = targets
@@ -197,7 +198,7 @@ class TargetMaker(object):
                 # built in newer SCons versions (because it has depends but no
                 # sources)
                 plaintarget = target = targetEnv.Alias(
-                    packagename + SConsider.targetnameseparator + targetname,
+                    self.registry.createFulltargetname(packagename, targetname),
                     self.registry.getPackageFile(packagename))
 
             # handle hard dependencies and softer requirements differently
@@ -286,8 +287,8 @@ class TargetMaker(object):
 
     def setModuleDependencies(self, env, modules, **kw):
         for fulltargetname in modules:
-            packagename, targetname = SConsider.splitTargetname(fulltargetname,
-                                                                default=True)
+            packagename, targetname = self.registry.splitFulltargetname(
+                fulltargetname, default=True)
             plaintarget = self.registry.loadPackagePlaintarget(packagename,
                                                                targetname)
             buildSettings = self.registry.getBuildSettings(packagename,
@@ -300,8 +301,8 @@ class TargetMaker(object):
 
     def setExecEnv(self, env, requiredTargets):
         for targ in requiredTargets:
-            packagename, targetname = SConsider.splitTargetname(targ,
-                                                                default=True)
+            packagename, targetname = self.registry.splitFulltargetname(
+                targ, default=True)
             if self.registry.hasPackageTarget(packagename, targetname):
                 settings = self.registry.getBuildSettings(packagename,
                                                           targetname)

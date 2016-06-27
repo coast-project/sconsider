@@ -40,6 +40,7 @@ from SConsider.Callback import addCallbackFeature
 from SConsider.Logging import setup_logging
 from SConsider.PackageRegistry import PackageRegistry, PackageNotFound, TargetNotFound, PackageRequirementsNotFulfilled
 from ._version import get_versions
+from .deprecation import deprecated
 
 __author__ = "Marcel Huber <marcel.huber@hsr.ch>"
 __version__ = get_versions()['version']
@@ -191,10 +192,23 @@ packageRegistry = PackageRegistry(baseEnv, _sconsider_toplevel_scandirs,
                                   baseEnv.relativeExcludeDirs(),
                                   baseEnv.absoluteExcludeDirs())
 
-targetnameseparator = PackageRegistry.targetnameseparator
-splitTargetname = PackageRegistry.splitTargetname
-createUniqueTargetname = PackageRegistry.createUniqueTargetname
-generateFulltargetname = PackageRegistry.generateFulltargetname
+
+@deprecated(
+    "Use the static method splitFulltargetname of PackageRegistry instead.")
+def splitTargetname(*args, **kwargs):
+    return PackageRegistry.splitFulltargetname(*args, **kwargs)
+
+
+@deprecated(
+    "Use the static method createUniqueTargetname of PackageRegistry instead.")
+def createUniqueTargetname(*args, **kwargs):
+    return PackageRegistry.createUniqueTargetname(*args, **kwargs)
+
+
+@deprecated(
+    "Use the static method createFulltargetname of PackageRegistry instead.")
+def generateFulltargetname(*args, **kwargs):
+    return PackageRegistry.createFulltargetname(*args, **kwargs)
 
 
 def getRegistry():
@@ -273,7 +287,8 @@ try:
             buildtargets[buildtargets.index('.')] = builddir
 
         for ftname in buildtargets:
-            packagename, targetname = splitTargetname(ftname)
+            packagename, targetname = packageRegistry.splitFulltargetname(
+                ftname)
             tryLoadPackageTarget(packagename, targetname)
 
     except PackageNotFound as ex:

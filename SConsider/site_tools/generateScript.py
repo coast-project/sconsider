@@ -298,8 +298,11 @@ def generateScriptEmitter(target, source, env):
         script_name = src.name + '.sh'
         if script_name.startswith('bin_'):
             script_name = script_name.partition('_')[2]
-        target_basepath = env.getScriptInstallDir().File(script_name).path
-        target.append(src.builder.target_factory(target_basepath))
+        target_basepath = env.getScriptInstallDir().File(script_name)
+        if src.has_builder() and src.builder.target_factory:
+            target.append(src.builder.target_factory(target_basepath.path))
+        else:
+            target.append(target_basepath)
     return (target, source)
 
 

@@ -29,8 +29,7 @@ def uniquelist(iterable):
 
 
 def unique(iterable):
-    """Generates an iterator over an order preserved list with unique
-    items."""
+    """Generates an iterator over an order preserved list with unique items."""
     seen = set()
     for element in itertools.ifilterfalse(seen.__contains__, iterable):
         seen.add(element)
