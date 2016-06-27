@@ -312,7 +312,7 @@ def generate(env):
     GenerateScriptAction = SCons.Action.Action(
         generatePosixScript, "Creating wrapper script '$TARGET' for '$SOURCE'")
     GenerateScriptBuilder = SCons.Builder.Builder(action=[
-        GenerateScriptAction, SCons.Defaults.Chmod('$TARGET', 0o755)
+        GenerateScriptAction, SCons.Defaults.Chmod('$TARGET', 0755)
     ],
                                                   emitter=generateScriptEmitter)
 
