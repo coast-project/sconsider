@@ -10,10 +10,10 @@
 
 import os
 import unittest
-import WorkingSetWriter
 import shutil
 import tempfile
-
+import WorkingSetWriter
+from SConsider.PackageRegistry import PackageRegistry
 
 class DirStub(object):
     def __init__(self, path):
@@ -26,10 +26,14 @@ class DirStub(object):
 class RegistryStub(object):
     def __init__(self, pkgdict):
         self.pkgdict = pkgdict
+        self.registry = PackageRegistry(None, [])
+        self.registry.getPackageDir = self.__getPackageDir
 
-    def getPackageDir(self, packagename):
+    def __getPackageDir(self, packagename):
         return self.pkgdict[packagename]
 
+    def __getattr__(self, name):
+        return getattr(self.registry, name)
 
 class TestProjectFuncs(unittest.TestCase):
     def setUp(self):

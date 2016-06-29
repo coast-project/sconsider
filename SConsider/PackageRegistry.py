@@ -20,6 +20,8 @@ import os
 from logging import getLogger
 from pkg_resources import ResolutionError
 from deprecation import deprecated
+from singleton import SingletonDecorator
+
 logger = getLogger(__name__)
 
 
@@ -68,8 +70,39 @@ class TargetIsAliasException(Exception):
         return 'Target {0} is an Alias node'.format(self.name)
 
 
+@SingletonDecorator
 class PackageRegistry(object):
     targetnameseparator = '.'
+
+    def __init__(self,
+                 env,
+                 scan_dirs,
+                 scan_dirs_exclude_rel=None,
+                 scan_dirs_exclude_abs=None):
+        self.env = env
+        self.packages = {}
+        self.lookupStack = []
+        if not isinstance(scan_dirs, list):
+            scan_dirs = [scan_dirs]
+        if not scan_dirs:
+            return
+        from SCons.Script import Dir
+        startDir = Dir('#')
+
+        def scanmatchfun(root, filename, match):
+            rootDir = self.env.Dir(root)
+            _filename = rootDir.File(filename)
+            logger.debug('found package [%s] in [%s]',
+                         match.group('packagename'),
+                         startDir.rel_path(_filename))
+            self.setPackage(match.group('packagename'), _filename, rootDir)
+
+        for scandir in scan_dirs:
+            self.collectPackageFiles(scandir,
+                                     r'^(?P<packagename>.*)\.sconsider$',
+                                     scanmatchfun,
+                                     excludes_rel=scan_dirs_exclude_rel,
+                                     excludes_abs=scan_dirs_exclude_abs)
 
     @staticmethod
     def splitFulltargetname(fulltargetname, default=False):
@@ -145,34 +178,6 @@ class PackageRegistry(object):
                 match = package_re.match(filename)
                 if match:
                     matchfun(root, filename, match)
-
-    def __init__(self,
-                 env,
-                 scan_dirs,
-                 scan_dirs_exclude_rel=None,
-                 scan_dirs_exclude_abs=None):
-        import SCons
-        self.env = env
-        self.packages = {}
-        self.lookupStack = []
-        if not SCons.Util.is_List(scan_dirs):
-            scan_dirs = [scan_dirs]
-        startDir = SCons.Script.Dir('#')
-
-        def scanmatchfun(root, filename, match):
-            rootDir = self.env.Dir(root)
-            _filename = rootDir.File(filename)
-            logger.debug('found package [%s] in [%s]',
-                         match.group('packagename'),
-                         startDir.rel_path(_filename))
-            self.setPackage(match.group('packagename'), _filename, rootDir)
-
-        for scandir in scan_dirs:
-            self.collectPackageFiles(scandir,
-                                     r'^(?P<packagename>.*)\.sconsider$',
-                                     scanmatchfun,
-                                     excludes_rel=scan_dirs_exclude_rel,
-                                     excludes_abs=scan_dirs_exclude_abs)
 
     def setPackage(self, packagename, packagefile, packagedir, duplicate=False):
         self.packages[packagename] = {
@@ -277,7 +282,7 @@ class PackageRegistry(object):
                     dep_fulltargetname)
                 if not dep_targetname:
                     dep_targetname = dep_packagename
-                deps[self.generateFulltargetname(
+                deps[self.createFulltargetname(
                     dep_packagename,
                     dep_targetname)] = self.getPackageTargetDependencies(
                         dep_packagename, dep_targetname)
@@ -305,7 +310,7 @@ class PackageRegistry(object):
         self.loadPackage(packagename)
         target = loadfunc(packagename, targetname)
         if targetname and not target:
-            raise TargetNotFound(self.generateFulltargetname(packagename,
+            raise TargetNotFound(self.createFulltargetname(packagename,
                                                              targetname))
         return target
 
@@ -322,7 +327,7 @@ class PackageRegistry(object):
             callerdeps = dict()
         deps = dict()
         for targetname in self.getPackageTargetNames(packagename):
-            deps[self.generateFulltargetname(
+            deps[self.createFulltargetname(
                 packagename, targetname)] = self.getPackageTargetDependencies(
                     packagename, targetname,
                     callerdeps=callerdeps)
@@ -361,7 +366,7 @@ class PackageRegistry(object):
                                         exports=exports)
                 except ResolutionError as ex:
                     raise PackageRequirementsNotFulfilled(
-                        self.generateFulltargetname(packagename, targetname),
+                        self.createFulltargetname(packagename, targetname),
                         packagefile, ex)
                 except (PackageNotFound, TargetNotFound) as ex:
                     ex.prependItem(fulltargetname)

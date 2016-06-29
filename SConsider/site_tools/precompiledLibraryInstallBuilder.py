@@ -268,9 +268,9 @@ def copyFunc(dest, source, env):
 
 
 def createSymLink(target, source, env):
-    from SConsider import getRegistry
-    source = getRegistry().getRealTarget(source)
-    target = getRegistry().getRealTarget(target)
+    from SConsider.PackageRegistry import PackageRegistry
+    source = PackageRegistry().getRealTarget(source)
+    target = PackageRegistry().getRealTarget(target)
     src, dest = source.get_abspath(), target.get_abspath()
     relSrc = os.path.relpath(src, os.path.dirname(dest))
     os.symlink(relSrc, dest)

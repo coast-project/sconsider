@@ -21,14 +21,14 @@ logger = getLogger(__name__)
 
 
 def getUsedTarget(env, buildSettings):
-    from SConsider import getRegistry
+    from SConsider.PackageRegistry import PackageRegistry
     plaintarget = None
     usedFullTargetname = buildSettings.get('usedTarget', None)
     if usedFullTargetname:
-        usedPackagename, usedTargetname = getRegistry().splitFulltargetname(
+        usedPackagename, usedTargetname = PackageRegistry.splitFulltargetname(
             usedFullTargetname, default=True)
-        plaintarget = getRegistry().loadPackagePlaintarget(usedPackagename,
-                                                           usedTargetname)
+        plaintarget = PackageRegistry().loadPackagePlaintarget(usedPackagename,
+                                                               usedTargetname)
     return plaintarget
 
 

@@ -207,10 +207,6 @@ def createUniqueTargetname(*args, **kwargs):
 def generateFulltargetname(*args, **kwargs):
     return PackageRegistry.createFulltargetname(*args, **kwargs)
 
-
-def getRegistry():
-    return packageRegistry
-
 # Using LoadNode and extending the lookup_list has the advantage that SCons
 # is looking for a matching Alias node when our own lookup returns no result.
 baseEnv.AddMethod(PackageRegistry.loadNode, 'LoadNode')

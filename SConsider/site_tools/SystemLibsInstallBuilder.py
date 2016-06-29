@@ -56,8 +56,8 @@ def get_dependent_libs(env, sourcenode, libdirs_func=get_libdirs):
 def installSystemLibs(source):
     """This function is called during the build phase and adds targets
     dynamically to the dependency tree."""
-    from SConsider import getRegistry
-    sourcenode = getRegistry().getRealTarget(source)
+    from SConsider.PackageRegistry import PackageRegistry
+    sourcenode = PackageRegistry().getRealTarget(source)
     if not sourcenode:
         return None
     source = [sourcenode]
@@ -125,8 +125,8 @@ def generate(env, *args, **kw):
     def createDeferredTarget(env, source):
         # bind 'source' parameter to an Action which is called in the build phase and
         # create a dummy target which always will be built
-        from SConsider import getRegistry
-        sourcenode = getRegistry().getRealTarget(source)
+        from SConsider.PackageRegistry import PackageRegistry
+        sourcenode = PackageRegistry().getRealTarget(source)
         if not sourcenode:
             return []
         source = [sourcenode]
