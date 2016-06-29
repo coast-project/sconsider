@@ -19,8 +19,8 @@ import re
 import os
 import threading
 import functools
-import SomeUtils
 from logging import getLogger
+from SomeUtils import hasPathPart, isDerivedNode, multiple_replace, isFileNode, allFuncs, getNodeDependencies
 logger = getLogger(__name__)
 
 # needs locking because it is manipulated during multi-threaded build phase
@@ -31,9 +31,8 @@ packageAliasName = 'makepackage'
 
 
 def addPackageTarget(registry, buildTargets, env, destdir, **kw):
-    import SCons
-    createDeferredAction = SCons.Action.ActionFactory(makePackage,
-                                                      lambda *args, **kw: '')
+    from SCons.Action import ActionFactory
+    createDeferredAction = ActionFactory(makePackage, lambda *args, **kw: '')
 
     sources = []
     for tn in buildTargets:
@@ -52,8 +51,7 @@ def addPackageTarget(registry, buildTargets, env, destdir, **kw):
 
 
 def makePackage(registry, buildTargets, env, destdir, **kw):
-    import SCons
-    isInBuilddir = functools.partial(SomeUtils.hasPathPart,
+    isInBuilddir = functools.partial(hasPathPart,
                                      pathpart=env.getRelativeBuildDirectory())
     notInBuilddir = lambda target: not isInBuilddir(target)
     includePathRel = env['INCDIR']
@@ -78,7 +76,7 @@ def makePackage(registry, buildTargets, env, destdir, **kw):
         if registry.isValidFulltargetname(tn):
             tdeps = getTargetDependencies(
                 env.Alias(tn)[0], [
-                    SomeUtils.isDerivedNode, notInBuilddir, isNotIncludeFile
+                    isDerivedNode, notInBuilddir, isNotIncludeFile
                 ])
             copyPackage(tn, tdeps, env, destdir, copyfilters)
 
@@ -157,7 +155,7 @@ def filterBaseOutDir(path, **kw):
     if not basedirprefix:
         return path
     replist = [('^' + basedirprefix + os.sep + '?', '')]
-    return SomeUtils.multiple_replace(replist, path)
+    return multiple_replace(replist, path)
 
 
 def filterTestsAppsGlobalsPath(path, **kw):
@@ -165,7 +163,7 @@ def filterTestsAppsGlobalsPath(path, **kw):
                ('^apps' + os.sep + '[^' + os.sep + ']*' + os.sep + '?', ''),
                ('^globals' + os.sep + '[^' + os.sep + ']*' + os.sep + '?', '')]
     for r in replist:
-        res = SomeUtils.multiple_replace([r], path)
+        res = multiple_replace([r], path)
         # leave as soon as we replaced a prefix, as only one can match per call
         if res != path:
             return res
@@ -199,10 +197,9 @@ class PackageToolException(Exception):
 
 
 def generate(env):
-    import SCons.Script
-    import SCons.Script.Main
-    import SConsider
-    SCons.Script.AddOption(
+    from SCons.Script import GetOption, Dir, AddOption
+    from SCons.Script.Main import OptionsParser
+    AddOption(
         '--package',
         dest='package',
         action='store',
@@ -212,18 +209,18 @@ def generate(env):
     package target is specified, the subdirectory will be named <packagename>.\
     <targetname>.')
 
-    destination = SCons.Script.GetOption('package')
+    destination = GetOption('package')
     if destination:
         from SConsider.Callback import Callback
         if not os.path.isdir(destination):
-            SCons.Script.Main.OptionsParser.error(
+            OptionsParser.error(
                 "given package destination path [{0}] doesn't exist".format(
                     destination))
         else:
             Callback().register("PreBuild",
                                 addPackageTarget,
                                 env=env,
-                                destdir=SCons.Script.Dir(destination))
+                                destdir=Dir(destination))
 
 
 def exists(env):
@@ -240,13 +237,13 @@ def getTargetDependencies(target, filters=None):
         filters = []
     if not isinstance(filters, list):
         filters = [filters]
-    filters = [SomeUtils.isFileNode] + filters
+    filters = [isFileNode] + filters
 
     deps = set()
-    if SomeUtils.allFuncs(filters, target):
+    if allFuncs(filters, target):
         executor = target.get_executor()
         if executor is not None:
             deps.update(executor.get_all_targets())
-    deps.update(SomeUtils.getNodeDependencies(target, filters))
+    deps.update(getNodeDependencies(target, filters))
 
     return deps

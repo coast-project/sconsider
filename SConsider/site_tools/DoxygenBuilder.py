@@ -607,8 +607,8 @@ def createDoxygenTarget(env, registry, packagename):
 def createDoxygenAllTarget(registry):
     """Wrapper for creating a doxygen target for coast."""
 
-    import SConsider
-    env = SConsider.cloneBaseEnv()
+    from SConsider import cloneBaseEnv
+    env = cloneBaseEnv()
 
     doxyfile = env.getBaseOutDir().File('Doxyfile')
 
@@ -726,8 +726,10 @@ compilerDefines = {}
 
 def generate(env):
     """Add the options, builders and wrappers to the current Environment."""
-    from SCons.Script import AddOption, GetOption
-    import SConsider
+    from SCons.Script import AddOption, GetOption, BUILD_TARGETS
+    from SCons.Action import Action
+    from SCons.Builder import Builder
+    from SCons.Scanner.C import CScanner
     AddOption('--doxygen',
               dest='doxygen',
               action='store_true',
@@ -739,23 +741,18 @@ def generate(env):
               default=False,
               help='Same as --doxygen but skips all targets except doxygen')
 
-    import SCons.Action
-    import SCons.Builder
-
-    doxyfileAction = SCons.Action.Action(
-        buildDoxyfile, "Creating Doxygen config file '$TARGET'")
-    doxyfileBuilder = SCons.Builder.Builder(
+    doxyfileAction = Action(buildDoxyfile,
+                            "Creating Doxygen config file '$TARGET'")
+    doxyfileBuilder = Builder(
         action=doxyfileAction,
-        source_scanner=SCons.Scanner.C.CScanner(
-        ))  # adds headers as dependencies
+        source_scanner=CScanner())  # adds headers as dependencies
 
-    doxygenAction = SCons.Action.Action(
-        callDoxygen, "Creating documentation using '$SOURCE'")
+    doxygenAction = Action(callDoxygen,
+                           "Creating documentation using '$SOURCE'")
     # adds headers as dependencies
-    doxygenBuilder = SCons.Builder.Builder(
-        action=doxygenAction,
-        emitter=emitDoxygen,
-        source_scanner=SCons.Scanner.C.CScanner())
+    doxygenBuilder = Builder(action=doxygenAction,
+                             emitter=emitDoxygen,
+                             source_scanner=CScanner())
 
     env.Append(BUILDERS={'DoxyfileBuilder': doxyfileBuilder})
     env.Append(BUILDERS={'DoxygenBuilder': doxygenBuilder})
@@ -765,18 +762,20 @@ def generate(env):
     env.Append(DOCDIR='doc')
 
     def createTargetCallback(registry, packagename):
-        doxyEnv = SConsider.cloneBaseEnv()
+        from SConsider import cloneBaseEnv
+        doxyEnv = cloneBaseEnv()
         doxyTarget = doxyEnv.PackageDoxygen(registry, packagename)
         doxyEnv.Alias("doxygen", doxyTarget)
 
     def addBuildTargetCallback():
         if GetOption("doxygen-only"):
-            SCons.Script.BUILD_TARGETS = ["doxygen"]
+            BUILD_TARGETS = ["doxygen"]
         else:
-            SCons.Script.BUILD_TARGETS.append("doxygen")
+            BUILD_TARGETS.append("doxygen")
 
     def addBuildAllTargetCallback(registry):
-        doxyEnv = SConsider.cloneBaseEnv()
+        from SConsider import cloneBaseEnv
+        doxyEnv = cloneBaseEnv()
         doxyTarget = createDoxygenAllTarget(registry)
         doxyEnv.Alias("doxygen", doxyTarget)
         addBuildTargetCallback()
@@ -784,7 +783,7 @@ def generate(env):
     if GetOption("doxygen") or GetOption("doxygen-only"):
         from SConsider.Callback import Callback
         compilerDefines.update(determineCompilerDefines(env))
-        if not SCons.Script.BUILD_TARGETS or 'all' in SCons.Script.BUILD_TARGETS:
+        if not BUILD_TARGETS or 'all' in BUILD_TARGETS:
             Callback().register("PreBuild", addBuildAllTargetCallback)
         else:
             Callback().register("PostCreatePackageTargets",

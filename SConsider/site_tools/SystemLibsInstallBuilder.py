@@ -16,8 +16,8 @@ Tool to collect system libraries needed by an executable/shared library
 
 import os
 import threading
-import SCons
 import LibFinder
+from SCons.Errors import UserError
 from logging import getLogger
 logger = getLogger(__name__)
 
@@ -33,7 +33,7 @@ def notInDir(env, directory, path):
 
 def get_library_install_dir(env, sourcenode):
     if not hasattr(env, 'getLibraryInstallDir'):
-        raise SCons.Errors.UserError(
+        raise UserError(
             'environment on node [%s] is not a SConsider environment, can not continue'
             % (str(sourcenode)))
     return env.getLibraryInstallDir()
@@ -117,9 +117,10 @@ def installSystemLibs(source):
 
 
 def generate(env, *args, **kw):
+    from SCons.Action import ActionFactory
     """Add the options, builders and wrappers to the current Environment."""
-    createDeferredAction = SCons.Action.ActionFactory(installSystemLibs,
-                                                      lambda *args, **kw: '')
+    createDeferredAction = ActionFactory(installSystemLibs,
+                                         lambda *args, **kw: '')
 
     def createDeferredTarget(env, source):
         # bind 'source' parameter to an Action which is called in the build phase and

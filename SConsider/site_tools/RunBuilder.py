@@ -159,6 +159,8 @@ def getRunParams(buildSettings, defaultRunParams):
     if GetOption('runParams'):
         runParams = " ".join(GetOption('runParams'))
     else:
+        if not runConfig:
+            runConfig = dict()
         runParams = runConfig.get('runParams', defaultRunParams)
     return runParams
 
@@ -181,6 +183,8 @@ def wrapSetUp(setUpFunc):
 
 
 def addRunConfigHooks(env, source, runner, buildSettings):
+    if not buildSettings:
+        buildSettings = dict()
     runConfig = buildSettings.get('runConfig', {})
     setUp = runConfig.get('setUp', '')
     tearDown = runConfig.get('tearDown', '')
@@ -200,7 +204,7 @@ def createTestTarget(env,
                      registry,
                      packagename,
                      targetname,
-                     buildSettings,
+                     settings,
                      defaultRunParams='-- -all'):
     """Creates a target which runs a target given in parameter 'source'.
 
@@ -215,17 +219,15 @@ def createTestTarget(env,
 
     """
 
+    fullTargetName = registry.createFulltargetname(packagename, targetname)
+    source = registry.getRealTarget(source)
     if not GetOption('run') and not GetOption('run-force'):
         return source
-
-    if not SCons.Util.is_List(source):
-        source = [source]
 
     logfile = env.getLogInstallDir().File(targetname + '.test.log')
     runner = env.TestBuilder([],
                              source,
-                             runParams=getRunParams(buildSettings,
-                                                    defaultRunParams),
+                             runParams=getRunParams(settings, defaultRunParams),
                              logfile=logfile)
     if GetOption('run-force'):
         env.AlwaysBuild(runner)
@@ -241,7 +243,7 @@ def createTestTarget(env,
 
     env.Depends(runner, sorted(getNodeDependencies(runner[0], funcs)))
 
-    addRunConfigHooks(env, source, runner, buildSettings)
+    addRunConfigHooks(env, source, runner, settings)
 
     Callback().register(
         '__PostTestOrRun',
@@ -265,7 +267,7 @@ def createRunTarget(env,
                     registry,
                     packagename,
                     targetname,
-                    buildSettings,
+                    settings,
                     defaultRunParams=''):
     """Creates a target which runs a target given in parameter 'source'.
 
@@ -278,22 +280,18 @@ def createRunTarget(env,
 
     """
 
+    fullTargetName = registry.createFulltargetname(packagename, targetname)
+    source = registry.getRealTarget(source)
     if not GetOption('run') and not GetOption('run-force'):
         return source
 
-    if not SCons.Util.is_List(source):
-        source = [source]
-    fullTargetName = PackageRegistry.createFulltargetname(packagename,
-                                                          targetname)
-
     logfile = env.getLogInstallDir().File(targetname + '.run.log')
-    runner = env.RunBuilder(
-        ['dummyRunner_' + fullTargetName],
-        source,
-        runParams=getRunParams(buildSettings, defaultRunParams),
-        logfile=logfile)
+    runner = env.RunBuilder(['dummyRunner_' + fullTargetName],
+                            source,
+                            runParams=getRunParams(settings, defaultRunParams),
+                            logfile=logfile)
 
-    addRunConfigHooks(env, source, runner, buildSettings)
+    addRunConfigHooks(env, source, runner, settings)
 
     Callback().register(
         '__PostTestOrRun',
@@ -316,16 +314,16 @@ def composeRunTargets(env,
                       registry,
                       packagename,
                       targetname,
-                      buildSettings,
+                      settings,
                       defaultRunParams=''):
     targets = []
-    for ftname in buildSettings.get('requires', []) + buildSettings.get(
+    for ftname in settings.get('requires', []) + settings.get(
             'linkDependencies', []):
-        otherPackagename, otherTargetname = PackageRegistry.splitFulltargetname(
-            ftname)
+        otherPackagename, otherTargetname = registry.splitFulltargetname(ftname)
         targets.extend(getTargets(otherPackagename, otherTargetname))
-    return env.Alias('dummyRunner_' + PackageRegistry.createFulltargetname(
-        packagename, targetname), targets)
+    return env.Alias(
+        'dummyRunner_' + registry.createFulltargetname(packagename, targetname),
+        targets)
 
 
 def generate(env):

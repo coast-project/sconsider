@@ -18,10 +18,10 @@ import re
 import os
 import stat
 from logging import getLogger
-import SCons
-from SCons.Script import Dir, File, GetOption
-import SomeUtils
+from SCons.Util import is_String, is_List
+from SCons.Script import Dir, File, GetOption, BUILD_TARGETS
 from SConsider.Callback import Callback
+from SomeUtils import copyFileNodes, multiple_replace
 from SConsider.PackageRegistry import TargetNotFound, PackageNotFound, PackageRequirementsNotFulfilled
 logger = getLogger(__name__)
 
@@ -114,12 +114,12 @@ class TargetMaker(object):
             if str(env['PLATFORM']) not in ["cygwin", "win32"]:
                 mode = stat.S_IREAD
                 mode |= stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
-            instTargets = SomeUtils.copyFileNodes(env,
-                                                  self.prepareFileNodeTuples(
-                                                      ifiles, pkgdir),
-                                                  destdir,
-                                                  stripRelDirs=stripRelDirs,
-                                                  mode=mode)
+            instTargets = copyFileNodes(env,
+                                        self.prepareFileNodeTuples(ifiles,
+                                                                   pkgdir),
+                                        destdir,
+                                        stripRelDirs=stripRelDirs,
+                                        mode=mode)
         return instTargets
 
     def copyFiles(self, env, destdir, pkgname, copyFiles):
@@ -139,17 +139,17 @@ class TargetMaker(object):
                 replaceDict = {}
             if str(env['PLATFORM']) in ["cygwin", "win32"]:
                 mode = None
-            instTargets.extend(SomeUtils.copyFileNodes(
-                env,
-                self.prepareFileNodeTuples(files, pkgdir, envconfigdir),
-                destdir,
-                mode=mode,
-                replaceDict=replaceDict))
+            instTargets.extend(copyFileNodes(env,
+                                             self.prepareFileNodeTuples(
+                                                 files, pkgdir, envconfigdir),
+                                             destdir,
+                                             mode=mode,
+                                             replaceDict=replaceDict))
 
         return instTargets
 
     def requireTargets(self, env, target, requiredTargets, **_):
-        if not SCons.Util.is_List(requiredTargets):
+        if not is_List(requiredTargets):
             requiredTargets = [requiredTargets]
         for targ in requiredTargets:
             env.Depends(
@@ -240,13 +240,13 @@ class TargetMaker(object):
             # even when ignore-missing is set, we should not continue if a missing package target
             # is required by an explicit command line target
             raise_again = not bool(GetOption(
-                'ignore-missing')) or SConsider.generateFulltargetname(
+                'ignore-missing')) or self.registry.createFulltargetname(
                     packagename,
-                    targetname) in SCons.Script.BUILD_TARGETS or packagename in SCons.Script.BUILD_TARGETS
+                    targetname) in BUILD_TARGETS or packagename in BUILD_TARGETS
             logger.warning(
                 '%s (referenced by [%s])%s',
                 ex,
-                SConsider.generateFulltargetname(packagename, targetname),
+                self.registry.createFulltargetname(packagename, targetname),
                 ', ignoring as requested' if not raise_again else '',
                 exc_info=False)
             if raise_again:
@@ -333,7 +333,7 @@ class TargetMaker(object):
 
             includePublicSubdir = buildSettings['public'].get('includeSubdir',
                                                               '')
-            if SCons.Util.is_String(includePublicSubdir):
+            if is_String(includePublicSubdir):
                 includePublicSubdir = self.registry.getPackageDir(
                     packagename).Dir(includePublicSubdir)
 
@@ -349,7 +349,7 @@ class TargetMaker(object):
             try:
                 strTargetType = plaintarget.builder.get_name(plaintarget.env)
                 if strTargetType.find('Library') != -1:
-                    libname = SomeUtils.multiple_replace([
+                    libname = multiple_replace([
                         ('^' + re.escape(env.subst("$LIBPREFIX")), ''),
                         (re.escape(env.subst("$LIBSUFFIX")) + '$', ''),
                         ('^' + re.escape(env.subst("$SHLIBPREFIX")), ''),

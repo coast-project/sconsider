@@ -19,7 +19,7 @@ its dependencies to other 'eclipse' project files.
 from __future__ import with_statement
 import os
 import uuid
-import PackageRegistry
+from PackageRegistry import PackageRegistry
 from xml.etree.ElementTree import ElementTree, Element
 
 
@@ -45,8 +45,7 @@ def getProjectNameFromProjectFile(projectFile):
 def determineProjectDependencies(dependencyDict, registry, topPath):
     project_dependencies = set()
     for fulltargetname, depDict in dependencyDict.iteritems():
-        packagename, _ = PackageRegistry.PackageRegistry.splitFulltargetname(
-            fulltargetname)
+        packagename, _ = PackageRegistry.splitFulltargetname(fulltargetname)
         packagePath = registry.getPackageDir(packagename).get_abspath()
         projectFilePath = determineProjectFilePath(packagePath, topPath)
         projectName = getProjectNameFromProjectFile(projectFilePath)
@@ -61,21 +60,21 @@ dependencies = {}
 
 
 def rememberWorkingSet(registry, packagename, buildSettings, **kw):
-    import SCons
+    from SCons.Script import Dir
 
     dependencyDict = registry.getPackageDependencies(packagename)
     dependencies[packagename] = determineProjectDependencies(
-        dependencyDict, registry, SCons.Script.Dir('#').srcnode().get_abspath())
+        dependencyDict, registry, Dir('#').srcnode().get_abspath())
 
 
 def writeWorkingSets(**kw):
-    import SCons
+    from SCons.Script import GetOption, Dir
 
-    workspacePath = os.path.abspath(SCons.Script.GetOption("workspace"))
+    workspacePath = os.path.abspath(GetOption("workspace"))
     workingsetsPath = os.path.join(workspacePath, '.metadata', '.plugins',
                                    'org.eclipse.ui.workbench')
     if not os.path.isdir(workingsetsPath):
-        workingsetsPath = SCons.Script.Dir('#').srcnode().get_abspath()
+        workingsetsPath = Dir('#').srcnode().get_abspath()
 
     fname = os.path.join(workingsetsPath, 'workingsets.xml')
     xmldeps = fromXML(fname)

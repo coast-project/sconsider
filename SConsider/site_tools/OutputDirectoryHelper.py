@@ -153,14 +153,12 @@ def generate(env):
         type='string',
         default=_baseout_dir_default,
         metavar='DIR',
-        help='Directory to store build target files. Helps keeping your source\
-     directory clean, default="' + Dir(_baseout_dir_default).get_abspath() +
-        '"')
+        help='Directory to store build target files. Helps keeping your source directory clean, default="'
+        + Dir(_baseout_dir_default).get_abspath() + '"')
 
     # ensure we have getBitwidth() available
     if 'setupBuildTools' not in env['TOOLS']:
-        raise SCons.Errors.UserError('setupBuildTools is required for\
- initialization')
+        raise UserError('setupBuildTools is required for initialization')
 
     baseoutdir = Dir(GetOption('baseoutdir'))
     verifyBaseoutDirWritable(baseoutdir)

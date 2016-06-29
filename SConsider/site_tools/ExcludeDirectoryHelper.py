@@ -15,8 +15,8 @@ target creation.
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
 
-from SCons.Script import Dir, AddOption
 import os
+from SCons.Script import Dir, AddOption
 from logging import getLogger
 logger = getLogger(__name__)
 
@@ -26,7 +26,11 @@ relativeExcludeDirsList = ['CVS', '.git', '.gitmodules', '.svn']
 def prePackageCollection(env, **kw):
     from SCons.Tool import DefaultToolpath
     """We assume no sconsider files within tool directories"""
-    for exclude_path in env.GetOption('exclude') + DefaultToolpath:
+    exclude_list = env.GetOption('exclude')
+    if exclude_list is None:
+        exclude_list = []
+    exclude_list.extend(DefaultToolpath)
+    for exclude_path in exclude_list:
         absolute_path = exclude_path
         if not os.path.isabs(exclude_path):
             absolute_path = Dir(exclude_path).get_abspath()

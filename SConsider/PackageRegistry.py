@@ -211,16 +211,16 @@ class PackageRegistry(object):
         return self.packages.keys()
 
     def setPackageTarget(self, packagename, targetname, plaintarget, target):
-        import SCons
+        from SCons.Util import is_List
         if not self.hasPackage(packagename):
             logger.warning(
                 'tried to register target [%s] for non existent package [%s]',
                 targetname, packagename)
             return
         theTargets = self.packages[packagename].setdefault('targets', {})
-        if plaintarget and SCons.Util.is_List(plaintarget):
+        if plaintarget and is_List(plaintarget):
             plaintarget = plaintarget[0]
-        if target and SCons.Util.is_List(target):
+        if target and is_List(target):
             target = target[0]
         if not target:
             target = plaintarget
