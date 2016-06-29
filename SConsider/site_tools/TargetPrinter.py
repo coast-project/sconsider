@@ -101,7 +101,7 @@ def printTree(registry, buildTargets, **kw):
 
 
 def generate(env):
-    from SConsider import registerCallback
+    from SConsider.Callback import Callback
     """Add the options, builders and wrappers to the current Environment."""
     try:
         AddOption('--showtargets',
@@ -123,9 +123,9 @@ def generate(env):
         pass
 
     if GetOption("showtargets"):
-        registerCallback("PreBuild", printTargets)
+        Callback().register("PreBuild", printTargets)
     if GetOption("showtree"):
-        registerCallback("PreBuild", printTree)
+        Callback().register("PreBuild", printTree)
 
 
 def exists(env):

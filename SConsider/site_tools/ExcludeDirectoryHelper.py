@@ -39,7 +39,7 @@ def prePackageCollection(env, **kw):
 
 
 def generate(env):
-    from SConsider import registerCallback
+    from SConsider.Callback import Callback
 
     AddOption('--exclude',
               dest='exclude',
@@ -59,7 +59,7 @@ def generate(env):
     env.AddMethod(lambda env: env['EXCLUDE_DIRS_TOPLEVEL'],
                   'toplevelExcludeDirs')
 
-    registerCallback('PrePackageCollection', prePackageCollection)
+    Callback().register('PrePackageCollection', prePackageCollection)
 
 
 def exists(env):

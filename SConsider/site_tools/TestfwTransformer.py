@@ -279,8 +279,8 @@ def callPostTest(target, registry, packagename, targetname, logfile, **kw):
 
 
 def generate(env):
-    import RunBuilder
-    RunBuilder.registerCallback("PostTest", callPostTest)
+    from SConsider.Callback import Callback
+    Callback().register("PostTest", callPostTest)
 
 
 def exists(env):

@@ -15,9 +15,8 @@ SConsider-specific 3rdparty library handling
 # -------------------------------------------------------------------------
 
 import os
-import SCons
-from SCons.Script import Clean
 from logging import getLogger
+from SCons.Script import Clean, Dir, GetOption, AddOption, Exit
 logger = getLogger(__name__)
 
 thirdPartyPackages = {}
@@ -43,7 +42,7 @@ def collectPackages(directory, direxcludesrel=None):
     packages = {}
 
     def scanmatchfun(root, filename, match):
-        dirobj = SCons.Script.Dir(root)
+        dirobj = Dir(root)
         fileobj = dirobj.File(filename)
         if 0:
             logger.debug('found package [%s](%s) in [%s]',
@@ -71,7 +70,9 @@ def registerDist(registry, packagename, package, distType, distDir, duplicate):
 
 
 def postPackageCollection(env, registry, **kw):
-    thirdPartyPathList = SCons.Script.GetOption('3rdparty')
+    thirdPartyPathList = GetOption('3rdparty')
+    if thirdPartyPathList is None:
+        thirdPartyPathList = []
     packages = {}
     for packageDir in thirdPartyPathList:
         packages.update(collectPackages(packageDir, env.relativeExcludeDirs()))
@@ -82,45 +83,43 @@ def postPackageCollection(env, registry, **kw):
                            packagename,
                            package.items()[0][1].get_dir().get_abspath())
             continue
-        SCons.Script.AddOption(
-            '--with-src-' + packagename,
-            dest='with-src-' + packagename,
-            action='store',
-            default='',
-            metavar=packagename + '_SOURCEDIR',
-            help='Specify the ' + packagename + ' source directory')
-        SCons.Script.AddOption(
+        AddOption('--with-src-' + packagename,
+                  dest='with-src-' + packagename,
+                  action='store',
+                  default='',
+                  metavar=packagename + '_SOURCEDIR',
+                  help='Specify the ' + packagename + ' source directory')
+        AddOption(
             '--with-bin-' + packagename,
             dest='with-bin-' + packagename,
             action='store',
             default='',
             metavar=packagename + '_DIR',
             help='Specify the ' + packagename + ' legacy binary directory')
-        SCons.Script.AddOption(
-            '--with-' + packagename,
-            dest='with-' + packagename,
-            action='store',
-            default='',
-            metavar=packagename + '_DIR',
-            help='Specify the ' + packagename + ' binary directory')
+        AddOption('--with-' + packagename,
+                  dest='with-' + packagename,
+                  action='store',
+                  default='',
+                  metavar=packagename + '_DIR',
+                  help='Specify the ' + packagename + ' binary directory')
 
-        libpath = SCons.Script.GetOption('with-src-' + packagename)
+        libpath = GetOption('with-src-' + packagename)
         if libpath:
             if 'src' not in package:
                 logger.error(
                     'Third party source distribution definition for %s not found, aborting!',
                     packagename)
-                SCons.Script.Exit(1)
+                Exit(1)
             registerDist(registry, packagename, package, 'src',
                          env.Dir(libpath), True)
         else:
-            distpath = SCons.Script.GetOption('with-bin-' + packagename)
+            distpath = GetOption('with-bin-' + packagename)
             if distpath:
                 if 'bin' not in package:
                     logger.error(
                         'Third party binary distribution definition for %s not found, aborting!',
                         packagename)
-                    SCons.Script.Exit(1)
+                    Exit(1)
                 registerDist(registry, packagename, package, 'bin',
                              env.Dir(distpath), False)
             else:
@@ -128,8 +127,8 @@ def postPackageCollection(env, registry, **kw):
                     logger.error(
                         'Third party system definition for %s not found, aborting!',
                         packagename)
-                    SCons.Script.Exit(1)
-                path = SCons.Script.GetOption('with-' + packagename)
+                    Exit(1)
+                path = GetOption('with-' + packagename)
                 if path:
                     baseDir = env.Dir(path)
                     env.AppendUnique(LIBPATH=baseDir.Dir('lib'))
@@ -158,19 +157,18 @@ def prePackageCollection(env):
 
 
 def generate(env):
-    import SCons.Script
-    from SConsider import _base_path, registerCallback
+    from SConsider import _base_path
+    from SConsider.Callback import Callback
     siteDefault3rdparty = os.path.join(_base_path, '3rdparty')
-    SCons.Script.AddOption(
-        '--3rdparty',
-        dest='3rdparty',
-        action='append',
-        default=[siteDefault3rdparty],
-        help='Specify directory containing package files for third party\
+    AddOption('--3rdparty',
+              dest='3rdparty',
+              action='append',
+              default=[siteDefault3rdparty],
+              help='Specify directory containing package files for third party\
  libraries, default=["' + siteDefault3rdparty + '"]')
 
-    registerCallback('PostPackageCollection', postPackageCollection)
-    registerCallback('PrePackageCollection', prePackageCollection)
+    Callback().register('PostPackageCollection', postPackageCollection)
+    Callback().register('PrePackageCollection', prePackageCollection)
 
 
 def exists(env):

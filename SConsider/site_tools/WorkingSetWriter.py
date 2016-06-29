@@ -130,17 +130,17 @@ def toXML(deps, filename):
 
 
 def generate(env):
-    import SCons
-    import SConsider
+    from SCons.Script import AddOption
+    from SConsider.Callback import Callback
 
-    SCons.Script.AddOption('--workspace',
-                           dest='workspace',
-                           action='store',
-                           default='',
-                           help='Select workspace directory')
+    AddOption('--workspace',
+              dest='workspace',
+              action='store',
+              default='',
+              help='Select workspace directory')
 
-    SConsider.registerCallback('PostCreatePackageTargets', rememberWorkingSet)
-    SConsider.registerCallback('PreBuild', writeWorkingSets)
+    Callback().register('PostCreatePackageTargets', rememberWorkingSet)
+    Callback().register('PreBuild', writeWorkingSets)
 
 
 def exists(env):

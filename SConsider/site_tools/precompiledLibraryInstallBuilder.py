@@ -295,7 +295,7 @@ def prePackageCollection(env):
 
 
 def generate(env):
-    from SConsider import registerCallback
+    from SConsider.Callback import Callback
     SymbolicLinkAction = SCons.Action.Action(
         createSymLink, "Generating symbolic link for '$SOURCE' as '$TARGET'")
     SymbolicLinkBuilder = SCons.Builder.Builder(action=[SymbolicLinkAction])
@@ -316,7 +316,7 @@ def generate(env):
                                               single_source=False)
 
     env.Append(BUILDERS={'PrecompiledBinaryInstallBuilder': PrecompBinBuilder})
-    registerCallback('PrePackageCollection', prePackageCollection)
+    Callback().register('PrePackageCollection', prePackageCollection)
 
 
 def exists(env):

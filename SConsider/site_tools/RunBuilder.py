@@ -29,13 +29,11 @@ import SCons.Builder
 import SCons.Script
 from SCons.Script import AddOption, GetOption
 from SConsider.PackageRegistry import PackageRegistry
-import Callback
+from SConsider.Callback import Callback
 from SConsider.SomeUtils import hasPathPart, isFileNode, isDerivedNode,\
     getNodeDependencies
 from logging import getLogger
 logger = getLogger(__name__)
-
-Callback.addCallbackFeature(__name__)
 
 runtargets = {}
 
@@ -144,15 +142,15 @@ def doTest(target, source, env):
     if res == 0:
         with open(target[0].get_abspath(), 'w') as f:
             f.write("PASSED\n")
-    runCallback('__PostTestOrRun')
-    runCallback('__PostAction_' + str(id(target[0])))
+    Callback().run('__PostTestOrRun')
+    Callback().run('__PostAction_' + str(id(target[0])))
     return res
 
 
 def doRun(target, source, env):
     res = execute(source[0].get_abspath(), env)
-    runCallback('__PostTestOrRun')
-    runCallback('__PostAction_' + str(id(target[0])))
+    Callback().run('__PostTestOrRun')
+    Callback().run('__PostAction_' + str(id(target[0])))
     return res
 
 
@@ -191,7 +189,7 @@ def addRunConfigHooks(env, source, runner, buildSettings):
         env.AddPreAction(runner, SCons.Action.Action(
             wrapSetUp(setUp), lambda *args, **kw: ''))
     if callable(tearDown):
-        registerCallback(
+        Callback().register(
             '__PostAction_' + str(id(runner[0])),
             lambda: tearDown(target=runner, source=source, env=env))
 
@@ -245,9 +243,9 @@ def createTestTarget(env,
 
     addRunConfigHooks(env, source, runner, buildSettings)
 
-    registerCallback(
+    Callback().register(
         '__PostTestOrRun',
-        lambda: runCallback(
+        lambda: Callback().run(
             'PostTest',
             target=source,
             registry=registry,
@@ -297,9 +295,9 @@ def createRunTarget(env,
 
     addRunConfigHooks(env, source, runner, buildSettings)
 
-    registerCallback(
+    Callback().register(
         '__PostTestOrRun',
-        lambda: runCallback(
+        lambda: Callback().run(
             'PostRun',
             target=source,
             registry=registry,
@@ -393,8 +391,8 @@ def generate(env):
                                                          targetname))
 
     if GetOption("run") or GetOption("run-force"):
-        SConsider.registerCallback("PostCreateTarget", createTargetCallback)
-        SConsider.registerCallback("PreBuild", addBuildTargetCallback)
+        Callback().register("PostCreateTarget", createTargetCallback)
+        Callback().register("PreBuild", addBuildTargetCallback)
 
 
 def exists(env):

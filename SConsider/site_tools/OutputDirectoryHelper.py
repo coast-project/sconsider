@@ -141,7 +141,7 @@ def prePackageCollection(env, **kw):
 
 
 def generate(env):
-    from SConsider import registerCallback
+    from SConsider.Callback import Callback
     _baseout_dir_default = '#'
     _builddirrel = '.build'
 
@@ -187,7 +187,7 @@ def generate(env):
     env.AddMethod(getLibraryInstallDir, 'getLibraryInstallDir')
     env.AddMethod(getScriptInstallDir, 'getScriptInstallDir')
     env.AddMethod(getLogInstallDir, 'getLogInstallDir')
-    registerCallback('PrePackageCollection', prePackageCollection)
+    Callback().register('PrePackageCollection', prePackageCollection)
 
 
 def exists(env):

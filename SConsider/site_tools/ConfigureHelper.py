@@ -64,11 +64,11 @@ def prePackageCollection(env, **kw):
 
 
 def generate(env):
-    from SConsider import registerCallback
+    from SConsider.Callback import Callback
     env['CONFIGURELOG'] = env.getBaseOutDir().File("config.log").get_abspath()
     env['CONFIGUREDIR'] = env.getBaseOutDir().Dir(
         _sconf_tempdirrel).get_abspath()
-    registerCallback('PrePackageCollection', prePackageCollection)
+    Callback().register('PrePackageCollection', prePackageCollection)
 
 
 def exists(env):

@@ -21,7 +21,7 @@ from logging import getLogger
 import SCons
 from SCons.Script import Dir, File, GetOption
 import SomeUtils
-import SConsider
+from SConsider.Callback import Callback
 from SConsider.PackageRegistry import TargetNotFound, PackageNotFound, PackageRequirementsNotFulfilled
 logger = getLogger(__name__)
 
@@ -224,14 +224,14 @@ class TargetMaker(object):
                                                             '') == 'test':
                 targetEnv.Alias('tests', target)
 
-            SConsider.runCallback("PostCreateTarget",
-                                  env=targetEnv,
-                                  target=target,
-                                  plaintarget=plaintarget,
-                                  registry=self.registry,
-                                  packagename=packagename,
-                                  targetname=targetname,
-                                  buildSettings=targetBuildSettings)
+            Callback().run("PostCreateTarget",
+                           env=targetEnv,
+                           target=target,
+                           plaintarget=plaintarget,
+                           registry=self.registry,
+                           packagename=packagename,
+                           targetname=targetname,
+                           buildSettings=targetBuildSettings)
 
             self.registry.setPackageTarget(packagename, targetname, plaintarget,
                                            target)
@@ -256,8 +256,9 @@ class TargetMaker(object):
             return False
 
     def createTargetEnv(self, _, targetBuildSettings, envVars=None):
+        from SConsider import cloneBaseEnv
         # create environment for target
-        targetEnv = SConsider.cloneBaseEnv()
+        targetEnv = cloneBaseEnv()
 
         # maybe we need to add this library's local include path when building
         # it (if different from .)

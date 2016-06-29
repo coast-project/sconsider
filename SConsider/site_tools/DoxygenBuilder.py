@@ -782,13 +782,14 @@ def generate(env):
         addBuildTargetCallback()
 
     if GetOption("doxygen") or GetOption("doxygen-only"):
+        from SConsider.Callback import Callback
         compilerDefines.update(determineCompilerDefines(env))
         if not SCons.Script.BUILD_TARGETS or 'all' in SCons.Script.BUILD_TARGETS:
-            SConsider.registerCallback("PreBuild", addBuildAllTargetCallback)
+            Callback().register("PreBuild", addBuildAllTargetCallback)
         else:
-            SConsider.registerCallback("PostCreatePackageTargets",
-                                       createTargetCallback)
-            SConsider.registerCallback("PreBuild", addBuildTargetCallback)
+            Callback().register("PostCreatePackageTargets",
+                                createTargetCallback)
+            Callback().register("PreBuild", addBuildTargetCallback)
 
 
 def exists(env):

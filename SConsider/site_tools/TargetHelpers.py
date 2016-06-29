@@ -147,8 +147,8 @@ def generate(env):
     env.AddMethod(installPrecompiledBinary, "PrecompiledBinary")
     env.AddMethod(installPrecompiledLibrary, "PrecompiledLibrary")
     env.AddMethod(installBinary, "InstallBinary")
-    from SConsider import registerCallback
-    registerCallback('PrePackageCollection', prePackageCollection)
+    from SConsider.Callback import Callback
+    Callback().register('PrePackageCollection', prePackageCollection)
 
 
 def exists(env):

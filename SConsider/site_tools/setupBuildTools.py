@@ -22,8 +22,7 @@ from SCons.Script import AddOption, GetOption
 from logging import getLogger
 logger = getLogger(__name__)
 
-import Callback
-Callback.addCallbackFeature(__name__)
+from SConsider.Callback import Callback
 
 cxxCompiler = None
 ccCompiler = None

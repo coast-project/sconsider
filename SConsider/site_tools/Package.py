@@ -214,15 +214,16 @@ def generate(env):
 
     destination = SCons.Script.GetOption('package')
     if destination:
+        from SConsider.Callback import Callback
         if not os.path.isdir(destination):
             SCons.Script.Main.OptionsParser.error(
                 "given package destination path [{0}] doesn't exist".format(
                     destination))
         else:
-            SConsider.registerCallback("PreBuild",
-                                       addPackageTarget,
-                                       env=env,
-                                       destdir=SCons.Script.Dir(destination))
+            Callback().register("PreBuild",
+                                addPackageTarget,
+                                env=env,
+                                destdir=SCons.Script.Dir(destination))
 
 
 def exists(env):

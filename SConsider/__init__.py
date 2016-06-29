@@ -36,7 +36,7 @@ from SCons.Script import AddOption, GetOption, Dir, File, DefaultEnvironment,\
 from SCons.Tool import DefaultToolpath
 from SConsider.SomeUtils import listFiles, findFiles, removeFiles,\
     getfqdn
-from SConsider.Callback import addCallbackFeature
+from SConsider.Callback import Callback
 from SConsider.Logging import setup_logging
 from SConsider.PackageRegistry import PackageRegistry, PackageNotFound, TargetNotFound, PackageRequirementsNotFulfilled
 from ._version import get_versions
@@ -52,8 +52,6 @@ sys.path[:0] = [_base_path]
 
 setup_logging(os.path.join(_base_path, 'logging.yaml'))
 logger = getLogger(__name__)
-# add callback feature early as it might be used from tools
-addCallbackFeature(__name__)
 
 SCons.Script.EnsureSConsVersion(2, 3, 0)
 SCons.Script.EnsurePythonVersion(2, 6)
@@ -174,8 +172,7 @@ SConsignFile(ssfile)
 # FIXME: move to some link helper?
 baseEnv.AppendUnique(LIBPATH=[baseEnv.getLibraryInstallDir()])
 
-logger.debug("calling PrePackageCollection callback")
-runCallback('PrePackageCollection', env=baseEnv)
+Callback().run('PrePackageCollection', env=baseEnv)
 logger.debug("Exclude dirs rel: %s", baseEnv.relativeExcludeDirs())
 logger.debug("Exclude dirs abs: %s", baseEnv.absoluteExcludeDirs())
 logger.debug("Exclude dirs toplevel: %s", baseEnv.toplevelExcludeDirs())
@@ -219,8 +216,7 @@ def getRegistry():
 baseEnv.AddMethod(PackageRegistry.loadNode, 'LoadNode')
 baseEnv.lookup_list.insert(0, packageRegistry.lookup)
 
-logger.debug("calling PostPackageCollection callback")
-runCallback('PostPackageCollection', env=baseEnv, registry=packageRegistry)
+Callback().run('PostPackageCollection', env=baseEnv, registry=packageRegistry)
 
 
 def createTargets(pkg_name, buildSettings):
@@ -240,10 +236,10 @@ def createTargets(pkg_name, buildSettings):
     if not tmk.createTargets():
         return
     SCons.Script.Default(pkg_name)
-    runCallback("PostCreatePackageTargets",
-                registry=packageRegistry,
-                packagename=pkg_name,
-                buildSettings=buildSettings)
+    Callback().run("PostCreatePackageTargets",
+                   registry=packageRegistry,
+                   packagename=pkg_name,
+                   buildSettings=buildSettings)
 
 
 logger.info("Loading packages and their targets ...")
@@ -314,9 +310,9 @@ except (PackageNotFound, TargetNotFound, PackageRequirementsNotFulfilled) as ex:
 
 # <!NOTE: buildTargets is passed by reference and might be extended
 # in callback functions!
-runCallback("PreBuild",
-            registry=packageRegistry,
-            buildTargets=SCons.Script.BUILD_TARGETS)
+Callback().run("PreBuild",
+               registry=packageRegistry,
+               buildTargets=SCons.Script.BUILD_TARGETS)
 
 logger.info('BUILD_TARGETS is %s',
             sorted([str(item) for item in SCons.Script.BUILD_TARGETS]))
