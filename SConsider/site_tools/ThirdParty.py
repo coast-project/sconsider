@@ -160,12 +160,13 @@ def generate(env):
     from SConsider import _base_path
     from SConsider.Callback import Callback
     siteDefault3rdparty = os.path.join(_base_path, '3rdparty')
-    AddOption('--3rdparty',
-              dest='3rdparty',
-              action='append',
-              default=[siteDefault3rdparty],
-              help='Specify directory containing package files for third party\
- libraries, default=["' + siteDefault3rdparty + '"]')
+    AddOption(
+        '--3rdparty',
+        dest='3rdparty',
+        action='append',
+        default=[siteDefault3rdparty],
+        help='Specify directory containing package files for third party libraries, default=["'
+        + siteDefault3rdparty + '"]')
 
     Callback().register('PostPackageCollection', postPackageCollection)
     Callback().register('PrePackageCollection', prePackageCollection)

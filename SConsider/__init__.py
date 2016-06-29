@@ -283,7 +283,7 @@ try:
             buildtargets[buildtargets.index('.')] = builddir
 
         for ftname in buildtargets:
-            packagename, targetname = packageRegistry.splitFulltargetname(
+            packagename, targetname = PackageRegistry.splitFulltargetname(
                 ftname)
             tryLoadPackageTarget(packagename, targetname)
 

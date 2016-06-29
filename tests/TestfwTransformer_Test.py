@@ -14,7 +14,6 @@ from mockito import *
 
 
 class TestfwTranformerStateMachineTest(unittest.TestCase):
-
     def setUp(self):
         self.parser = TestfwTransformer.Parser()
         self.started = mock(TestfwTransformer.StartedState)
@@ -34,21 +33,17 @@ class TestfwTranformerStateMachineTest(unittest.TestCase):
         verify(self.ended).start(line=line, name='StringTokenizer2Test')
 
     def testParserStartedEnd(self):
-        when(
-            self.started).end(
-            tests=any(),
-            assertions=any(),
-            msecs=any(),
-            line=any()).thenReturn(None)
+        when(self.started).end(tests=any(),
+                               assertions=any(),
+                               msecs=any(),
+                               line=any()).thenReturn(None)
         self.parser.setState('started')
         line = "OK (12 tests 23 assertions 537 ms)"
         self.parser.parseLine(line)
-        verify(
-            self.started).end(
-            line=line,
-            tests='12',
-            assertions='23',
-            msecs='537')
+        verify(self.started).end(line=line,
+                                 tests='12',
+                                 assertions='23',
+                                 msecs='537')
 
     def testParserStartedFail(self):
         when(self.started).fail(line=any()).thenReturn(None)
@@ -72,21 +67,17 @@ class TestfwTranformerStateMachineTest(unittest.TestCase):
         verify(self.started).handle(line)
 
     def testParserStartedStop(self):
-        when(
-            self.started).stop(
-            assertions=any(),
-            msecs=any(),
-            failures=any(),
-            line=any()).thenReturn(None)
+        when(self.started).stop(assertions=any(),
+                                msecs=any(),
+                                failures=any(),
+                                line=any()).thenReturn(None)
         self.parser.setState('started')
         line = "5 assertions 58 ms 2 failures"
         self.parser.parseLine(line)
-        verify(
-            self.started).stop(
-            line=line,
-            assertions="5",
-            msecs="58",
-            failures="2")
+        verify(self.started).stop(line=line,
+                                  assertions="5",
+                                  msecs="58",
+                                  failures="2")
 
     def testParserFailedStart(self):
         when(self.failed).start(name=any(), line=any()).thenReturn(None)
@@ -96,62 +87,49 @@ class TestfwTranformerStateMachineTest(unittest.TestCase):
         verify(self.failed).start(line=line, name='StringTokenizer2Test')
 
     def testParserFailedStop(self):
-        when(
-            self.failed).stop(
-            assertions=any(),
-            msecs=any(),
-            failures=any(),
-            line=any()).thenReturn(None)
+        when(self.failed).stop(assertions=any(),
+                               msecs=any(),
+                               failures=any(),
+                               line=any()).thenReturn(None)
         self.parser.setState('failed')
         line = "5 assertions 58 ms 2 failures"
         self.parser.parseLine(line)
-        verify(
-            self.failed).stop(
-            line=line,
-            assertions="5",
-            msecs="58",
-            failures="2")
+        verify(self.failed).stop(line=line,
+                                 assertions="5",
+                                 msecs="58",
+                                 failures="2")
 
     def testParserFailedFailResult(self):
-        when(
-            self.failed).failResult(
-            line=any(),
-            runs=any(),
-            failures=any(),
-            errors=any()).thenReturn(None)
+        when(self.failed).failResult(line=any(),
+                                     runs=any(),
+                                     failures=any(),
+                                     errors=any()).thenReturn(None)
         self.parser.setState('failed')
         line = "Run 55 Failure 1 Error 2"
         self.parser.parseLine(line)
-        verify(
-            self.failed).failResult(
-            line=line,
-            runs="55",
-            failures="1",
-            errors="2")
+        verify(self.failed).failResult(line=line,
+                                       runs="55",
+                                       failures="1",
+                                       errors="2")
 
     def testParserFailedFailSuccess(self):
-        when(
-            self.failed).failSuccess(
-            line=any(),
-            assertions=any(),
-            msecs=any()).thenReturn(None)
+        when(self.failed).failSuccess(line=any(),
+                                      assertions=any(),
+                                      msecs=any()).thenReturn(None)
         self.parser.setState('failed')
         line = "(2 assertions 35 ms)"
         self.parser.parseLine(line)
         verify(self.failed).failSuccess(line=line, assertions="2", msecs="35")
 
     def testParserFailedFailStartFailure(self):
-        when(
-            self.failed).failStartFailure(
-            line=any(),
-            testcase=any(),
-            message=any(),
-            cause=any()).thenReturn(None)
+        when(self.failed).failStartFailure(line=any(),
+                                           testcase=any(),
+                                           message=any(),
+                                           cause=any()).thenReturn(None)
         self.parser.setState('failed')
         line = "21) SystemTest: File.cpp:123: this is the cause"
         self.parser.parseLine(line)
-        verify(
-            self.failed).failStartFailure(
+        verify(self.failed).failStartFailure(
             line=line,
             testcase="SystemTest",
             message="File.cpp:123: this is the cause",

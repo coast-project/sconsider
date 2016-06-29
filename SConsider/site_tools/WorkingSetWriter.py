@@ -59,7 +59,7 @@ def determineProjectDependencies(dependencyDict, registry, topPath):
 dependencies = {}
 
 
-def rememberWorkingSet(registry, packagename, buildSettings, **kw):
+def rememberWorkingSet(registry, packagename, **kw):
     from SCons.Script import Dir
 
     dependencyDict = registry.getPackageDependencies(packagename)

@@ -13,7 +13,6 @@ from Callback import Callback
 
 
 class CallbackTest(unittest.TestCase):
-
     def setUp(self):
         self.result = None
 

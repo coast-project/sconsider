@@ -19,7 +19,6 @@ import os
 
 
 class StartStopMixin(object):
-
     def __init__(self, poll_interval):
         self._thread = None
         self.poll_interval = poll_interval
@@ -27,7 +26,7 @@ class StartStopMixin(object):
 
     def start(self):
         self._thread = t = threading.Thread(target=self.serve_forever,
-                                            args=(self.poll_interval,))
+                                            args=(self.poll_interval, ))
         t.setDaemon(True)
         t.start()
 
@@ -43,30 +42,19 @@ class StartStopMixin(object):
 
 
 class StoppableHttpServer(StartStopMixin, SecureHTTPServer):
-
     def __init__(self, addr, bucket, poll_interval=0.5):
-
         class SecureHTTPRequestHandler(SimpleHTTPRequestHandler):
-
             def setup(self):
                 self.connection = self.request
-                self.rfile = socket._fileobject(
-                    self.request,
-                    "rb",
-                    self.rbufsize)
-                self.wfile = socket._fileobject(
-                    self.request,
-                    "wb",
-                    self.wbufsize)
+                self.rfile = socket._fileobject(self.request, "rb",
+                                                self.rbufsize)
+                self.wfile = socket._fileobject(self.request, "wb",
+                                                self.wbufsize)
 
         self.bucket = bucket
         pem_file_name = os.path.join(os.path.dirname(__file__), "server.pem")
-        SecureHTTPServer.__init__(
-            self,
-            addr,
-            SecureHTTPRequestHandler,
-            pem_file_name,
-            pem_file_name)
+        SecureHTTPServer.__init__(self, addr, SecureHTTPRequestHandler,
+                                  pem_file_name, pem_file_name)
         StartStopMixin.__init__(self, poll_interval)
 
     def process_request(self, request, client_address):
@@ -80,7 +68,7 @@ class StoppableHttpServer(StartStopMixin, SecureHTTPServer):
             self.shutdown_request(request)
         except:
             import sys
-            (etype,) = sys.exc_info()[:2]
+            (etype, ) = sys.exc_info()[:2]
             if etype is TypeError:
                 self.bucket.put(sys.exc_info())
         finally:
@@ -106,10 +94,8 @@ class SecureHTTPServerTest(unittest.TestCase):
         try:
             import ssl
             try:
-                urllib.urlopen(
-                    'https://%s:%d/' %
-                    self.server_address,
-                    context=ssl._create_unverified_context())
+                urllib.urlopen('https://%s:%d/' % self.server_address,
+                               context=ssl._create_unverified_context())
             except (TypeError, AttributeError):
                 # old version does not take a context argument
                 # or _create_unverified_context might not be defined in ssl

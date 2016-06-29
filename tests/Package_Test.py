@@ -14,7 +14,6 @@ import SomeUtils
 
 
 class UpdateableObject(object):
-
     def __init__(self, **kw):
         self.update(kw)
 
@@ -24,7 +23,6 @@ class UpdateableObject(object):
 
 
 class ExecutorStub(object):
-
     def __init__(self, targets):
         if not isinstance(targets, list):
             targets = [targets]
@@ -37,6 +35,7 @@ class ExecutorStub(object):
 class EnvWrapper(dict):
     def __init__(self, values):
         super(EnvWrapper, self).__init__(values)
+
     def getRelativeVariantDirectory(self):
         return self['VARIANTDIR']
 
@@ -60,7 +59,6 @@ class TargetStub(UpdateableObject):
 
 
 class PackageToolTest(unittest.TestCase):
-
     def setUp(self):
         self.source1 = TargetStub(path="source1")
         self.source2 = TargetStub(path="source2")
@@ -68,61 +66,56 @@ class PackageToolTest(unittest.TestCase):
 
         self.blub = TargetStub(path="blub", sources=[self.source1])
         self.bla = TargetStub(path="bla", sources=[self.source1, self.source2])
-        self.bloek = TargetStub(
-            path="bloek",
-            sources=[
-                self.source2,
-                self.source3])
+        self.bloek = TargetStub(path="bloek",
+                                sources=[
+                                    self.source2, self.source3
+                                ])
 
-        self.alias = TargetStub(
-            sources=[
-                self.blub], depends=[
-                self.bla], prerequisites=[
-                self.bloek])
+        self.alias = TargetStub(sources=[
+            self.blub
+        ], depends=[
+            self.bla
+        ], prerequisites=[
+            self.bloek
+        ])
 
     def testTargetDependenciesAlias(self):
         deps = Package.getTargetDependencies(self.alias)
         self.assertEqual(len(deps), 6)
 
     def testDerivedTargetDependenciesZero(self):
-        deps = Package.getTargetDependencies(
-            self.alias,
-            SomeUtils.isDerivedNode)
+        deps = Package.getTargetDependencies(self.alias,
+                                             SomeUtils.isDerivedNode)
         self.assertEqual(len(deps), 0)
 
     def testDerivedTargetDependencies(self):
         self.blub.builder = object()
         self.bla.builder = object()
-        deps = Package.getTargetDependencies(
-            self.alias,
-            SomeUtils.isDerivedNode)
+        deps = Package.getTargetDependencies(self.alias,
+                                             SomeUtils.isDerivedNode)
         self.assertEqual(len(deps), 2)
 
     def testTargetDependenciesTarget(self):
         self.alias.path = "target1"
         self.alias.builder = object()
-        deps = Package.getTargetDependencies(
-            self.alias,
-            SomeUtils.isDerivedNode)
+        deps = Package.getTargetDependencies(self.alias,
+                                             SomeUtils.isDerivedNode)
         self.assertEqual(len(deps), 1)
 
 
 class InstalledNodeTest(unittest.TestCase):
-
     def setUp(self):
         self.node1 = TargetStub(path="3rdparty/blub")
-        self.node2 = TargetStub(
-            path="bin/blub",
-            sources=[
-                self.node1],
-            builder=UpdateableObject(
-                name='InstallBuilder'))
-        self.node3 = TargetStub(
-            path="tests/bla/bin/blub",
-            sources=[
-                self.node2],
-            builder=UpdateableObject(
-                name='InstallBuilder'))
+        self.node2 = TargetStub(path="bin/blub",
+                                sources=[
+                                    self.node1
+                                ],
+                                builder=UpdateableObject(name='InstallBuilder'))
+        self.node3 = TargetStub(path="tests/bla/bin/blub",
+                                sources=[
+                                    self.node2
+                                ],
+                                builder=UpdateableObject(name='InstallBuilder'))
         self.testnode = TargetStub(path="bin/blub")
 
     def testIsInstalledNode(self):
@@ -134,20 +127,16 @@ class InstalledNodeTest(unittest.TestCase):
 
 
 class PathFilterTest(unittest.TestCase):
-
     def setUp(self):
         self.path = "apps/package/bin/variant123/blub"
 
     def testFilterTestsAppsGlobalsPath(self):
         self.assertEqual(
-            Package.filterTestsAppsGlobalsPath(
-                self.path),
+            Package.filterTestsAppsGlobalsPath(self.path),
             "bin/variant123/blub")
 
     def testFilterVariantPath(self):
         env = EnvWrapper({'VARIANTDIR': 'variant123'})
         self.assertEqual(
-            Package.filterVariantPath(
-                self.path,
-                env=env),
+            Package.filterVariantPath(self.path, env=env),
             "apps/package/bin/blub")

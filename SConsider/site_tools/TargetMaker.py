@@ -18,8 +18,8 @@ import re
 import os
 import stat
 from logging import getLogger
-from SCons.Util import is_String, is_List
-from SCons.Script import Dir, File, GetOption, BUILD_TARGETS
+from SCons.Util import is_String, is_List, is_Tuple
+from SCons.Script import Dir, File, AddOption, GetOption, BUILD_TARGETS
 from SConsider.Callback import Callback
 from SomeUtils import copyFileNodes, multiple_replace
 from SConsider.PackageRegistry import TargetNotFound, PackageNotFound, PackageRequirementsNotFulfilled
@@ -361,7 +361,6 @@ class TargetMaker(object):
 
 
 def generate(env):
-    from SCons.Script import AddOption
     AddOption(
         '--ignore-missing',
         dest='ignore-missing',

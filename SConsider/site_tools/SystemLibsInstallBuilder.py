@@ -16,9 +16,9 @@ Tool to collect system libraries needed by an executable/shared library
 
 import os
 import threading
-import LibFinder
-from SCons.Errors import UserError
 from logging import getLogger
+from SCons.Errors import UserError
+import LibFinder
 logger = getLogger(__name__)
 
 # needs locking because it is manipulated during multi-threaded build phase
