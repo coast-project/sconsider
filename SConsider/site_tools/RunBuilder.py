@@ -24,10 +24,10 @@ import subprocess
 import optparse
 import sys
 import functools
-import SCons.Action
-import SCons.Builder
-import SCons.Script
-from SCons.Script import AddOption, GetOption
+from SCons.Action import Action
+from SCons.Builder import Builder
+from SCons.Script import AddOption, GetOption, COMMAND_LINE_TARGETS, BUILD_TARGETS
+from SCons.Util import is_List
 from SConsider.PackageRegistry import PackageRegistry
 from SConsider.Callback import Callback
 from SConsider.SomeUtils import hasPathPart, isFileNode, isDerivedNode,\
@@ -39,7 +39,7 @@ runtargets = {}
 
 
 def setTarget(packagename, targetname, target):
-    if SCons.Util.is_List(target) and len(target) > 0:
+    if is_List(target) and len(target) > 0:
         target = target[0]
     runtargets.setdefault(packagename, {})[targetname] = target
 
@@ -190,7 +190,7 @@ def addRunConfigHooks(env, source, runner, buildSettings):
     tearDown = runConfig.get('tearDown', '')
 
     if callable(setUp):
-        env.AddPreAction(runner, SCons.Action.Action(
+        env.AddPreAction(runner, Action(
             wrapSetUp(setUp), lambda *args, **kw: ''))
     if callable(tearDown):
         Callback().register(
@@ -201,7 +201,6 @@ def addRunConfigHooks(env, source, runner, buildSettings):
 def createTestTarget(env,
                      source,
                      plainsource,
-                     registry,
                      packagename,
                      targetname,
                      settings,
@@ -219,9 +218,9 @@ def createTestTarget(env,
 
     """
 
-    fullTargetName = registry.createFulltargetname(packagename, targetname)
-    source = registry.getRealTarget(source)
-    if not GetOption('run') and not GetOption('run-force'):
+    fullTargetName = PackageRegistry.createFulltargetname(packagename, targetname)
+    source = PackageRegistry().getRealTarget(source)
+    if not source or (not GetOption('run') and not GetOption('run-force')):
         return source
 
     logfile = env.getLogInstallDir().File(targetname + '.test.log')
@@ -250,7 +249,6 @@ def createTestTarget(env,
         lambda: Callback().run(
             'PostTest',
             target=source,
-            registry=registry,
             packagename=packagename,
             targetname=targetname,
             logfile=logfile))
@@ -264,7 +262,6 @@ def createTestTarget(env,
 def createRunTarget(env,
                     source,
                     plainsource,
-                    registry,
                     packagename,
                     targetname,
                     settings,
@@ -280,9 +277,9 @@ def createRunTarget(env,
 
     """
 
-    fullTargetName = registry.createFulltargetname(packagename, targetname)
-    source = registry.getRealTarget(source)
-    if not GetOption('run') and not GetOption('run-force'):
+    fullTargetName = PackageRegistry.createFulltargetname(packagename, targetname)
+    source = PackageRegistry().getRealTarget(source)
+    if not source or (not GetOption('run') and not GetOption('run-force')):
         return source
 
     logfile = env.getLogInstallDir().File(targetname + '.run.log')
@@ -298,7 +295,6 @@ def createRunTarget(env,
         lambda: Callback().run(
             'PostRun',
             target=source,
-            registry=registry,
             packagename=packagename,
             targetname=targetname,
             logfile=logfile))
@@ -311,7 +307,6 @@ def createRunTarget(env,
 def composeRunTargets(env,
                       source,
                       plainsource,
-                      registry,
                       packagename,
                       targetname,
                       settings,
@@ -319,10 +314,10 @@ def composeRunTargets(env,
     targets = []
     for ftname in settings.get('requires', []) + settings.get(
             'linkDependencies', []):
-        otherPackagename, otherTargetname = registry.splitFulltargetname(ftname)
+        otherPackagename, otherTargetname = PackageRegistry.splitFulltargetname(ftname)
         targets.extend(getTargets(otherPackagename, otherTargetname))
     return env.Alias(
-        'dummyRunner_' + registry.createFulltargetname(packagename, targetname),
+        'dummyRunner_' + PackageRegistry.createFulltargetname(packagename, targetname),
         targets)
 
 
@@ -347,15 +342,15 @@ def generate(env):
     except optparse.OptionConflictError:
         pass
 
-    TestAction = SCons.Action.Action(
+    TestAction = Action(
         doTest, "Running Test '$SOURCE'\n with runParams [$runParams]")
-    TestBuilder = SCons.Builder.Builder(action=[TestAction],
+    TestBuilder = Builder(action=[TestAction],
                                         emitter=emitPassedFile,
                                         single_source=True)
 
-    RunAction = SCons.Action.Action(
+    RunAction = Action(
         doRun, "Running Executable '$SOURCE'\n with runParams [$runParams]")
-    RunBuilder = SCons.Builder.Builder(action=[RunAction], single_source=True)
+    RunBuilder = Builder(action=[RunAction], single_source=True)
 
     env.Append(BUILDERS={'TestBuilder': TestBuilder})
     env.Append(BUILDERS={'RunBuilder': RunBuilder})
@@ -364,7 +359,7 @@ def generate(env):
     import SConsider
     SConsider.SkipTest = SkipTest
 
-    def createTargetCallback(env, target, plaintarget, registry, packagename,
+    def createTargetCallback(env, target, plaintarget, packagename,
                              targetname, buildSettings, **kw):
         runConfig = buildSettings.get('runConfig', {})
         if not runConfig:
@@ -377,15 +372,15 @@ def generate(env):
             factory = createTestTarget
         elif runType == 'composite':
             factory = composeRunTargets
-        runner = factory(env, target, plaintarget, registry, packagename,
+        runner = factory(env, target, plaintarget, packagename,
                          targetname, buildSettings, **kw)
         setTarget(packagename, targetname, runner)
 
     def addBuildTargetCallback(**kw):
-        for ftname in SCons.Script.COMMAND_LINE_TARGETS:
+        for ftname in COMMAND_LINE_TARGETS:
             packagename, targetname = PackageRegistry.splitFulltargetname(
                 ftname)
-            SCons.Script.BUILD_TARGETS.extend(getTargets(packagename,
+            BUILD_TARGETS.extend(getTargets(packagename,
                                                          targetname))
 
     if GetOption("run") or GetOption("run-force"):

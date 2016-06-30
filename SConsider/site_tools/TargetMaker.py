@@ -228,7 +228,6 @@ class TargetMaker(object):
                            env=targetEnv,
                            target=target,
                            plaintarget=plaintarget,
-                           registry=self.registry,
                            packagename=packagename,
                            targetname=targetname,
                            buildSettings=targetBuildSettings)

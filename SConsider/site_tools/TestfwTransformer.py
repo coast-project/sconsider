@@ -22,6 +22,7 @@ import re
 import socket
 import time
 from xmlbuilder import XMLBuilder
+from PackageRegistry import PackageRegistry
 
 
 class Result(object):
@@ -257,17 +258,15 @@ class Parser(object):
         return self.result
 
 
-def dependsOnTestfw(target, registry):
-    import SCons
-    if SCons.Util.is_List(target):
-        target = target[0]
-    plaintarget = registry.getPackagePlaintarget('testfw', 'testfw')
-    return 'testfw' in target.get_env()[
-        'LIBS'] or plaintarget.name in target.get_env()['LIBS']
+def dependsOnTestfw(target):
+    target = PackageRegistry().getRealTarget(target)
+    plaintarget = PackageRegistry().getPackagePlaintarget('testfw', 'testfw')
+    return 'testfw' in target.get_env()['LIBS'] or (
+        plaintarget and plaintarget.name in target.get_env()['LIBS'])
 
 
-def callPostTest(target, registry, packagename, targetname, logfile, **kw):
-    if dependsOnTestfw(target, registry):
+def callPostTest(target, packagename, targetname, logfile, **kw):
+    if dependsOnTestfw(target):
         parser = Parser()
         if os.path.isfile(logfile.get_abspath()):
             with open(logfile.get_abspath()) as f:
