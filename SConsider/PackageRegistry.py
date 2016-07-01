@@ -307,12 +307,18 @@ class PackageRegistry(object):
                 'buildsettings', {}).get(targetname, {})
 
     def __loadPackageTarget(self, loadfunc, packagename, targetname):
-        self.loadPackage(packagename)
-        target = loadfunc(packagename, targetname)
-        if targetname and not target:
-            raise TargetNotFound(self.createFulltargetname(packagename,
-                                                             targetname))
+        target = self.loadPackage(packagename, targetname)
+        if self.getPackageTargetNames(packagename):
+            target = loadfunc(packagename, targetname)
+            if targetname and not target:
+                raise TargetNotFound(self.createFulltargetname(packagename,
+                                                               targetname))
         return target
+
+    def loadPackage(self, packagename, targetname):
+        if not self.hasPackage(packagename):
+            raise PackageNotFound(packagename)
+        return self.lookup(self.createFulltargetname(packagename, targetname))
 
     def loadPackageTarget(self, packagename, targetname):
         return self.__loadPackageTarget(self.getPackageTarget, packagename,
@@ -380,11 +386,6 @@ class PackageRegistry(object):
     @staticmethod
     def loadNode(env, name):
         return env.arg2nodes(name, node_factory=None)
-
-    def loadPackage(self, packagename):
-        if not self.hasPackage(packagename):
-            raise PackageNotFound(packagename)
-        return self.lookup(packagename)
 
     def getRealTarget(self, target, resolve_alias=False):
         from SCons.Util import is_Tuple, is_List, is_String
