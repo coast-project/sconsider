@@ -382,9 +382,8 @@ class PackageRegistry(object):
                                         duplicate=packageduplicate,
                                         exports=exports)
                 except ResolutionError as ex:
-                    raise PackageRequirementsNotFulfilled(
-                        self.createFulltargetname(packagename, targetname),
-                        packagefile, ex)
+                    raise PackageRequirementsNotFulfilled(fulltargetname,
+                                                          packagefile, ex)
                 except (PackageNotFound, TargetNotFound) as ex:
                     ex.prependItem(fulltargetname)
                     raise ex

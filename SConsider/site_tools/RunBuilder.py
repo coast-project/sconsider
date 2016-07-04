@@ -55,9 +55,10 @@ def getTargets(packagename=None, targetname=None):
         return [
             target for _, target in runtargets.get(packagename, {}).iteritems()
         ]
-    else:
-        return [j for j in runtargets.get(packagename, {}).get(targetname, None)
-                if j]
+    targets = runtargets.get(packagename, {}).get(targetname, [])
+    if not is_List(targets):
+        targets = [targets]
+    return targets
 
 
 class Tee(object):
@@ -218,7 +219,8 @@ def createTestTarget(env,
 
     """
 
-    fullTargetName = PackageRegistry.createFulltargetname(packagename, targetname)
+    fullTargetName = PackageRegistry.createFulltargetname(packagename,
+                                                          targetname)
     source = PackageRegistry().getRealTarget(source)
     if not source or (not GetOption('run') and not GetOption('run-force')):
         return source
@@ -277,7 +279,8 @@ def createRunTarget(env,
 
     """
 
-    fullTargetName = PackageRegistry.createFulltargetname(packagename, targetname)
+    fullTargetName = PackageRegistry.createFulltargetname(packagename,
+                                                          targetname)
     source = PackageRegistry().getRealTarget(source)
     if not source or (not GetOption('run') and not GetOption('run-force')):
         return source
@@ -314,11 +317,11 @@ def composeRunTargets(env,
     targets = []
     for ftname in settings.get('requires', []) + settings.get(
             'linkDependencies', []):
-        otherPackagename, otherTargetname = PackageRegistry.splitFulltargetname(ftname)
+        otherPackagename, otherTargetname = PackageRegistry.splitFulltargetname(
+            ftname)
         targets.extend(getTargets(otherPackagename, otherTargetname))
-    return env.Alias(
-        'dummyRunner_' + PackageRegistry.createFulltargetname(packagename, targetname),
-        targets)
+    return env.Alias('dummyRunner_' + PackageRegistry.createFulltargetname(
+        packagename, targetname), targets)
 
 
 def generate(env):
@@ -342,11 +345,11 @@ def generate(env):
     except optparse.OptionConflictError:
         pass
 
-    TestAction = Action(
-        doTest, "Running Test '$SOURCE'\n with runParams [$runParams]")
+    TestAction = Action(doTest,
+                        "Running Test '$SOURCE'\n with runParams [$runParams]")
     TestBuilder = Builder(action=[TestAction],
-                                        emitter=emitPassedFile,
-                                        single_source=True)
+                          emitter=emitPassedFile,
+                          single_source=True)
 
     RunAction = Action(
         doRun, "Running Executable '$SOURCE'\n with runParams [$runParams]")
@@ -359,8 +362,8 @@ def generate(env):
     import SConsider
     SConsider.SkipTest = SkipTest
 
-    def createTargetCallback(env, target, plaintarget, packagename,
-                             targetname, buildSettings, **kw):
+    def createTargetCallback(env, target, plaintarget, packagename, targetname,
+                             buildSettings, **kw):
         runConfig = buildSettings.get('runConfig', {})
         if not runConfig:
             return None
@@ -372,16 +375,15 @@ def generate(env):
             factory = createTestTarget
         elif runType == 'composite':
             factory = composeRunTargets
-        runner = factory(env, target, plaintarget, packagename,
-                         targetname, buildSettings, **kw)
+        runner = factory(env, target, plaintarget, packagename, targetname,
+                         buildSettings, **kw)
         setTarget(packagename, targetname, runner)
 
     def addBuildTargetCallback(**kw):
         for ftname in COMMAND_LINE_TARGETS:
             packagename, targetname = PackageRegistry.splitFulltargetname(
                 ftname)
-            BUILD_TARGETS.extend(getTargets(packagename,
-                                                         targetname))
+            BUILD_TARGETS.extend(getTargets(packagename, targetname))
 
     if GetOption("run") or GetOption("run-force"):
         Callback().register("PostCreateTarget", createTargetCallback)

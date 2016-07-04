@@ -15,6 +15,7 @@ import tempfile
 import WorkingSetWriter
 from SConsider.PackageRegistry import PackageRegistry
 
+
 class DirStub(object):
     def __init__(self, path):
         self.path = path
@@ -34,6 +35,7 @@ class RegistryStub(object):
 
     def __getattr__(self, name):
         return getattr(self.registry, name)
+
 
 class TestProjectFuncs(unittest.TestCase):
     def setUp(self):
