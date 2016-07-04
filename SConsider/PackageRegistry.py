@@ -267,25 +267,47 @@ class PackageRegistry(object):
                                      packagename,
                                      targetname,
                                      callerdeps=None):
-        targetBuildSettings = self.getBuildSettings(packagename).get(targetname,
-                                                                     {})
+        def get_dependent_targets(pname, tname):
+            targetBuildSettings = self.getBuildSettings(packagename).get(
+                targetname, {})
+            targetlist = targetBuildSettings.get('requires', [])
+            targetlist.extend(targetBuildSettings.get('linkDependencies', []))
+            targetlist.extend([targetBuildSettings.get('usedTarget', None)])
+            return [j for j in targetlist if j is not None]
+
+        def get_fulltargetname(target=None):
+            return (True, self.createFulltargetname(*self.splitFulltargetname(
+                target, True)))
+
         if callerdeps is None:
             callerdeps = dict()
         callerdeps.setdefault('pending', [])
         deps = dict()
-        targetlist = targetBuildSettings.get('requires', [])
-        targetlist.extend(targetBuildSettings.get('linkDependencies', []))
-        targetlist.extend([targetBuildSettings.get('usedTarget', '')])
-        for dep_fulltargetname in targetlist:
-            if dep_fulltargetname:
-                dep_packagename, dep_targetname = self.splitFulltargetname(
-                    dep_fulltargetname)
-                if not dep_targetname:
-                    dep_targetname = dep_packagename
-                deps[self.createFulltargetname(
-                    dep_packagename,
-                    dep_targetname)] = self.getPackageTargetDependencies(
-                        dep_packagename, dep_targetname)
+        for deptarget in get_dependent_targets(packagename, targetname):
+            ext, fulltargetname = get_fulltargetname(deptarget)
+            if fulltargetname in callerdeps.get('pending', []):
+                continue
+            dep_targets = deps.get(fulltargetname,
+                                   callerdeps.get(fulltargetname, None))
+            if dep_targets is None and ext is not None:
+                callerdeps.get('pending', []).extend([fulltargetname])
+                dep_targets = self.getPackageTargetDependencies(
+                    *self.splitFulltargetname(fulltargetname),
+                    callerdeps=callerdeps)
+                callerdeps.get('pending', []).remove(fulltargetname)
+            if dep_targets is not None:
+                callerdeps.setdefault(fulltargetname, dep_targets)
+                deps.setdefault(fulltargetname, dep_targets)
+        return deps
+
+    def getPackageDependencies(self, packagename, callerdeps=None):
+        if callerdeps is None:
+            callerdeps = dict()
+        deps = dict()
+        for targetname in self.getPackageTargetNames(packagename):
+            deps.update(self.getPackageTargetDependencies(
+                packagename, targetname,
+                callerdeps=callerdeps))
         return deps
 
     def setBuildSettings(self, packagename, buildSettings):
@@ -327,17 +349,6 @@ class PackageRegistry(object):
     def loadPackagePlaintarget(self, packagename, targetname):
         return self.__loadPackageTarget(self.getPackagePlaintarget, packagename,
                                         targetname)
-
-    def getPackageDependencies(self, packagename, callerdeps=None):
-        if callerdeps is None:
-            callerdeps = dict()
-        deps = dict()
-        for targetname in self.getPackageTargetNames(packagename):
-            deps[self.createFulltargetname(
-                packagename, targetname)] = self.getPackageTargetDependencies(
-                    packagename, targetname,
-                    callerdeps=callerdeps)
-        return deps
 
     def isPackageLoaded(self, packagename):
         return 'loaded' in self.packages.get(packagename, {})
