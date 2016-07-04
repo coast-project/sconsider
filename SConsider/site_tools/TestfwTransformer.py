@@ -22,7 +22,7 @@ import re
 import socket
 import time
 from xmlbuilder import XMLBuilder
-from PackageRegistry import PackageRegistry
+from SConsider.PackageRegistry import PackageRegistry
 
 
 class Result(object):
@@ -260,9 +260,10 @@ class Parser(object):
 
 def dependsOnTestfw(target):
     target = PackageRegistry().getRealTarget(target)
-    plaintarget = PackageRegistry().getPackagePlaintarget('testfw', 'testfw')
+    registered_target = PackageRegistry().getPackageTarget('testfw', 'testfw')
     return 'testfw' in target.get_env()['LIBS'] or (
-        plaintarget and plaintarget.name in target.get_env()['LIBS'])
+        registered_target
+        and registered_target.name in target.get_env()['LIBS'])
 
 
 def callPostTest(target, packagename, targetname, logfile, **kw):

@@ -201,7 +201,6 @@ def addRunConfigHooks(env, source, runner, buildSettings):
 
 def createTestTarget(env,
                      source,
-                     plainsource,
                      packagename,
                      targetname,
                      settings,
@@ -263,7 +262,6 @@ def createTestTarget(env,
 
 def createRunTarget(env,
                     source,
-                    plainsource,
                     packagename,
                     targetname,
                     settings,
@@ -309,7 +307,6 @@ def createRunTarget(env,
 
 def composeRunTargets(env,
                       source,
-                      plainsource,
                       packagename,
                       targetname,
                       settings,
@@ -362,7 +359,7 @@ def generate(env):
     import SConsider
     SConsider.SkipTest = SkipTest
 
-    def createTargetCallback(env, target, plaintarget, packagename, targetname,
+    def createTargetCallback(env, target, packagename, targetname,
                              buildSettings, **kw):
         runConfig = buildSettings.get('runConfig', {})
         if not runConfig:
@@ -375,8 +372,8 @@ def generate(env):
             factory = createTestTarget
         elif runType == 'composite':
             factory = composeRunTargets
-        runner = factory(env, target, plaintarget, packagename, targetname,
-                         buildSettings, **kw)
+        runner = factory(env, target, packagename, targetname, buildSettings,
+                         **kw)
         setTarget(packagename, targetname, runner)
 
     def addBuildTargetCallback(**kw):

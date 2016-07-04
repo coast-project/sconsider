@@ -215,7 +215,7 @@ class PackageRegistry(object):
     def getPackageNames(self):
         return self.packages.keys()
 
-    def setPackageTarget(self, packagename, targetname, plaintarget, target):
+    def setPackageTarget(self, packagename, targetname, target):
         from SCons.Util import is_List
         if not self.hasPackage(packagename):
             logger.warning(
@@ -223,13 +223,11 @@ class PackageRegistry(object):
                 targetname, packagename)
             return
         theTargets = self.packages[packagename].setdefault('targets', {})
-        if plaintarget and is_List(plaintarget):
-            plaintarget = plaintarget[0]
         if target and is_List(target):
             target = target[0]
         if not target:
-            target = plaintarget
-        theTargets[targetname] = {'plaintarget': plaintarget, 'target': target}
+            return
+        theTargets[targetname] = {'target': target}
 
     def getPackageTarget(self, packagename, targetname):
         return self.getPackageTargetTargets(packagename,
@@ -246,13 +244,8 @@ class PackageRegistry(object):
                 targetname, packagename)
         return self.packages.get(packagename, {}).get('targets',
                                                       {}).get(targetname, {
-                                                          'plaintarget': None,
                                                           'target': None
                                                       })
-
-    def getPackagePlaintarget(self, packagename, targetname):
-        return self.getPackageTargetTargets(packagename,
-                                            targetname).get('plaintarget', None)
 
     def getPackageTargetNames(self, packagename):
         return self.packages.get(packagename, {}).get('targets', {}).keys()
@@ -344,10 +337,6 @@ class PackageRegistry(object):
 
     def loadPackageTarget(self, packagename, targetname):
         return self.__loadPackageTarget(self.getPackageTarget, packagename,
-                                        targetname)
-
-    def loadPackagePlaintarget(self, packagename, targetname):
-        return self.__loadPackageTarget(self.getPackagePlaintarget, packagename,
                                         targetname)
 
     def isPackageLoaded(self, packagename):

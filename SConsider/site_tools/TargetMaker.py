@@ -197,7 +197,7 @@ class TargetMaker(object):
                 # The following is a workaround, otherwise an alias won't get
                 # built in newer SCons versions (because it has depends but no
                 # sources)
-                plaintarget = target = targetEnv.Alias(
+                target = targetEnv.Alias(
                     self.registry.createFulltargetname(packagename, targetname),
                     self.registry.getPackageFile(packagename))
 
@@ -227,13 +227,11 @@ class TargetMaker(object):
             Callback().run("PostCreateTarget",
                            env=targetEnv,
                            target=target,
-                           plaintarget=plaintarget,
                            packagename=packagename,
                            targetname=targetname,
                            buildSettings=targetBuildSettings)
 
-            self.registry.setPackageTarget(packagename, targetname, plaintarget,
-                                           target)
+            self.registry.setPackageTarget(packagename, targetname, target)
             return True
         except (PackageNotFound, TargetNotFound) as ex:
             # even when ignore-missing is set, we should not continue if a missing package target
@@ -289,14 +287,14 @@ class TargetMaker(object):
         for fulltargetname in modules:
             packagename, targetname = self.registry.splitFulltargetname(
                 fulltargetname, default=True)
-            plaintarget = self.registry.loadPackagePlaintarget(packagename,
-                                                               targetname)
+            module_target = self.registry.loadPackageTarget(packagename,
+                                                            targetname)
             buildSettings = self.registry.getBuildSettings(packagename,
                                                            targetname)
             self.setExternalDependencies(env,
                                          packagename,
                                          buildSettings,
-                                         plaintarget=plaintarget,
+                                         target=module_target,
                                          **kw)
 
     def setExecEnv(self, env, requiredTargets):
@@ -306,8 +304,7 @@ class TargetMaker(object):
             if self.registry.hasPackageTarget(packagename, targetname):
                 settings = self.registry.getBuildSettings(packagename,
                                                           targetname)
-                target = self.registry.getPackagePlaintarget(packagename,
-                                                             targetname)
+                target = self.registry.getPackageTarget(packagename, targetname)
                 public_execenv = settings.get('public', {}).get('execEnv', {})
                 for key, value in public_execenv.iteritems():
                     if callable(value):
@@ -322,7 +319,7 @@ class TargetMaker(object):
                                 env,
                                 packagename,
                                 buildSettings,
-                                plaintarget=None,
+                                target=None,
                                 **_):
         linkDependencies = buildSettings.get('linkDependencies', [])
         if 'public' in buildSettings:
@@ -342,18 +339,21 @@ class TargetMaker(object):
         # this libraries dependencies
         self.setModuleDependencies(env, linkDependencies)
 
-        if plaintarget:
+        if target:
             # try block needed to block Alias only targets without concrete
             # builder
             try:
-                strTargetType = plaintarget.builder.get_name(plaintarget.env)
+                strTargetType = target.builder.get_name(target.env)
+                if strTargetType == 'InstallBuilder':
+                    strTargetType = target.sources[0].builder.get_name(
+                        target.env)
                 if strTargetType.find('Library') != -1:
                     libname = multiple_replace([
                         ('^' + re.escape(env.subst("$LIBPREFIX")), ''),
                         (re.escape(env.subst("$LIBSUFFIX")) + '$', ''),
                         ('^' + re.escape(env.subst("$SHLIBPREFIX")), ''),
                         (re.escape(env.subst("$SHLIBSUFFIX")) + '$', ''),
-                    ], plaintarget.name)
+                    ], target.name)
                     env.AppendUnique(LIBS=[libname])
             except:
                 pass

@@ -22,52 +22,52 @@ logger = getLogger(__name__)
 
 def getUsedTarget(env, buildSettings):
     from SConsider.PackageRegistry import PackageRegistry
-    plaintarget = None
+    used_target = None
     usedFullTargetname = buildSettings.get('usedTarget', None)
     if usedFullTargetname:
         usedPackagename, usedTargetname = PackageRegistry.splitFulltargetname(
             usedFullTargetname, default=True)
-        plaintarget = PackageRegistry().loadPackagePlaintarget(usedPackagename,
-                                                               usedTargetname)
-    return plaintarget
+        used_target = PackageRegistry().loadPackageTarget(usedPackagename,
+                                                          usedTargetname)
+    return used_target
 
 
 def usedOrProgramTarget(env, name, sources, buildSettings):
-    plaintarget = getUsedTarget(env, buildSettings)
-    if not plaintarget:
+    used_target = getUsedTarget(env, buildSettings)
+    if not used_target:
         # env.File is a workaround, otherwise if an Alias with the same 'name'
         # is defined arg2nodes (called from all builders) would return the
         # Alias, but we would need a file node
-        plaintarget = env.Program(env.File(name), sources)
+        used_target = env.Program(env.File(name), sources)
 
-    return plaintarget
+    return used_target
 
 
-def setupTargetDirAndWrapperScripts(env, name, packagename, plaintarget,
+def setupTargetDirAndWrapperScripts(env, name, packagename, install_target,
                                     basetargetdir):
     env.setRelativeTargetDirectory(os.path.join(basetargetdir, packagename))
     instApps = env.InstallAs(env.getBinaryInstallDir().File(name).path,
-                             plaintarget)
+                             install_target)
     if 'generateScript' not in env['TOOLS']:
         env.Tool('generateScript')
     wrappers = env.GenerateWrapperScript(instApps)
-    return (plaintarget, wrappers)
+    return (install_target, wrappers)
 
 
 def programApp(env, name, sources, packagename, buildSettings, **kw):
-    plaintarget = usedOrProgramTarget(env, name, sources, buildSettings)
-    plaintarget, wrappers = setupTargetDirAndWrapperScripts(
-        env, name, packagename, plaintarget, 'apps')
+    used_target = usedOrProgramTarget(env, name, sources, buildSettings)
+    used_target, wrappers = setupTargetDirAndWrapperScripts(
+        env, name, packagename, used_target, 'apps')
     buildSettings.setdefault("runConfig", {}).setdefault("type", "run")
     env.Alias('binaries', wrappers)
-    return (plaintarget, wrappers)
+    return (used_target, wrappers)
 
 
 def programTest(env, name, sources, packagename, targetname, buildSettings,
                 **kw):
-    plaintarget = usedOrProgramTarget(env, name, sources, buildSettings)
+    used_target = usedOrProgramTarget(env, name, sources, buildSettings)
     buildSettings.setdefault("runConfig", {}).setdefault("type", "test")
-    return setupTargetDirAndWrapperScripts(env, name, packagename, plaintarget,
+    return setupTargetDirAndWrapperScripts(env, name, packagename, used_target,
                                            'tests')
 
 
@@ -80,29 +80,29 @@ def sharedLibrary(env, name, sources, packagename, targetname, buildSettings,
         if env["PLATFORM"] == "win32":
             libBuilder = env.StaticLibrary
 
-    plaintarget = libBuilder(name, sources)
-    instTarg = env.Install(env.getLibraryInstallDir().path, plaintarget)
+    lib_target = libBuilder(name, sources)
+    instTarg = env.Install(env.getLibraryInstallDir().path, lib_target)
     env.Requires(instTarg[0], instTarg[1:])
 
-    compLibs = env.InstallSystemLibs(plaintarget)
+    compLibs = env.InstallSystemLibs(lib_target)
     # the first target should be the library
     env.Requires(instTarg[0], compLibs)
 
-    return (plaintarget, instTarg)
+    return (lib_target, instTarg)
 
 
 def staticLibrary(env, name, sources, packagename, targetname, buildSettings,
                   **kw):
     env['_NONLAZYLINKFLAGS'] = ''
 
-    plaintarget = env.StaticLibrary(name, sources)
-    instTarg = env.Install(env.getLibraryInstallDir().path, plaintarget)
+    lib_target = env.StaticLibrary(name, sources)
+    instTarg = env.Install(env.getLibraryInstallDir().path, lib_target)
     env.Requires(instTarg[0], instTarg[1:])
 
-    compLibs = env.InstallSystemLibs(plaintarget)
+    compLibs = env.InstallSystemLibs(lib_target)
     env.Requires(instTarg[0], compLibs)
 
-    return (plaintarget, instTarg)
+    return (lib_target, instTarg)
 
 
 def installPrecompiledBinary(env, name, sources, packagename, targetname,

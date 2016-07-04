@@ -19,7 +19,7 @@ its dependencies to other 'eclipse' project files.
 from __future__ import with_statement
 import os
 import uuid
-from PackageRegistry import PackageRegistry
+from SConsider.PackageRegistry import PackageRegistry
 from xml.etree.ElementTree import ElementTree, Element
 
 
