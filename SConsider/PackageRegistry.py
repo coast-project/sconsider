@@ -25,6 +25,21 @@ from singleton import SingletonDecorator
 logger = getLogger(__name__)
 
 
+def hasTargetExtension(target):
+    return hasattr(target, 'attributes') and hasattr(target.attributes,
+                                                     'sconsider')
+
+
+def getTargetExtension(target):
+    if hasTargetExtension(target):
+        return target.attributes.sconsider
+    return None
+
+
+def setTargetExtension(target, ext):
+    target.attributes.sconsider = ext
+
+
 class TargetNotFound(Exception):
     def __init__(self, name):
         Exception.__init__(self, name)
@@ -59,6 +74,29 @@ class PackageRequirementsNotFulfilled(Exception):
                    self.package,
                    self.packagefile if self.packagefile else '???',
                    self.message)
+
+
+class TargetExtension(object):
+    def __init__(self, packagename, targetname, exports=None):
+        self.packagename = packagename
+        self.targetname = targetname
+        if not exports:
+            exports = []
+        self.exports = exports
+
+    def getPackagename(self):
+        return self.packagename
+
+    def getTargetname(self):
+        return self.targetname
+
+    def getFulltargetname(self):
+        return PackageRegistry.createFulltargetname(self.packagename,
+                                                    self.targetname)
+
+    def setFulltargetname(self, fulltargetname):
+        self.packagename, self.targetname = PackageRegistry.splitFulltargetname(
+            fulltargetname)
 
 
 class TargetIsAliasException(Exception):
@@ -216,36 +254,46 @@ class PackageRegistry(object):
         return self.packages.keys()
 
     def setPackageTarget(self, packagename, targetname, target):
+        from SCons.Errors import UserError, BuildError
         from SCons.Util import is_List
+        from SCons.Node import Alias
         if not self.hasPackage(packagename):
             logger.warning(
                 'tried to register target [%s] for non existent package [%s]',
                 targetname, packagename)
             return
-        theTargets = self.packages[packagename].setdefault('targets', {})
-        if target and is_List(target):
+        if is_List(target):
+            if len(target) > 1:
+                self.env.Requires(target[0], target[1:])
             target = target[0]
-        if not target:
-            return
-        theTargets[targetname] = {'target': target}
+        self.packages[packagename].setdefault('targets',
+                                              {})[targetname] = target
+        try:
+            self.env.Alias(packagename, target)  # add to package alias
+        except BuildError as e:
+            message = e.errstr
+            if isinstance(e.node, Alias.Alias):
+                message = """
+The name of your target [%s] evaluates to an alias node too.
+To distinguish your target from the alias, you need to wrap it
+using "env.File(targetname)".
+Example:
+env.program(env.File('%s'), [...])
+
+Original exception message:
+%s""" % (packagename, packagename, message)
+            raise UserError(message)
 
     def getPackageTarget(self, packagename, targetname):
-        return self.getPackageTargetTargets(packagename,
-                                            targetname).get('target', None)
+        return self.packages[packagename].get('targets', {}).get(targetname,
+                                                                 None)
 
     def hasPackageTarget(self, packagename, targetname):
         return targetname in self.packages.get(packagename, {}).get('targets',
                                                                     {})
 
-    def getPackageTargetTargets(self, packagename, targetname):
-        if not self.hasPackage(packagename):
-            logger.warning(
-                'tried to access target [%s] of non existent package [%s]',
-                targetname, packagename)
-        return self.packages.get(packagename, {}).get('targets',
-                                                      {}).get(targetname, {
-                                                          'target': None
-                                                      })
+    def getPackageTargets(self, packagename):
+        return self.packages.get(packagename, {}).get('targets', {}).values()
 
     def getPackageTargetNames(self, packagename):
         return self.packages.get(packagename, {}).get('targets', {}).keys()
@@ -370,6 +418,12 @@ class PackageRegistry(object):
                                         variant_dir=builddir,
                                         duplicate=packageduplicate,
                                         exports=exports)
+                    if self.getPackageTargetNames(packagename):
+                        from SConsider.Callback import Callback
+                        self.env.Default(packagename)
+                        Callback().run("PostCreatePackageTargets",
+                                       registry=self,
+                                       packagename=packagename)
                 except ResolutionError as ex:
                     raise PackageRequirementsNotFulfilled(fulltargetname,
                                                           packagefile, ex)

@@ -57,10 +57,11 @@ def printTargets(registry, **kw):
     exit()
 
 
-def getDependencies(registry, packagename, targetname=None):
+def getDependencies(registry, callerdeps, packagename, targetname=None):
     if targetname:
-        return registry.getPackageTargetDependencies(packagename, targetname)
-    return registry.getPackageDependencies(packagename)
+        return registry.getPackageTargetDependencies(packagename, targetname,
+                                                     callerdeps)
+    return registry.getPackageDependencies(packagename, callerdeps)
 
 
 def existsTarget(registry, packagename, targetname=None):
@@ -83,6 +84,7 @@ def printTree(registry, buildTargets, **kw):
     targets = buildTargets
     if not targets:
         targets = registry.getPackageNames()
+    deps = dict()
 
     for fulltargetname in targets:
         if isinstance(fulltargetname, Alias):
@@ -93,7 +95,7 @@ def printTree(registry, buildTargets, **kw):
         if existsTarget(registry, packagename, targetname):
             node = Node(
                 PackageRegistry.createFulltargetname(packagename, targetname),
-                getDependencies(registry, packagename, targetname))
+                getDependencies(registry, deps, packagename, targetname))
             SCons.Util.print_tree(node, lambda node: node.children)
 
     print "\nOption 'showtree' active, exiting."

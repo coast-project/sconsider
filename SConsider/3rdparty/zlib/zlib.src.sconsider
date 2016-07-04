@@ -15,21 +15,10 @@ Import('*')
 
 from SCons.Script import File
 sources = [
-    File('adler32.c'),
-    File('compress.c'),
-    File('crc32.c'),
-    File('deflate.c'),
-    File('gzclose.c'),
-    File('gzlib.c'),
-    File('gzread.c'),
-    File('gzwrite.c'),
-    File('infback.c'),
-    File('inffast.c'),
-    File('inflate.c'),
-    File('inftrees.c'),
-    File('trees.c'),
-    File('uncompr.c'),
-    File('zutil.c'),
+    File('adler32.c'), File('compress.c'), File('crc32.c'), File('deflate.c'),
+    File('gzclose.c'), File('gzlib.c'), File('gzread.c'), File('gzwrite.c'),
+    File('infback.c'), File('inffast.c'), File('inflate.c'), File('inftrees.c'),
+    File('trees.c'), File('uncompr.c'), File('zutil.c')
 ]
 
 _sconsider_dist = pkg_resources.get_distribution("SConsider").parsed_version

@@ -218,7 +218,6 @@ class TargetMaker(object):
                     targetBuildSettings.get('copyFiles', []))
                 targetEnv.Depends(target, copyTargets)
 
-            targetEnv.Alias(packagename, target)
             targetEnv.Alias('all', target)
             if targetBuildSettings.get('runConfig', {}).get('type',
                                                             '') == 'test':
@@ -294,8 +293,7 @@ class TargetMaker(object):
             self.setExternalDependencies(env,
                                          packagename,
                                          buildSettings,
-                                         target=module_target,
-                                         **kw)
+                                         target=module_target)
 
     def setExecEnv(self, env, requiredTargets):
         for targ in requiredTargets:
@@ -319,8 +317,7 @@ class TargetMaker(object):
                                 env,
                                 packagename,
                                 buildSettings,
-                                target=None,
-                                **_):
+                                target=None):
         linkDependencies = buildSettings.get('linkDependencies', [])
         if 'public' in buildSettings:
             appendUnique = buildSettings['public'].get('appendUnique', {})

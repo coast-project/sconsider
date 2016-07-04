@@ -232,10 +232,6 @@ def createTargets(pkg_name, buildSettings):
     if not tmk.createTargets():
         return
     SCons.Script.Default(pkg_name)
-    Callback().run("PostCreatePackageTargets",
-                   registry=packageRegistry,
-                   packagename=pkg_name,
-                   buildSettings=buildSettings)
 
 
 logger.info("Loading packages and their targets ...")
