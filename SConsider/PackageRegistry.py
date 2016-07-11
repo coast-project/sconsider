@@ -339,6 +339,8 @@ Original exception message:
             if dep_targets is not None:
                 callerdeps.setdefault(fulltargetname, dep_targets)
                 deps.setdefault(fulltargetname, dep_targets)
+        if len(callerdeps.get('pending', [])) == 0:
+            callerdeps.pop('pending', None)
         return deps
 
     def getPackageDependencies(self, packagename, callerdeps=None):

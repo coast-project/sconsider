@@ -15,13 +15,14 @@ Tool to collect available targets for building
 # -------------------------------------------------------------------------
 
 from __future__ import with_statement
+import sys
 import optparse
 import functools
 import SCons.Action
 import SCons.Builder
 import SCons.Util
 from SCons.Script import AddOption, GetOption
-from SConsider.PackageRegistry import PackageRegistry
+from SConsider.PackageRegistry import PackageRegistry, getTargetExtension
 import SomeUtils
 
 
@@ -64,6 +65,18 @@ def getDependencies(registry, callerdeps, packagename, targetname=None):
     return registry.getPackageDependencies(packagename, callerdeps)
 
 
+def getAliasDependencies(registry, deps, aliasname):
+    alias_node = registry.loadNode(registry.env, aliasname)
+    new_deps = dict()
+    if isinstance(alias_node, list) and len(alias_node) == 1:
+        for depnode in alias_node[0].sources:
+            ext = getTargetExtension(depnode)
+            if ext is not None:
+                new_deps[ext.getFulltargetname()] = getDependencies(
+                    registry, deps, ext.packagename, ext.targetname)
+    return new_deps
+
+
 def existsTarget(registry, packagename, targetname=None):
     if targetname:
         return registry.hasPackageTarget(packagename, targetname)
@@ -85,7 +98,9 @@ def printTree(registry, buildTargets, **kw):
     if not targets:
         targets = registry.getPackageNames()
     deps = dict()
-
+    prune = 0
+    if GetOption("showtree") == 'prune':
+        prune = 1
     for fulltargetname in targets:
         if isinstance(fulltargetname, Alias):
             packagename, targetname = (fulltargetname.name, None)
@@ -96,7 +111,20 @@ def printTree(registry, buildTargets, **kw):
             node = Node(
                 PackageRegistry.createFulltargetname(packagename, targetname),
                 getDependencies(registry, deps, packagename, targetname))
-            SCons.Util.print_tree(node, lambda node: node.children)
+            SCons.Util.print_tree(node,
+                                  lambda node: node.children,
+                                  prune=prune,
+                                  visited={})
+            sys.stdout.write('\n')
+        else:
+            # maybe we have an alias name given
+            node = Node(fulltargetname,
+                        getAliasDependencies(registry, deps, fulltargetname))
+            SCons.Util.print_tree(node,
+                                  lambda node: node.children,
+                                  prune=prune,
+                                  visited={})
+            sys.stdout.write('\n')
 
     print "\nOption 'showtree' active, exiting."
     exit()
@@ -111,11 +139,18 @@ def generate(env):
                   action='store_true',
                   default=False,
                   help='Show available targets')
+        tree_choices = ['all', 'prune']
         AddOption('--showtree',
                   dest='showtree',
-                  action='store_true',
-                  default=False,
-                  help='Show dependencytree')
+                  nargs='?',
+                  action='store',
+                  type='choice',
+                  const='all',
+                  default=None,
+                  choices=tree_choices,
+                  metavar='OPTIONS',
+                  help='Show target dependency tree in the format ' +
+                  str(tree_choices) + ', default=' + tree_choices[0])
         AddOption('--showallaliases',
                   dest='showallaliases',
                   action='store_true',
@@ -126,7 +161,7 @@ def generate(env):
 
     if GetOption("showtargets"):
         Callback().register("PreBuild", printTargets)
-    if GetOption("showtree"):
+    if GetOption("showtree") is not None:
         Callback().register("PreBuild", printTree)
 
 
