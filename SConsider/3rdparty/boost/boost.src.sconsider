@@ -26,6 +26,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
         },
         'regex': {
             'targetType': 'LibraryShared',
+            'targetName': packagename + '_regex',
             'linkDependencies': [
                 # used to pass public include dirs of boost
                 PackageRegistry.createFulltargetname(packagename, 'include'),
@@ -38,6 +39,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
         },
         'system': {
             'targetType': 'LibraryShared',
+            'targetName': packagename + '_system',
             'linkDependencies': [
                 # used to pass public include dirs of boost
                 PackageRegistry.createFulltargetname(packagename, 'include'),
