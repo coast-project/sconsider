@@ -260,7 +260,13 @@ class Parser(object):
 
 def dependsOnTestfw(target):
     target = PackageRegistry().getRealTarget(target)
-    registered_target = PackageRegistry().getPackageTarget('testfw', 'testfw')
+    # new target name first
+    registered_target = PackageRegistry().getPackageTarget('testfw',
+                                                           'lib_testfw')
+    if registered_target is None:
+        # fallback to old target name
+        registered_target = PackageRegistry().getPackageTarget('testfw',
+                                                               'testfw')
     return 'testfw' in target.get_env()['LIBS'] or (
         registered_target
         and registered_target.name in target.get_env()['LIBS'])
