@@ -237,8 +237,7 @@ class TargetMaker(object):
             # is required by an explicit command line target
             raise_again = not bool(GetOption(
                 'ignore-missing')) or self.registry.createFulltargetname(
-                    packagename,
-                    targetname) in BUILD_TARGETS or packagename in BUILD_TARGETS
+                    packagename, targetname) in BUILD_TARGETS
             logger.warning(
                 '%s (referenced by [%s])%s',
                 ex,

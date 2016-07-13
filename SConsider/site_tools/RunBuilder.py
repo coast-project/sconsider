@@ -204,7 +204,8 @@ def createTestTarget(env,
                      packagename,
                      targetname,
                      settings,
-                     defaultRunParams='-- -all'):
+                     defaultRunParams='-- -all',
+                     **kw):
     """Creates a target which runs a target given in parameter 'source'.
 
     If ran successfully a file is generated (name given in parameter
@@ -222,7 +223,7 @@ def createTestTarget(env,
                                                           targetname)
     source = PackageRegistry().getRealTarget(source)
     if not source or (not GetOption('run') and not GetOption('run-force')):
-        return source
+        return (source, fullTargetName)
 
     logfile = env.getLogInstallDir().File(targetname + '.test.log')
     runner = env.TestBuilder([],
@@ -254,10 +255,11 @@ def createTestTarget(env,
             targetname=targetname,
             logfile=logfile))
 
-    env.Alias('tests', runner)
-    env.Alias('all', runner)
+    setTarget(packagename, targetname, runner)
+    if callable(kw.get('runner_hook_func', None)):
+        kw.get('runner_hook_func')(env, runner)
 
-    return runner
+    return (runner, fullTargetName)
 
 
 def createRunTarget(env,
@@ -265,7 +267,8 @@ def createRunTarget(env,
                     packagename,
                     targetname,
                     settings,
-                    defaultRunParams=''):
+                    defaultRunParams='',
+                    **kw):
     """Creates a target which runs a target given in parameter 'source'.
 
     Command line parameters could be handed over by using
@@ -281,7 +284,7 @@ def createRunTarget(env,
                                                           targetname)
     source = PackageRegistry().getRealTarget(source)
     if not source or (not GetOption('run') and not GetOption('run-force')):
-        return source
+        return (source, fullTargetName)
 
     logfile = env.getLogInstallDir().File(targetname + '.run.log')
     runner = env.RunBuilder(['dummyRunner_' + fullTargetName],
@@ -300,9 +303,11 @@ def createRunTarget(env,
             targetname=targetname,
             logfile=logfile))
 
-    env.Alias('all', runner)
+    setTarget(packagename, targetname, runner)
+    if callable(kw.get('runner_hook_func', None)):
+        kw.get('runner_hook_func')(env, runner)
 
-    return runner
+    return (runner, fullTargetName)
 
 
 def composeRunTargets(env,
@@ -310,15 +315,21 @@ def composeRunTargets(env,
                       packagename,
                       targetname,
                       settings,
-                      defaultRunParams=''):
+                      defaultRunParams='',
+                      **kw):
     targets = []
     for ftname in settings.get('requires', []) + settings.get(
             'linkDependencies', []):
         otherPackagename, otherTargetname = PackageRegistry.splitFulltargetname(
             ftname)
         targets.extend(getTargets(otherPackagename, otherTargetname))
-    return env.Alias('dummyRunner_' + PackageRegistry.createFulltargetname(
-        packagename, targetname), targets)
+    fullTargetName = PackageRegistry.createFulltargetname(packagename,
+                                                          targetname)
+    runner = env.Alias('dummyRunner_' + fullTargetName, targets)
+    setTarget(packagename, targetname, runner)
+    if callable(kw.get('runner_hook_func', None)):
+        kw.get('runner_hook_func')(env, runner)
+    return (runner, fullTargetName)
 
 
 def generate(env):
@@ -367,14 +378,30 @@ def generate(env):
 
         runType = runConfig.get('type', 'run')
 
-        factory = createRunTarget
+        factory = composeRunTargets
+        runner_hook_func = None
         if runType == 'test':
+
+            def runner_alias_for_tests(env, runner):
+                env.Alias('tests', runner)
+                env.Alias('all', runner)
+
             factory = createTestTarget
-        elif runType == 'composite':
-            factory = composeRunTargets
-        runner = factory(env, target, packagename, targetname, buildSettings,
-                         **kw)
-        setTarget(packagename, targetname, runner)
+            runner_hook_func = runner_alias_for_tests
+        elif runType == 'run':
+
+            def runner_alias_for_run(env, runner):
+                env.Alias('all', runner)
+
+            factory = createRunTarget
+            runner_hook_func = runner_alias_for_run
+        _, _ = factory(env,
+                       target,
+                       packagename,
+                       targetname,
+                       buildSettings,
+                       runner_hook_func=runner_hook_func,
+                       **kw)
 
     def addBuildTargetCallback(**kw):
         for ftname in COMMAND_LINE_TARGETS:

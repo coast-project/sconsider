@@ -38,7 +38,7 @@ from SConsider.SomeUtils import listFiles, findFiles, removeFiles,\
     getfqdn
 from SConsider.Callback import Callback
 from SConsider.Logging import setup_logging
-from SConsider.PackageRegistry import PackageRegistry, PackageNotFound, TargetNotFound, PackageRequirementsNotFulfilled
+from SConsider.PackageRegistry import PackageRegistry, PackageNotFound, TargetNotFound, PackageRequirementsNotFulfilled, NoPackageTargetsFound
 from ._version import get_versions
 from .deprecation import deprecated
 
@@ -240,15 +240,22 @@ try:
 
     def tryLoadPackageTarget(pkg_name, tgt_name=None):
         try:
-            packageRegistry.loadPackageTarget(pkg_name, tgt_name)
+            if packageRegistry.loadPackageTarget(pkg_name, tgt_name) is None:
+                # raising PackageNotFound aborts the implicit package loading
+                # part and steps into loading all packages to find an alias
+                raise PackageNotFound(packagename)
         except (PackageNotFound) as ex:
             # catch PackageNotFound separately as it is derived from
             # TargetNotFound
             raise
-        except TargetNotFound as ex:
-            if not int(GetOption('ignore-missing')) and not GetOption('help'):
+        except (TargetNotFound, NoPackageTargetsFound) as ex:
+            ftn = PackageRegistry.createFulltargetname(pkg_name, tgt_name)
+            if ftn in SCons.Script.BUILD_TARGETS:
+                ex.message = 'explicit targetname [%s] has no targets' % ftn
+                ex.lookupStack = []
                 raise
-            logger.warning('%s', ex, exc_info=False)
+            if int(GetOption('ignore-missing')) or GetOption('help'):
+                logger.warning('%s', ex, exc_info=False)
 
     launchDir = Dir(SCons.Script.GetLaunchDir())
     dirfilter = lambda directory: True
@@ -289,7 +296,11 @@ try:
                         if namefilter(item)]
 
         for packagename in buildtargets:
-            baseEnv.LoadNode(packagename)
+            try:
+                baseEnv.LoadNode(packagename)
+            except NoPackageTargetsFound as ex:
+                if not GetOption('help'):
+                    logger.warning('%s', ex, exc_info=False)
         logger.info(
             "Completed loading possible targets and aliases from %d available package files",
             len(buildtargets))

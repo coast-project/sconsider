@@ -45,20 +45,28 @@ class TargetNotFound(Exception):
         Exception.__init__(self, name)
         self.name = name
         self.lookupStack = []
+        self.message = 'Target [{0}] not found'.format(self.name)
 
     def prependItem(self, lookupItem):
         self.lookupStack[0:0] = [lookupItem]
 
     def __str__(self):
-        message = 'Target [{0}] not found'.format(self.name)
         if len(self.lookupStack):
-            message += ', required by [{0}]'.format('>'.join(self.lookupStack))
-        return message
+            self.message += ', required by [{0}]'.format('>'.join(
+                self.lookupStack))
+        return self.message
 
 
 class PackageNotFound(TargetNotFound):
-    def __str__(self):
-        return 'Package [{0}] not found'.format(self.name)
+    def __init__(self, name):
+        TargetNotFound.__init__(self, name)
+        self.message = 'Package [{0}] not found'.format(self.name)
+
+
+class NoPackageTargetsFound(TargetNotFound):
+    def __init__(self, name):
+        TargetNotFound.__init__(self, name)
+        self.message = 'Package [{0}] has no targets'.format(self.name)
 
 
 class PackageRequirementsNotFulfilled(Exception):
@@ -309,16 +317,26 @@ Original exception message:
                                      targetname,
                                      callerdeps=None):
         def get_dependent_targets(pname, tname):
-            targetBuildSettings = self.getBuildSettings(packagename).get(
-                targetname, {})
-            targetlist = targetBuildSettings.get('requires', [])
-            targetlist.extend(targetBuildSettings.get('linkDependencies', []))
-            targetlist.extend([targetBuildSettings.get('usedTarget', None)])
-            return [j for j in targetlist if j is not None]
+            if hasattr(self, 'getBuildSettings'):
+                targetBuildSettings = self.getBuildSettings(packagename).get(
+                    targetname, {})
+                targetlist = targetBuildSettings.get('requires', [])
+                targetlist.extend(targetBuildSettings.get('linkDependencies',
+                                                          []))
+                targetlist.extend([targetBuildSettings.get('usedTarget', None)])
+                return [j for j in targetlist if j is not None]
+            else:
+                target = self.getPackageTarget(pname, tname)
+                return target.depends + target.prerequisites
 
         def get_fulltargetname(target=None):
-            return (True, self.createFulltargetname(*self.splitFulltargetname(
-                target, True)))
+            if isinstance(target, str):
+                return (True, self.createFulltargetname(
+                    *self.splitFulltargetname(target, True)))
+            ext = getTargetExtension(target)
+            return (ext, self.createFulltargetname(ext.getPackagename(),
+                                                   ext.getTargetname())
+                    if ext else str(target))
 
         if callerdeps is None:
             callerdeps = dict()
@@ -371,23 +389,18 @@ Original exception message:
             return self.packages.get(packagename, {}).get(
                 'buildsettings', {}).get(targetname, {})
 
-    def __loadPackageTarget(self, loadfunc, packagename, targetname):
-        target = self.loadPackage(packagename, targetname)
-        if self.getPackageTargetNames(packagename):
-            target = loadfunc(packagename, targetname)
-            if targetname and not target:
-                raise TargetNotFound(self.createFulltargetname(packagename,
-                                                               targetname))
-        return target
-
     def loadPackage(self, packagename, targetname):
         if not self.hasPackage(packagename):
             raise PackageNotFound(packagename)
-        return self.lookup(self.createFulltargetname(packagename, targetname))
+        return self.lookup(self.createFulltargetname(packagename, targetname,
+                                                     True))
 
     def loadPackageTarget(self, packagename, targetname):
-        return self.__loadPackageTarget(self.getPackageTarget, packagename,
-                                        targetname)
+        target = self.loadPackage(packagename, targetname)
+        if not target and targetname:
+            raise TargetNotFound(self.createFulltargetname(packagename,
+                                                           targetname))
+        return target
 
     def isPackageLoaded(self, packagename):
         return 'loaded' in self.packages.get(packagename, {})
@@ -426,6 +439,8 @@ Original exception message:
                         Callback().run("PostCreatePackageTargets",
                                        registry=self,
                                        packagename=packagename)
+                    else:
+                        raise NoPackageTargetsFound(packagename)
                 except ResolutionError as ex:
                     raise PackageRequirementsNotFulfilled(fulltargetname,
                                                           packagefile, ex)
