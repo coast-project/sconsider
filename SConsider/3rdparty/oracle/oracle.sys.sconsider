@@ -30,56 +30,57 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     if 'HAS_ORACLE' in env['CPPDEFINES']:
         buildSettings[packagename] = {
             'linkDependencies': [
-                packagename + '.nnz',
-                packagename + '.clntsh',
+                packagename + '.lib_nnz',
+                packagename + '.lib_clntsh',
             ],
             'requires': [
-                packagename + '.ociicus',
+                packagename + '.lib_ociicus',
             ],
         }
-        buildSettings['occi'] = {
+        buildSettings['lib_occi'] = {
             'public': {
                 'appendUnique': {
                     'LIBS': ['occi'],
                 },
             },
         }
-        buildSettings['clntsh'] = {
+        buildSettings['lib_clntsh'] = {
             'public': {
                 'appendUnique': {
                     'LIBS': ['clntsh'],
                 },
             },
         }
-        buildSettings['nnz'] = {
+        buildSettings['lib_nnz'] = {
             'public': {
                 'appendUnique': {
                     'LIBS': ['nnz11'],
                 },
             },
         }
-        buildSettings['ociicus'] = {  # us language support library
+        buildSettings['lib_ociicus'] = {  # us language support library
             'public': {
                 'appendUnique': {
                     'LIBS': ['ociicus'],
                 },
             },
         }
-        buildSettings['ociei'] = {  # oci library supporting all character sets
-            'public': {
-                'appendUnique': {
-                    'LIBS': ['ociei'],
+        buildSettings[
+            'lib_ociei'] = {  # oci library supporting all character sets
+                'public': {
+                    'appendUnique': {
+                        'LIBS': ['ociei'],
+                    },
                 },
-            },
-        }
-        buildSettings['libsqlplus'] = {
+            }
+        buildSettings['lib_sqlplus'] = {
             'public': {
                 'appendUnique': {
                     'LIBS': ['sqlplus'],
                 },
             },
         }
-        buildSettings['libsqlplusic'] = {
+        buildSettings['lib_sqlplusic'] = {
             'public': {
                 'appendUnique': {
                     'LIBS': ['sqlplusic'],
@@ -97,8 +98,8 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
                 },
                 'requires': [
                     packagename + '.' + packagename,
-                    packagename + '.libsqlplus',
-                    packagename + '.libsqlplusic',
+                    packagename + '.lib_sqlplus',
+                    packagename + '.lib_sqlplusic',
                 ],
                 'usedTarget': packagename + '.sqlplusbin',
             }

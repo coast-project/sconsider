@@ -20,19 +20,19 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     buildSettings = {
         packagename: {
             'linkDependencies': [
-                packagename + '.ssl',
-                packagename + '.crypto',
+                packagename + '.lib_ssl',
+                packagename + '.lib_crypto',
             ],
             'targetType': 'IncludeOnly',
             'public': {
                 'includeSubdir': 'include',
             },
         },
-        'ssl': {
+        'lib_ssl': {
             'sourceFiles': [getBinaryDistDir(packagename).File('ssl')],
             'targetType': 'PrecompiledLibrary',
         },
-        'crypto': {
+        'lib_crypto': {
             'sourceFiles': [getBinaryDistDir(packagename).File('crypto')],
             'targetType': 'PrecompiledLibrary',
         },
@@ -45,8 +45,8 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             'runConfig': {
             },
             'requires': [
-                packagename + '.ssl',
-                packagename + '.crypto',
+                packagename + '.lib_ssl',
+                packagename + '.lib_crypto',
             ],
             'usedTarget': packagename + '.opensslbin',
         },
@@ -55,8 +55,8 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             'runConfig': {
             },
             'requires': [
-                packagename + '.ssl',
-                packagename + '.crypto',
+                packagename + '.lib_ssl',
+                packagename + '.lib_crypto',
             ],
             'usedTarget': packagename + '.opensslbin',
         },

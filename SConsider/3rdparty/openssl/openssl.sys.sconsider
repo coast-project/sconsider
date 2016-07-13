@@ -29,18 +29,18 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     if 'HAS_OPENSSL' in env['CPPDEFINES']:
         buildSettings[packagename] = {
             'linkDependencies': [
-                packagename + '.ssl',
-                packagename + '.crypto',
+                packagename + '.lib_ssl',
+                packagename + '.lib_crypto',
             ],
         }
-        buildSettings['ssl'] = {
+        buildSettings['lib_ssl'] = {
             'public': {
                 'appendUnique': {
                     'LIBS': ['ssl'],
                 },
             },
         }
-        buildSettings['crypto'] = {
+        buildSettings['lib_crypto'] = {
             'public': {
                 'appendUnique': {
                     'LIBS': ['crypto'],
@@ -57,8 +57,8 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
                 'runConfig': {
                 },
                 'requires': [
-                    packagename + '.ssl',
-                    packagename + '.crypto',
+                    packagename + '.lib_ssl',
+                    packagename + '.lib_crypto',
                 ],
                 'usedTarget': packagename + '.opensslbin',
             }
