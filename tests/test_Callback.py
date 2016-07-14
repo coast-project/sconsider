@@ -21,7 +21,7 @@ class TestCallback(object):
 
         Callback().register('blub_simple', blub)
         Callback().run('blub_simple')
-        assert True == self.result
+        assert True is self.result
 
     def test_CallbackDefaults(self):
         def blub(**kw):

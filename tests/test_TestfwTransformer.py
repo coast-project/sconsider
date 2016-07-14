@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------------
 
 import TestfwTransformer
-from mockito import *
+from mockito import mock, when, any, verify
 
 
 class TestTestfwTranformerStateMachine(object):

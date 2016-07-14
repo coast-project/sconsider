@@ -16,6 +16,7 @@ Rules specific to convert from WebDisplay2 to COAST
 # -------------------------------------------------------------------------
 # pylint: skip-file
 import re
+from ChangeImportLines import reAny, reShell, reCpp, reHeader, reSconsider
 
 lowerCaseNamespaces = (re.compile(
     r'((Coast::)?(\b(Memory|Storage|Utility|System|URLUtils|Threading|Oracle|Security|StreamUtils|ITOStorage|TypeTraits|IO)\b::))'),
@@ -158,8 +159,6 @@ replaceRequestReaderSlotnames = (
         requestReaderMapping.get(str(mo.group('slotname')), 'MappingFor[' + str(mo.group('slotname')) + ']NotExisting') +
         '" }'
 )
-
-from ChangeImportLines import reAny, reShell, reCpp, reHeader, reSconsider
 
 
 def extendReplaceFuncMap(extensionToReplaceFuncMap):

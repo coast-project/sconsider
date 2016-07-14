@@ -256,16 +256,23 @@ try:
                 logger.warning('%s', ex, exc_info=False)
 
     launchDir = Dir(SCons.Script.GetLaunchDir())
-    dirfilter = lambda directory: True
-
-    def namefilter(pkg_name):
-        return dirfilter(packageRegistry.getPackageDir(pkg_name))
 
     if GetOption("climb_up") in [1, 3]:  # 1: -u, 3: -U
         if GetOption("climb_up") == 1:
-            dirfilter = lambda directory: directory.is_under(launchDir)
+
+            def dirfilter(directory):
+                return directory.is_under(launchDir)
         else:
-            dirfilter = lambda directory: directory == launchDir
+
+            def dirfilter(directory):
+                return directory == launchDir
+    else:
+
+        def dirfilter(_):
+            return True
+
+    def namefilter(pkg_name):
+        return dirfilter(packageRegistry.getPackageDir(pkg_name))
 
     try:
         buildtargets = SCons.Script.BUILD_TARGETS

@@ -83,9 +83,9 @@ class TestProjectFuncs(object):
             self.topproject)
         assert 'Bottom' == WorkingSetWriter.getProjectNameFromProjectFile(
             self.bottomproject)
-        assert None == WorkingSetWriter.getProjectNameFromProjectFile(
+        assert None is WorkingSetWriter.getProjectNameFromProjectFile(
             os.path.join(self.noprojectdir, '.project'))
-        assert None == WorkingSetWriter.getProjectNameFromProjectFile(
+        assert None is WorkingSetWriter.getProjectNameFromProjectFile(
             self.invalidprojectdesc)
 
     def test_DetermineProjectDependencies(self):

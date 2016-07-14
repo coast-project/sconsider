@@ -23,15 +23,13 @@ import os
 import subprocess
 import optparse
 import sys
-import functools
 from SCons.Action import Action
 from SCons.Builder import Builder
 from SCons.Script import AddOption, GetOption, COMMAND_LINE_TARGETS, BUILD_TARGETS
 from SCons.Util import is_List
 from SConsider.PackageRegistry import PackageRegistry
 from SConsider.Callback import Callback
-from SConsider.SomeUtils import hasPathPart, isFileNode, isDerivedNode,\
-    getNodeDependencies
+from SConsider.SomeUtils import hasPathPart, isFileNode, isDerivedNode, getNodeDependencies
 from logging import getLogger
 logger = getLogger(__name__)
 
@@ -233,14 +231,13 @@ def createTestTarget(env,
     if GetOption('run-force'):
         env.AlwaysBuild(runner)
 
-    isInBuilddir = functools.partial(hasPathPart,
-                                     pathpart=env.getRelativeBuildDirectory())
-    isCopiedInclude = lambda node: node.path.startswith(env['INCDIR'])
+    def isNotInBuilddir(node):
+        return hasPathPart(node, pathpart=env.getRelativeBuildDirectory())
 
-    funcs = [
-        isFileNode, isDerivedNode, lambda node: not isInBuilddir(node),
-        lambda node: not isCopiedInclude(node)
-    ]
+    def isNotCopiedInclude(node):
+        return not node.path.startswith(env['INCDIR'])
+
+    funcs = [isFileNode, isDerivedNode, isNotInBuilddir, isNotCopiedInclude]
 
     env.Depends(runner, sorted(getNodeDependencies(runner[0], funcs)))
 

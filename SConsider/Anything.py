@@ -420,7 +420,10 @@ def createAnythingReferenceGrammar():
     delimiter = Literal('?')
     filename = Word(AnyBut(delimiter))
     filedesc = Optional(~Regexp(r'file://[^/]*/')) & filename
-    reverse = lambda alist: list(reversed(alist))
+
+    def reverse(alist):
+        return list(reversed(alist))
+
     externalref = (filedesc & Optional(~delimiter & internalref)) >= reverse
 
     fullref = (~Literal('!') & externalref) | (~Literal('%') & internalref)

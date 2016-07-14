@@ -20,7 +20,7 @@ class TestSplitTargetname(object):
     def test_SplitTargetnameNoTarget(self):
         pkgname, tgtname = PackageRegistry.splitFulltargetname('package')
         assert 'package' == pkgname
-        assert None == tgtname
+        assert None is tgtname
 
     def test_SplitTargetnameDefault(self):
         pkgname, tgtname = PackageRegistry.splitFulltargetname('package', True)

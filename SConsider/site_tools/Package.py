@@ -18,7 +18,6 @@ sources
 import re
 import os
 import threading
-import functools
 from logging import getLogger
 from SomeUtils import hasPathPart, isDerivedNode, multiple_replace, isFileNode, allFuncs, getNodeDependencies
 logger = getLogger(__name__)
@@ -51,9 +50,9 @@ def addPackageTarget(registry, buildTargets, env, destdir, **kw):
 
 
 def makePackage(registry, buildTargets, env, destdir, **kw):
-    isInBuilddir = functools.partial(hasPathPart,
-                                     pathpart=env.getRelativeBuildDirectory())
-    notInBuilddir = lambda target: not isInBuilddir(target)
+    def isNotInBuilddir(node):
+        return not hasPathPart(node, pathpart=env.getRelativeBuildDirectory())
+
     includePathRel = env['INCDIR']
     includePathFull = includePathRel
     if not includePathFull.startswith(os.path.sep):
@@ -68,7 +67,9 @@ def makePackage(registry, buildTargets, env, destdir, **kw):
                 includePathRel) or target.path.startswith(includePathFull)
         return False
 
-    isNotIncludeFile = lambda target: not isIncludeFile(target)
+    def isNotIncludeFile(target):
+        return not isIncludeFile(target)
+
     copyfilters = [
         filterBaseOutDir, filterTestsAppsGlobalsPath, filterVariantPath
     ]
@@ -76,7 +77,7 @@ def makePackage(registry, buildTargets, env, destdir, **kw):
         if registry.isValidFulltargetname(tn):
             tdeps = getTargetDependencies(
                 env.Alias(tn)[0], [
-                    isDerivedNode, notInBuilddir, isNotIncludeFile
+                    isDerivedNode, isNotInBuilddir, isNotIncludeFile
                 ])
             copyPackage(tn, tdeps, env, destdir, copyfilters)
 
