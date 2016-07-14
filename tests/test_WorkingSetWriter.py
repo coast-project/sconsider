@@ -63,17 +63,17 @@ class TestProjectFuncs(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.tempdir)
 
-    def testDetermineProjectFilePathTop(self):
+    def test_DetermineProjectFilePathTop(self):
         projectPath = WorkingSetWriter.determineProjectFilePath(self.tempdir,
                                                                 self.tempdir)
         self.assertEqual(self.topproject, projectPath)
 
-    def testDetermineProjectFilePathBottom(self):
+    def test_DetermineProjectFilePathBottom(self):
         projectPath = WorkingSetWriter.determineProjectFilePath(self.projectdir,
                                                                 self.tempdir)
         self.assertEqual(self.bottomproject, projectPath)
 
-    def testDetermineProjectFilePathNoProject(self):
+    def test_DetermineProjectFilePathNoProject(self):
         self.assertEqual(self.topproject,
                          WorkingSetWriter.determineProjectFilePath(
                              self.noprojectdir, self.tempdir))
@@ -81,7 +81,7 @@ class TestProjectFuncs(unittest.TestCase):
                          WorkingSetWriter.determineProjectFilePath(
                              self.noprojecteitherdir, self.tempdir))
 
-    def testGetProjectNameFromProjectFile(self):
+    def test_GetProjectNameFromProjectFile(self):
         self.assertEqual(
             'Top',
             WorkingSetWriter.getProjectNameFromProjectFile(self.topproject))
@@ -93,7 +93,7 @@ class TestProjectFuncs(unittest.TestCase):
         self.assertEqual(None, WorkingSetWriter.getProjectNameFromProjectFile(
             self.invalidprojectdesc))
 
-    def testDetermineProjectDependencies(self):
+    def test_DetermineProjectDependencies(self):
         pkgdict = {
             'Top': DirStub(self.tempdir),
             'Bottom': DirStub(self.projectdir),

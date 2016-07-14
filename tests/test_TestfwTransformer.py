@@ -13,7 +13,7 @@ import TestfwTransformer
 from mockito import *
 
 
-class TestfwTranformerStateMachineTest(unittest.TestCase):
+class TestTestfwTranformerStateMachine(unittest.TestCase):
     def setUp(self):
         self.parser = TestfwTransformer.Parser()
         self.started = mock(TestfwTransformer.StartedState)
@@ -25,14 +25,14 @@ class TestfwTranformerStateMachineTest(unittest.TestCase):
             'failed': self.failed,
         }
 
-    def testParserEndedStart(self):
+    def test_ParserEndedStart(self):
         when(self.ended).start(name=any(), line=any()).thenReturn(None)
         self.parser.setState('ended')
         line = "Running StringTokenizer2Test"
         self.parser.parseLine(line)
         verify(self.ended).start(line=line, name='StringTokenizer2Test')
 
-    def testParserStartedEnd(self):
+    def test_ParserStartedEnd(self):
         when(self.started).end(tests=any(),
                                assertions=any(),
                                msecs=any(),
@@ -45,28 +45,28 @@ class TestfwTranformerStateMachineTest(unittest.TestCase):
                                  assertions='23',
                                  msecs='537')
 
-    def testParserStartedFail(self):
+    def test_ParserStartedFail(self):
         when(self.started).fail(line=any()).thenReturn(None)
         self.parser.setState('started')
         line = "!!!FAILURES!!!"
         self.parser.parseLine(line)
         verify(self.started).fail(line=line)
 
-    def testParserStartedTest(self):
+    def test_ParserStartedTest(self):
         when(self.started).test(name=any(), line=any()).thenReturn(None)
         self.parser.setState('started')
         line = "--SystemTest--"
         self.parser.parseLine(line)
         verify(self.started).test(line=line, name='SystemTest')
 
-    def testParserStartedTime(self):
+    def test_ParserStartedTime(self):
         when(self.started).handle(any()).thenReturn(None)
         self.parser.setState('started')
         line = "sfs dfjlk (12ms) dfsd fjl"
         self.parser.parseLine(line)
         verify(self.started).handle(line)
 
-    def testParserStartedStop(self):
+    def test_ParserStartedStop(self):
         when(self.started).stop(assertions=any(),
                                 msecs=any(),
                                 failures=any(),
@@ -79,14 +79,14 @@ class TestfwTranformerStateMachineTest(unittest.TestCase):
                                   msecs="58",
                                   failures="2")
 
-    def testParserFailedStart(self):
+    def test_ParserFailedStart(self):
         when(self.failed).start(name=any(), line=any()).thenReturn(None)
         self.parser.setState('failed')
         line = "Running StringTokenizer2Test"
         self.parser.parseLine(line)
         verify(self.failed).start(line=line, name='StringTokenizer2Test')
 
-    def testParserFailedStop(self):
+    def test_ParserFailedStop(self):
         when(self.failed).stop(assertions=any(),
                                msecs=any(),
                                failures=any(),
@@ -99,7 +99,7 @@ class TestfwTranformerStateMachineTest(unittest.TestCase):
                                  msecs="58",
                                  failures="2")
 
-    def testParserFailedFailResult(self):
+    def test_ParserFailedFailResult(self):
         when(self.failed).failResult(line=any(),
                                      runs=any(),
                                      failures=any(),
@@ -112,7 +112,7 @@ class TestfwTranformerStateMachineTest(unittest.TestCase):
                                        failures="1",
                                        errors="2")
 
-    def testParserFailedFailSuccess(self):
+    def test_ParserFailedFailSuccess(self):
         when(self.failed).failSuccess(line=any(),
                                       assertions=any(),
                                       msecs=any()).thenReturn(None)
@@ -121,7 +121,7 @@ class TestfwTranformerStateMachineTest(unittest.TestCase):
         self.parser.parseLine(line)
         verify(self.failed).failSuccess(line=line, assertions="2", msecs="35")
 
-    def testParserFailedFailStartFailure(self):
+    def test_ParserFailedFailStartFailure(self):
         when(self.failed).failStartFailure(line=any(),
                                            testcase=any(),
                                            message=any(),
@@ -135,7 +135,7 @@ class TestfwTranformerStateMachineTest(unittest.TestCase):
             message="File.cpp:123: this is the cause",
             cause="this is the cause")
 
-    def testParserFailedHandle(self):
+    def test_ParserFailedHandle(self):
         when(self.failed).handle(any()).thenReturn(None)
         self.parser.setState('failed')
         line = "this is a string which is not handled"

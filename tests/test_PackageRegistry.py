@@ -12,32 +12,32 @@ import unittest
 from SConsider.PackageRegistry import PackageRegistry
 
 
-class SplitTargetnameTest(unittest.TestCase):
-    def testSplitTargetname(self):
+class TestSplitTargetname(unittest.TestCase):
+    def test_SplitTargetname(self):
         pkgname, tgtname = PackageRegistry.splitFulltargetname('package.target')
         self.assertEqual('package', pkgname)
         self.assertEqual('target', tgtname)
 
-    def testSplitTargetnameNoTarget(self):
+    def test_SplitTargetnameNoTarget(self):
         pkgname, tgtname = PackageRegistry.splitFulltargetname('package')
         self.assertEqual('package', pkgname)
         self.assertEqual(None, tgtname)
 
-    def testSplitTargetnameDefault(self):
+    def test_SplitTargetnameDefault(self):
         pkgname, tgtname = PackageRegistry.splitFulltargetname('package', True)
         self.assertEqual('package', pkgname)
         self.assertEqual('package', tgtname)
 
 
-class GenerateFulltargetnameTest(unittest.TestCase):
-    def testGenerateFulltargetname(self):
+class TestGenerateFulltargetname(unittest.TestCase):
+    def test_GenerateFulltargetname(self):
         ftn = PackageRegistry.createFulltargetname('package', 'target')
         self.assertEqual('package.target', ftn)
 
-    def testGenerateFulltargetnameNoTarget(self):
+    def test_GenerateFulltargetnameNoTarget(self):
         ftn = PackageRegistry.createFulltargetname('package')
         self.assertEqual('package', ftn)
 
-    def testGenerateFulltargetnameDefault(self):
+    def test_GenerateFulltargetnameDefault(self):
         ftn = PackageRegistry.createFulltargetname('package', default=True)
         self.assertEqual('package.package', ftn)

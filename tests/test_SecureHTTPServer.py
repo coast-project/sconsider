@@ -81,7 +81,7 @@ class StoppableHttpServer(StartStopMixin, SecureHTTPServer):
         pass
 
 
-class SecureHTTPServerTest(unittest.TestCase):
+class TestSecureHTTPServer(unittest.TestCase):
 
     server_address = ('127.0.0.1', 8000)
 
@@ -90,7 +90,7 @@ class SecureHTTPServerTest(unittest.TestCase):
         self.shttpd = StoppableHttpServer(self.server_address, self.bucket)
         self.shttpd.start()
 
-    def testStopWithoutException(self):
+    def test_StopWithoutException(self):
         try:
             import ssl
             try:

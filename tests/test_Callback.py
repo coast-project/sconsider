@@ -12,11 +12,11 @@ import unittest
 from Callback import Callback
 
 
-class CallbackTest(unittest.TestCase):
+class TestCallback(unittest.TestCase):
     def setUp(self):
         self.result = None
 
-    def testCallbackSimple(self):
+    def test_CallbackSimple(self):
         def blub():
             self.result = True
 
@@ -24,7 +24,7 @@ class CallbackTest(unittest.TestCase):
         Callback().run('blub')
         self.assertEqual(True, self.result)
 
-    def testCallbackDefaults(self):
+    def test_CallbackDefaults(self):
         def blub(**kw):
             self.result = kw
 
@@ -32,7 +32,7 @@ class CallbackTest(unittest.TestCase):
         Callback().run('blub')
         self.assertEqual({'foo': 'bar'}, self.result)
 
-    def testCallbackOverrides(self):
+    def test_CallbackOverrides(self):
         def blub(**kw):
             self.result = kw
 

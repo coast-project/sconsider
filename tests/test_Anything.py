@@ -15,14 +15,14 @@ import shutil
 from Anything import *
 
 
-class AnythingTest(unittest.TestCase):
+class TestAnything(unittest.TestCase):
     def setUp(self):
         self.any1 = Anything([('a', 1), ('b', 2), 3, ('c', 4), 5])
 
-    def testLen(self):
+    def test_Len(self):
         self.assertEqual(5, len(self.any1))
 
-    def testContent(self):
+    def test_Content(self):
         self.assertEqual(1, self.any1['a'])
         self.assertEqual(2, self.any1['b'])
         self.assertEqual(4, self.any1['c'])
@@ -32,64 +32,64 @@ class AnythingTest(unittest.TestCase):
         self.assertEqual(4, self.any1[3])
         self.assertEqual(5, self.any1[4])
 
-    def testSetWithPos(self):
+    def test_SetWithPos(self):
         self.any1[0] = 99
         self.assertEqual(99, self.any1['a'])
 
-    def testSetWithKey(self):
+    def test_SetWithKey(self):
         self.any1['a'] = 99
         self.assertEqual(99, self.any1[0])
 
-    def testArrayIteration(self):
+    def test_ArrayIteration(self):
         expected = map(lambda i: i + 1, range(5))
         self.assertEqual(expected, [v for v in self.any1])
 
-    def testItervalues(self):
+    def test_Itervalues(self):
         expected = [1, 2, 4]
         self.assertEqual(sorted(expected), sorted(list(self.any1.itervalues())))
 
-    def testItervaluesAll(self):
+    def test_ItervaluesAll(self):
         expected = map(lambda i: i + 1, range(5))
         self.assertEqual(expected, list(self.any1.itervalues(all_items=True)))
 
-    def testValues(self):
+    def test_Values(self):
         expected = [1, 2, 4]
         self.assertEqual(sorted(expected), sorted(list(self.any1.values())))
 
-    def testValuesAll(self):
+    def test_ValuesAll(self):
         expected = map(lambda i: i + 1, range(5))
         self.assertEqual(expected, list(self.any1.values(all_items=True)))
 
-    def testItems(self):
+    def test_Items(self):
         expected = {'a': 1, 'b': 2, 'c': 4}
         self.assertEqual(expected, dict(self.any1.items()))
 
-    def testItemsAll(self):
+    def test_ItemsAll(self):
         expected = [('a', 1), ('b', 2), (None, 3), ('c', 4), (None, 5)]
         self.assertEqual(expected, self.any1.items(all_items=True))
 
-    def testIteritems(self):
+    def test_Iteritems(self):
         expected = {'a': 1, 'b': 2, 'c': 4}
         self.assertEqual(expected, dict(self.any1.iteritems()))
 
-    def testIteritemsAll(self):
+    def test_IteritemsAll(self):
         expected = [('a', 1), ('b', 2), (None, 3), ('c', 4), (None, 5)]
         self.assertEqual(expected, list(self.any1.iteritems(all_items=True)))
 
-    def testKeys(self):
+    def test_Keys(self):
         self.assertEqual(sorted(['a', 'b', 'c']), sorted(self.any1.keys()))
 
-    def testIterkeys(self):
+    def test_Iterkeys(self):
         self.assertEqual(sorted(['a', 'b', 'c']), sorted(self.any1.iterkeys()))
 
-    def testSlotname(self):
+    def test_Slotname(self):
         self.assertEqual('a', self.any1.slotname(0))
         self.assertEqual('b', self.any1.slotname(1))
         self.assertEqual('c', self.any1.slotname(3))
         self.assertEqual(None, self.any1.slotname(2))
         self.assertRaises(IndexError, self.any1.slotname, 5)
 
-    def testStr(self):
+    def test_Str(self):
         any2 = Anything([1, 2, 3, 4])
         self.any1['d'] = any2
         expected = """{
@@ -107,25 +107,25 @@ class AnythingTest(unittest.TestCase):
 }"""
         self.assertEqual(expected, str(self.any1))
 
-    def testRepr(self):
+    def test_Repr(self):
         result = repr(self.any1)
         self.assertEqual("Anything([('a', 1), ('b', 2), 3, ('c', 4), 5])",
                          result)
         self.assertEqual(self.any1, eval(result))
 
-    def testHasKey(self):
+    def test_HasKey(self):
         self.assertTrue(self.any1.has_key('a'))
         self.assertTrue(self.any1.has_key('b'))
         self.assertTrue(self.any1.has_key('c'))
         self.assertFalse(self.any1.has_key('d'))
 
-    def testContains(self):
+    def test_Contains(self):
         for i in xrange(1, 5):
             self.assertTrue(i in self.any1)
         self.assertFalse(0 in self.any1)
         self.assertTrue(6 not in self.any1)
 
-    def testInsert(self):
+    def test_Insert(self):
         self.any1.insert(2, 'new')
         self.assertEqual(6, len(self.any1))
         self.assertEqual(1, self.any1[0])
@@ -138,7 +138,7 @@ class AnythingTest(unittest.TestCase):
         self.assertEqual(2, self.any1['b'])
         self.assertEqual(4, self.any1['c'])
 
-    def testDeleteWithPos(self):
+    def test_DeleteWithPos(self):
         del self.any1[0]
         self.assertEqual(4, len(self.any1))
         self.assertEqual(2, self.any1[0])
@@ -149,7 +149,7 @@ class AnythingTest(unittest.TestCase):
         self.assertEqual(4, self.any1['c'])
         self.assertEqual(None, self.any1.get('a', None))
 
-    def testDeleteWithKey(self):
+    def test_DeleteWithKey(self):
         del self.any1['a']
         self.assertEqual(4, len(self.any1))
         self.assertEqual(2, self.any1[0])
@@ -160,13 +160,13 @@ class AnythingTest(unittest.TestCase):
         self.assertEqual(4, self.any1['c'])
         self.assertEqual(None, self.any1.get('a', None))
 
-    def testUpdateWithDict(self):
+    def test_UpdateWithDict(self):
         self.any1.update({'a': 99, 'b': 88, 'd': 77})
         self.assertEqual(99, self.any1['a'])
         self.assertEqual(88, self.any1['b'])
         self.assertEqual(77, self.any1['d'])
 
-    def testUpdateWithAnything(self):
+    def test_UpdateWithAnything(self):
         any2 = Anything()
         any2['a'] = 99
         any2['b'] = 88
@@ -176,31 +176,31 @@ class AnythingTest(unittest.TestCase):
         self.assertEqual(88, self.any1['b'])
         self.assertEqual(77, self.any1['d'])
 
-    def testExtendWithList(self):
+    def test_ExtendWithList(self):
         self.any1.extend([55, ('d', 66), 77])
         self.assertEqual(
             Anything([('a', 1), ('b', 2), 3, ('c', 4), 5, 55, ('d', 66), 77]),
             self.any1)
 
-    def testExtendWithAnything(self):
+    def test_ExtendWithAnything(self):
         self.any1.extend(Anything([55, ('d', 66), 77]))
         self.assertEqual(
             Anything([('a', 1), ('b', 2), 3, ('c', 4), 5, 55, ('d', 66), 77]),
             self.any1)
 
-    def testAddAnything(self):
+    def test_AddAnything(self):
         self.any1 += Anything([55, ('d', 66), 77])
         self.assertEqual(
             Anything([('a', 1), ('b', 2), 3, ('c', 4), 5, 55, ('d', 66), 77]),
             self.any1)
 
-    def testAddList(self):
+    def test_AddList(self):
         self.any1 += [55, ('d', 66), 77]
         self.assertEqual(
             Anything([('a', 1), ('b', 2), 3, ('c', 4), 5, 55, ('d', 66), 77]),
             self.any1)
 
-    def testAddReturnsCopy(self):
+    def test_AddReturnsCopy(self):
         any1before = self.any1.copy()
         any2 = self.any1 + Anything([55, ('d', 66), 77])
         self.assertEqual(any1before, self.any1)
@@ -208,7 +208,7 @@ class AnythingTest(unittest.TestCase):
             Anything([('a', 1), ('b', 2), 3, ('c', 4), 5, 55, ('d', 66), 77]),
             any2)
 
-    def testMergeWithAnything(self):
+    def test_MergeWithAnything(self):
         any2 = Anything()
         any2['a'] = 99
         any2.append(66)
@@ -222,13 +222,13 @@ class AnythingTest(unittest.TestCase):
         self.assertEqual(77, self.any1['d'])
         self.assertEqual(55, self.any1[7])
 
-    def testMergeWithDict(self):
+    def test_MergeWithDict(self):
         self.any1.merge({'a': 99, 'b': 88, 'd': 77})
         self.assertEqual(99, self.any1['a'])
         self.assertEqual(88, self.any1['b'])
         self.assertEqual(77, self.any1['d'])
 
-    def testMergeWithList(self):
+    def test_MergeWithList(self):
         self.any1.merge([('a', 99), 66, ('b', 88), ('d', 77), 55])
         self.assertEqual(99, self.any1['a'])
         self.assertEqual(66, self.any1[5])
@@ -236,21 +236,21 @@ class AnythingTest(unittest.TestCase):
         self.assertEqual(77, self.any1['d'])
         self.assertEqual(55, self.any1[7])
 
-    def testInitWithDict(self):
+    def test_InitWithDict(self):
         any2 = Anything({'a': 99, 'b': 88, 'd': 77})
         self.assertEqual(3, len(any2))
         self.assertEqual(99, any2['a'])
         self.assertEqual(88, any2['b'])
         self.assertEqual(77, any2['d'])
 
-    def testInitWithKW(self):
+    def test_InitWithKW(self):
         any2 = Anything(a=99, b=88, d=77)
         self.assertEqual(3, len(any2))
         self.assertEqual(99, any2['a'])
         self.assertEqual(88, any2['b'])
         self.assertEqual(77, any2['d'])
 
-    def testInitWithAnything(self):
+    def test_InitWithAnything(self):
         any2 = Anything(self.any1)
         self.assertEqual(1, any2['a'])
         self.assertEqual(2, any2['b'])
@@ -261,7 +261,7 @@ class AnythingTest(unittest.TestCase):
         self.assertEqual(4, any2[3])
         self.assertEqual(5, any2[4])
 
-    def testInitWithList(self):
+    def test_InitWithList(self):
         any2 = Anything([('a', 99), 66, ('b', 88), ('d', 77), 55])
         self.assertEqual(99, any2['a'])
         self.assertEqual(66, any2[1])
@@ -269,14 +269,14 @@ class AnythingTest(unittest.TestCase):
         self.assertEqual(77, any2['d'])
         self.assertEqual(55, any2[4])
 
-    def testPop(self):
+    def test_Pop(self):
         value = self.any1.pop('a')
         self.assertEqual(1, value)
         self.assertEqual(4, len(self.any1))
         self.assertEqual(None, self.any1.get('a', None))
         self.assertRaises(KeyError, self.any1.pop, 'a')
 
-    def testPopitem(self):
+    def test_Popitem(self):
         data = self.any1.popitem()
         self.assertEqual(4, len(self.any1))
         self.assertEqual(('a', 1), data)
@@ -294,7 +294,7 @@ class AnythingTest(unittest.TestCase):
         self.assertEqual((None, 5), data)
         self.assertRaises(KeyError, self.any1.popitem)
 
-    def testEq(self):
+    def test_Eq(self):
         any2 = Anything()
         any2['a'] = 1
         any2['b'] = 2
@@ -303,42 +303,42 @@ class AnythingTest(unittest.TestCase):
         any2.append(5)
         self.assertEqual(self.any1, any2)
 
-    def testCopy(self):
+    def test_Copy(self):
         any2 = self.any1.copy()
         self.assertNotEqual(id(any2), id(self.any1))
         self.assertEqual(self.any1, any2)
 
-    def testGetSlice(self):
+    def test_GetSlice(self):
         any2 = self.any1[1:3]
         self.assertEqual(Anything([('b', 2), 3]), any2)
 
-    def testDelSlice(self):
+    def test_DelSlice(self):
         del self.any1[1:3]
         self.assertEqual(Anything([('a', 1), ('c', 4), 5]), self.any1)
         self.assertEqual(None, self.any1.get('b', None))
         self.assertEqual(4, self.any1['c'])
 
-    def testSetSliceWithAnything(self):
+    def test_SetSliceWithAnything(self):
         self.any1[1:3] = Anything([99, ('d', 88)])
         self.assertEqual(
             Anything([('a', 1), 99, ('d', 88), ('c', 4), 5]), self.any1)
 
-    def testSetSliceWithList(self):
+    def test_SetSliceWithList(self):
         self.any1[1:3] = [99, ('d', 88)]
         self.assertEqual(
             Anything([('a', 1), 99, ('d', 88), ('c', 4), 5]), self.any1)
 
-    def testReverse(self):
+    def test_Reverse(self):
         self.any1.reverse()
         self.assertEqual(
             Anything([5, ('c', 4), 3, ('b', 2), ('a', 1)]), self.any1)
 
-    def testIndex(self):
+    def test_Index(self):
         for i in xrange(1, 5):
             print i
             self.assertEqual(i - 1, self.any1.index(i))
 
-    def testCount(self):
+    def test_Count(self):
         self.any1.extend([2, 3, 3])
         self.assertEqual(1, self.any1.count(1))
         self.assertEqual(2, self.any1.count(2))
@@ -346,7 +346,7 @@ class AnythingTest(unittest.TestCase):
         self.assertEqual(1, self.any1.count(4))
         self.assertEqual(1, self.any1.count(5))
 
-    def testSort(self):
+    def test_Sort(self):
         any2 = Anything([('e', 7), 3, 5, ('a', 2), ('b', 1), ('c', 1), 4])
         any2.sort()
         self.assertEqual(
@@ -357,8 +357,8 @@ class AnythingTest(unittest.TestCase):
         self.assertEqual(2, any2['a'])
 
 
-class AnythingParserTest(unittest.TestCase):
-    def testParse(self):
+class TestAnythingParser(unittest.TestCase):
+    def test_Parse(self):
         content = """
 dd
   {
@@ -396,7 +396,7 @@ dd
         self.assertEqual(expected, result)
 
 
-class ResolvePathTest(unittest.TestCase):
+class TestResolvePath(unittest.TestCase):
     def __makeTempFile(self, filename, relpath=None):
         if relpath:
             path = os.path.join(self.tempdir, relpath)
@@ -421,13 +421,13 @@ class ResolvePathTest(unittest.TestCase):
         os.environ = self.savedEnviron
         setLocalEnv({})
 
-    def testResolveAbs(self):
+    def test_ResolveAbs(self):
         self.assertRaises(IOError, lambda: resolvePath("test4.any"))
         self.assertEqual(
             os.path.join(self.tempdir, 'test1.any'),
             resolvePath(os.path.join(self.tempdir, "test1.any")))
 
-    def testResolveCwd(self):
+    def test_ResolveCwd(self):
         os.chdir(self.tempdir)
         self.assertEqual(
             os.path.join(self.tempdir, 'test1.any'), resolvePath("test1.any"))
@@ -439,7 +439,7 @@ class ResolvePathTest(unittest.TestCase):
             resolvePath("test3.any"))
         self.assertRaises(IOError, lambda: resolvePath("test4.any"))
 
-    def testResolvePathEnv(self):
+    def test_ResolvePathEnv(self):
         os.environ['COAST_ROOT'] = self.tempdir
         self.assertEqual(
             os.path.join(self.tempdir, 'test1.any'), resolvePath("test1.any"))
@@ -455,7 +455,7 @@ class ResolvePathTest(unittest.TestCase):
             os.path.join(self.tempdir, 'test', 'test4.any'),
             resolvePath("test4.any"))
 
-    def testResolvePathTLS(self):
+    def test_ResolvePathTLS(self):
         setLocalEnv({'COAST_ROOT': self.tempdir})
         self.assertEqual(
             os.path.join(self.tempdir, 'test1.any'), resolvePath("test1.any"))
@@ -471,7 +471,7 @@ class ResolvePathTest(unittest.TestCase):
             os.path.join(self.tempdir, 'test', 'test4.any'),
             resolvePath("test4.any"))
 
-    def testResolvePathPassed(self):
+    def test_ResolvePathPassed(self):
         self.assertEqual(
             os.path.join(self.tempdir, 'test1.any'), resolvePath("test1.any",
                                                                  self.tempdir))
@@ -493,33 +493,33 @@ class ResolvePathTest(unittest.TestCase):
             ]))
 
 
-class UtilsTest(unittest.TestCase):
-    def testFirst(self):
+class TestUtils(unittest.TestCase):
+    def test_First(self):
         result = first([lambda: None, lambda: 2, lambda: 3])
         self.assertEqual(2, result)
 
-    def testFirstWithArg(self):
+    def test_FirstWithArg(self):
         result = first([lambda arg: None, lambda arg: arg, lambda arg: 3], 42)
         self.assertEqual(42, result)
 
-    def testToNumber(self):
+    def test_ToNumber(self):
         self.assertEqual(42, toNumber("42"))
         self.assertEqual(42.0, toNumber("42.0"))
         self.assertEqual("42.0a", toNumber("42.0a"))
 
-    def testLoadAllFromFile(self):
+    def test_LoadAllFromFile(self):
         result = loadAllFromFile(resolvePath('AnythingLoadFromFileTest.any',
                                              os.path.dirname(__file__), 'data'))
         expected = [Anything([('key', 'value')])]
         self.assertEqual(expected, result)
 
-    def testLoadFromFile(self):
+    def test_LoadFromFile(self):
         result = loadFromFile(resolvePath('AnythingLoadFromFileTest.any',
                                           os.path.dirname(__file__), 'data'))
         expected = Anything([('key', 'value')])
         self.assertEqual(expected, result)
 
-    def testLoadFromNonexistingFile(self):
+    def test_LoadFromNonexistingFile(self):
         self.assertRaises(
             IOError,
             lambda: loadFromFile(
@@ -536,7 +536,7 @@ class UtilsTest(unittest.TestCase):
         self.assertEqual(None, result)
 
 
-class AnythingReferenceTest(unittest.TestCase):
+class TestAnythingReference(unittest.TestCase):
     def setUp(self):
         self.any1 = Anything([('a', 1), ('b', 2), 3,
                               ('c', Anything([('a', Anything([1, 2, 3]))])), 5,
@@ -548,23 +548,23 @@ class AnythingReferenceTest(unittest.TestCase):
     def tearDown(self):
         os.environ = self.savedEnviron
 
-    def testInternalKey(self):
+    def test_InternalKey(self):
         anyref1 = parseRef('%a')
         self.assertEqual(1, anyref1.resolve(self.any1))
 
-    def testInternalIndex(self):
+    def test_InternalIndex(self):
         anyref1 = parseRef('%:1')
         self.assertEqual(2, anyref1.resolve(self.any1))
 
-    def testInternalCombined(self):
+    def test_InternalCombined(self):
         anyref1 = parseRef('%c.a:0')
         self.assertEqual(1, anyref1.resolve(self.any1))
 
-    def testInternalEscaped(self):
+    def test_InternalEscaped(self):
         anyref1 = parseRef('%a\.b\:3')
         self.assertEqual('escaped', anyref1.resolve(self.any1))
 
-    def testExternal(self):
+    def test_External(self):
         expected = 'include works'
         anyref1 = parseRef('!AnythingReferenceTest2.any?test')
         self.assertEqual(expected, anyref1.resolve())
@@ -576,12 +576,12 @@ class AnythingReferenceTest(unittest.TestCase):
         expected = Anything([1, 2, 3])
         self.assertEqual(expected, anyref2.resolve())
 
-    def testInternalFromFile(self):
+    def test_InternalFromFile(self):
         anys = loadFromFile(resolvePath('AnythingReferenceTest.any'))
         self.assertEqual(1, anys["ref1"])
         self.assertEqual(4, anys["ref2"])
         self.assertEqual('d2', anys["ref3"])
 
-    def testExternalFromFile(self):
+    def test_ExternalFromFile(self):
         anys = loadFromFile(resolvePath('AnythingReferenceTest.any'))
         self.assertEqual('include works', anys["ref4"])

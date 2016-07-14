@@ -13,7 +13,7 @@ import LibFinder
 import itertools
 
 
-class UniqueTest(unittest.TestCase):
+class TestUnique(unittest.TestCase):
     def setUp(self):
         self.names = []
         self.uniquenames = [
@@ -26,8 +26,8 @@ class UniqueTest(unittest.TestCase):
             self.names.extend(
                 [d for d, s in itertools.izip(self.uniquenames, selector) if s])
 
-    def testUnique(self):
+    def test_Unique(self):
         self.assertEqual(self.uniquenames, list(LibFinder.unique(self.names)))
 
-    def testUniqueList(self):
+    def test_UniqueList(self):
         self.assertEqual(self.uniquenames, LibFinder.uniquelist(self.names))

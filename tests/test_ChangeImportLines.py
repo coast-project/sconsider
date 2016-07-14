@@ -108,8 +108,8 @@ testHeaderWhichFailed2Expected = """/*
 #result = SomeUtils.multiple_replace([ChangeImportLines.copyReplace], testHeaderWhichFailed)
 
 
-class CopyrightHeaderTests(unittest.TestCase):
-    def testCopyrightReplaceNoAuthorDateUseCurrentDate(self):
+class TestCopyrightHeader(unittest.TestCase):
+    def test_CopyrightReplaceNoAuthorDateUseCurrentDate(self):
         if 'GIT_AUTHOR_DATE' in os.environ:
             os.environ['GIT_AUTHOR_DATE'] = ''
         expected = """/*
@@ -127,7 +127,7 @@ fsdfds
                                             testCopyrightHeader)
         self.assertEqual(expected, result)
 
-    def testCopyrightReplaceBeforeStartYear(self):
+    def test_CopyrightReplaceBeforeStartYear(self):
         dateStr = str(int(time.mktime(time.strptime(
             '20040101000000', '%Y%m%d%H%M%S')))) + ' some date x y z'
         os.environ['GIT_AUTHOR_DATE'] = dateStr
@@ -135,7 +135,7 @@ fsdfds
                                             testCopyrightHeader)
         self.assertEqual(testCopyrightHeader, result)
 
-    def testCopyrightReplaceUseAuthorDate(self):
+    def test_CopyrightReplaceUseAuthorDate(self):
         dateStr = str(int(time.mktime(time.strptime(
             '20070201000000', '%Y%m%d%H%M%S')))) + ' some date x y z'
         os.environ['GIT_AUTHOR_DATE'] = dateStr
@@ -143,7 +143,7 @@ fsdfds
                                             testCopyrightHeader)
         self.assertEqual(testHeader2007, result)
 
-    def testCopyrightReplaceUseAuthorDateVariant(self):
+    def test_CopyrightReplaceUseAuthorDateVariant(self):
         dateStr = str(int(time.mktime(time.strptime(
             '20070201000000', '%Y%m%d%H%M%S')))) + ' some date x y z'
         os.environ['GIT_AUTHOR_DATE'] = dateStr
@@ -151,7 +151,7 @@ fsdfds
                                             testCopyrightHeader2)
         self.assertEqual(testHeader2007, result)
 
-    def testCopyrightReplaceUseAuthorDateVariant3(self):
+    def test_CopyrightReplaceUseAuthorDateVariant3(self):
         dateStr = str(int(time.mktime(time.strptime(
             '20070201000000', '%Y%m%d%H%M%S')))) + ' some date x y z'
         os.environ['GIT_AUTHOR_DATE'] = dateStr
@@ -159,7 +159,7 @@ fsdfds
                                             testCopyrightHeader3)
         self.assertEqual(testHeader2007, result)
 
-    def testCopyrightReplaceDoNotOverwriteExistingBefore(self):
+    def test_CopyrightReplaceDoNotOverwriteExistingBefore(self):
         dateStr = str(int(time.mktime(time.strptime(
             '20060101000000', '%Y%m%d%H%M%S')))) + ' some date x y z'
         os.environ['GIT_AUTHOR_DATE'] = dateStr
@@ -167,7 +167,7 @@ fsdfds
                                             testHeader2007)
         self.assertEqual(testHeader2007, result)
 
-    def testCopyrightReplaceDoNotOverwriteExistingAfter(self):
+    def test_CopyrightReplaceDoNotOverwriteExistingAfter(self):
         dateStr = str(int(time.mktime(time.strptime(
             '20110101000000', '%Y%m%d%H%M%S')))) + ' some date x y z'
         os.environ['GIT_AUTHOR_DATE'] = dateStr
@@ -175,7 +175,7 @@ fsdfds
                                             testHeader2007)
         self.assertEqual(testHeader2007, result)
 
-    def testCopyrightReplaceVariantInput(self):
+    def test_CopyrightReplaceVariantInput(self):
         dateStr = str(int(time.mktime(time.strptime(
             '20070201000000', '%Y%m%d%H%M%S')))) + ' some date x y z'
         os.environ['GIT_AUTHOR_DATE'] = dateStr
@@ -183,7 +183,7 @@ fsdfds
                                             testCopyrightHeaderFromToDate)
         self.assertEqual(testHeader2007, result)
 
-    def testCopyrightFailedHeader(self):
+    def test_CopyrightFailedHeader(self):
         dateStr = str(int(time.mktime(time.strptime(
             '20070201000000', '%Y%m%d%H%M%S')))) + ' some date x y z'
         os.environ['GIT_AUTHOR_DATE'] = dateStr
@@ -191,7 +191,7 @@ fsdfds
                                             testHeaderWhichFailed)
         self.assertEqual(testHeaderWhichFailedExpected, result)
 
-    def testCopyrightFailedHeader2(self):
+    def test_CopyrightFailedHeader2(self):
         dateStr = str(int(time.mktime(time.strptime(
             '20070201000000', '%Y%m%d%H%M%S')))) + ' some date x y z'
         os.environ['GIT_AUTHOR_DATE'] = dateStr
@@ -261,8 +261,8 @@ result = SomeUtils.multiple_replace([ChangeImportLines.copyReplaceAnyShell],
                                     testCopyrightMakefile)
 
 
-class CopyrightHeaderAnythingShellTests(unittest.TestCase):
-    def testCopyrightInAnything(self):
+class TestCopyrightHeaderAnythingShell(unittest.TestCase):
+    def test_CopyrightInAnything(self):
         dateStr = str(int(time.mktime(time.strptime(
             '20070201000000', '%Y%m%d%H%M%S')))) + ' some date x y z'
         os.environ['GIT_AUTHOR_DATE'] = dateStr
@@ -270,7 +270,7 @@ class CopyrightHeaderAnythingShellTests(unittest.TestCase):
             [ChangeImportLines.copyReplaceAnyShell], testCopyrightAnything)
         self.assertEqual(testCopyrightHeaderAnyShellExpected, result)
 
-    def testCopyrightInMake(self):
+    def test_CopyrightInMake(self):
         dateStr = str(int(time.mktime(time.strptime(
             '20070201000000', '%Y%m%d%H%M%S')))) + ' some date x y z'
         os.environ['GIT_AUTHOR_DATE'] = dateStr
@@ -372,30 +372,30 @@ identReplaceGroups = [
 #result = SomeUtils.multiple_replace([ChangeImportLines.identoldReplace], strIdentOld1)
 
 
-class IdentRemoveTests(unittest.TestCase):
-    def testIdentNewReplacement(self):
+class TestIdentRemove(unittest.TestCase):
+    def test_IdentNewReplacement(self):
         result = SomeUtils.multiple_replace(identReplaceGroups, strIdentNew)
         self.assertEqual(strIdentExpected, result)
 
-    def testIdentOldReplacementVariant1(self):
+    def test_IdentOldReplacementVariant1(self):
         result = SomeUtils.multiple_replace([ChangeImportLines.identoldReplace],
                                             strIdentOld1)
         self.assertEqual(strIdentOld1Expected, result)
 
-    def testIdentOldReplacementVariantAll(self):
+    def test_IdentOldReplacementVariantAll(self):
         result = SomeUtils.multiple_replace(identReplaceGroups, strIdentOld1)
         self.assertEqual(strIdentExpected, result)
 
-    def testIdentOldReplacementVariant2(self):
+    def test_IdentOldReplacementVariant2(self):
         result = SomeUtils.multiple_replace(identReplaceGroups, strIdentOld2)
         self.assertEqual(strIdentExpected, result)
 
-    def testHIDReplacement(self):
+    def test_HIDReplacement(self):
         result = SomeUtils.multiple_replace([ChangeImportLines.hidReplace],
                                             strHID)
         self.assertEqual(strIdentExpected, result)
 
-    def testIdentOldReplacementFailed(self):
+    def test_IdentOldReplacementFailed(self):
         result = SomeUtils.multiple_replace(identReplaceGroups, strIdentFailed)
         self.assertEqual(strIdentFailedExpected, result)
 
@@ -421,8 +421,8 @@ fasel
 """
 
 
-class PragmaRemoveTests(unittest.TestCase):
-    def testPragmaReplacement(self):
+class TestPragmaRemove(unittest.TestCase):
+    def test_PragmaReplacement(self):
         result = SomeUtils.multiple_replace([ChangeImportLines.pragmaReplace],
                                             strPragmas)
         self.assertEqual(strPragmaExpected, result)
@@ -449,13 +449,13 @@ fasel
 """
 
 
-class CleanNewLinesTests(unittest.TestCase):
-    def testCleanNewLines1(self):
+class TestCleanNewLines(unittest.TestCase):
+    def test_CleanNewLines1(self):
         result = SomeUtils.multiple_replace([ChangeImportLines.cleanNewLines],
                                             strNewLineIn1)
         self.assertEqual(strNewLineExpected, result)
 
-    def testCleanNewLines2(self):
+    def test_CleanNewLines2(self):
         result = SomeUtils.multiple_replace([ChangeImportLines.cleanNewLines],
                                             strNewLineIn2)
         self.assertEqual(strNewLineExpected, result)

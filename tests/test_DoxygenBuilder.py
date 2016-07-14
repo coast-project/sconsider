@@ -11,7 +11,7 @@
 import DoxygenBuilder
 
 
-def test_AliasesList():
+def test__AliasesList():
     assert r'FIXME=\xrefitem FIXME "Fixme" "Locations to fix when possible" ' == DoxygenBuilder.parseDoxyfileContent(
         r'ALIASES = "FIXME=\xrefitem FIXME \"Fixme\" \"Locations to fix when possible\" "',
         {}, None)['ALIASES']
