@@ -57,6 +57,12 @@ loggers:
         propagate: no
         filters: []
 
+    SConsider.Callback:
+        level: WARNING
+        handlers: [console]
+        propagate: no
+        filters: []
+
     SConsider.PackageRegistry:
         level: INFO
         handlers: [console]

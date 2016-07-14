@@ -16,7 +16,7 @@ SConsider-specific 3rdparty library handling
 
 import os
 from logging import getLogger
-from SCons.Script import Clean, Dir, GetOption, AddOption, Exit
+from SCons.Script import Dir, GetOption, AddOption, Exit
 logger = getLogger(__name__)
 
 thirdPartyPackages = {}

@@ -11,7 +11,6 @@
 from ServerExtensions import SecureHTTPServer
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 import threading
-import unittest
 import socket
 import urllib
 import Queue
@@ -61,7 +60,7 @@ class StoppableHttpServer(StartStopMixin, SecureHTTPServer):
         try:
             self.finish_request(request, client_address)
         except:
-            #SSL.Error (GET_CLIENT_HELLO)
+            # SSL.Error (GET_CLIENT_HELLO)
             pass
 
         try:
@@ -81,11 +80,11 @@ class StoppableHttpServer(StartStopMixin, SecureHTTPServer):
         pass
 
 
-class TestSecureHTTPServer(unittest.TestCase):
+class TestSecureHTTPServer(object):
 
     server_address = ('127.0.0.1', 8000)
 
-    def setUp(self):
+    def setup_method(self, method):
         self.bucket = Queue.Queue()
         self.shttpd = StoppableHttpServer(self.server_address, self.bucket)
         self.shttpd.start()
@@ -109,5 +108,5 @@ class TestSecureHTTPServer(unittest.TestCase):
         except Queue.Empty:
             pass
 
-    def tearDown(self):
+    def teardown_method(self, method):
         self.shttpd.stop()

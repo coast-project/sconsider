@@ -73,7 +73,7 @@ def findPlatformTargets(env,
     files = []
     _relExcludeList = env.relativeExcludeDirs()
     for dirpath, dirnames, filenames in os.walk(basedir):
-        dirnames[:] = [d for d in dirnames if not d in _relExcludeList]
+        dirnames[:] = [d for d in dirnames if d not in _relExcludeList]
         dirMatch = reDirname.match(os.path.split(dirpath)[1])
         if not dirMatch:
             continue

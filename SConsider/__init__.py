@@ -31,11 +31,9 @@ from pkg_resources import get_distribution as pkg_get_dist,\
     get_build_platform, ResolutionError
 
 import SCons
-from SCons.Script import AddOption, GetOption, Dir, File, DefaultEnvironment,\
+from SCons.Script import AddOption, GetOption, Dir, DefaultEnvironment,\
     Flatten, SConsignFile
 from SCons.Tool import DefaultToolpath
-from SConsider.SomeUtils import listFiles, findFiles, removeFiles,\
-    getfqdn
 from SConsider.Callback import Callback
 from SConsider.Logging import setup_logging
 from SConsider.PackageRegistry import PackageRegistry, PackageNotFound, TargetNotFound, PackageRequirementsNotFulfilled, NoPackageTargetsFound

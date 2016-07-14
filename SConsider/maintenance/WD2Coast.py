@@ -151,11 +151,11 @@ requestReaderMapping = {'HttpStatusCode': 'ResponseCode',
                         'FaultyRequestLine': 'FaultyContent'}
 
 replaceRequestReaderSlotnames = (
-    re.compile(lookupStringPrefix + r'\b(?P<slotname>'+ '|'.join(requestReaderMapping.keys()) + r')\b', re.M),
+    re.compile(lookupStringPrefix + r'\b(?P<slotname>' + '|'.join(requestReaderMapping.keys()) + r')\b', re.M),
     lambda mo:
         prefixfun(mo, '') +
         '{ /Lookup { RequestProcessorErrorSlot } ":0.' +
-        requestReaderMapping.get(str(mo.group('slotname')),'MappingFor['+str(mo.group('slotname'))+']NotExisting') +
+        requestReaderMapping.get(str(mo.group('slotname')), 'MappingFor[' + str(mo.group('slotname')) + ']NotExisting') +
         '" }'
 )
 

@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-#-------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 from __future__ import with_statement
-#-------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 from xml.etree.ElementTree import TreeBuilder, tostring
-#-------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 # pylint: skip-file
 __all__ = ["XMLBuilder"]
 __doc__ = """
@@ -24,7 +24,7 @@ etree_node = ~x
 print str(x)
 """
 
-#-------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 
 
 class _XMLNode(object):
@@ -61,7 +61,7 @@ class _XMLNode(object):
         self.parent -= 1
         self.builder.end(self.name)
         return False
-#-------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 
 
 class XMLBuilder(object):
@@ -119,8 +119,9 @@ class XMLBuilder(object):
         return x
     # create new tag or add text
     # possible shift values
-    #string - text
-    # tuple(string1,string2,dict) - new tag with name string1,attrs = dict,and text string2
+    # string - text
+    # tuple(string1,string2,dict) - new tag with name string1,attrs = dict,
+    #   and text string2
     # dict and string2 are optional
 
     def __lshift__(self, val):
@@ -172,4 +173,4 @@ class XMLBuilder(object):
         """return generated xml."""
         res = tostring(~self, self.__encoding)
         return res.decode(self.__encoding)
-#-------------------------------------------------------------------------
+# -------------------------------------------------------------------------

@@ -21,7 +21,7 @@ def path_to_pkg(pkg_name, path_fallback=None):
                 path_to_module = os.path.join(distro.location, i + j)
                 if os.path.isdir(path_to_module):
                     return path_to_module
-    except DistributionNotFound as ex:
+    except pkg_resources.DistributionNotFound:
         pass
     return path_fallback if path_fallback is not None and os.path.isdir(
         path_fallback) else None

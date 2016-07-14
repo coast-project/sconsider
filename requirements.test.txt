@@ -1,6 +1,9 @@
 -r requirements.txt
-nose
-mockito
+pytest
+pytest-flakes
+pytest-cov
+pytest-pep8
 pyflakes
 flake8
+mockito
 #flake8-docstrings

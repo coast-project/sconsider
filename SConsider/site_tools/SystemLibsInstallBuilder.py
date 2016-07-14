@@ -150,7 +150,7 @@ def generate(env, *args, **kw):
                     for node_name in deplibs:
                         node_name_short = os.path.basename(node_name)
                         libfile = env.arg2nodes(node_name)[0]
-                        if not node_name_short in systemLibTargets and libfile.is_under(
+                        if node_name_short not in systemLibTargets and libfile.is_under(
                                 ownlibDir) and not libfile.has_builder():
                             systemLibTargets[node_name_short] = libfile
                             if libfile.isfile() or libfile.islink():
@@ -159,7 +159,7 @@ def generate(env, *args, **kw):
                                     path_to_real_lib = os.readlink(libfile.path)
                                     real_lib_name = os.path.basename(
                                         path_to_real_lib)
-                                    if not real_lib_name in systemLibTargets:
+                                    if real_lib_name not in systemLibTargets:
                                         real_lib_node = libfile.get_dir().File(
                                             real_lib_name)
                                         if real_lib_node.exists():

@@ -8,13 +8,12 @@
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
 
-import unittest
 import TestfwTransformer
 from mockito import *
 
 
-class TestTestfwTranformerStateMachine(unittest.TestCase):
-    def setUp(self):
+class TestTestfwTranformerStateMachine(object):
+    def setup_method(self, method):
         self.parser = TestfwTransformer.Parser()
         self.started = mock(TestfwTransformer.StartedState)
         self.ended = mock(TestfwTransformer.EndedState)

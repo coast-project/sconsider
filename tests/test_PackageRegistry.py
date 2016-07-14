@@ -8,36 +8,35 @@
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
 
-import unittest
 from SConsider.PackageRegistry import PackageRegistry
 
 
-class TestSplitTargetname(unittest.TestCase):
+class TestSplitTargetname(object):
     def test_SplitTargetname(self):
         pkgname, tgtname = PackageRegistry.splitFulltargetname('package.target')
-        self.assertEqual('package', pkgname)
-        self.assertEqual('target', tgtname)
+        assert 'package' == pkgname
+        assert 'target' == tgtname
 
     def test_SplitTargetnameNoTarget(self):
         pkgname, tgtname = PackageRegistry.splitFulltargetname('package')
-        self.assertEqual('package', pkgname)
-        self.assertEqual(None, tgtname)
+        assert 'package' == pkgname
+        assert None == tgtname
 
     def test_SplitTargetnameDefault(self):
         pkgname, tgtname = PackageRegistry.splitFulltargetname('package', True)
-        self.assertEqual('package', pkgname)
-        self.assertEqual('package', tgtname)
+        assert 'package' == pkgname
+        assert 'package' == tgtname
 
 
-class TestGenerateFulltargetname(unittest.TestCase):
+class TestGenerateFulltargetname(object):
     def test_GenerateFulltargetname(self):
         ftn = PackageRegistry.createFulltargetname('package', 'target')
-        self.assertEqual('package.target', ftn)
+        assert 'package.target' == ftn
 
     def test_GenerateFulltargetnameNoTarget(self):
         ftn = PackageRegistry.createFulltargetname('package')
-        self.assertEqual('package', ftn)
+        assert 'package' == ftn
 
     def test_GenerateFulltargetnameDefault(self):
         ftn = PackageRegistry.createFulltargetname('package', default=True)
-        self.assertEqual('package.package', ftn)
+        assert 'package.package' == ftn

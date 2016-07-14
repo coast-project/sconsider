@@ -8,7 +8,6 @@
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
 
-import unittest
 import Package
 import SomeUtils
 
@@ -55,11 +54,11 @@ class TargetStub(UpdateableObject):
         target.
 
         """
-        return hasattr(self, 'builder') and not self.builder is None
+        return hasattr(self, 'builder') and self.builder is not None
 
 
-class TestPackageTool(unittest.TestCase):
-    def setUp(self):
+class TestPackageTool(object):
+    def setup_method(self, method):
         self.source1 = TargetStub(path="source1")
         self.source2 = TargetStub(path="source2")
         self.source3 = TargetStub(path="source3")
@@ -81,30 +80,30 @@ class TestPackageTool(unittest.TestCase):
 
     def test_TargetDependenciesAlias(self):
         deps = Package.getTargetDependencies(self.alias)
-        self.assertEqual(len(deps), 6)
+        assert len(deps) == 6
 
     def test_DerivedTargetDependenciesZero(self):
         deps = Package.getTargetDependencies(self.alias,
                                              SomeUtils.isDerivedNode)
-        self.assertEqual(len(deps), 0)
+        assert len(deps) == 0
 
     def test_DerivedTargetDependencies(self):
         self.blub.builder = object()
         self.bla.builder = object()
         deps = Package.getTargetDependencies(self.alias,
                                              SomeUtils.isDerivedNode)
-        self.assertEqual(len(deps), 2)
+        assert len(deps) == 2
 
     def test_TargetDependenciesTarget(self):
         self.alias.path = "target1"
         self.alias.builder = object()
         deps = Package.getTargetDependencies(self.alias,
                                              SomeUtils.isDerivedNode)
-        self.assertEqual(len(deps), 1)
+        assert len(deps) == 1
 
 
-class TestInstalledNode(unittest.TestCase):
-    def setUp(self):
+class TestInstalledNode(object):
+    def setup_method(self, method):
         self.node1 = TargetStub(path="3rdparty/blub")
         self.node2 = TargetStub(path="bin/blub",
                                 sources=[
@@ -119,24 +118,22 @@ class TestInstalledNode(unittest.TestCase):
         self.testnode = TargetStub(path="bin/blub")
 
     def test_IsInstalledNode(self):
-        self.assertTrue(Package.isInstalledNode(self.testnode, self.node3))
+        assert Package.isInstalledNode(self.testnode, self.node3)
 
     def test_NotIsInstalledNode(self):
         self.node3.builder.name = "BlaBuilder"
-        self.assertFalse(Package.isInstalledNode(self.testnode, self.node3))
+        assert not Package.isInstalledNode(self.testnode, self.node3)
 
 
-class TestPathFilter(unittest.TestCase):
-    def setUp(self):
+class TestPathFilter(object):
+    def setup_method(self, method):
         self.path = "apps/package/bin/variant123/blub"
 
     def test_FilterTestsAppsGlobalsPath(self):
-        self.assertEqual(
-            Package.filterTestsAppsGlobalsPath(self.path),
-            "bin/variant123/blub")
+        assert Package.filterTestsAppsGlobalsPath(
+            self.path) == "bin/variant123/blub"
 
     def test_FilterVariantPath(self):
         env = EnvWrapper({'VARIANTDIR': 'variant123'})
-        self.assertEqual(
-            Package.filterVariantPath(self.path, env=env),
-            "apps/package/bin/blub")
+        assert Package.filterVariantPath(self.path,
+                                         env=env) == "apps/package/bin/blub"

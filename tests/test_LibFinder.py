@@ -8,13 +8,12 @@
 # library/application in the file license.txt.
 # -------------------------------------------------------------------------
 
-import unittest
 import LibFinder
 import itertools
 
 
-class TestUnique(unittest.TestCase):
-    def setUp(self):
+class TestUnique(object):
+    def setup_method(self, method):
         self.names = []
         self.uniquenames = [
             'Fredi', 'Heiri', "Koebi", 'Ruedi', 'Fridolin', 'Eugen'
@@ -27,7 +26,7 @@ class TestUnique(unittest.TestCase):
                 [d for d, s in itertools.izip(self.uniquenames, selector) if s])
 
     def test_Unique(self):
-        self.assertEqual(self.uniquenames, list(LibFinder.unique(self.names)))
+        assert self.uniquenames == list(LibFinder.unique(self.names))
 
     def test_UniqueList(self):
-        self.assertEqual(self.uniquenames, LibFinder.uniquelist(self.names))
+        assert self.uniquenames == LibFinder.uniquelist(self.names)
