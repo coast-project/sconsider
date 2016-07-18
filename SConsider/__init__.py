@@ -175,17 +175,13 @@ logger.debug("Exclude dirs rel: %s", baseEnv.relativeExcludeDirs())
 logger.debug("Exclude dirs abs: %s", baseEnv.absoluteExcludeDirs())
 logger.debug("Exclude dirs toplevel: %s", baseEnv.toplevelExcludeDirs())
 
-_sconsider_toplevel_scandirs = [
-    dirname for dirname in os.listdir(Dir('#').path)
-    if os.path.isdir(dirname) and dirname not in baseEnv.toplevelExcludeDirs()
-]
-logger.debug("Toplevel dirs to scan for package files: %s",
-             _sconsider_toplevel_scandirs)
+_scan_start_dir = Dir('#')
 
+packageRegistry = PackageRegistry(baseEnv)
 logger.info("Collecting .sconsider packages ...")
-packageRegistry = PackageRegistry(baseEnv, _sconsider_toplevel_scandirs,
-                                  baseEnv.relativeExcludeDirs(),
-                                  baseEnv.absoluteExcludeDirs())
+packageRegistry.scan_for_package_files(_scan_start_dir,
+                                       baseEnv.relativeExcludeDirs(),
+                                       baseEnv.absoluteExcludeDirs())
 
 
 @deprecated(

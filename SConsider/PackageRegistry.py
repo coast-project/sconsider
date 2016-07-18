@@ -120,35 +120,47 @@ class TargetIsAliasException(Exception):
 class PackageRegistry(object):
     targetnameseparator = '.'
 
-    def __init__(self,
-                 env,
-                 scan_dirs,
-                 scan_dirs_exclude_rel=None,
-                 scan_dirs_exclude_abs=None):
+    def __init__(self, env):
         self.env = env
         self.packages = {}
         self.lookupStack = []
-        if not isinstance(scan_dirs, list):
-            scan_dirs = [scan_dirs]
+
+    @staticmethod
+    def subdirs_to_scan(scan_start_dir, toplevel_excludes):
+        scandirs = [
+            dirname for dirname in os.listdir(scan_start_dir.path)
+            if os.path.isdir(dirname) and dirname not in toplevel_excludes
+        ]
+        logger.debug("Toplevel dirs to scan for package files: %s", scandirs)
+        return scandirs
+
+    def scan_for_package_files(self,
+                               start_dir,
+                               scan_dirs_exclude_rel=None,
+                               scan_dirs_exclude_abs=None):
+        scan_dirs = PackageRegistry.subdirs_to_scan(
+            start_dir, self.env.toplevelExcludeDirs())
         if not scan_dirs:
             return
-        from SCons.Script import Dir
-        startDir = Dir('#')
 
-        def scanmatchfun(root, filename, match):
-            rootDir = self.env.Dir(root)
-            _filename = rootDir.File(filename)
-            logger.debug('found package [%s] in [%s]',
-                         match.group('packagename'),
-                         startDir.rel_path(_filename))
-            self.setPackage(match.group('packagename'), _filename, rootDir)
+        package_file_re = re.compile(r'^(?P<packagename>.*)\.sconsider$')
+
+        def scanmatchfun(root, filename, register_func):
+            match = package_file_re.match(filename)
+            if match:
+                rootDir = self.env.Dir(root)
+                _filename = rootDir.File(filename)
+                logger.debug('found package [%s] in [%s]',
+                             match.group('packagename'),
+                             start_dir.rel_path(_filename))
+                register_func(match.group('packagename'), _filename, rootDir)
 
         for scandir in scan_dirs:
-            self.collectPackageFiles(scandir,
-                                     r'^(?P<packagename>.*)\.sconsider$',
-                                     scanmatchfun,
-                                     excludes_rel=scan_dirs_exclude_rel,
-                                     excludes_abs=scan_dirs_exclude_abs)
+            PackageRegistry.collectPackageFiles(
+                scandir,
+                lambda p, f: scanmatchfun(p, f, self.setPackage),
+                excludes_rel=scan_dirs_exclude_rel,
+                excludes_abs=scan_dirs_exclude_abs)
 
     @staticmethod
     def splitFulltargetname(fulltargetname, default=False):
@@ -193,8 +205,7 @@ class PackageRegistry(object):
 
     @staticmethod
     def collectPackageFiles(directory,
-                            filename_re,
-                            matchfun,
+                            match_func,
                             file_ext='sconsider',
                             excludes_rel=None,
                             excludes_abs=None):
@@ -209,8 +220,6 @@ class PackageRegistry(object):
             excludes_rel = []
         if excludes_abs is None:
             excludes_abs = []
-        import fnmatch
-        package_re = re.compile(filename_re)
         followlinks = False
         if sys.version_info[:2] >= (2, 6):
             followlinks = True
@@ -220,10 +229,8 @@ class PackageRegistry(object):
             dirnames[:] = [j for j in dirnames
                            if j not in excludes_rel and os.path.join(
                                _root_pathabs, j) not in excludes_abs]
-            for filename in fnmatch.filter(filenames, '*.' + file_ext):
-                match = package_re.match(filename)
-                if match:
-                    matchfun(root, filename, match)
+            for filename in filenames:
+                match_func(root, filename)
 
     def setPackage(self, packagename, packagefile, packagedir, duplicate=False):
         self.packages[packagename] = {

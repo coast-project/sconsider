@@ -114,12 +114,12 @@ class TargetMaker(object):
             if str(env['PLATFORM']) not in ["cygwin", "win32"]:
                 mode = stat.S_IREAD
                 mode |= stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
-            instTargets = copyFileNodes(env,
-                                        self.prepareFileNodeTuples(ifiles,
-                                                                   pkgdir),
-                                        destdir,
-                                        stripRelDirs=stripRelDirs,
-                                        mode=mode)
+            instTargets = copyFileNodes(
+                env,
+                self.prepareFileNodeTuples(ifiles, pkgdir),
+                destdir,
+                stripRelDirs=stripRelDirs,
+                mode=mode)
         return instTargets
 
     def copyFiles(self, env, destdir, pkgname, copyFiles):
@@ -152,10 +152,10 @@ class TargetMaker(object):
         if not is_List(requiredTargets):
             requiredTargets = [requiredTargets]
         for targ in requiredTargets:
-            env.Depends(
-                target,
-                self.registry.loadPackageTarget(
-                    *self.registry.splitFulltargetname(targ, default=True)))
+            env.Depends(target,
+                        self.registry.loadPackageTarget(
+                            *self.registry.splitFulltargetname(targ,
+                                                               default=True)))
 
     def doCreateTarget(self, packagename, targetname, targetBuildSettings):
         plaintarget = None

@@ -39,24 +39,28 @@ def getBinaryDistDir(packagename):
 
 
 def collectPackages(directory, direxcludesrel=None):
+    import re
     packages = {}
 
-    def scanmatchfun(root, filename, match):
-        dirobj = Dir(root)
-        fileobj = dirobj.File(filename)
-        if 0:
-            logger.debug('found package [%s](%s) in [%s]',
-                         match.group('packagename'), match.group('type'),
-                         fileobj.path)
-        packages.setdefault(
-            match.group('packagename'), {})[match.group('type')] = fileobj
+    package_file_re = re.compile(
+        r'^(?P<packagename>.*)\.(?P<type>sys|src|bin)\.sconsider$')
+
+    def scanmatchfun(root, filename):
+        match = package_file_re.match(filename)
+        if match:
+            dirobj = Dir(root)
+            fileobj = dirobj.File(filename)
+            if 0:
+                logger.debug('found package [%s](%s) in [%s]',
+                             match.group('packagename'), match.group('type'),
+                             fileobj.path)
+            packages.setdefault(
+                match.group('packagename'), {})[match.group('type')] = fileobj
 
     from SConsider.PackageRegistry import PackageRegistry
-    PackageRegistry().collectPackageFiles(
-        directory,
-        r'^(?P<packagename>.*)\.(?P<type>sys|src|bin)\.sconsider$',
-        scanmatchfun,
-        excludes_rel=direxcludesrel)
+    PackageRegistry().collectPackageFiles(directory,
+                                          scanmatchfun,
+                                          excludes_rel=direxcludesrel)
     return packages
 
 

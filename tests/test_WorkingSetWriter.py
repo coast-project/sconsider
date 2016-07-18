@@ -26,7 +26,7 @@ class DirStub(object):
 class RegistryStub(object):
     def __init__(self, pkgdict):
         self.pkgdict = pkgdict
-        self.registry = PackageRegistry(None, [])
+        self.registry = PackageRegistry(None)
         self.registry.getPackageDir = self.__getPackageDir
 
     def __getPackageDir(self, packagename):
