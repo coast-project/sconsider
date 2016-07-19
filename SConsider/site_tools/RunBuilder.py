@@ -397,10 +397,13 @@ def generate(env):
                        **kw)
 
     def addBuildTargetCallback(**kw):
-        for ftname in COMMAND_LINE_TARGETS:
-            packagename, targetname = PackageRegistry.splitFulltargetname(
-                ftname)
-            BUILD_TARGETS.extend(getTargets(packagename, targetname))
+        if COMMAND_LINE_TARGETS:
+            for ftname in COMMAND_LINE_TARGETS:
+                packagename, targetname = PackageRegistry.splitFulltargetname(
+                    ftname)
+                BUILD_TARGETS.extend(getTargets(packagename, targetname))
+        else:
+            BUILD_TARGETS.extend(getTargets())
 
     if GetOption("run") or GetOption("run-force"):
         Callback().register("PostCreateTarget", createTargetCallback)
