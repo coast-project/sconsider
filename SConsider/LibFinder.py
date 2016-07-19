@@ -16,11 +16,11 @@ Utility to find depending libraries of a target.
 
 import os
 import re
-import subprocess
 import functools
 import itertools
 import operator
 from SomeUtils import getFlatENV
+from PopenHelper import PopenHelper, PIPE
 
 
 def uniquelist(iterable):
@@ -73,11 +73,10 @@ class UnixFinder(LibFinder):
         if libdirs:
             env.AppendENVPath('LD_LIBRARY_PATH',
                               [self.absolutify(j) for j in libdirs])
-        ldd = subprocess.Popen(
-            ['ldd', os.path.basename(source[0].get_abspath())],
-            stdout=subprocess.PIPE,
-            cwd=os.path.dirname(source[0].get_abspath()),
-            env=getFlatENV(env))
+        ldd = PopenHelper(['ldd', os.path.basename(source[0].get_abspath())],
+                          stdout=PIPE,
+                          cwd=os.path.dirname(source[0].get_abspath()),
+                          env=getFlatENV(env))
         out, _ = ldd.communicate()
         libs = [j
                 for j in re.findall(r'^.*=>\s*(not found|[^\s^\(]+)', out,
@@ -98,9 +97,7 @@ class UnixFinder(LibFinder):
         cmdargs = [
             linkercmd, '-print-search-dirs'
         ] + env.subst('$LINKFLAGS').split(' ')
-        linker = subprocess.Popen(cmdargs,
-                                  stdout=subprocess.PIPE,
-                                  env=getFlatENV(env))
+        linker = PopenHelper(cmdargs, stdout=PIPE, env=getFlatENV(env))
         out, _ = linker.communicate()
         match = re.search('^libraries.*=(.*)$', out, re.MULTILINE)
         if match:
@@ -129,9 +126,9 @@ class MacFinder(LibFinder):
         if libdirs:
             env.AppendENVPath('DYLD_LIBRARY_PATH',
                               [self.absolutify(j) for j in libdirs])
-        ldd = subprocess.Popen(
+        ldd = PopenHelper(
             ['otool', '-L', os.path.basename(source[0].get_abspath())],
-            stdout=subprocess.PIPE,
+            stdout=PIPE,
             cwd=os.path.dirname(source[0].get_abspath()),
             env=getFlatENV(env))
         out, _ = ldd.communicate()
@@ -152,9 +149,7 @@ class MacFinder(LibFinder):
         cmdargs = [
             linkercmd, '-print-search-dirs'
         ] + env.subst('$LINKFLAGS').split(' ')
-        linker = subprocess.Popen(cmdargs,
-                                  stdout=subprocess.PIPE,
-                                  env=getFlatENV(env))
+        linker = PopenHelper(cmdargs, stdout=PIPE, env=getFlatENV(env))
         out, _ = linker.communicate()
         match = re.search('^libraries.*=(.*)$', out, re.MULTILINE)
         if match:
@@ -180,9 +175,9 @@ class Win32Finder(LibFinder):
         return None
 
     def getLibs(self, env, source, libnames=None, libdirs=None):
-        ldd = subprocess.Popen(
+        ldd = PopenHelper(
             ['objdump', '-p', os.path.basename(source[0].get_abspath())],
-            stdout=subprocess.PIPE,
+            stdout=PIPE,
             cwd=os.path.dirname(source[0].get_abspath()),
             env=getFlatENV(env))
         out, _ = ldd.communicate()

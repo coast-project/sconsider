@@ -20,16 +20,17 @@ setup/teardown functions executed before and after running the program.
 
 from __future__ import with_statement
 import os
-import subprocess
 import optparse
 import sys
+import shlex
 from SCons.Action import Action
 from SCons.Builder import Builder
 from SCons.Script import AddOption, GetOption, COMMAND_LINE_TARGETS, BUILD_TARGETS
 from SCons.Util import is_List
 from SConsider.PackageRegistry import PackageRegistry
 from SConsider.Callback import Callback
-from SConsider.SomeUtils import hasPathPart, isFileNode, isDerivedNode, getNodeDependencies
+from SConsider.SomeUtils import hasPathPart, isFileNode, isDerivedNode, getNodeDependencies, getFlatENV
+from SConsider.PopenHelper import PopenHelper, PIPE, STDOUT
 from logging import getLogger
 logger = getLogger(__name__)
 
@@ -89,12 +90,9 @@ def run(cmd, logfile=None, **kw):
             if not os.path.isdir(logfile.dir.get_abspath()):
                 os.makedirs(logfile.dir.get_abspath())
             tee.add(open(logfile.get_abspath(), 'w'))
-        proc = subprocess.Popen(cmd,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT,
-                                **kw)
+        proc = PopenHelper(cmd, stdin=None, stdout=PIPE, stderr=STDOUT, **kw)
         while True:
-            out = proc.stdout.readline()
+            out = proc.stdout.read(1)
             if out == '' and proc.poll() is not None:
                 break
             tee.write(out)
@@ -119,8 +117,6 @@ def emitPassedFile(target, source, env):
 
 
 def execute(command, env):
-    import shlex
-    from SConsider.SomeUtils import getFlatENV
     args = [command]
     args.extend(shlex.split(
         env.get('runParams', ''),

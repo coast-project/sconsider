@@ -17,9 +17,9 @@ doxygen target for every target specified.
 
 from __future__ import with_statement
 import os
-import subprocess
 import re
 from logging import getLogger
+from PopenHelper import PopenHelper, PIPE
 logger = getLogger(__name__)
 
 
@@ -151,9 +151,7 @@ def setDoxyfileData(doxyfile, doxyDict):
 
 
 def getDoxyfileTemplate():
-    proc = subprocess.Popen(['doxygen', '-s', '-g', '-'],
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
+    proc = PopenHelper(['doxygen', '-s', '-g', '-'], stdout=PIPE, stderr=PIPE)
     stdout, _ = proc.communicate()
     return parseDoxyfileContent(stdout, {})
 
@@ -346,10 +344,9 @@ def buildDoxyfile(target, _, env):
 
     log_out, log_err = openLogFiles(env)
     try:
-        proc = subprocess.Popen(
-            ['doxygen', '-s', '-u', target[0].get_abspath()],
-            stdout=log_out,
-            stderr=log_err)
+        proc = PopenHelper(['doxygen', '-s', '-u', target[0].get_abspath()],
+                           stdout=log_out,
+                           stderr=log_err)
         proc.wait()
     finally:
         closeLogFiles(log_out, log_err)
@@ -398,7 +395,7 @@ def callDoxygen(_, source, env):
 
     log_out, log_err = openLogFiles(env)
     try:
-        proc = subprocess.Popen(cmd, shell=True, stdout=log_out, stderr=log_err)
+        proc = PopenHelper(cmd, shell=True, stdout=log_out, stderr=log_err)
         proc.wait()
     finally:
         closeLogFiles(log_out, log_err)
@@ -696,10 +693,7 @@ def determineCompilerDefines(env):
     cmd += ' ' + os.path.join(os.path.dirname(__file__), 'defines.sh')
     cmd += ' ' + env['CXX']
 
-    proc = subprocess.Popen(cmd,
-                            shell=True,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
+    proc = PopenHelper(cmd, shell=True, stdout=PIPE, stderr=PIPE)
     stdoutdata, _ = proc.communicate()
 
     defines = {}

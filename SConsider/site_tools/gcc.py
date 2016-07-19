@@ -16,7 +16,7 @@ SConsider-specific gcc tool initialization
 
 import os
 import re
-import subprocess
+from subprocess import PIPE
 import SCons.Util
 import SCons.Tool
 from logging import getLogger
@@ -49,7 +49,7 @@ def generate(env):
         pipe = SCons.Action._subproc(env, [compiler_subject, '--version'],
                                      stdin='devnull',
                                      stderr='devnull',
-                                     stdout=subprocess.PIPE)
+                                     stdout=PIPE)
         if pipe.wait() != 0:
             return
         # -dumpversion was added in GCC 3.0.  As long as we're supporting
@@ -84,8 +84,8 @@ def generate(env):
         pipe = SCons.Action._subproc(env, [compiler_subject, '-v', '-xc', tFile,
                                            '-o', outFile, '-m' + bitwidth],
                                      stdin='devnull',
-                                     stderr=subprocess.PIPE,
-                                     stdout=subprocess.PIPE)
+                                     stderr=PIPE,
+                                     stdout=PIPE)
         pRet = pipe.wait()
         os.remove(tFile)
 

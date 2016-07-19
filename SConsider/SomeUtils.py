@@ -16,6 +16,7 @@ Collection of helper functions
 
 import os
 import re
+from PopenHelper import PopenHelper, PIPE
 
 
 def FileNodeComparer(left, right):
@@ -352,8 +353,12 @@ def getfqdn():
     return (hostname, domain, fqdn)
 
 
-def runCommand(args, logpath='', filename=None, stdincontent=None, **kw):
-    import subprocess
+def runCommand(args,
+               logpath='',
+               filename=None,
+               stdincontent=None,
+               timeout=120,
+               **kw):
     res = 1
     if filename:
         with open(filename) as f:
@@ -369,11 +374,7 @@ def runCommand(args, logpath='', filename=None, stdincontent=None, **kw):
     if callable(filter_func):
         stdincontent = filter_func(stdincontent)
 
-    popenObject = subprocess.Popen(args,
-                                   stdin=subprocess.PIPE,
-                                   stderr=subprocess.PIPE,
-                                   stdout=subprocess.PIPE,
-                                   **kw)
+    popenObject = PopenHelper(args, stdin=PIPE, stderr=PIPE, stdout=PIPE, **kw)
 
     if not os.path.isdir(logpath):
         os.makedirs(logpath)
@@ -383,7 +384,8 @@ def runCommand(args, logpath='', filename=None, stdincontent=None, **kw):
     errfilename = os.path.join(logpath, logfilebasename + '.stderr')
     outfilename = os.path.join(logpath, logfilebasename + '.stdout')
     try:
-        popen_out, popen_err = popenObject.communicate(stdincontent)
+        popen_out, popen_err = popenObject.communicate(stdincontent,
+                                                       timeout=timeout)
         if popen_err:
             with open(errfilename, 'w') as errfile:
                 errfile.write(popen_err)

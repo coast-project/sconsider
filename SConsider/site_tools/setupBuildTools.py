@@ -230,7 +230,7 @@ def generate(env, **kw):
         env["PROGEMITTER"] = appendexe
 
         # find and append msys' bin path in order to execute shell scripts
-        # using subprocess.Popen
+        # using subprocess for example
         shexe = "sh.exe"
         shpath = env.WhereIs(shexe) or SCons.Util.WhereIs(shexe)
         msysdir = os.path.dirname(shpath)
