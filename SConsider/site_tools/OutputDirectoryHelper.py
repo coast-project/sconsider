@@ -160,7 +160,10 @@ def generate(env):
     if 'setupBuildTools' not in env['TOOLS']:
         raise UserError('setupBuildTools is required for initialization')
 
-    baseoutdir = Dir(GetOption('baseoutdir'))
+    baseoutdir = GetOption('baseoutdir')
+    if baseoutdir is None:
+        baseoutdir = _baseout_dir_default
+    baseoutdir = Dir(baseoutdir)
     verifyBaseoutDirWritable(baseoutdir)
     env.Append(BASEOUTDIR=baseoutdir)
     # directory relative to BASEOUTDIR where we are going to install target specific files

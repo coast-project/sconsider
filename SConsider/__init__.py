@@ -162,6 +162,8 @@ variant = baseEnv.getRelativeVariantDirectory()
 logger.info('compilation variant [%s]', variant)
 
 baseoutdir = baseEnv.getBaseOutDir()
+if baseoutdir is None:
+    baseoutdir = Dir('#')
 logger.info('base output dir [%s]', baseoutdir.get_abspath())
 
 ssfile = os.path.join(baseoutdir.get_abspath(), '.sconsign.' + variant)
