@@ -64,7 +64,8 @@ def rememberWorkingSet(registry, packagename, **kw):
 
     dependencyDict = registry.getPackageDependencies(packagename)
     dependencies[packagename] = determineProjectDependencies(
-        dependencyDict, registry, Dir('#').srcnode().get_abspath())
+        dependencyDict, registry,
+        kw.get('sconstruct_dir', Dir('#')).srcnode().get_abspath())
 
 
 def writeWorkingSets(**kw):
@@ -74,7 +75,8 @@ def writeWorkingSets(**kw):
     workingsetsPath = os.path.join(workspacePath, '.metadata', '.plugins',
                                    'org.eclipse.ui.workbench')
     if not os.path.isdir(workingsetsPath):
-        workingsetsPath = Dir('#').srcnode().get_abspath()
+        workingsetsPath = kw.get('sconstruct_dir',
+                                 Dir('#')).srcnode().get_abspath()
 
     fname = os.path.join(workingsetsPath, 'workingsets.xml')
     xmldeps = fromXML(fname)

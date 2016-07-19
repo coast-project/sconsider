@@ -17,6 +17,7 @@ target creation.
 
 import os
 from SCons.Script import Dir, AddOption
+from SCons.Tool import DefaultToolpath
 from logging import getLogger
 logger = getLogger(__name__)
 
@@ -24,8 +25,7 @@ relativeExcludeDirsList = ['CVS', '.git', '.gitmodules', '.svn', '.tox']
 
 
 def prePackageCollection(env, **kw):
-    from SCons.Tool import DefaultToolpath
-    """We assume no sconsider files within tool directories"""
+    """We assume no sconsider files within tool directories."""
     exclude_opt = env.GetOption('exclude')
     if exclude_opt is None:
         exclude_opt = []
@@ -38,11 +38,16 @@ def prePackageCollection(env, **kw):
         if not os.path.isabs(exclude_path):
             absolute_path = Dir(exclude_path).get_abspath()
         else:
-            exclude_path = os.path.relpath(exclude_path, Dir('#').get_abspath())
+            exclude_path = os.path.relpath(exclude_path, kw.get(
+                'sconstruct_dir', Dir('#')).get_abspath())
         if not exclude_path.startswith('..'):
             first_segment = exclude_path.split(os.pathsep)[0]
             env.AppendUnique(EXCLUDE_DIRS_TOPLEVEL=[first_segment])
         env.AppendUnique(EXCLUDE_DIRS_ABS=[absolute_path])
+
+    logger.debug("Exclude dirs rel: %s", env.relativeExcludeDirs())
+    logger.debug("Exclude dirs abs: %s", env.absoluteExcludeDirs())
+    logger.debug("Exclude dirs toplevel: %s", env.toplevelExcludeDirs())
 
 
 def generate(env):

@@ -154,16 +154,16 @@ def postPackageCollection(env, registry, **kw):
                                     package['sys'].get_dir(), False)
 
 
-def prePackageCollection(env):
+def prePackageCollection(env, **_):
     # we require ConfigureHelper
     if 'ConfigureHelper' not in env['TOOLS']:
         env.Tool('ConfigureHelper')
 
 
 def generate(env):
-    from SConsider import _base_path
+    from SConsider import get_sconsider_root
     from SConsider.Callback import Callback
-    siteDefault3rdparty = os.path.join(_base_path, '3rdparty')
+    siteDefault3rdparty = os.path.join(get_sconsider_root(), '3rdparty')
     AddOption(
         '--3rdparty',
         dest='3rdparty',

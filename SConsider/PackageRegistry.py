@@ -155,6 +155,7 @@ class PackageRegistry(object):
                              start_dir.rel_path(_filename))
                 register_func(match.group('packagename'), _filename, rootDir)
 
+        logger.info("Recursively collecting package files ...")
         for scandir in scan_dirs:
             PackageRegistry.collectPackageFiles(
                 scandir,

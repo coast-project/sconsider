@@ -131,7 +131,7 @@ def installBinary(env, name, sources, packagename, targetname, buildSettings,
     return (instTarg, instTarg)
 
 
-def prePackageCollection(env):
+def prePackageCollection(env, **_):
     # we require ThirdParty
     if 'ThirdParty' not in env['TOOLS']:
         env.Tool('ThirdParty')
