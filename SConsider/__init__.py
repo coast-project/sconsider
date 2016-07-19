@@ -225,7 +225,6 @@ def createTargets(pkg_name, buildSettings):
     tmk = TargetMaker(pkg_name, buildSettings, packageRegistry)
     if not tmk.createTargets():
         return
-    SCons.Script.Default(pkg_name)
 
 
 logger.info("Loading packages and their targets ...")
