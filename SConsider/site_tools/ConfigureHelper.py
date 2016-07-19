@@ -38,8 +38,8 @@ def CheckMultipleLibs(context, libraries=None, **kw):
 
 def Configure(env, *args, **kw):
     if SCons.Script.GetOption('help'):
-        import SConsider
-        return SConsider.Null()
+        from SConsider import Null
+        return Null()
 
     kw.setdefault('custom_tests', {})['CheckExecutable'] = CheckExecutable
     kw.setdefault('custom_tests', {})['CheckMultipleLibs'] = CheckMultipleLibs

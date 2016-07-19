@@ -101,6 +101,8 @@ def printTree(registry, buildTargets, **kw):
     prune = 0
     if GetOption("showtree") == 'prune':
         prune = 1
+    print "\nTarget Tree"
+    print "-----------"
     for fulltargetname in targets:
         if isinstance(fulltargetname, Alias):
             packagename, targetname = (fulltargetname.name, None)
