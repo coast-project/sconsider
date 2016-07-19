@@ -324,9 +324,16 @@ logger.info('BUILD_TARGETS is %s',
 
 
 def print_build_failures():
-    if SCons.Script.GetBuildFailures():
+    try:
+        from SCons.Script import GetBuildFailures
+    except:
+
+        def GetBuildFailures():
+            return False
+
+    if GetBuildFailures():
         failednodes = ['scons: printing failed nodes']
-        for failure_node in SCons.Script.GetBuildFailures():
+        for failure_node in GetBuildFailures():
             if str(failure_node.action) != "installFunc(target, source, env)":
                 failednodes.append(str(failure_node.node))
         failednodes.append('scons: done printing failed nodes')
