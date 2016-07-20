@@ -83,8 +83,8 @@ setup(
     license="BSD",
     packages=get_packages(PACKAGE),
     install_requires=get_requirements(),
-    setup_requires=[],
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest', 'mockito'],
     test_suite='tests',
-    tests_require=['mockito'],
     include_package_data=True,
     zip_safe=False, )

@@ -9,19 +9,19 @@
 # -------------------------------------------------------------------------
 
 import pytest
-from PopenHelper import PopenHelper, PIPE, has_timeout_param
+from SConsider.PopenHelper import PopenHelper, PIPE, has_timeout_param
 
 
 def test_CommandStringWithOutput():
-    executor = PopenHelper('dir', stdout=PIPE, stderr=PIPE)
-    stdout, stderr = executor.communicate()
+    executor = PopenHelper('ls', stdout=PIPE, stderr=PIPE)
+    stdout, _ = executor.communicate()
     assert 0 == executor.returncode
     assert stdout
 
 
 def test_CommandArrayWithOutput():
-    executor = PopenHelper(['dir'], stdout=PIPE, stderr=PIPE)
-    stdout, stderr = executor.communicate()
+    executor = PopenHelper(['ls'], stdout=PIPE, stderr=PIPE)
+    stdout, _ = executor.communicate()
     assert 0 == executor.returncode
     assert stdout
 
@@ -29,7 +29,7 @@ def test_CommandArrayWithOutput():
 def test_CommandStringWithOutputFromInput():
     executor = PopenHelper('cat -', stdin=PIPE, stdout=PIPE, stderr=PIPE)
     send_on_stdin = 'loopback string'
-    stdout, stderr = executor.communicate(stdincontent=send_on_stdin)
+    stdout, _ = executor.communicate(stdincontent=send_on_stdin)
     assert 0 == executor.returncode
     assert send_on_stdin in stdout
 
@@ -38,7 +38,7 @@ def test_CommandStringWithOutputFromInput():
                     reason='only works with subprocess32 or python3.x')
 def test_CommandStringWithTimeoutResultsInKill():
     executor = PopenHelper('sleep 3', stdout=PIPE, stderr=PIPE)
-    stdout, stderr = executor.communicate(timeout=1)
+    _, _ = executor.communicate(timeout=1)
     assert -9 == executor.returncode
 
 
@@ -47,6 +47,6 @@ def test_CommandStringNotSplitWhenUsingShell():
     echo $n;
 done"""
     executor = PopenHelper(shell_string, stdout=PIPE, stderr=PIPE, shell=True)
-    stdout, stderr = executor.communicate()
+    stdout, _ = executor.communicate()
     assert 0 == executor.returncode
     assert '1\n2\n3\n' in stdout

@@ -16,12 +16,12 @@ SConsider-specific gnulink tool initialization
 
 import sys
 import os
-import SCons.Util
 import SCons.Tool
-import SomeUtils
+from SCons.Errors import UserError
+import SConsider.SomeUtils
 
 
-def FileNodeComparer(left, right):
+def gnu_link_node_comparer(left, right):
     """Specialized implementation of file node sorting based on the fact that
     config_ files must get placed before any other object on the linker command
     line."""
@@ -39,7 +39,7 @@ def FileNodeComparer(left, right):
     return cmp(nleft, nright)
 
 
-SomeUtils.FileNodeComparer = FileNodeComparer
+SConsider.SomeUtils.FileNodeComparer = gnu_link_node_comparer
 
 
 def generate(env):
@@ -78,7 +78,7 @@ def generate(env):
 
     # ensure we have getBitwidth() available
     if 'setupBuildTools' not in env['TOOLS']:
-        raise SCons.Errors.UserError('setupBuildTools is required for\
+        raise UserError('setupBuildTools is required for\
  initialization')
 
     bitwidth = env.getBitwidth()

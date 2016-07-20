@@ -20,7 +20,7 @@ import datetime
 import tempfile
 import SCons.Action
 import SCons.Builder
-import SomeUtils
+from SConsider.SomeUtils import getPyFilename
 
 
 def generateShellScript(scriptFile, env, binpath):
@@ -308,7 +308,7 @@ def generateScriptEmitter(target, source, env):
 
 def generateWrapperScript(env, target):
     return env.Depends(
-        env.GenerateScriptBuilder(target), SomeUtils.getPyFilename(__file__))
+        env.GenerateScriptBuilder(target), getPyFilename(__file__))
 
 
 def generate(env):

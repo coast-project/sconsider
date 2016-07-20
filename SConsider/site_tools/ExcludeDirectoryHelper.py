@@ -16,9 +16,9 @@ target creation.
 # -------------------------------------------------------------------------
 
 import os
+from logging import getLogger
 from SCons.Script import Dir, AddOption
 from SCons.Tool import DefaultToolpath
-from logging import getLogger
 logger = getLogger(__name__)
 
 relativeExcludeDirsList = ['CVS', '.git', '.gitmodules', '.svn', '.tox']

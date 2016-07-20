@@ -16,7 +16,7 @@ Collection of helper functions
 
 import os
 import re
-from PopenHelper import PopenHelper, PIPE
+from SConsider.PopenHelper import PopenHelper, PIPE
 
 
 def FileNodeComparer(left, right):

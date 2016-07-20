@@ -19,7 +19,7 @@ import re
 import os
 import threading
 from logging import getLogger
-from SomeUtils import hasPathPart, isDerivedNode, multiple_replace, isFileNode, allFuncs, getNodeDependencies
+from SConsider.SomeUtils import hasPathPart, isDerivedNode, multiple_replace, isFileNode, allFuncs, getNodeDependencies
 logger = getLogger(__name__)
 
 # needs locking because it is manipulated during multi-threaded build phase

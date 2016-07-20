@@ -18,16 +18,16 @@ from __future__ import with_statement
 import sys
 import optparse
 import functools
-import SCons.Action
-import SCons.Builder
-import SCons.Util
+from SCons.Util import print_tree
+from SCons.Node.Alias import Alias
 from SCons.Script import AddOption, GetOption
+from SConsider.Callback import Callback
 from SConsider.PackageRegistry import PackageRegistry, getTargetExtension
-import SomeUtils
+from SConsider.SomeUtils import allFuncs
+from SConsider import cloneBaseEnv
 
 
 def printTargets(registry, **kw):
-    from SConsider import cloneBaseEnv
     print "\nAvailable Packages"
     print "------------------"
     packagenames = sorted(registry.getPackageNames(), key=str.lower)
@@ -49,7 +49,7 @@ def printTargets(registry, **kw):
     if not GetOption("showallaliases"):
         filters.append(lambda alias: not alias.startswith('_'))
 
-    predicate = functools.partial(SomeUtils.allFuncs, filters)
+    predicate = functools.partial(allFuncs, filters)
 
     for alias in sorted([j for j in env.ans.keys() if predicate(j)]):
         print(alias)
@@ -93,7 +93,6 @@ class Node(object):
 
 
 def printTree(registry, buildTargets, **kw):
-    from SCons.Node.Alias import Alias
     targets = buildTargets
     if not targets:
         targets = registry.getPackageNames()
@@ -113,19 +112,19 @@ def printTree(registry, buildTargets, **kw):
             node = Node(
                 PackageRegistry.createFulltargetname(packagename, targetname),
                 getDependencies(registry, deps, packagename, targetname))
-            SCons.Util.print_tree(node,
-                                  lambda node: node.children,
-                                  prune=prune,
-                                  visited={})
+            print_tree(node,
+                       lambda node: node.children,
+                       prune=prune,
+                       visited={})
             sys.stdout.write('\n')
         else:
             # maybe we have an alias name given
             node = Node(fulltargetname,
                         getAliasDependencies(registry, deps, fulltargetname))
-            SCons.Util.print_tree(node,
-                                  lambda node: node.children,
-                                  prune=prune,
-                                  visited={})
+            print_tree(node,
+                       lambda node: node.children,
+                       prune=prune,
+                       visited={})
             sys.stdout.write('\n')
 
     print "\nOption 'showtree' active, exiting."
@@ -133,7 +132,6 @@ def printTree(registry, buildTargets, **kw):
 
 
 def generate(env):
-    from SConsider.Callback import Callback
     """Add the options, builders and wrappers to the current Environment."""
     try:
         AddOption('--showtargets',

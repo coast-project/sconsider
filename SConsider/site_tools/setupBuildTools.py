@@ -16,10 +16,9 @@ SConsider-specific tool chain initialization
 
 import os
 import platform
-import SCons.Tool
-import SCons.Script
-from SCons.Script import AddOption, GetOption
 from logging import getLogger
+from SCons.Tool import tool_list, Tool
+from SCons.Script import AddOption, GetOption
 logger = getLogger(__name__)
 
 cxxCompiler = None
@@ -184,8 +183,8 @@ def generate(env, **kw):
         platf_for_tool_list = None
 
     # tool initialization, previously done in <scons>/Tool/default.py
-    for t in SCons.Tool.tool_list(platf_for_tool_list, env):
-        SCons.Tool.Tool(t)(env)
+    for t in tool_list(platf_for_tool_list, env):
+        Tool(t)(env)
 
     logger.info('using CXX compiler and version: %s(%s)%s', env['CXX'],
                 env.get('CXXVERSION', 'unknown'), '(' + langfeature + ')'

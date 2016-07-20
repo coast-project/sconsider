@@ -22,9 +22,9 @@ import re
 import platform
 import shutil
 import stat
+from logging import getLogger
 import SCons.Action
 import SCons.Builder
-from logging import getLogger
 logger = getLogger(__name__)
 
 

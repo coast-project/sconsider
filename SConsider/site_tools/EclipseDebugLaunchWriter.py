@@ -18,7 +18,9 @@ through Run->Debug Configurations...->targetname.
 
 from __future__ import with_statement
 import os
-import SCons
+from SCons.Action import Action
+from SCons.Builder import Builder
+from SCons.Script import AddOption, GetOption
 
 
 def generateLaunchConfigFile(launchConfigFile, env, binpath):
@@ -31,7 +33,7 @@ def generateLaunchConfigFile(launchConfigFile, env, binpath):
 
 
 def generateEclipseLaunchEmitter(target, source, env):
-    workspacePath = os.path.abspath(SCons.Script.GetOption("workspace"))
+    workspacePath = os.path.abspath(GetOption("workspace"))
     debugLaunchesPath = os.path.join(workspacePath, '.metadata', '.plugins',
                                      'org.eclipse.debug.core', '.launches')
     target = []
@@ -51,18 +53,18 @@ def generateEclipseLaunchConfiguration(target, source, env):
 def generate(env):
     import optparse
     try:
-        SCons.Script.AddOption('--workspace',
-                               dest='workspace',
-                               action='store',
-                               default='',
-                               help='Select workspace directory')
+        AddOption('--workspace',
+                  dest='workspace',
+                  action='store',
+                  default='',
+                  help='Select workspace directory')
     except optparse.OptionConflictError:
         pass
 
-    GenerateEclipseDebugLaunchConfigAction = SCons.Action.Action(
+    GenerateEclipseDebugLaunchConfigAction = Action(
         generateEclipseLaunchConfiguration,
         "Creating Eclipse debug launch config for '$TARGET'")
-    GenerateEclipseDebugLaunchConfigBuilder = SCons.Builder.Builder(
+    GenerateEclipseDebugLaunchConfigBuilder = Builder(
         action=[GenerateEclipseDebugLaunchConfigAction],
         emitter=[generateEclipseLaunchEmitter])
     env.Append(BUILDERS={

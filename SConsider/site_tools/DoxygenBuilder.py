@@ -19,7 +19,7 @@ from __future__ import with_statement
 import os
 import re
 from logging import getLogger
-from PopenHelper import PopenHelper, PIPE
+from SConsider.PopenHelper import PopenHelper, PIPE
 logger = getLogger(__name__)
 
 

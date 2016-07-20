@@ -17,7 +17,7 @@ Provide callback function support
 import inspect
 import pprint
 from logging import getLogger
-from singleton import SingletonDecorator
+from SConsider.singleton import SingletonDecorator
 logger = getLogger(__name__)
 
 

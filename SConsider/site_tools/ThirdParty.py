@@ -15,6 +15,7 @@ SConsider-specific 3rdparty library handling
 # -------------------------------------------------------------------------
 
 import os
+import re
 from logging import getLogger
 from SCons.Script import Dir, GetOption, AddOption, Exit
 logger = getLogger(__name__)
@@ -39,7 +40,6 @@ def getBinaryDistDir(packagename):
 
 
 def collectPackages(directory, direxcludesrel=None):
-    import re
     packages = {}
 
     package_file_re = re.compile(

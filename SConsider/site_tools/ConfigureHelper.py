@@ -17,7 +17,9 @@ Helper functions used when executing configure like build steps
 import contextlib
 import functools
 import os
-import SCons
+from SCons.Script import GetOption
+from SCons.Util import is_List
+from SCons.SConf import CheckLib
 
 
 def CheckExecutable(context, executable):
@@ -28,23 +30,23 @@ def CheckExecutable(context, executable):
 
 
 def CheckMultipleLibs(context, libraries=None, **kw):
-    if not SCons.Util.is_List(libraries):
+    if not is_List(libraries):
         libraries = [libraries]
 
-    return functools.reduce(
-        lambda x, y: SCons.SConf.CheckLib(context, y, **kw) and x, libraries,
-        True)
+    return functools.reduce(lambda x, y: CheckLib(context, y, **kw) and x,
+                            libraries, True)
 
 
 def Configure(env, *args, **kw):
-    if SCons.Script.GetOption('help'):
+    if GetOption('help'):
         from SConsider import Null
         return Null()
 
     kw.setdefault('custom_tests', {})['CheckExecutable'] = CheckExecutable
     kw.setdefault('custom_tests', {})['CheckMultipleLibs'] = CheckMultipleLibs
-    env.Append(LINKFLAGS='-Wl,-rpath-link=' + os.path.join(
-        *[str(j) for j in env['LIBPATH']]))
+    linker_rpath = os.pathsep.join([str(j) for j in env['LIBPATH']])
+    if linker_rpath:
+        env.Append(LINKFLAGS='-Wl,-rpath-link=' + linker_rpath)
     conf = env.Configure(*args, **kw)
     return conf
 
@@ -59,7 +61,7 @@ def ConfigureContext(env, *args, **kw):
 _sconf_tempdirrel = '.sconf_temp'
 
 
-def prePackageCollection(env, **kw):
+def prePackageCollection(env, **_):
     env.AppendUnique(EXCLUDE_DIRS_TOPLEVEL=[_sconf_tempdirrel])
 
 

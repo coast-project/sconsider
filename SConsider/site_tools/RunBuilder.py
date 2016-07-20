@@ -23,6 +23,7 @@ import os
 import optparse
 import sys
 import shlex
+from logging import getLogger
 from SCons.Action import Action
 from SCons.Builder import Builder
 from SCons.Script import AddOption, GetOption, COMMAND_LINE_TARGETS, BUILD_TARGETS
@@ -31,7 +32,6 @@ from SConsider.PackageRegistry import PackageRegistry
 from SConsider.Callback import Callback
 from SConsider.SomeUtils import hasPathPart, isFileNode, isDerivedNode, getNodeDependencies, getFlatENV
 from SConsider.PopenHelper import PopenHelper, PIPE, STDOUT
-from logging import getLogger
 logger = getLogger(__name__)
 
 runtargets = {}

@@ -21,7 +21,7 @@ import os
 import re
 import socket
 import time
-from xmlbuilder import XMLBuilder
+from SConsider.xmlbuilder import XMLBuilder
 from SConsider.PackageRegistry import PackageRegistry
 
 

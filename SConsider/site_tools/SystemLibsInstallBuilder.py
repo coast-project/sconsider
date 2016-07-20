@@ -18,7 +18,7 @@ import os
 import threading
 from logging import getLogger
 from SCons.Errors import UserError
-import LibFinder
+from SConsider.LibFinder import FinderFactory
 logger = getLogger(__name__)
 
 # needs locking because it is manipulated during multi-threaded build phase
@@ -48,7 +48,7 @@ def get_libdirs(env, ownlibDir, finder):
 
 def get_dependent_libs(env, sourcenode, libdirs_func=get_libdirs):
     ownlibDir = get_library_install_dir(env, sourcenode)
-    finder = LibFinder.FinderFactory.getForPlatform(env["PLATFORM"])
+    finder = FinderFactory.getForPlatform(env["PLATFORM"])
     libdirs = libdirs_func(env, ownlibDir, finder)
     return finder.getLibs(env, [sourcenode], libdirs=libdirs)
 

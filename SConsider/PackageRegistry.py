@@ -19,8 +19,8 @@ import sys
 import os
 from logging import getLogger
 from pkg_resources import ResolutionError
-from deprecation import deprecated
-from singleton import SingletonDecorator
+from SConsider.deprecation import deprecated
+from SConsider.singleton import SingletonDecorator
 
 logger = getLogger(__name__)
 

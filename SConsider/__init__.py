@@ -293,11 +293,10 @@ def createTargets(pkg_name, buildSettings):
     packageRegistry.setBuildSettings(pkg_name, buildSettings)
     # do not create/build empty packages like the ones where Configure() fails
     if not buildSettings:
-        return
+        return False
     from SConsider.site_tools.TargetMaker import TargetMaker
     tmk = TargetMaker(pkg_name, buildSettings, packageRegistry)
-    if not tmk.createTargets():
-        return
+    return tmk.createTargets()
 
 
 def print_build_failures():

@@ -19,8 +19,8 @@ import re
 import functools
 import itertools
 import operator
-from SomeUtils import getFlatENV
-from PopenHelper import PopenHelper, PIPE
+from SConsider.SomeUtils import getFlatENV
+from SConsider.PopenHelper import PopenHelper, PIPE
 
 
 def uniquelist(iterable):
