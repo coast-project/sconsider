@@ -46,11 +46,9 @@ __version__ = get_versions()['version']
 __date__ = get_versions().get('date')
 del get_versions
 
-logger = None
 dEnv = None
 baseEnv = None
 baseoutdir = None
-sconstruct_dir = None
 packageRegistry = None
 
 
@@ -68,15 +66,14 @@ def get_sconsider_root():
     return os.path.dirname(__file__)
 
 
-def setup_sconstruct_dir():
-    global sconstruct_dir
-    sconstruct_dir = Dir('#')
+def get_sconstruct_dir(the_env):
+    """Returns the directory containing the SConstruct file."""
+    return the_env.Dir(the_env.fs.SConstruct_dir)
 
 
-def get_sconstruct_dir():
-    """Returns the toplevel directory which is always the directory containing
-    the SConstruct file."""
-    return sconstruct_dir
+def get_launch_dir(the_env):
+    """Returns the directory from which scons was launched."""
+    return the_env.Dir(the_env.GetLaunchDir())
 
 
 def extend_sys_path():
@@ -85,8 +82,7 @@ def extend_sys_path():
 
 def setup_main_logging():
     setup_logging(os.path.join(get_sconsider_root(), 'logging.yaml'))
-    global logger
-    logger = getLogger(__name__)
+    return getLogger(__name__)
 
 
 def ensure_prerequisites():
@@ -219,12 +215,12 @@ def cloneBaseEnv():
     return baseEnv.Clone()
 
 
-def setup_base_output_dir(the_env):
+def setup_base_output_dir(the_env, logto):
     global baseoutdir
     baseoutdir = the_env.getBaseOutDir()
     if baseoutdir is None:
-        baseoutdir = get_sconstruct_dir()
-    logger.info('base output dir [%s]', baseoutdir.get_abspath())
+        baseoutdir = get_sconstruct_dir(the_env)
+    logto.info('base output dir [%s]', baseoutdir.get_abspath())
 
 
 def setup_path_to_sconsign_file(the_env, logto, output_dir):
@@ -237,7 +233,7 @@ def setup_path_to_sconsign_file(the_env, logto, output_dir):
 def run_pre_package_collection_cb(the_env):
     Callback().run('PrePackageCollection',
                    env=the_env,
-                   sconstruct_dir=get_sconstruct_dir())
+                   sconstruct_dir=get_sconstruct_dir(the_env))
 
 
 @deprecated(
@@ -279,7 +275,7 @@ def run_post_package_collection_cb(the_env, registry):
     Callback().run('PostPackageCollection',
                    env=the_env,
                    registry=registry,
-                   sconstruct_dir=get_sconstruct_dir())
+                   sconstruct_dir=get_sconstruct_dir(the_env))
 
 
 def createTargets(pkg_name, buildSettings):
@@ -299,7 +295,7 @@ def createTargets(pkg_name, buildSettings):
     return tmk.createTargets()
 
 
-def print_build_failures():
+def print_build_failures(logto):
     try:
         from SCons.Script import GetBuildFailures
     except:
@@ -313,7 +309,7 @@ def print_build_failures():
             if str(failure_node.action) != "installFunc(target, source, env)":
                 failednodes.append(str(failure_node.node))
         failednodes.append('scons: done printing failed nodes')
-        logger.warning('\n'.join(failednodes))
+        logto.warning('\n'.join(failednodes))
 
 
 def tryLoadPackageTarget(registry, pkg_name, tgt_name, logto, build_targets):
@@ -408,7 +404,7 @@ def load_targets_from_package_files(the_env, registry, logto):
             raise UserError('{0}, build aborted!'.format(ex))
 
 
-def run_pre_build_cb(registry, build_targets):
+def run_pre_build_cb(the_env, registry, build_targets):
     """Run registered PreBuild callbacks.
 
     Note: buildTargets is passed by reference and might be extended in callback functions!
@@ -417,7 +413,7 @@ def run_pre_build_cb(registry, build_targets):
     Callback().run("PreBuild",
                    registry=registry,
                    buildTargets=build_targets,
-                   sconstruct_dir=get_sconstruct_dir())
+                   sconstruct_dir=get_sconstruct_dir(the_env))
 
 
 def print_collected_build_targets(build_targets, logto):
@@ -428,7 +424,7 @@ def print_collected_build_targets(build_targets, logto):
 
 if called_from_scons():
     extend_sys_path()
-    setup_main_logging()
+    logger = setup_main_logging()
     ensure_prerequisites()
     print_scons_sconsider_info(logger, 'SConsider', __version__)
     print_platform_info(logger)
@@ -437,15 +433,15 @@ if called_from_scons():
     process_path_options(dEnv, logger)
     add_options_for_tools()
     baseEnv = create_sconsider_env_with_tools(dEnv, logger)
-    setup_sconstruct_dir()
-    setup_base_output_dir(baseEnv)
+    setup_base_output_dir(baseEnv, logger)
     setup_path_to_sconsign_file(baseEnv, logger, baseoutdir)
     run_pre_package_collection_cb(baseEnv)
     packageRegistry = create_package_registry(baseEnv)
-    scan_dirs_for_packagefiles(packageRegistry, baseEnv, get_sconstruct_dir())
+    scan_dirs_for_packagefiles(packageRegistry, baseEnv,
+                               get_sconstruct_dir(baseEnv))
     extend_env_lookup_by_package_registry(baseEnv, packageRegistry)
     run_post_package_collection_cb(baseEnv, packageRegistry)
-    atexit.register(print_build_failures)
+    atexit.register(lambda: print_build_failures(logger))
     load_targets_from_package_files(baseEnv, packageRegistry, logger)
-    run_pre_build_cb(packageRegistry, BUILD_TARGETS)
+    run_pre_build_cb(baseEnv, packageRegistry, BUILD_TARGETS)
     print_collected_build_targets(BUILD_TARGETS, logger)
