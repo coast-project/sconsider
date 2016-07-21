@@ -76,7 +76,7 @@ def registerDist(registry, packagename, package, distType, distDir, duplicate):
 def postPackageCollection(env, registry, **kw):
     thirdPartyPathList = GetOption('3rdparty')
     if thirdPartyPathList is None:
-        thirdPartyPathList = []
+        thirdPartyPathList = [get_third_party_default()]
     packages = {}
     for packageDir in thirdPartyPathList:
         packages.update(collectPackages(packageDir, env.relativeExcludeDirs()))
@@ -160,17 +160,19 @@ def prePackageCollection(env, **_):
         env.Tool('ConfigureHelper')
 
 
-def generate(env):
+def get_third_party_default():
     from SConsider import get_sconsider_root
+    return os.path.join(get_sconsider_root(), '3rdparty')
+
+
+def generate(env):
     from SConsider.Callback import Callback
-    siteDefault3rdparty = os.path.join(get_sconsider_root(), '3rdparty')
     AddOption(
         '--3rdparty',
         dest='3rdparty',
         action='append',
-        default=[siteDefault3rdparty],
         help='Specify directory containing package files for third party libraries, default=["'
-        + siteDefault3rdparty + '"]')
+        + get_third_party_default() + '"]')
 
     Callback().register('PostPackageCollection', postPackageCollection)
     Callback().register('PrePackageCollection', prePackageCollection)

@@ -39,7 +39,7 @@ def CheckMultipleLibs(context, libraries=None, **kw):
 
 def Configure(env, *args, **kw):
     if GetOption('help'):
-        from SConsider import Null
+        from SConsider.Main import Null
         return Null()
 
     kw.setdefault('custom_tests', {})['CheckExecutable'] = CheckExecutable

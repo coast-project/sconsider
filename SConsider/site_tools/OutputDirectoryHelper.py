@@ -142,6 +142,7 @@ def prePackageCollection(env, **kw):
 
 def generate(env):
     from SConsider.Callback import Callback
+    from SConsider.Main import get_sconstruct_dir
     _baseout_dir_default = '#'
     _builddirrel = '.build'
 
@@ -151,10 +152,10 @@ def generate(env):
         action='store',
         nargs=1,
         type='string',
-        default=_baseout_dir_default,
+        default=None,
         metavar='DIR',
         help='Directory to store build target files. Helps keeping your source directory clean, default="'
-        + Dir(_baseout_dir_default).get_abspath() + '"')
+        + get_sconstruct_dir(env).get_abspath() + '"')
 
     # ensure we have getBitwidth() available
     if 'setupBuildTools' not in env['TOOLS']:
@@ -162,8 +163,9 @@ def generate(env):
 
     baseoutdir = GetOption('baseoutdir')
     if baseoutdir is None:
-        baseoutdir = _baseout_dir_default
-    baseoutdir = Dir(baseoutdir)
+        baseoutdir = get_sconstruct_dir(env)
+    else:
+        baseoutdir = env.Dir(baseoutdir)
     verifyBaseoutDirWritable(baseoutdir)
     env.Append(BASEOUTDIR=baseoutdir)
     # directory relative to BASEOUTDIR where we are going to install target specific files
