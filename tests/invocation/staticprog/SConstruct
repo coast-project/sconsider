@@ -1,4 +1,4 @@
 import SConsider
-print('get_sconstruct_dir='+SConsider.get_sconstruct_dir(SConsider.baseEnv).get_abspath())
-print('get_launch_dir='+SConsider.get_launch_dir(SConsider.baseEnv).get_abspath())
-print('base_out_dir='+SConsider.baseEnv.getBaseOutDir().get_abspath())
+print('get_sconstruct_dir='+SConsider.get_sconstruct_dir(SConsider.cloneBaseEnv()).get_abspath())
+print('get_launch_dir='+SConsider.get_launch_dir(SConsider.cloneBaseEnv()).get_abspath())
+print('base_out_dir='+SConsider.cloneBaseEnv().getBaseOutDir().get_abspath())
