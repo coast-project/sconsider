@@ -31,7 +31,7 @@ from pkg_resources import get_distribution as pkg_get_dist,\
     get_build_platform, ResolutionError
 from SCons import __version__ as _scons_version
 from SCons.Script import AddOption, GetOption, Dir, DefaultEnvironment,\
-    Flatten, SConsignFile, EnsureSConsVersion, EnsurePythonVersion, BUILD_TARGETS, GetLaunchDir
+    Flatten, SConsignFile, EnsureSConsVersion, EnsurePythonVersion, BUILD_TARGETS, GetLaunchDir, GetBuildFailures
 from SCons.Errors import UserError, EnvironmentError
 from SCons.Tool import DefaultToolpath
 from SCons.Util import Null as SConsNull
@@ -296,13 +296,6 @@ def createTargets(pkg_name, buildSettings):
 
 
 def print_build_failures(logto):
-    try:
-        from SCons.Script import GetBuildFailures
-    except:
-
-        def GetBuildFailures():
-            return False
-
     if GetBuildFailures():
         failednodes = ['scons: printing failed nodes']
         for failure_node in GetBuildFailures():
@@ -441,7 +434,7 @@ if called_from_scons():
                                get_sconstruct_dir(baseEnv))
     extend_env_lookup_by_package_registry(baseEnv, packageRegistry)
     run_post_package_collection_cb(baseEnv, packageRegistry)
-    atexit.register(lambda: print_build_failures(logger))
+    atexit.register(print_build_failures, logto=logger)
     load_targets_from_package_files(baseEnv, packageRegistry, logger)
     run_pre_build_cb(baseEnv, packageRegistry, BUILD_TARGETS)
     print_collected_build_targets(BUILD_TARGETS, logger)
