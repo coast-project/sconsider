@@ -81,7 +81,8 @@ def installSystemLibs(source):
         node_name = node.name
         if node_name in targets_list:
             return targets_list[node_name]
-        target = env.Install(destdir.path, node)
+        install_path = env.makeInstallablePathFromDir(destdir)
+        target = env.Install(dir=install_path, source=node)
         env.AddPostAction(target, Chmod(str(target[0]), mode))
         targets_list[node_name] = target
         return target

@@ -300,7 +300,8 @@ def generateScriptEmitter(target, source, env):
             script_name = script_name.partition('_')[2]
         target_basepath = env.getScriptInstallDir().File(script_name)
         if src.has_builder() and src.builder.target_factory:
-            target.append(src.builder.target_factory(target_basepath.path))
+            target.append(src.builder.target_factory(
+                env.makeInstallablePathFromDir(target_basepath)))
         else:
             target.append(target_basepath)
     return (target, source)

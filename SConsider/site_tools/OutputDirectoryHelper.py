@@ -63,6 +63,13 @@ def getLibraryInstallDir(env, withRelTarget=False):
             env.getRelativeVariantDirectory())
 
 
+def makeInstallablePathFromDir(env, the_dir):
+    the_path = the_dir.path
+    if the_path.startswith(os.sep):
+        return the_dir.path
+    return '#' + the_dir.path
+
+
 def getScriptInstallDir(env):
     return getTargetBaseInstallDir(env).Dir(env['SCRIPTDIR']).Dir(
         env.getRelativeVariantDirectory())
@@ -162,10 +169,12 @@ def generate(env):
         raise UserError('setupBuildTools is required for initialization')
 
     baseoutdir = GetOption('baseoutdir')
-    if baseoutdir is None:
-        baseoutdir = get_sconstruct_dir(env)
-    else:
+
+    if baseoutdir:
         baseoutdir = env.Dir(baseoutdir)
+    else:
+        # might be None or ''
+        baseoutdir = get_sconstruct_dir(env)
     verifyBaseoutDirWritable(baseoutdir)
     env.Append(BASEOUTDIR=baseoutdir)
     # directory relative to BASEOUTDIR where we are going to install target specific files
@@ -190,6 +199,7 @@ def generate(env):
     env.AddMethod(getLibraryInstallDir, 'getLibraryInstallDir')
     env.AddMethod(getScriptInstallDir, 'getScriptInstallDir')
     env.AddMethod(getLogInstallDir, 'getLogInstallDir')
+    env.AddMethod(makeInstallablePathFromDir, 'makeInstallablePathFromDir')
 
     env.AppendUnique(LIBPATH=[getLibraryInstallDir(env)])
 

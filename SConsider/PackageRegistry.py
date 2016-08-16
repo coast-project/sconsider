@@ -417,6 +417,12 @@ Original exception message:
         self.packages[packagename]['loaded'] = True
 
     def lookup(self, fulltargetname, **kw):
+        try:
+            # shortcut to bail out on file or dir based arg2nodes check
+            self.env.fs.stat(fulltargetname)
+            return None
+        except OSError:
+            pass
         packagename, targetname = self.splitFulltargetname(fulltargetname)
         logger.debug('looking up [%s]', fulltargetname)
         if self.hasPackage(packagename):

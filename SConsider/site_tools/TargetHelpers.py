@@ -46,8 +46,9 @@ def usedOrProgramTarget(env, name, sources, buildSettings):
 def setupTargetDirAndWrapperScripts(env, name, packagename, install_target,
                                     basetargetdir):
     env.setRelativeTargetDirectory(os.path.join(basetargetdir, packagename))
-    instApps = env.InstallAs(env.getBinaryInstallDir().File(name).path,
-                             install_target)
+    install_path = env.makeInstallablePathFromDir(env.getBinaryInstallDir(
+    ).File(name))
+    instApps = env.InstallAs(target=install_path, source=install_target)
     if 'generateScript' not in env['TOOLS']:
         env.Tool('generateScript')
     wrappers = env.GenerateWrapperScript(instApps)
@@ -81,7 +82,8 @@ def sharedLibrary(env, name, sources, packagename, targetname, buildSettings,
             libBuilder = env.StaticLibrary
 
     lib_target = libBuilder(name, sources)
-    instTarg = env.Install(env.getLibraryInstallDir().path, lib_target)
+    install_path = env.makeInstallablePathFromDir(env.getLibraryInstallDir())
+    instTarg = env.Install(dir=install_path, source=lib_target)
     env.Requires(instTarg[0], instTarg[1:])
 
     compLibs = env.InstallSystemLibs(lib_target)
@@ -96,7 +98,8 @@ def staticLibrary(env, name, sources, packagename, targetname, buildSettings,
     env['_NONLAZYLINKFLAGS'] = ''
 
     lib_target = env.StaticLibrary(name, sources)
-    instTarg = env.Install(env.getLibraryInstallDir().path, lib_target)
+    install_path = env.makeInstallablePathFromDir(env.getLibraryInstallDir())
+    instTarg = env.Install(dir=install_path, source=lib_target)
     env.Requires(instTarg[0], instTarg[1:])
 
     compLibs = env.InstallSystemLibs(lib_target)
@@ -125,7 +128,8 @@ def installPrecompiledLibrary(env, name, sources, packagename, targetname,
 def installBinary(env, name, sources, packagename, targetname, buildSettings,
                   **kw):
     env.setRelativeTargetDirectory(os.path.join('globals', packagename))
-    instTarg = env.Install(env.getBinaryInstallDir().path, sources)
+    install_path = env.makeInstallablePathFromDir(env.getBinaryInstallDir())
+    instTarg = env.Install(dir=install_path, source=sources)
     env.Requires(instTarg[0], instTarg[1:])
 
     return (instTarg, instTarg)
