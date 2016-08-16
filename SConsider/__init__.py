@@ -42,10 +42,15 @@ def get_sconsider_root():
 if called_from_scons():
     import SConsider.Main as Main
     cloneBaseEnv = Main.cloneBaseEnv
+    get_sconstruct_dir = Main.get_sconstruct_dir
+    get_launch_dir = Main.get_launch_dir
+    # forward include deprecated functions
     createTargets = Main.createTargets
     splitTargetname = Main.splitTargetname
     createUniqueTargetname = Main.createUniqueTargetname
     generateFulltargetname = Main.generateFulltargetname
-    get_sconstruct_dir = Main.get_sconstruct_dir
-    get_launch_dir = Main.get_launch_dir
+    listFiles = Main.listFiles
+    findFiles = Main.findFiles
+    removeFiles = Main.removeFiles
+    getfqdn = Main.getfqdn
     Main.main()

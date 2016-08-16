@@ -59,4 +59,5 @@ def deprecated(instructions):
 
         return wrapper
 
+    warnings.simplefilter('once', DeprecatedWarning)
     return decorator

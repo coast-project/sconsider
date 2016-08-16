@@ -234,6 +234,30 @@ def generateFulltargetname(*args, **kwargs):
     return PackageRegistry.createFulltargetname(*args, **kwargs)
 
 
+@deprecated("Use listFiles from SConsider.SomeUtils instead.")
+def listFiles(*args, **kwargs):
+    from SConsider.SomeUtils import listFiles as func
+    return func(*args, **kwargs)
+
+
+@deprecated("Use findFiles from SConsider.SomeUtils instead.")
+def findFiles(*args, **kwargs):
+    from SConsider.SomeUtils import findFiles as func
+    return func(*args, **kwargs)
+
+
+@deprecated("Use removeFiles from SConsider.SomeUtils instead.")
+def removeFiles(*args, **kwargs):
+    from SConsider.SomeUtils import removeFiles as func
+    func(*args, **kwargs)
+
+
+@deprecated("Use getfqdn from SConsider.SomeUtils instead.")
+def getfqdn(*args, **kwargs):
+    from SConsider.SomeUtils import getfqdn as func
+    return func(*args, **kwargs)
+
+
 def create_package_registry(the_env):
     return PackageRegistry(the_env)
 
