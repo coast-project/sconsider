@@ -157,7 +157,8 @@ def generate(env, *args, **kw):
                             if libfile.isfile() or libfile.islink():
                                 env.Clean(sourcenode, libfile)
                                 if libfile.islink():
-                                    path_to_real_lib = os.readlink(libfile.path)
+                                    path_to_real_lib = os.readlink(
+                                        libfile.abspath)
                                     real_lib_name = os.path.basename(
                                         path_to_real_lib)
                                     if real_lib_name not in systemLibTargets:
