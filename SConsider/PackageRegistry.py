@@ -153,7 +153,11 @@ class PackageRegistry(object):
                 logger.debug('found package [%s] in [%s]',
                              match.group('packagename'),
                              start_dir.rel_path(_filename))
-                register_func(match.group('packagename'), _filename, rootDir)
+                register_func(
+                    match.group('packagename'),
+                    _filename,
+                    rootDir,
+                    package_relpath=rootDir.path)
 
         logger.info("Recursively collecting package files ...")
         for scandir in scan_dirs:
@@ -233,12 +237,18 @@ class PackageRegistry(object):
             for filename in filenames:
                 match_func(root, filename)
 
-    def setPackage(self, packagename, packagefile, packagedir, duplicate=False):
+    def setPackage(self,
+                   packagename,
+                   packagefile,
+                   packagedir,
+                   duplicate=False,
+                   **kw):
         self.packages[packagename] = {
             'packagefile': packagefile,
             'packagedir': packagedir,
             'duplicate': duplicate
         }
+        self.packages[packagename].update(kw)
 
     def hasPackage(self, packagename):
         """Check if packagename is found in list of packages.
@@ -255,6 +265,12 @@ class PackageRegistry(object):
 
     def getPackageDir(self, packagename):
         return self.packages.get(packagename, {}).get('packagedir', '')
+
+    def get_package_relpath(self, packagename):
+        fallback_path = self.packages.get(packagename, {}).get('packagedir',
+                                                               '').path
+        return self.packages.get(packagename, {}).get('package_relpath',
+                                                      fallback_path)
 
     def getPackageFile(self, packagename):
         return self.packages.get(packagename, {}).get('packagefile', '')
@@ -428,10 +444,10 @@ Original exception message:
         if self.hasPackage(packagename):
             if not self.isPackageLoaded(packagename):
                 self.__setPackageLoaded(packagename)
-                packagedir = self.getPackageDir(packagename)
+                package_relpath = self.get_package_relpath(packagename)
                 packagefile = self.getPackageFile(packagename)
                 packageduplicate = self.getPackageDuplicate(packagename)
-                builddir = self.env.getBaseOutDir().Dir(packagedir.path).Dir(
+                builddir = self.env.getBaseOutDir().Dir(package_relpath).Dir(
                     self.env.getRelativeBuildDirectory()).Dir(
                         self.env.getRelativeVariantDirectory())
                 message = 'executing [{0}] as SConscript for package [{1}]'.format(

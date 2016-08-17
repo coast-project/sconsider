@@ -68,7 +68,11 @@ def registerDist(registry, packagename, package, distType, distDir, duplicate):
     package_dir = package[distType].get_dir()
     logger.debug('using package [%s](%s) in [%s]', packagename, distType,
                  package_dir)
-    registry.setPackage(packagename, package[distType], package_dir, duplicate)
+    registry.setPackage(packagename,
+                        package[distType],
+                        package_dir,
+                        duplicate,
+                        package_relpath=distDir.path)
     package_dir.addRepository(distDir)
     thirdPartyPackages.setdefault(packagename, {})[distType] = distDir
 
