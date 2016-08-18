@@ -48,11 +48,15 @@ def setupTargetDirAndWrapperScripts(env, name, packagename, install_target,
     env.setRelativeTargetDirectory(os.path.join(basetargetdir, packagename))
     install_path = env.makeInstallablePathFromDir(env.getBinaryInstallDir(
     ).File(name))
-    instApps = env.InstallAs(target=install_path, source=install_target)
+    installed_targets = env.InstallAs(target=install_path,
+                                      source=install_target)
+    installed_target = installed_targets[0]
+    sysLibs = env.InstallSystemLibs(install_target)
+    env.Requires(installed_target, sysLibs)
     if 'generateScript' not in env['TOOLS']:
         env.Tool('generateScript')
-    wrappers = env.GenerateWrapperScript(instApps)
-    return (install_target, wrappers)
+    wrappers = env.GenerateWrapperScript(installed_targets)
+    return (installed_target, wrappers)
 
 
 def programApp(env, name, sources, packagename, buildSettings, **kw):
@@ -68,8 +72,9 @@ def programTest(env, name, sources, packagename, targetname, buildSettings,
                 **kw):
     used_target = usedOrProgramTarget(env, name, sources, buildSettings)
     buildSettings.setdefault("runConfig", {}).setdefault("type", "test")
-    return setupTargetDirAndWrapperScripts(env, name, packagename, used_target,
-                                           'tests')
+    used_target, wrappers = setupTargetDirAndWrapperScripts(
+        env, name, packagename, used_target, 'tests')
+    return (used_target, wrappers)
 
 
 def sharedLibrary(env, name, sources, packagename, targetname, buildSettings,
@@ -83,29 +88,24 @@ def sharedLibrary(env, name, sources, packagename, targetname, buildSettings,
 
     lib_target = libBuilder(name, sources)
     install_path = env.makeInstallablePathFromDir(env.getLibraryInstallDir())
-    instTarg = env.Install(dir=install_path, source=lib_target)
-    env.Requires(instTarg[0], instTarg[1:])
-
-    compLibs = env.InstallSystemLibs(lib_target)
-    # the first target should be the library
-    env.Requires(instTarg[0], compLibs)
-
-    return (lib_target, instTarg)
+    installed_targets = env.Install(dir=install_path, source=lib_target)
+    # the first target should be the real target
+    installed_target = installed_targets[0]
+    if len(installed_targets):
+        env.Requires(installed_target, installed_targets[1:])
+    sysLibs = env.InstallSystemLibs(lib_target)
+    env.Requires(installed_target, sysLibs)
+    return (installed_target, installed_targets)
 
 
 def staticLibrary(env, name, sources, packagename, targetname, buildSettings,
                   **kw):
     env['_NONLAZYLINKFLAGS'] = ''
-
     lib_target = env.StaticLibrary(name, sources)
     install_path = env.makeInstallablePathFromDir(env.getLibraryInstallDir())
-    instTarg = env.Install(dir=install_path, source=lib_target)
-    env.Requires(instTarg[0], instTarg[1:])
-
-    compLibs = env.InstallSystemLibs(lib_target)
-    env.Requires(instTarg[0], compLibs)
-
-    return (lib_target, instTarg)
+    installed_targets = env.Install(dir=install_path, source=lib_target)
+    env.Requires(installed_targets[0], installed_targets[1:])
+    return (lib_target, installed_targets)
 
 
 def installPrecompiledBinary(env, name, sources, packagename, targetname,
@@ -129,10 +129,9 @@ def installBinary(env, name, sources, packagename, targetname, buildSettings,
                   **kw):
     env.setRelativeTargetDirectory(os.path.join('globals', packagename))
     install_path = env.makeInstallablePathFromDir(env.getBinaryInstallDir())
-    instTarg = env.Install(dir=install_path, source=sources)
-    env.Requires(instTarg[0], instTarg[1:])
-
-    return (instTarg, instTarg)
+    installed_targets = env.Install(dir=install_path, source=sources)
+    env.Requires(installed_targets[0], installed_targets[1:])
+    return (installed_targets, installed_targets)
 
 
 def prePackageCollection(env, **_):

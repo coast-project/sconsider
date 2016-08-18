@@ -160,7 +160,7 @@ def test_SConsiderStaticProgRunWithExplicitPackageTarget(
 def assert_outputfiles_exist(baseoutdir, predicate=lambda l: l >= 1):
     expected_files = [
         'apps/hello/log/*/runner.run.log', 'apps/hello/scripts/*/hello*.sh',
-        'apps/hello/bin/*/*hello*'
+        'apps/hello/bin/*/*hello*', 'lib/*/*.so*'
     ]
     for glob_path in expected_files:
         assert predicate(len(glob(os.path.join(baseoutdir, glob_path))))

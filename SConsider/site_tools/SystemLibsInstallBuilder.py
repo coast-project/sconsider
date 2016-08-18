@@ -18,6 +18,7 @@ import os
 import threading
 from logging import getLogger
 from SCons.Errors import UserError
+from SCons.Node.Alias import default_ans
 from SConsider.LibFinder import FinderFactory
 logger = getLogger(__name__)
 
@@ -82,6 +83,9 @@ def installSystemLibs(source):
         if node_name in targets_list:
             return targets_list[node_name]
         install_path = env.makeInstallablePathFromDir(destdir)
+        # make sure we do not install over an own node
+        if env.Dir(install_path).File(node.name).has_builder():
+            return None
         target = env.Install(dir=install_path, source=node)
         env.AddPostAction(target, Chmod(str(target[0]), mode))
         targets_list[node_name] = target
@@ -106,7 +110,7 @@ def installSystemLibs(source):
                 if not install_node.is_under(ownlibDir):
                     target = install_node_to_destdir(systemLibTargets,
                                                      install_node, ownlibDir)
-                    if is_link:
+                    if target and is_link:
                         target = env.Symlink(
                             target[0].get_dir().File(node_name), target)
                         systemLibTargets[node_name] = target
@@ -132,6 +136,9 @@ def generate(env, *args, **kw):
             return []
         source = [sourcenode]
         if not env.GetOption('help'):
+            # install syslibs once per target
+            if default_ans.lookup(aliasPrefix + sourcenode.name):
+                return []
             target = env.Command(sourcenode.name + '_syslibs_dummy', sourcenode,
                                  createDeferredAction(source))
             if env.GetOption('clean'):
