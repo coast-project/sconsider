@@ -132,7 +132,6 @@ def generate(env, *args, **kw):
             return []
         source = [sourcenode]
         if not env.GetOption('help'):
-            #         if not env.GetOption('clean') and not env.GetOption('help'):
             target = env.Command(sourcenode.name + '_syslibs_dummy', sourcenode,
                                  createDeferredAction(source))
             if env.GetOption('clean'):
@@ -171,7 +170,7 @@ def generate(env, *args, **kw):
             # create intermediate target to which we add dependency in the
             # build phase
             return env.Alias(aliasPrefix + sourcenode.name, target)
-            return []
+        return []
 
     env.AddMethod(createDeferredTarget, "InstallSystemLibs")
 

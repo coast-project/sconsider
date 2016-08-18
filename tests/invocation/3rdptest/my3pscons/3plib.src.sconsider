@@ -1,0 +1,51 @@
+# vim: set et ai ts=4 sw=4:
+# -------------------------------------------------------------------------
+# Copyright (c) 2011, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
+# All rights reserved.
+#
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
+
+import pkg_resources
+pkg_resources.require(["SConsider"])
+Import('*')
+
+from SCons.Script import File
+sources = [File('3plib.cpp')]
+
+_sconsider_dist = pkg_resources.get_distribution("SConsider").parsed_version
+if _sconsider_dist < pkg_resources.parse_version("0.5"):
+    from SConsider import createTargets
+    buildSettings = {
+        packagename: {
+            'sourceFiles': sources,
+            'targetType': 'LibraryShared',
+            'appendUnique': {
+            },
+            'public': {
+                'includeSubdir': '',
+            },
+        },
+    }
+
+    createTargets(packagename, buildSettings)
+elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
+    from TargetMaker import EnvBuilder
+    from TargetHelpers import createPackageSharedLibrary
+    includeTarget = EnvBuilder(export=[
+        EnvBuilder().include(Dir('.'))
+    ]).build().RegisterPackageTarget(packagename=packagename,
+                                     targetname='include')
+
+    libs = createPackageSharedLibrary(packagename,
+                                      packagename,
+                                      sources,
+                                      depend=[includeTarget])
+    libs = EnvBuilder().depend(libs).build().RegisterPackageTarget(
+        packagename=packagename, targetname='libs')
+
+    EnvBuilder().depend(includeTarget, libs).build().RegisterPackageTarget(
+        packagename=packagename, targetname=packagename)
