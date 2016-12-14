@@ -26,7 +26,7 @@ PACKAGE = 'SConsider'
 
 _THISPATH = os.path.abspath(os.path.dirname(__file__))
 _README = codecs.open(
-    os.path.join(_THISPATH, 'README.txt'),
+    os.path.join(_THISPATH, 'README.md'),
     encoding='utf8').read()
 _CHANGES = codecs.open(
     os.path.join(_THISPATH, 'CHANGES.txt'),
