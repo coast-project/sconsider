@@ -29,7 +29,7 @@ _README = codecs.open(
     os.path.join(_THISPATH, 'README.md'),
     encoding='utf8').read()
 _CHANGES = codecs.open(
-    os.path.join(_THISPATH, 'CHANGES.txt'),
+    os.path.join(_THISPATH, 'CHANGES.md'),
     encoding='utf8').read()
 
 
