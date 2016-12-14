@@ -1,0 +1,30 @@
+image: marcelhuberfoo/arch-build-coast:latest
+
+build:
+  stage: build
+  tags:
+  - docker
+  script:
+  - tox2 --version
+  - tox2 -v --recreate -e wheel
+  artifacts:
+    paths:
+    - dist/*.whl
+
+test:
+  stage: test
+  tags:
+  - docker
+  script:
+  - tox2 -v --recreate
+  - tox2 -v --recreate -e testupload
+
+deploy:
+  stage: deploy
+  tags:
+  - docker
+  only:
+  - tags
+  - triggers
+  script:
+  - tox2 -v --recreate -e upload
