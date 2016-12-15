@@ -1,0 +1,46 @@
+image: marcelhuberfoo/arch-build-coast:latest
+
+variables:
+  PYPIRC_LOCATION: $CI_PROJECT_DIR/.pypirc
+
+before_script:
+- echo -e "[distutils]\\nindex-servers =\\n  pypi\\n  testpypi\\n[pypi]\\nrepository=$PYPI_REPOSITORY\\nusername=$PYPI_USERNAME\\npassword=$PYPI_PASSWORD\\n[testpypi]\\nrepository=$PYPI_TEST_REPOSITORY\\nusername=$PYPI_TEST_USERNAME\\npassword=$PYPI_TEST_PASSWORD\\n" >$PYPIRC_LOCATION
+
+build:
+  stage: build
+  tags:
+  - docker
+  script:
+  - tox2 --version
+  - tox2 --recreate -e wheel
+
+test:
+  stage: test
+  tags:
+  - docker
+  variables:
+    PYPI_REPO_NAME: testpypi
+  artifacts:
+    paths:
+    - dist/*.whl
+    - dist/*.tar.gz
+  script:
+  - tox2 --recreate
+  - tox2 --recreate -e upload
+
+deploy:
+  stage: deploy
+  tags:
+  - docker
+  variables:
+    PYPI_REPO_NAME: pypi
+  only:
+  - tags
+  - triggers
+  dependencies: []
+  artifacts:
+    paths:
+    - dist/*.whl
+    - dist/*.tar.gz
+  script:
+  - tox2 --recreate -e upload
