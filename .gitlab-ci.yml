@@ -13,10 +13,6 @@ build:
   script:
   - tox2 --version
   - tox2 --recreate -e wheel
-  artifacts:
-    paths:
-    - dist/*.whl
-    - dist/*.tar.gz
 
 test:
   stage: test
@@ -24,7 +20,10 @@ test:
   - docker
   variables:
     PYPI_REPO_NAME: testpypi
-  dependencies: []
+  artifacts:
+    paths:
+    - dist/*.whl
+    - dist/*.tar.gz
   script:
   - tox2 --recreate
   - tox2 --recreate -e upload
@@ -39,5 +38,9 @@ deploy:
   - tags
   - triggers
   dependencies: []
+  artifacts:
+    paths:
+    - dist/*.whl
+    - dist/*.tar.gz
   script:
   - tox2 --recreate -e upload
