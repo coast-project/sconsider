@@ -1,30 +1,40 @@
 image: marcelhuberfoo/arch-build-coast:latest
 
+before_script:
+- echo -e "[distutils]\\nindex-servers =\\n  pypi\\n  testpypi\\n[pypi]\\nrepository=$PYPI_REPOSITORY\\nusername=$PYPI_USERNAME\\npassword=$PYPI_PASSWORD\\n[testpypi]\\nrepository=$PYPI_TEST_REPOSITORY\\nusername=$PYPI_TEST_USERNAME\\npassword=$PYPI_TEST_PASSWORD\\n" >~/.pypirc
+
 build:
   stage: build
   tags:
   - docker
   script:
   - tox2 --version
-  - tox2 -v --recreate -e wheel
+  - tox2 --recreate -e wheel
   artifacts:
     paths:
     - dist/*.whl
+    - dist/*.tar.gz
 
 test:
   stage: test
   tags:
   - docker
+  variables:
+    PYPI_REPO_NAME: testpypi
+  dependencies: []
   script:
-  - tox2 -v --recreate
-  - tox2 -v --recreate -e testupload
+  - tox2 --recreate
+  - tox2 --recreate -e upload
 
 deploy:
   stage: deploy
   tags:
   - docker
+  variables:
+    PYPI_REPO_NAME: pypi
   only:
   - tags
   - triggers
+  dependencies: []
   script:
-  - tox2 -v --recreate -e upload
+  - tox2 --recreate -e upload
