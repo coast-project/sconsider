@@ -1,7 +1,10 @@
 image: marcelhuberfoo/arch-build-coast:latest
 
+variables:
+  PYPIRC_LOCATION: $CI_PROJECT_DIR/.pypirc
+
 before_script:
-- echo -e "[distutils]\\nindex-servers =\\n  pypi\\n  testpypi\\n[pypi]\\nrepository=$PYPI_REPOSITORY\\nusername=$PYPI_USERNAME\\npassword=$PYPI_PASSWORD\\n[testpypi]\\nrepository=$PYPI_TEST_REPOSITORY\\nusername=$PYPI_TEST_USERNAME\\npassword=$PYPI_TEST_PASSWORD\\n" >~/.pypirc
+- echo -e "[distutils]\\nindex-servers =\\n  pypi\\n  testpypi\\n[pypi]\\nrepository=$PYPI_REPOSITORY\\nusername=$PYPI_USERNAME\\npassword=$PYPI_PASSWORD\\n[testpypi]\\nrepository=$PYPI_TEST_REPOSITORY\\nusername=$PYPI_TEST_USERNAME\\npassword=$PYPI_TEST_PASSWORD\\n" >$PYPIRC_LOCATION
 
 build:
   stage: build
