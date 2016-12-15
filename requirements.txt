@@ -1,5 +1,2 @@
-subprocess32
-pyaml
-pyopenssl
-ordereddict    # required for python < 2.7
-lepl
+-r requirements.no_scons.txt
+scons>1.3,<=2.4.1

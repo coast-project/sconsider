@@ -1,4 +1,4 @@
--r requirements.txt
+-r requirements.no_scons.txt
 pytest
 pytest-flakes
 pytest-cov
