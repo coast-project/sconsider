@@ -1,0 +1,5 @@
+subprocess32
+pyaml
+pyopenssl
+ordereddict    # required for python < 2.7
+lepl
