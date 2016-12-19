@@ -36,7 +36,7 @@ from SCons.Errors import UserError, EnvironmentError
 from SCons.Tool import DefaultToolpath
 from SCons.Util import Null as SConsNull
 from SConsider.Callback import Callback
-from SConsider.Logging import setup_logging
+from SConsider.Logging import setup_logging, DEFAULT_LEVEL
 from SConsider.PackageRegistry import PackageRegistry, PackageNotFound, TargetNotFound, PackageRequirementsNotFulfilled, NoPackageTargetsFound
 from SConsider import __version__ as sconsider_version, get_sconsider_root
 from .deprecation import deprecated
@@ -61,8 +61,15 @@ def extend_sys_path():
     sys.path[:0] = [get_sconsider_root()]
 
 
-def setup_main_logging():
-    setup_logging(os.path.join(get_sconsider_root(), 'logging.yaml'))
+def setup_main_logging(default_level=DEFAULT_LEVEL):
+    from os import getenv
+    the_level = getenv('LOG_LEVEL', None)
+    if the_level is None:
+        the_level = default_level
+    else:
+        import logging
+        the_level = getattr(logging, the_level.upper())
+    setup_logging(default_path=os.path.join(get_sconsider_root(), 'logging.yaml'), default_level=the_level)
     return getLogger(__name__)
 
 
