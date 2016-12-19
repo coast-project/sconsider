@@ -30,9 +30,10 @@ except:
     def captureWarnings(arg):
         pass
 
+DEFAULT_LEVEL=logging.WARNING
 
 def setup_logging(default_path='logging.yaml',
-                  default_level=logging.WARNING,
+                  default_level=DEFAULT_LEVEL,
                   env_key='LOG_CFG',
                   capture_warnings=True):
     """Setup logging configuration.
