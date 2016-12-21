@@ -1,0 +1,77 @@
+# vim: set et ai ts=4 sw=4:
+# -------------------------------------------------------------------------
+# Copyright (c) 2010, Peter Sommerlad and IFS Institute for Software
+# at HSR Rapperswil, Switzerland
+# All rights reserved.
+#
+# This library/application is free software; you can redistribute and/or
+# modify it under the terms of the license that is included with this
+# library/application in the file license.txt.
+# -------------------------------------------------------------------------
+
+import pkg_resources
+pkg_resources.require(["SConsider"])
+from SomeUtils import listFiles
+Import('*')
+
+
+def setUp(target, source, env):
+    pass
+
+
+def tearDown(target, source, env):
+    pass
+
+
+sourceFiles = ['hello.cpp']
+bin_name = 'samehello'
+runConfigRunner = {'runParams': '', }
+
+_sconsider_dist = pkg_resources.get_distribution("SConsider").parsed_version
+if _sconsider_dist < pkg_resources.parse_version("0.5"):
+    from SConsider import createTargets
+    buildSettings = {
+        packagename: {
+            'sourceFiles': sourceFiles,
+            'targetType': 'Program',
+            'targetName': bin_name,
+        },
+        'runner': {
+            'targetType': 'ProgramApp',
+            'targetName': bin_name + 'runner',
+            'usedTarget': packagename + '.' + packagename,
+            'runConfig': runConfigRunner,
+        },
+    }
+
+    createTargets(packagename, buildSettings)
+elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
+    import os
+    from TargetMaker import EnvBuilder
+    from TargetHelpers import createPackageTestTarget, createPackageRunTarget, createPackageProgramScript, createPackageProgram, createAlias
+
+    bin_target = createPackageProgram(packagename,
+                                      bin_name,
+                                      sourceFiles,
+                                      pkg_local=[])
+
+    script_target = createPackageProgramScript(packagename,
+                                               bin_name,
+                                               bin_target,
+                                               pkg_local=[])
+
+    runner_target = createPackageRunTarget(packagename,
+                                           'runner',
+                                           script_target,
+                                           settings=runConfigRunner)
+
+    EnvBuilder().depend().build().RegisterPackageTarget(packagename=packagename,
+                                                        targetname='runner',
+                                                        target=runner_target)
+
+    createAlias('binaries', runner_target)
+
+    EnvBuilder().depend(bin_target,
+                        script_target).build().RegisterPackageTarget(
+                            packagename=packagename,
+                            targetname=packagename)

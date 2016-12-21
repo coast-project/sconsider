@@ -10,27 +10,8 @@
 
 import pytest
 import os
-import shutil
 from glob import glob
 from SConsider.PopenHelper import PopenHelper, PIPE
-
-
-@pytest.fixture
-def current_testdir():
-    return 'staticprog'
-
-
-@pytest.fixture(scope='function')
-def copy_testdir_to_tmp(tmpdir_factory, invocation_path, current_testdir):
-    def ignorefiles(the_dir, names):
-        ignored_list = [j for j in names
-                        if j.startswith('.sconsign') or j.endswith('.log')]
-        return ignored_list
-
-    fn = tmpdir_factory.mktemp(current_testdir, numbered=True).join('sources')
-    sources_path = invocation_path(current_testdir)
-    shutil.copytree(str(sources_path), str(fn), ignore=ignorefiles)
-    return fn
 
 
 @pytest.mark.invocation
@@ -231,3 +212,32 @@ def test_SConsiderThirdPartyBuildOnceOnly(
     stdout, _ = sub_p.communicate(timeout=popen_timeout)
     assert 0 == sub_p.returncode
     assert cpp_in_second_build(os.sep + '3plib.cpp' in stdout)
+
+
+@pytest.mark.invocation
+@pytest.mark.parametrize('current_testdir', ['samedirtest'])
+def test_SConstructAndSConsiderInSameDirBuild(copy_testdir_to_tmp, pypath_extended_env,
+                                              popen_timeout, scons_platform_options):
+    sub_p = PopenHelper(r'scons --3rdparty=' + scons_platform_options,
+                        stdout=PIPE,
+                        stderr=PIPE,
+                        cwd=str(copy_testdir_to_tmp),
+                        env=pypath_extended_env)
+    stdout, _ = sub_p.communicate(timeout=popen_timeout)
+    assert 0 == sub_p.returncode
+    assert 'done building targets.' in stdout
+
+
+@pytest.mark.invocation
+@pytest.mark.parametrize('current_testdir', ['samedirtest'])
+def test_SConstructAndSConsiderInSameDirRunWithoutCommandLineTarget(
+        copy_testdir_to_tmp, pypath_extended_env, popen_timeout,
+        scons_platform_options):
+    sub_p = PopenHelper(r'scons --3rdparty= --run' + scons_platform_options,
+                        stdout=PIPE,
+                        stderr=PIPE,
+                        cwd=str(copy_testdir_to_tmp),
+                        env=pypath_extended_env)
+    stdout, _ = sub_p.communicate(timeout=popen_timeout)
+    assert 0 == sub_p.returncode
+    assert 'Hello from SConsider' in stdout
