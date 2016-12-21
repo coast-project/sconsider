@@ -11,6 +11,7 @@
 import pytest
 import os
 import platform
+import shutil
 from py.path import local
 
 
@@ -50,3 +51,21 @@ def scons_platform_options():
             specific_options += ' --with-' + i + '=' + os.getenv(i +
                                                                  '_compiler')
     return specific_options
+
+
+@pytest.fixture
+def current_testdir():
+    return 'staticprog'
+
+
+@pytest.fixture(scope='function')
+def copy_testdir_to_tmp(tmpdir_factory, invocation_path, current_testdir):
+    def ignorefiles(the_dir, names):
+        ignored_list = [j for j in names
+                        if j.startswith('.sconsign') or j.endswith('.log')]
+        return ignored_list
+
+    fn = tmpdir_factory.mktemp(current_testdir, numbered=True).join('sources')
+    sources_path = invocation_path(current_testdir)
+    shutil.copytree(str(sources_path), str(fn), ignore=ignorefiles)
+    return fn

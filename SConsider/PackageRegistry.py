@@ -128,7 +128,7 @@ class PackageRegistry(object):
     @staticmethod
     def subdirs_to_scan(scan_start_dir, toplevel_excludes):
         scandirs = [
-            dirname for dirname in os.listdir(scan_start_dir.path)
+            dirname for dirname in os.listdir(scan_start_dir.path)+['.']
             if os.path.isdir(dirname) and dirname not in toplevel_excludes
         ]
         logger.debug("Toplevel dirs to scan for package files: %s", scandirs)
