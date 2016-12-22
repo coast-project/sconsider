@@ -1,54 +1,89 @@
-SConsider
-=========
+# SConsider
 
-SCons extension to provide a recursive target detection and dependency
-handling mechanism.
+[SConsider][] is a [SCons][] extension to provide a recursive target detection and dependency handling mechanism.
 
-Build a development version
----------------------------
+Instead of manually tracking locations of dependent projects and files, [SConsider][] will scan your directory tree for `*.sconsider` files and interpret the setting for building up the _package_ and it's _targets_ during a later phase. To reference a _target_ from another _package_, you can simply reference it like `SomePackage.TargetA`.
 
-The following command installs a development version into the current virtualenv:
+## Install the development version into your virtualenv
 
-    `python setup.py develop`
+Please check the [packaging][] information to learn more about this topic.
 
-To uninstall a previously installed development version you need to use the following command:
+### Install
 
-    `python setup.py develop --uninstall`
+The following command installs a development version into the current virtualenv:  
+`pip install --editable .`  
+If you want to omit installing dependencies, add `--no-deps` to the command.
 
-Run tests
----------
+Alternatively you can use the _old style_ command:  
+`python setup.py develop`
 
-Test can either be run the conventional way using the default test framework:
+### Uninstall
 
-    `python setup.py test`
+To uninstall a previously installed editable version use:  
+`pip uninstall sconsider`
 
-or by using nose which is a build dependency of the module calling:
+In case you used the _old style_ command, you need to use the following command:  
+`python setup.py develop --uninstall`
 
-    `python setup.py nosetests --with-xunit --where tests/`
+## Running tests
 
-The latter is required if you need to get test results in junit xml style to
-be analyzed by jenkins for example.
+I recommend using [tox][] to execute the tests as it properly sets up the right environment. To see a list of available test environment to execute, list them using `tox -l` and either
 
-Create a source/wheel package
------------------------------
+  -  run the default environment(s)  
+     `tox`
+  -  run a specific environment  
+     `tox -e some-env`
 
-For a short packaging guide check this page: http://python-packaging-user-guide.readthedocs.org/en/latest/tutorial.html
-For a short tutorial on wheels check this page: http://wheel.readthedocs.org/en/latest/
 
-    `python setup.py bdist_wheel`
+## Create a source/wheel package
 
-To combine source distribution, wheel creation and uploading to PYPI you could use the following command:
+The [packaging guide][] will show you how to deploy a package and a short [guide on wheels][] will explain you what wheels are.
 
-    `python setup.py sdist bdist_wheel upload`
+Creating a wheel package is also handled by [tox][] and the corresponding environment is `wheel`. It will create the wheel package and if you additionally want to get a source tarball, you can add `sdist` as argument to tox like:  
+`tox -e wheel sdist`
 
-Overview of available commands
-------------------------------
+## (Test-) Upload to pypi
 
-To get an overview of available commands use:
+A specific [tox][] environment `upload` exists in [tox.ini](tox.ini#L96) which can be used to either [test upload][] the package or to finally upload it to [pypi][]
 
-    `python setup.py --help-commands`
+In order to run this environment, a `~/.pypirc` containing at least the following sections must exist and you need to register on both sites:
+```ini
+[distutils]
+index-servers =
+  pypi
+  testpypi
+[pypi]
+repository=https://pypi.python.org/pypi
+username=MyPypiUserName
+password=MyPypiPass
+[testpypi]
+repository=https://testpypi.python.org/pypi
+username=MyTestpypiUserName
+password=MyTestpypiPass
 
-Help regarding a specific command can be retrieved using:
+```
 
-    `python setup.py <command> --help`
+Issue the following command to test the package, `testpypi` is the default upload location:  
+`tox -e upload`
 
+or use the following to finally upload it to [pypi][]:  
+`PYPI_REPO_NAME=pypi tox -e upload`
+
+To use a different [pypi][] `rc` file, use `PYPIRC_LOCATION=/path/to/pypirc` prefix to the previous commands.
+
+## Overview of available `setup.py` commands
+
+To get an overview of available commands use:  
+`python setup.py --help-commands`
+
+Help regarding a specific command can be retrieved using:  
+`python setup.py <command> --help`
+
+[SConsider]: https:/ifs/sconsider
+[SCons]: https://scons.org
+[packaging]: https://packaging.python.org/distributing/#working-in-development-mode
+[tox]: http://tox.testrun.org/
+[packaging guide]: http://python-packaging-user-guide.readthedocs.org/en/latest/tutorial.html
+[guide on wheels]: http://wheel.readthedocs.org/en/latest
+[pypi]: https://pypi.python.org/pypi
+[test upload]: https://testpypi.python.org/pypi
