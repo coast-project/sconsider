@@ -15,15 +15,11 @@ import itertools
 class TestUnique(object):
     def setup_method(self, method):
         self.names = []
-        self.uniquenames = [
-            'Fredi', 'Heiri', "Koebi", 'Ruedi', 'Fridolin', 'Eugen'
-        ]
+        self.uniquenames = ['Fredi', 'Heiri', "Koebi", 'Ruedi', 'Fridolin', 'Eugen']
         size = len(self.uniquenames)
         for i in range(1, size + 1):
-            selector = list(itertools.chain(
-                itertools.repeat(1, i), itertools.repeat(0, size - i)))
-            self.names.extend(
-                [d for d, s in itertools.izip(self.uniquenames, selector) if s])
+            selector = list(itertools.chain(itertools.repeat(1, i), itertools.repeat(0, size - i)))
+            self.names.extend([d for d, s in itertools.izip(self.uniquenames, selector) if s])
 
     def test_Unique(self):
         assert self.uniquenames == list(LibFinder.unique(self.names))

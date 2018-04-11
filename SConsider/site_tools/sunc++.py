@@ -1,7 +1,6 @@
 """SConsider.site_tools.sunc++
 
 SConsider-specific sunc++ tool initialization
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -37,8 +36,7 @@ def get_cppc(env):
         version = None
         path = None
         for package in ['SPROcpl']:
-            cmd = "%s -l %s 2>/dev/null | grep '^ *VERSION:'" % (pkginfo,
-                                                                 package)
+            cmd = "%s -l %s 2>/dev/null | grep '^ *VERSION:'" % (pkginfo, package)
             line = os.popen(cmd).readline()
             if line:
                 version = line.split()[-1]

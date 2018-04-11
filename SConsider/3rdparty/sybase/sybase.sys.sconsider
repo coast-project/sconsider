@@ -46,11 +46,12 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
         buildSettings['config'] = {
             'targetType': 'CopyFiles',
             'copyFiles': [
-                (listFiles(['config/*', 'charsets/*', 'locales/*'],
-                           recursive=True), S_IRUSR | S_IRGRP | S_IROTH),
+                (listFiles(['config/*', 'charsets/*', 'locales/*'], recursive=True),
+                 S_IRUSR | S_IRGRP | S_IROTH),
             ],
-            'appendUnique':
-            {'RELTARGETDIR': os.path.join('globals', packagename)},
+            'appendUnique': {
+                'RELTARGETDIR': os.path.join('globals', packagename)
+            },
             'public': {
                 'execEnv': {
                     'SYBASE': lambda env: env.getTargetBaseInstallDir().abspath,
@@ -110,8 +111,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             }
             buildSettings['script_isql'] = {
                 'targetType': 'ProgramApp',
-                'runConfig': {
-                },
+                'runConfig': {},
                 'usedTarget': packagename + '.isql',
             }
 

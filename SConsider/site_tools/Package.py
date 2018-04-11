@@ -2,7 +2,6 @@
 
 SConsider-specific tool to create a distributable package from compiled
 sources
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -56,36 +55,27 @@ def makePackage(registry, buildTargets, env, destdir, **kw):
     includePathRel = env['INCDIR']
     includePathFull = includePathRel
     if not includePathFull.startswith(os.path.sep):
-        includePathFull = os.path.join(env.getBaseOutDir().get_abspath(),
-                                       includePathRel)
+        includePathFull = os.path.join(env.getBaseOutDir().get_abspath(), includePathRel)
 
     def isIncludeFile(target):
-        if os.path.splitext(target.path)[1].lower() in [
-                '.h', '.hpp', '.hxx', '.ipp'
-        ]:
-            return target.path.startswith(
-                includePathRel) or target.path.startswith(includePathFull)
+        if os.path.splitext(target.path)[1].lower() in ['.h', '.hpp', '.hxx', '.ipp']:
+            return target.path.startswith(includePathRel) or target.path.startswith(includePathFull)
         return False
 
     def isNotIncludeFile(target):
         return not isIncludeFile(target)
 
-    copyfilters = [
-        filterBaseOutDir, filterTestsAppsGlobalsPath, filterVariantPath
-    ]
+    copyfilters = [filterBaseOutDir, filterTestsAppsGlobalsPath, filterVariantPath]
     for tn in buildTargets:
         if registry.isValidFulltargetname(tn):
             tdeps = getTargetDependencies(
-                env.Alias(tn)[0], [
-                    isDerivedNode, isNotInBuilddir, isNotIncludeFile
-                ])
+                env.Alias(tn)[0], [isDerivedNode, isNotInBuilddir, isNotIncludeFile])
             copyPackage(tn, tdeps, env, destdir, copyfilters)
 
 
 def copyPackage(name, deps, env, destdir, filters=None):
     for target in deps:
-        copyTarget(env, determineDirInPackage(name, env, destdir, target,
-                                              filters), target)
+        copyTarget(env, determineDirInPackage(name, env, destdir, target, filters), target)
 
 
 def install_or_link_node(env, destdir, node):
@@ -116,11 +106,9 @@ def install_or_link_node(env, destdir, node):
             is_link = node.islink()
             if is_link:
                 install_node = node.sources[0]
-            target = install_node_to_destdir(packageTargets, install_node,
-                                             destdir)
+            target = install_node_to_destdir(packageTargets, install_node, destdir)
             if is_link:
-                target = env.Symlink(target[0].get_dir().File(node_name),
-                                     target)
+                target = env.Symlink(target[0].get_dir().File(node_name), target)
 
                 packageTargets[node_name] = target
 
@@ -130,8 +118,7 @@ def install_or_link_node(env, destdir, node):
 def copyTarget(env, destdir, node):
     old = env.Alias(destdir.File(node.name))
     if old and old[0].sources:
-        if isInstalledNode(node, old[0].sources[0]) or isInstalledNode(
-                old[0].sources[0], node):
+        if isInstalledNode(node, old[0].sources[0]) or isInstalledNode(old[0].sources[0], node):
             return None
     target = install_or_link_node(env, destdir, node)
     env.Alias(packageAliasName, target)
@@ -141,8 +128,8 @@ def copyTarget(env, destdir, node):
 def isInstalledNode(testnode, node):
     if testnode.path == node.path:
         return True
-    if not hasattr(node, 'builder') or not hasattr(
-            node.builder, 'name') or node.builder.name != 'InstallBuilder':
+    if not hasattr(node, 'builder') or not hasattr(node.builder,
+                                                   'name') or node.builder.name != 'InstallBuilder':
         return False
     if len(node.sources) < 1:
         return False
@@ -161,8 +148,8 @@ def filterBaseOutDir(path, **kw):
 
 
 def filterTestsAppsGlobalsPath(path, **kw):
-    replist = [('^tests' + os.sep + '[^' + os.sep + ']*' + os.sep + '?', ''),
-               ('^apps' + os.sep + '[^' + os.sep + ']*' + os.sep + '?', ''),
+    replist = [('^tests' + os.sep + '[^' + os.sep + ']*' + os.sep + '?',
+                ''), ('^apps' + os.sep + '[^' + os.sep + ']*' + os.sep + '?', ''),
                ('^globals' + os.sep + '[^' + os.sep + ']*' + os.sep + '?', '')]
     for r in replist:
         res = multiple_replace([r], path)
@@ -215,14 +202,9 @@ def generate(env):
     if destination:
         from SConsider.Callback import Callback
         if not os.path.isdir(destination):
-            OptionsParser.error(
-                "given package destination path [{0}] doesn't exist".format(
-                    destination))
+            OptionsParser.error("given package destination path [{0}] doesn't exist".format(destination))
         else:
-            Callback().register("PreBuild",
-                                addPackageTarget,
-                                env=env,
-                                destdir=Dir(destination))
+            Callback().register("PreBuild", addPackageTarget, env=env, destdir=Dir(destination))
 
 
 def exists(env):
@@ -233,7 +215,6 @@ def getTargetDependencies(target, filters=None):
     """Determines the recursive dependencies of a target (including itself).
 
     Specify additional target filters using 'filters'.
-
     """
     if filters is None:
         filters = []

@@ -1,7 +1,6 @@
 """SConsider.site_tools.suncc.
 
 SConsider-specific suncc tool initialization
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------

@@ -1,7 +1,6 @@
 """setup.
 
 Setup script to generate a python module from the sources.
-
 """
 
 # -*- coding: utf-8 -*-
@@ -25,27 +24,22 @@ import versioneer
 PACKAGE = 'SConsider'
 
 _THISPATH = os.path.abspath(os.path.dirname(__file__))
-_README = codecs.open(
-    os.path.join(_THISPATH, 'README.md'),
-    encoding='utf8').read()
-_CHANGES = codecs.open(
-    os.path.join(_THISPATH, 'CHANGES.md'),
-    encoding='utf8').read()
+_README = codecs.open(os.path.join(_THISPATH, 'README.md'), encoding='utf8').read()
+_CHANGES = codecs.open(os.path.join(_THISPATH, 'CHANGES.md'), encoding='utf8').read()
 
 
 def get_packages(package):
     """Return root package and all sub-packages."""
-    return [dirpath for dirpath, _, _ in os.walk(package)
-            if os.path.exists(os.path.join(dirpath, '__init__.py'))]
+    return [
+        dirpath for dirpath, _, _ in os.walk(package) if os.path.exists(os.path.join(dirpath, '__init__.py'))
+    ]
 
 
 def get_requirements():
     """Read and parse requirements from file."""
-    requirements_file_path = os.path.join(
-        os.path.dirname(__file__), 'requirements.txt')
+    requirements_file_path = os.path.join(os.path.dirname(__file__), 'requirements.txt')
     if os.path.exists(requirements_file_path):
-        parsed_requirements = parse_requirements(requirements_file_path,
-                                                 session=False)
+        parsed_requirements = parse_requirements(requirements_file_path, session=False)
         requirements = [str(ir.req) for ir in parsed_requirements]
     else:
         requirements = []
@@ -87,4 +81,5 @@ setup(
     tests_require=['pytest', 'mockito'],
     test_suite='tests',
     include_package_data=True,
-    zip_safe=False, )
+    zip_safe=False,
+)

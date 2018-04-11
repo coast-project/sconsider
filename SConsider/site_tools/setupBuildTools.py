@@ -1,7 +1,6 @@
 """SConsider.site_tools.setupBuildTools.
 
 SConsider-specific tool chain initialization
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -43,53 +42,51 @@ def checkCompiler(env, optionvalue, envVarName):
 def extractOsVersion(platf):
     current_os_version = (0, 0, 0)
     if str(platf) == "cygwin":
-        current_os_version = tuple(
-            [int(x) for x in platform.system().split('-')[1].split('.')])
+        current_os_version = tuple([int(x) for x in platform.system().split('-')[1].split('.')])
     elif str(platf) == 'win32':
-        current_os_version = tuple(
-            [int(x) for x in platform.version().split('.')])
+        current_os_version = tuple([int(x) for x in platform.version().split('.')])
     elif str(platf) == 'sunos':
-        current_os_version = tuple(
-            [int(x) for x in platform.release().split('.')])
+        current_os_version = tuple([int(x) for x in platform.release().split('.')])
     elif str(platf) == 'darwin':
-        current_os_version = tuple(
-            [int(x) for x in platform.release().split('.')])
+        current_os_version = tuple([int(x) for x in platform.release().split('.')])
     elif platform.system() == 'Linux':
-        current_os_version = tuple(
-            [int(x) for x in platform.release().split('-')[0].split('.')])
+        current_os_version = tuple([int(x) for x in platform.release().split('-')[0].split('.')])
     return current_os_version
 
 
 def generate(env, **kw):
     """Add build tools."""
-    AddOption('--with-cxx',
-              dest='whichcxx',
-              action='store',
-              nargs=1,
-              type='string',
-              default=None,
-              metavar='PATH',
-              help='Fully qualified path and name to gnu g++ compiler')
-    AddOption('--with-cc',
-              dest='whichcc',
-              action='store',
-              nargs=1,
-              type='string',
-              default=None,
-              metavar='PATH',
-              help='Fully qualified path and name to gnu gcc compiler')
+    AddOption(
+        '--with-cxx',
+        dest='whichcxx',
+        action='store',
+        nargs=1,
+        type='string',
+        default=None,
+        metavar='PATH',
+        help='Fully qualified path and name to gnu g++ compiler')
+    AddOption(
+        '--with-cc',
+        dest='whichcc',
+        action='store',
+        nargs=1,
+        type='string',
+        default=None,
+        metavar='PATH',
+        help='Fully qualified path and name to gnu gcc compiler')
     bitchoices = ['32', '64']
     bitdefault = '32'
-    AddOption('--archbits',
-              dest='archbits',
-              action='store',
-              nargs=1,
-              type='choice',
-              choices=bitchoices,
-              default=bitdefault,
-              metavar='OPTIONS',
-              help='Select target bit width (if compiler supports it), ' +
-              str(bitchoices) + ', default=' + bitdefault)
+    AddOption(
+        '--archbits',
+        dest='archbits',
+        action='store',
+        nargs=1,
+        type='choice',
+        choices=bitchoices,
+        default=bitdefault,
+        metavar='OPTIONS',
+        help='Select target bit width (if compiler supports it), ' + str(bitchoices) + ', default=' +
+        bitdefault)
     buildchoices = ['debug', 'optimized', 'profile', 'coverage']
     builddefault = 'optimized'
     AddOption(
@@ -101,40 +98,37 @@ def generate(env, **kw):
         choices=buildchoices,
         default=builddefault,
         metavar='OPTIONS',
-        help='Select build configuration, ' + str(buildchoices) + ', default=' +
-        builddefault +
+        help='Select build configuration, ' + str(buildchoices) + ', default=' + builddefault +
         '. Use profile in conjunction with gprof and coverage in conjunction with gcov.')
-    langchoices = [
-        'c++03', 'c++11', 'c++14', 'c++17', 'c++0x', 'c++1y', 'c++1z',
-        'gnu++98', 'tr1'
-    ]
+    langchoices = ['c++03', 'c++11', 'c++14', 'c++17', 'c++0x', 'c++1y', 'c++1z', 'gnu++98', 'tr1']
     langdefault = 'gnu++98'
-    AddOption('--use-lang-features',
-              dest='whichlangfeat',
-              action='store',
-              nargs=1,
-              type='choice',
-              choices=langchoices,
-              default=langdefault,
-              metavar='OPTIONS',
-              help='Select which language features, ' + str(langchoices) +
-              ', default=' + langdefault + '.')
+    AddOption(
+        '--use-lang-features',
+        dest='whichlangfeat',
+        action='store',
+        nargs=1,
+        type='choice',
+        choices=langchoices,
+        default=langdefault,
+        metavar='OPTIONS',
+        help='Select which language features, ' + str(langchoices) + ', default=' + langdefault + '.')
     warnchoices = ['none', 'medium', 'full']
     warndefault = 'medium'
-    AddOption('--warnlevel',
-              dest='warnlevel',
-              action='store',
-              nargs=1,
-              type='choice',
-              choices=warnchoices,
-              default=warndefault,
-              metavar='OPTIONS',
-              help='Select compilation warning level, one of ' +
-              str(warnchoices) + ', default=' + warndefault)
-    AddOption('--no-largefilesupport',
-              dest='no-largefilesupport',
-              action='store_true',
-              help='Disable use of std libraries iostream headers')
+    AddOption(
+        '--warnlevel',
+        dest='warnlevel',
+        action='store',
+        nargs=1,
+        type='choice',
+        choices=warnchoices,
+        default=warndefault,
+        metavar='OPTIONS',
+        help='Select compilation warning level, one of ' + str(warnchoices) + ', default=' + warndefault)
+    AddOption(
+        '--no-largefilesupport',
+        dest='no-largefilesupport',
+        action='store_true',
+        help='Disable use of std libraries iostream headers')
 
     cxxCompiler = checkCompiler(env, GetOption('whichcxx'), 'CXX')
     ccCompiler = checkCompiler(env, GetOption('whichcc'), 'CC')
@@ -152,8 +146,7 @@ def generate(env, **kw):
         if "mingw" in GetOption('usetools'):
             platf = "win32"
     current_os_version = extractOsVersion(platf)
-    env.AddMethod(lambda env: extractOsVersion(env['PLATFORM']),
-                  "getOsVersionTuple")
+    env.AddMethod(lambda env: extractOsVersion(env['PLATFORM']), "getOsVersionTuple")
 
     # select language features
     langfeature = GetOption('whichlangfeat')
@@ -186,18 +179,15 @@ def generate(env, **kw):
     for t in tool_list(platf_for_tool_list, env):
         Tool(t)(env)
 
-    logger.info('using CXX compiler and version: %s(%s)%s', env['CXX'],
-                env.get('CXXVERSION', 'unknown'), '(' + langfeature + ')'
-                if langfeature else '')
-    logger.info('using CC compiler and version: %s(%s)', env['CC'],
-                env.get('CCVERSION', 'unknown'))
+    logger.info('using CXX compiler and version: %s(%s)%s', env['CXX'], env.get('CXXVERSION', 'unknown'),
+                '(' + langfeature + ')' if langfeature else '')
+    logger.info('using CC compiler and version: %s(%s)', env['CC'], env.get('CCVERSION', 'unknown'))
 
     _osreldefines = ['OS_RELMAJOR', 'OS_RELMINOR', 'OS_RELMINSUB']
     for val, valname in zip(current_os_version, _osreldefines):
         env.AppendUnique(CCFLAGS=['-D' + valname + '=' + str(val)])
-    logger.debug("OS-Flags: %s", ', '.join(
-        [str(i) + '=' + str(j)
-         for j, i in zip(current_os_version, _osreldefines)]))
+    logger.debug("OS-Flags: %s",
+                 ', '.join([str(i) + '=' + str(j) for j, i in zip(current_os_version, _osreldefines)]))
     if str(platf) == 'sunos':
         env.AppendUnique(CCFLAGS=['-DOS_SYSV'])
         env.AppendUnique(CCFLAGS=['-DOS_SOLARIS'])
@@ -208,7 +198,8 @@ def generate(env, **kw):
         env.AppendUnique(CCFLAGS=['-DOS_LINUX'])
     elif str(platf) == 'win32':
         """from scons user manual: a library build of a Windows shared library
-        (.dllfile) will also build a corresponding .def file at the same time"""
+        (.dllfile) will also build a corresponding .def file at the same
+        time."""
         env.Append(WINDOWS_INSERT_DEF=1)
 
     env.Append(VARIANT_SUFFIX=['-' + bitwidth])
@@ -222,8 +213,8 @@ def generate(env, **kw):
         def appendexe(target, source, env):
             newtgt = []
             for t in target:
-                newtgt.append(SCons.Util.adjustixes(
-                    str(t), env.subst('$PROGPREFIX'), env.subst('$PROGSUFFIX')))
+                newtgt.append(
+                    SCons.Util.adjustixes(str(t), env.subst('$PROGPREFIX'), env.subst('$PROGSUFFIX')))
             return newtgt, source
 
         env["PROGEMITTER"] = appendexe

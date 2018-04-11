@@ -2,7 +2,6 @@
 
 Just a bunch of simple methods to help creating targets. Methods will be
 added to the environment supplied in the generate call.
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -27,8 +26,7 @@ def getUsedTarget(env, buildSettings):
     if usedFullTargetname:
         usedPackagename, usedTargetname = PackageRegistry.splitFulltargetname(
             usedFullTargetname, default=True)
-        used_target = PackageRegistry().loadPackageTarget(usedPackagename,
-                                                          usedTargetname)
+        used_target = PackageRegistry().loadPackageTarget(usedPackagename, usedTargetname)
     return used_target
 
 
@@ -43,13 +41,10 @@ def usedOrProgramTarget(env, name, sources, buildSettings):
     return used_target
 
 
-def setupTargetDirAndWrapperScripts(env, name, packagename, install_target,
-                                    basetargetdir):
+def setupTargetDirAndWrapperScripts(env, name, packagename, install_target, basetargetdir):
     env.setRelativeTargetDirectory(os.path.join(basetargetdir, packagename))
-    install_path = env.makeInstallablePathFromDir(env.getBinaryInstallDir(
-    ).File(name))
-    installed_targets = env.InstallAs(target=install_path,
-                                      source=install_target)
+    install_path = env.makeInstallablePathFromDir(env.getBinaryInstallDir().File(name))
+    installed_targets = env.InstallAs(target=install_path, source=install_target)
     installed_target = installed_targets[0]
     sysLibs = env.InstallSystemLibs(install_target)
     env.Requires(installed_target, sysLibs)
@@ -61,24 +56,20 @@ def setupTargetDirAndWrapperScripts(env, name, packagename, install_target,
 
 def programApp(env, name, sources, packagename, buildSettings, **kw):
     used_target = usedOrProgramTarget(env, name, sources, buildSettings)
-    used_target, wrappers = setupTargetDirAndWrapperScripts(
-        env, name, packagename, used_target, 'apps')
+    used_target, wrappers = setupTargetDirAndWrapperScripts(env, name, packagename, used_target, 'apps')
     buildSettings.setdefault("runConfig", {}).setdefault("type", "run")
     env.Alias('binaries', wrappers)
     return (used_target, wrappers)
 
 
-def programTest(env, name, sources, packagename, targetname, buildSettings,
-                **kw):
+def programTest(env, name, sources, packagename, targetname, buildSettings, **kw):
     used_target = usedOrProgramTarget(env, name, sources, buildSettings)
     buildSettings.setdefault("runConfig", {}).setdefault("type", "test")
-    used_target, wrappers = setupTargetDirAndWrapperScripts(
-        env, name, packagename, used_target, 'tests')
+    used_target, wrappers = setupTargetDirAndWrapperScripts(env, name, packagename, used_target, 'tests')
     return (used_target, wrappers)
 
 
-def sharedLibrary(env, name, sources, packagename, targetname, buildSettings,
-                  **kw):
+def sharedLibrary(env, name, sources, packagename, targetname, buildSettings, **kw):
     libBuilder = env.SharedLibrary
     # @!FIXME: we should move this section out to the libraries needing it
     if buildSettings.get('lazylinking', False):
@@ -98,8 +89,7 @@ def sharedLibrary(env, name, sources, packagename, targetname, buildSettings,
     return (installed_target, installed_targets)
 
 
-def staticLibrary(env, name, sources, packagename, targetname, buildSettings,
-                  **kw):
+def staticLibrary(env, name, sources, packagename, targetname, buildSettings, **kw):
     env['_NONLAZYLINKFLAGS'] = ''
     lib_target = env.StaticLibrary(name, sources)
     install_path = env.makeInstallablePathFromDir(env.getLibraryInstallDir())
@@ -108,8 +98,7 @@ def staticLibrary(env, name, sources, packagename, targetname, buildSettings,
     return (lib_target, installed_targets)
 
 
-def installPrecompiledBinary(env, name, sources, packagename, targetname,
-                             buildSettings, **kw):
+def installPrecompiledBinary(env, name, sources, packagename, targetname, buildSettings, **kw):
     env.setRelativeTargetDirectory(os.path.join('globals', packagename))
     target = env.PrecompiledBinaryInstallBuilder(name, sources)
     # use symlink target at index 1 if available
@@ -117,16 +106,14 @@ def installPrecompiledBinary(env, name, sources, packagename, targetname,
     return (target, target)
 
 
-def installPrecompiledLibrary(env, name, sources, packagename, targetname,
-                              buildSettings, **kw):
+def installPrecompiledLibrary(env, name, sources, packagename, targetname, buildSettings, **kw):
     lib = env.PrecompiledLibraryInstallBuilder(name, sources)
     # use symlink target at index 1 if available
     lib = lib[-1:]
     return (lib, lib)
 
 
-def installBinary(env, name, sources, packagename, targetname, buildSettings,
-                  **kw):
+def installBinary(env, name, sources, packagename, targetname, buildSettings, **kw):
     env.setRelativeTargetDirectory(os.path.join('globals', packagename))
     install_path = env.makeInstallablePathFromDir(env.getBinaryInstallDir())
     installed_targets = env.Install(dir=install_path, source=sources)

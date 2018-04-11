@@ -1,7 +1,6 @@
 """SConsider.SomeUtils.
 
 Collection of helper functions
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -32,11 +31,10 @@ def listFiles(files, **kw):
     for file_pattern in files:
         globFiles = SCons.Script.Glob(file_pattern)
         for globFile in globFiles:
-            if kw.get('recursive', False) and isinstance(globFile,
-                                                         SCons.Node.FS.Dir):
-                allFiles += listFiles([str(SCons.Script.Dir('.').srcnode(
-                ).rel_path(globFile.srcnode())) + "/*"],
-                                      recursive=True)
+            if kw.get('recursive', False) and isinstance(globFile, SCons.Node.FS.Dir):
+                allFiles += listFiles(
+                    [str(SCons.Script.Dir('.').srcnode().rel_path(globFile.srcnode())) + "/*"],
+                    recursive=True)
             else:
                 allFiles.append(globFile)
     allFiles.sort(cmp=FileNodeComparer)
@@ -71,16 +69,10 @@ def findFiles(directories, extensions=None, matchfiles=None, direxcludes=None):
                 dirnames[:] = [d for d in dirnames if d not in direxcludes]
                 addfiles = []
                 if extensions:
-                    efiles = [
-                        curDir.File(f) for f in filenames
-                        if os.path.splitext(f)[1] in extensions
-                    ]
+                    efiles = [curDir.File(f) for f in filenames if os.path.splitext(f)[1] in extensions]
                     addfiles.extend(efiles)
                 if matchfiles:
-                    mfiles = [
-                        curDir.File(f) for f in filenames
-                        if os.path.split(f)[1] in matchfiles
-                    ]
+                    mfiles = [curDir.File(f) for f in filenames if os.path.split(f)[1] in matchfiles]
                     addfiles.extend(mfiles)
                 if addfiles:
                     files.extend(addfiles)
@@ -90,12 +82,7 @@ def findFiles(directories, extensions=None, matchfiles=None, direxcludes=None):
     return files
 
 
-def copyFileNodes(env,
-                  nodetuples,
-                  destDir,
-                  stripRelDirs=None,
-                  mode=None,
-                  replaceDict=None):
+def copyFileNodes(env, nodetuples, destDir, stripRelDirs=None, mode=None, replaceDict=None):
     import SCons
     if stripRelDirs is None:
         stripRelDirs = []
@@ -108,28 +95,21 @@ def copyFileNodes(env,
             filename = SCons.Script.File(filename)
         installRelPath = baseDir.rel_path(filename.get_dir())
 
-        if stripRelDirs and baseDir.get_abspath() != filename.get_dir(
-        ).get_abspath():
+        if stripRelDirs and baseDir.get_abspath() != filename.get_dir().get_abspath():
             relPathParts = installRelPath.split(os.sep)
             delprefix = []
             for stripRelDir in stripRelDirs:
-                delprefix = os.path.commonprefix(
-                    [stripRelDir.split(os.sep), relPathParts])
+                delprefix = os.path.commonprefix([stripRelDir.split(os.sep), relPathParts])
             installRelPath = os.sep.join(relPathParts[len(delprefix):])
 
         if replaceDict:
-            instTarg = env.SubstInFileBuilder(
-                destDir.Dir(installRelPath),
-                filename,
-                SUBST_DICT=replaceDict)
+            instTarg = env.SubstInFileBuilder(destDir.Dir(installRelPath), filename, SUBST_DICT=replaceDict)
         else:
-            install_path = env.makeInstallablePathFromDir(destDir.Dir(
-                installRelPath))
+            install_path = env.makeInstallablePathFromDir(destDir.Dir(installRelPath))
             instTarg = env.Install(dir=install_path, source=filename)
 
         if mode:
-            env.AddPostAction(instTarg, SCons.Defaults.Chmod(
-                str(instTarg[0]), mode))
+            env.AddPostAction(instTarg, SCons.Defaults.Chmod(str(instTarg[0]), mode))
         instTargs.extend(instTarg)
 
     return instTargs
@@ -146,7 +126,6 @@ def multiple_replace(replist, text):
     pattern (supports regex) with replacement.
 
     Returns the new string.
-
     """
     if replist is None:
         replist = []
@@ -157,10 +136,7 @@ def multiple_replace(replist, text):
     return text
 
 
-def replaceRegexInFile(fname,
-                       searchReplace,
-                       multiReplFunc=multiple_replace,
-                       replacedCallback=None):
+def replaceRegexInFile(fname, searchReplace, multiReplFunc=multiple_replace, replacedCallback=None):
     try:
         fo = open(fname)
         if fo:
@@ -183,11 +159,7 @@ def replaceRegexInFile(fname,
     return None
 
 
-def RegexReplace(filematch,
-                 baseDir='.',
-                 searchReplace=None,
-                 excludelist=None,
-                 replacedCallback=None):
+def RegexReplace(filematch, baseDir='.', searchReplace=None, excludelist=None, replacedCallback=None):
     if excludelist is None:
         excludelist = []
     for dirpath, dirnames, filenames in os.walk(baseDir):
@@ -199,6 +171,7 @@ def RegexReplace(filematch,
                     replaceRegexInFile(fname, searchReplace, replacedCallback)
                 except IOError:
                     pass
+
 
 # monkey patch os.path to include relpath if python version is < 2.6
 if not hasattr(os.path, "relpath"):
@@ -236,11 +209,9 @@ if not hasattr(os.path, "relpath"):
             unc_path, _ = os.path.splitunc(path)
             unc_start, _ = os.path.splitunc(start)
             if bool(unc_path) ^ bool(unc_start):
-                raise ValueError("Cannot mix UNC and non-UNC paths (%s and %s)"
-                                 % (path, start))
+                raise ValueError("Cannot mix UNC and non-UNC paths (%s and %s)" % (path, start))
             else:
-                raise ValueError("path is on drive %s, start on drive %s" %
-                                 (path_list[0], start_list[0]))
+                raise ValueError("path is on drive %s, start on drive %s" % (path_list[0], start_list[0]))
 
         # Work out how much of the filepath is shared by start and path.
         for i in range(min(len(start_list), len(path_list))):
@@ -320,7 +291,6 @@ def getNodeDependencies(target, filters=None):
     """Determines the recursive dependencies of a node.
 
     Specify node filters using 'filters'.
-
     """
     if filters is None:
         filters = []
@@ -355,12 +325,7 @@ def getfqdn():
     return (hostname, domain, fqdn)
 
 
-def runCommand(args,
-               logpath='',
-               filename=None,
-               stdincontent=None,
-               timeout=120,
-               **kw):
+def runCommand(args, logpath='', filename=None, stdincontent=None, timeout=120, **kw):
     res = 1
     if filename:
         with open(filename) as f:
@@ -386,8 +351,7 @@ def runCommand(args,
     errfilename = os.path.join(logpath, logfilebasename + '.stderr')
     outfilename = os.path.join(logpath, logfilebasename + '.stdout')
     try:
-        popen_out, popen_err = popenObject.communicate(stdincontent,
-                                                       timeout=timeout)
+        popen_out, popen_err = popenObject.communicate(stdincontent, timeout=timeout)
         if popen_err:
             with open(errfilename, 'w') as errfile:
                 errfile.write(popen_err)

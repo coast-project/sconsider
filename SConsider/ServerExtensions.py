@@ -2,7 +2,6 @@
 
 Collection of slightly extended or tailored *Servers mainly used for
 testing
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -51,20 +50,17 @@ class SecureHTTPServer(HTTPServer):
         ctx.set_timeout(60)
         if caChainFile:
             ctx.load_verify_locations(caChainFile)
-        self.socket = SSL.Connection(ctx, socket.socket(self.address_family,
-                                                        self.socket_type))
+        self.socket = SSL.Connection(ctx, socket.socket(self.address_family, self.socket_type))
         self.server_bind()
         self.server_activate()
         import sys
         import OpenSSL
         if sys.version_info >= (2, 7):
-            pyOpensslVersion = tuple(int(t)
-                                     for t in OpenSSL.__version__.split('.'))
+            pyOpensslVersion = tuple(int(t) for t in OpenSSL.__version__.split('.'))
             noMemoryViewsBelow = (0, 12)
 
             if pyOpensslVersion < noMemoryViewsBelow:
-                raise SystemError(
-                    """Please upgrade your pyopenssl version to at least 0.12
+                raise SystemError("""Please upgrade your pyopenssl version to at least 0.12
  as python2.7 is neither interface nor memory view compatible with older pyopenssl versions
 Checkout sources and install: bzr branch lp:pyopenssl pyopenssl/
 Check https://launchpad.net/pyopenssl for updates

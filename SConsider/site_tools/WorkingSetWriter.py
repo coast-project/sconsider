@@ -3,7 +3,6 @@
 Eclipse-SConsider-specific tool to create an eclipse working set filter
 file.  Each directory containing an eclipse .project file is scanned for
 its dependencies to other 'eclipse' project files.
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -51,8 +50,7 @@ def determineProjectDependencies(dependencyDict, registry, topPath):
         projectName = getProjectNameFromProjectFile(projectFilePath)
         if projectName:
             project_dependencies.add(projectName)
-        project_dependencies.update(determineProjectDependencies(
-            depDict, registry, topPath))
+        project_dependencies.update(determineProjectDependencies(depDict, registry, topPath))
     return project_dependencies
 
 
@@ -63,20 +61,18 @@ def rememberWorkingSet(registry, packagename, **kw):
     from SCons.Script import Dir
 
     dependencyDict = registry.getPackageDependencies(packagename)
-    dependencies[packagename] = determineProjectDependencies(
-        dependencyDict, registry,
-        kw.get('sconstruct_dir', Dir('#')).srcnode().get_abspath())
+    dependencies[packagename] = determineProjectDependencies(dependencyDict, registry,
+                                                             kw.get('sconstruct_dir',
+                                                                    Dir('#')).srcnode().get_abspath())
 
 
 def writeWorkingSets(**kw):
     from SCons.Script import GetOption, Dir
 
     workspacePath = os.path.abspath(GetOption("workspace"))
-    workingsetsPath = os.path.join(workspacePath, '.metadata', '.plugins',
-                                   'org.eclipse.ui.workbench')
+    workingsetsPath = os.path.join(workspacePath, '.metadata', '.plugins', 'org.eclipse.ui.workbench')
     if not os.path.isdir(workingsetsPath):
-        workingsetsPath = kw.get('sconstruct_dir',
-                                 Dir('#')).srcnode().get_abspath()
+        workingsetsPath = kw.get('sconstruct_dir', Dir('#')).srcnode().get_abspath()
 
     fname = os.path.join(workingsetsPath, 'workingsets.xml')
     xmldeps = fromXML(fname)
@@ -95,10 +91,11 @@ def writeWorkingSets(**kw):
             }
         xmldeps[package]['items'] = []
         for dep in packagedeps:
-            xmldeps[package]['items'].append(
-                {'factoryID': 'org.eclipse.cdt.ui.PersistableCElementFactory',
-                 'path': '/' + dep,
-                 'type': '4'})
+            xmldeps[package]['items'].append({
+                'factoryID': 'org.eclipse.cdt.ui.PersistableCElementFactory',
+                'path': '/' + dep,
+                'type': '4'
+            })
 
     toXML(xmldeps, fname)
 
@@ -113,10 +110,7 @@ def fromXML(filename):
             items = []
             for item in workingSet:
                 items.append(item.attrib)
-            xmldeps[workingSet.get('label')] = {
-                'attrs': workingSet.attrib,
-                'items': items
-            }
+            xmldeps[workingSet.get('label')] = {'attrs': workingSet.attrib, 'items': items}
     return xmldeps
 
 
@@ -134,11 +128,7 @@ def generate(env):
     from SCons.Script import AddOption
     from SConsider.Callback import Callback
 
-    AddOption('--workspace',
-              dest='workspace',
-              action='store',
-              default='',
-              help='Select workspace directory')
+    AddOption('--workspace', dest='workspace', action='store', default='', help='Select workspace directory')
 
     Callback().register('PostCreatePackageTargets', rememberWorkingSet)
     Callback().register('PreBuild', writeWorkingSets)

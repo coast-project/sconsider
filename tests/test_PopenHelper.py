@@ -34,8 +34,7 @@ def test_CommandStringWithOutputFromInput():
     assert send_on_stdin in stdout
 
 
-@pytest.mark.skipif(not has_timeout_param,
-                    reason='only works with subprocess32 or python3.x')
+@pytest.mark.skipif(not has_timeout_param, reason='only works with subprocess32 or python3.x')
 def test_CommandStringWithTimeoutResultsInKill():
     executor = PopenHelper('sleep 3', stdout=PIPE, stderr=PIPE)
     _, _ = executor.communicate(timeout=1)

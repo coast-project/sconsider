@@ -2,7 +2,6 @@
 
 SCons build tool extension allowing automatic target finding within a
 directory tree.
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -87,8 +86,7 @@ def print_scons_sconsider_info(logto, project_name, project_version):
     except ResolutionError:
         pass
     finally:
-        logto.info("%s version %s (%s)", project_name, project_version,
-                   get_build_platform())
+        logto.info("%s version %s (%s)", project_name, project_version, get_build_platform())
 
 
 class Null(SConsNull):
@@ -100,10 +98,10 @@ class Null(SConsNull):
 
 
 def print_platform_info(logto):
-    for platform_func in [platform.dist, platform.architecture,
-                          platform.machine, platform.libc_ver, platform.release,
-                          platform.version, platform.processor, platform.system,
-                          platform.uname]:
+    for platform_func in [
+            platform.dist, platform.architecture, platform.machine, platform.libc_ver, platform.release,
+            platform.version, platform.processor, platform.system, platform.uname
+    ]:
         func_value = platform_func()
         if func_value:
             logto.debug("platform.%s: %s", platform_func.__name__, func_value)
@@ -114,31 +112,33 @@ def create_default_environment():
 
 
 def add_path_extend_options():
-    AddOption('--appendPath',
-              dest='appendPath',
-              action='append',
-              nargs=1,
-              type='string',
-              metavar='DIR',
-              help='Append this directory to the PATH environment variable.')
-    AddOption('--prependPath',
-              dest='prependPath',
-              action='append',
-              nargs=1,
-              type='string',
-              metavar='DIR',
-              help='Prepend this directory to the PATH environment variable.')
+    AddOption(
+        '--appendPath',
+        dest='appendPath',
+        action='append',
+        nargs=1,
+        type='string',
+        metavar='DIR',
+        help='Append this directory to the PATH environment variable.')
+    AddOption(
+        '--prependPath',
+        dest='prependPath',
+        action='append',
+        nargs=1,
+        type='string',
+        metavar='DIR',
+        help='Prepend this directory to the PATH environment variable.')
 
 
 def process_path_options(the_env, logto):
     if GetOption('prependPath'):
         the_env.PrependENVPath('PATH', GetOption('prependPath'))
-        logto.debug('prepended path is [%s]\nfull path is [%s]',
-                    GetOption('prependPath'), the_env['ENV']['PATH'])
+        logto.debug('prepended path is [%s]\nfull path is [%s]', GetOption('prependPath'),
+                    the_env['ENV']['PATH'])
     if GetOption('appendPath'):
         the_env.AppendENVPath('PATH', GetOption('appendPath'))
-        logto.debug('appended path is [%s]\nfull path is [%s]',
-                    GetOption('appendPath'), the_env['ENV']['PATH'])
+        logto.debug('appended path is [%s]\nfull path is [%s]', GetOption('appendPath'),
+                    the_env['ENV']['PATH'])
 
 
 sconsider_default_tools = [
@@ -174,8 +174,7 @@ def get_list_of_scons_tools(logto):
     if option_tools is None:
         option_tools = []
     usetools = OrderedDict.fromkeys(
-        sconsider_default_tools + DefaultEnvironment().get(
-            '_SCONSIDER_TOOLS_', []) + option_tools).keys()
+        sconsider_default_tools + DefaultEnvironment().get('_SCONSIDER_TOOLS_', []) + option_tools).keys()
     logto.debug('tools to use %s', Flatten(usetools))
     return usetools
 
@@ -218,25 +217,20 @@ def setup_path_to_sconsign_file(the_env, logto, output_dir):
 
 
 def run_pre_package_collection_cb(the_env):
-    Callback().run('PrePackageCollection',
-                   env=the_env,
-                   sconstruct_dir=get_sconstruct_dir(the_env))
+    Callback().run('PrePackageCollection', env=the_env, sconstruct_dir=get_sconstruct_dir(the_env))
 
 
-@deprecated(
-    "Use the static method splitFulltargetname of PackageRegistry instead.")
+@deprecated("Use the static method splitFulltargetname of PackageRegistry instead.")
 def splitTargetname(*args, **kwargs):
     return PackageRegistry.splitFulltargetname(*args, **kwargs)
 
 
-@deprecated(
-    "Use the static method createUniqueTargetname of PackageRegistry instead.")
+@deprecated("Use the static method createUniqueTargetname of PackageRegistry instead.")
 def createUniqueTargetname(*args, **kwargs):
     return PackageRegistry.createUniqueTargetname(*args, **kwargs)
 
 
-@deprecated(
-    "Use the static method createFulltargetname of PackageRegistry instead.")
+@deprecated("Use the static method createFulltargetname of PackageRegistry instead.")
 def generateFulltargetname(*args, **kwargs):
     return PackageRegistry.createFulltargetname(*args, **kwargs)
 
@@ -270,8 +264,7 @@ def create_package_registry(the_env):
 
 
 def scan_dirs_for_packagefiles(registry, the_env, start_dir):
-    registry.scan_for_package_files(start_dir, the_env.relativeExcludeDirs(),
-                                    the_env.absoluteExcludeDirs())
+    registry.scan_for_package_files(start_dir, the_env.relativeExcludeDirs(), the_env.absoluteExcludeDirs())
 
 
 def extend_env_lookup_by_package_registry(the_env, registry):
@@ -283,10 +276,8 @@ def extend_env_lookup_by_package_registry(the_env, registry):
 
 
 def run_post_package_collection_cb(the_env, registry):
-    Callback().run('PostPackageCollection',
-                   env=the_env,
-                   registry=registry,
-                   sconstruct_dir=get_sconstruct_dir(the_env))
+    Callback().run(
+        'PostPackageCollection', env=the_env, registry=registry, sconstruct_dir=get_sconstruct_dir(the_env))
 
 
 def createTargets(pkg_name, buildSettings):
@@ -295,7 +286,6 @@ def createTargets(pkg_name, buildSettings):
 
     This is a helper function which must be called from SConscript to
     create the targets.
-
     """
     packageRegistry.setBuildSettings(pkg_name, buildSettings)
     # do not create/build empty packages like the ones where Configure() fails
@@ -364,31 +354,25 @@ def load_targets_from_package_files(the_env, registry, logto):
             buildtargets = BUILD_TARGETS
             _LAUNCHDIR_RELATIVE = launchDir.path
             if not buildtargets:
-                buildtargets = [item for item in registry.getPackageNames()
-                                if namefilter(item)]
+                buildtargets = [item for item in registry.getPackageNames() if namefilter(item)]
             elif '.' in buildtargets:
-                builddir = baseoutdir.Dir(_LAUNCHDIR_RELATIVE).Dir(
-                    the_env.getRelativeBuildDirectory()).Dir(
-                        the_env.getRelativeVariantDirectory()).get_abspath()
+                builddir = baseoutdir.Dir(_LAUNCHDIR_RELATIVE).Dir(the_env.getRelativeBuildDirectory()).Dir(
+                    the_env.getRelativeVariantDirectory()).get_abspath()
                 buildtargets[buildtargets.index('.')] = builddir
 
             for ftname in buildtargets:
-                packagename, targetname = PackageRegistry.splitFulltargetname(
-                    ftname)
-                tryLoadPackageTarget(registry,
-                                     pkg_name=packagename,
-                                     tgt_name=targetname,
-                                     logto=logto,
-                                     build_targets=BUILD_TARGETS)
+                packagename, targetname = PackageRegistry.splitFulltargetname(ftname)
+                tryLoadPackageTarget(
+                    registry,
+                    pkg_name=packagename,
+                    tgt_name=targetname,
+                    logto=logto,
+                    build_targets=BUILD_TARGETS)
 
         except PackageNotFound as ex:
-            logto.warning(
-                '%s, loading all packages to find potential alias target',
-                ex,
-                exc_info=False)
+            logto.warning('%s, loading all packages to find potential alias target', ex, exc_info=False)
 
-            buildtargets = [item for item in registry.getPackageNames()
-                            if namefilter(item)]
+            buildtargets = [item for item in registry.getPackageNames() if namefilter(item)]
 
             for packagename in buildtargets:
                 try:
@@ -396,12 +380,10 @@ def load_targets_from_package_files(the_env, registry, logto):
                 except NoPackageTargetsFound as ex:
                     if not GetOption('help'):
                         logto.warning('%s', ex, exc_info=False)
-            logto.info(
-                "Completed loading possible targets and aliases from %d available package files",
-                len(buildtargets))
+            logto.info("Completed loading possible targets and aliases from %d available package files",
+                       len(buildtargets))
 
-    except (PackageNotFound, TargetNotFound,
-            PackageRequirementsNotFulfilled) as ex:
+    except (PackageNotFound, TargetNotFound, PackageRequirementsNotFulfilled) as ex:
         if not isinstance(ex, PackageRequirementsNotFulfilled):
             logto.error('%s', ex, exc_info=False)
         if not GetOption('help'):
@@ -412,18 +394,14 @@ def run_pre_build_cb(the_env, registry, build_targets):
     """Run registered PreBuild callbacks.
 
     Note: buildTargets is passed by reference and might be extended in callback functions!
-
     """
-    Callback().run("PreBuild",
-                   registry=registry,
-                   buildTargets=build_targets,
-                   sconstruct_dir=get_sconstruct_dir(the_env))
+    Callback().run(
+        "PreBuild", registry=registry, buildTargets=build_targets, sconstruct_dir=get_sconstruct_dir(the_env))
 
 
 def print_collected_build_targets(build_targets, logto):
     """Just print out what we are going to build."""
-    logto.info('BUILD_TARGETS is %s',
-               sorted([str(item) for item in build_targets]))
+    logto.info('BUILD_TARGETS is %s', sorted([str(item) for item in build_targets]))
 
 
 def main():
@@ -442,8 +420,7 @@ def main():
     setup_path_to_sconsign_file(baseEnv, logger, baseoutdir)
     run_pre_package_collection_cb(baseEnv)
     packageRegistry = create_package_registry(baseEnv)
-    scan_dirs_for_packagefiles(packageRegistry, baseEnv,
-                               get_sconstruct_dir(baseEnv))
+    scan_dirs_for_packagefiles(packageRegistry, baseEnv, get_sconstruct_dir(baseEnv))
     extend_env_lookup_by_package_registry(baseEnv, packageRegistry)
     run_post_package_collection_cb(baseEnv, packageRegistry)
     atexit.register(print_build_failures, logto=logger)

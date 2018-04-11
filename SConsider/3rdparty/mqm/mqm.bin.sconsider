@@ -30,18 +30,15 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             },
         },
         'mqic': {
-            'sourceFiles':
-            [getBinaryDistDir(packagename).File('mqic')],
+            'sourceFiles': [getBinaryDistDir(packagename).File('mqic')],
             'targetType': 'PrecompiledLibrary',
         },
         'mqiz': {
-            'sourceFiles':
-            [getBinaryDistDir(packagename).File('mqiz')],
+            'sourceFiles': [getBinaryDistDir(packagename).File('mqiz')],
             'targetType': 'PrecompiledLibrary',
         },
         'mqmcs': {
-            'sourceFiles':
-            [getBinaryDistDir(packagename).File('mqmcs')],
+            'sourceFiles': [getBinaryDistDir(packagename).File('mqmcs')],
             'targetType': 'PrecompiledLibrary',
         },
     }

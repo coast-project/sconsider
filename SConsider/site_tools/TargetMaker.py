@@ -1,7 +1,6 @@
 """SConsider.site_tools.TargetMaker.
 
 SCons extension to create target environments using EnvBuilder
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -53,10 +52,9 @@ class TargetMaker(object):
             else:
                 k, v = self.targetlist.popitem()
             depList = [
-                self.registry.createFulltargetname(
-                    *self.registry.splitFulltargetname(item, True))
-                for item in v.get('requires', []) + v.get(
-                    'linkDependencies', []) + [v.get('usedTarget', '')] if item
+                self.registry.createFulltargetname(*self.registry.splitFulltargetname(item, True))
+                for item in v.get('requires', []) + v.get('linkDependencies', []) + [v.get('usedTarget', '')]
+                if item
             ]
 
             self.pushItem(k)
@@ -85,13 +83,12 @@ class TargetMaker(object):
             if alternativeDir:
                 # based on installRelPath and file, try to find an override
                 # file to use instead
-                fileWithRelpathToSearch = os.path.relpath(
-                    currentFile.get_abspath(), currentBaseDir.get_abspath())
+                fileWithRelpathToSearch = os.path.relpath(currentFile.get_abspath(),
+                                                          currentBaseDir.get_abspath())
                 # catch possible errors and stop when wanting to do relative
                 # movements
                 if not fileWithRelpathToSearch.startswith('..'):
-                    fileToCheckFor = os.path.join(alternativeDir.get_abspath(),
-                                                  fileWithRelpathToSearch)
+                    fileToCheckFor = os.path.join(alternativeDir.get_abspath(), fileWithRelpathToSearch)
                     if os.path.isfile(fileToCheckFor):
                         currentFile = File(fileToCheckFor)
                         currentBaseDir = alternativeDir
@@ -103,13 +100,11 @@ class TargetMaker(object):
         instTargets = []
         if 'public' in buildSettings:
             ifiles = buildSettings['public'].get('includes', [])
-            destdir = env.getBaseOutDir().Dir(os.path.join(env['INCDIR'],
-                                                           pkgname))
+            destdir = env.getBaseOutDir().Dir(os.path.join(env['INCDIR'], pkgname))
             pkgdir = self.registry.getPackageDir(pkgname)
             stripRelDirs = []
             if buildSettings['public'].get('stripSubdir', True):
-                stripRelDirs.append(buildSettings['public'].get('includeSubdir',
-                                                                ''))
+                stripRelDirs.append(buildSettings['public'].get('includeSubdir', ''))
             mode = None
             if str(env['PLATFORM']) not in ["cygwin", "win32"]:
                 mode = stat.S_IREAD
@@ -139,12 +134,13 @@ class TargetMaker(object):
                 replaceDict = {}
             if str(env['PLATFORM']) in ["cygwin", "win32"]:
                 mode = None
-            instTargets.extend(copyFileNodes(env,
-                                             self.prepareFileNodeTuples(
-                                                 files, pkgdir, envconfigdir),
-                                             destdir,
-                                             mode=mode,
-                                             replaceDict=replaceDict))
+            instTargets.extend(
+                copyFileNodes(
+                    env,
+                    self.prepareFileNodeTuples(files, pkgdir, envconfigdir),
+                    destdir,
+                    mode=mode,
+                    replaceDict=replaceDict))
 
         return instTargets
 
@@ -152,20 +148,17 @@ class TargetMaker(object):
         if not is_List(requiredTargets):
             requiredTargets = [requiredTargets]
         for targ in requiredTargets:
-            env.Depends(target,
-                        self.registry.loadPackageTarget(
-                            *self.registry.splitFulltargetname(targ,
-                                                               default=True)))
+            env.Depends(
+                target,
+                self.registry.loadPackageTarget(*self.registry.splitFulltargetname(targ, default=True)))
 
     def doCreateTarget(self, packagename, targetname, targetBuildSettings):
         plaintarget = None
         target = None
         try:
             envVars = targetBuildSettings.get('appendUnique', {})
-            targetEnv = self.createTargetEnv(targetname, targetBuildSettings,
-                                             envVars)
-            target_type = targetBuildSettings.get('targetType',
-                                                  '__UNDEFINED_TARGETTYPE__')
+            targetEnv = self.createTargetEnv(targetname, targetBuildSettings, envVars)
+            target_type = targetBuildSettings.get('targetType', '__UNDEFINED_TARGETTYPE__')
             func = getattr(targetEnv, target_type, None)
             if func:
                 kwargs = {}
@@ -173,24 +166,21 @@ class TargetMaker(object):
                 kwargs['targetname'] = targetname
                 kwargs['buildSettings'] = targetBuildSettings
                 sources = targetBuildSettings.get('sourceFiles', [])
-                name = targetBuildSettings.get(
-                    'targetName', self.registry.createUniqueTargetname(
-                        packagename, targetname))
+                name = targetBuildSettings.get('targetName',
+                                               self.registry.createUniqueTargetname(packagename, targetname))
                 targets = func(*[name, sources], **kwargs)
                 if isinstance(targets, tuple):
                     plaintarget, target = targets
                 else:
                     plaintarget = target = targets
                 if not plaintarget and not target:
-                    ex = TargetNotFound(target_type + '(' + str(sources[0].name)
-                                        + ')')
+                    ex = TargetNotFound(target_type + '(' + str(sources[0].name) + ')')
                     for requirer in self.lookupStack:
                         ex.prependItem(requirer)
                     raise ex
 
             if plaintarget:
-                targetEnv.Depends(plaintarget,
-                                  self.registry.getPackageFile(packagename))
+                targetEnv.Depends(plaintarget, self.registry.getPackageFile(packagename))
             else:
                 # Actually includeOnlyTarget is obsolete, but we still need a
                 # (dummy) targetType in build settings to get in here!
@@ -202,42 +192,37 @@ class TargetMaker(object):
                     self.registry.getPackageFile(packagename))
 
             # handle hard dependencies and softer requirements differently
-            self.requireTargets(targetEnv, target,
-                                targetBuildSettings.get('linkDependencies', []))
-            self.requireTargets(targetEnv, target,
-                                targetBuildSettings.get('requires', []))
+            self.requireTargets(targetEnv, target, targetBuildSettings.get('linkDependencies', []))
+            self.requireTargets(targetEnv, target, targetBuildSettings.get('requires', []))
 
-            includeTargets = self.copyIncludeFiles(targetEnv, packagename,
-                                                   targetBuildSettings)
+            includeTargets = self.copyIncludeFiles(targetEnv, packagename, targetBuildSettings)
             targetEnv.Depends(target, includeTargets)
             targetEnv.Alias('includes', includeTargets)
 
             if 'copyFiles' in targetBuildSettings:
-                copyTargets = self.copyFiles(
-                    targetEnv, targetEnv.getTargetBaseInstallDir(), packagename,
-                    targetBuildSettings.get('copyFiles', []))
+                copyTargets = self.copyFiles(targetEnv, targetEnv.getTargetBaseInstallDir(), packagename,
+                                             targetBuildSettings.get('copyFiles', []))
                 targetEnv.Depends(target, copyTargets)
 
             targetEnv.Alias('all', target)
-            if targetBuildSettings.get('runConfig', {}).get('type',
-                                                            '') == 'test':
+            if targetBuildSettings.get('runConfig', {}).get('type', '') == 'test':
                 targetEnv.Alias('tests', target)
 
-            Callback().run("PostCreateTarget",
-                           env=targetEnv,
-                           target=target,
-                           packagename=packagename,
-                           targetname=targetname,
-                           buildSettings=targetBuildSettings)
+            Callback().run(
+                "PostCreateTarget",
+                env=targetEnv,
+                target=target,
+                packagename=packagename,
+                targetname=targetname,
+                buildSettings=targetBuildSettings)
 
             self.registry.setPackageTarget(packagename, targetname, target)
             return True
         except (PackageNotFound, TargetNotFound) as ex:
             # even when ignore-missing is set, we should not continue if a missing package target
             # is required by an explicit command line target
-            raise_again = not bool(GetOption(
-                'ignore-missing')) or self.registry.createFulltargetname(
-                    packagename, targetname) in BUILD_TARGETS
+            raise_again = not bool(GetOption('ignore-missing')) or self.registry.createFulltargetname(
+                packagename, targetname) in BUILD_TARGETS
             logger.warning(
                 '%s (referenced by [%s])%s',
                 ex,
@@ -245,9 +230,8 @@ class TargetMaker(object):
                 ', ignoring as requested' if not raise_again else '',
                 exc_info=False)
             if raise_again:
-                raise PackageRequirementsNotFulfilled(
-                    packagename, self.registry.getPackageFile(packagename),
-                    ex.name)
+                raise PackageRequirementsNotFulfilled(packagename, self.registry.getPackageFile(packagename),
+                                                      ex.name)
             return False
 
     def createTargetEnv(self, _, targetBuildSettings, envVars=None):
@@ -257,10 +241,8 @@ class TargetMaker(object):
 
         # maybe we need to add this library's local include path when building
         # it (if different from .)
-        includeSubdir = Dir(targetBuildSettings.get('includeSubdir',
-                                                    '')).srcnode()
-        includePublicSubdir = Dir(targetBuildSettings.get('public', {}).get(
-            'includeSubdir', '')).srcnode()
+        includeSubdir = Dir(targetBuildSettings.get('includeSubdir', '')).srcnode()
+        includePublicSubdir = Dir(targetBuildSettings.get('public', {}).get('includeSubdir', '')).srcnode()
         include_dirs = includeSubdir.get_all_rdirs()
         include_dirs.extend(includePublicSubdir.get_all_rdirs())
         for incdir in include_dirs:
@@ -270,12 +252,9 @@ class TargetMaker(object):
         linkDependencies = targetBuildSettings.get('linkDependencies', [])
         self.setModuleDependencies(targetEnv, linkDependencies)
 
-        self.setExecEnv(
-            targetEnv,
-            linkDependencies + targetBuildSettings.get('requires', []))
+        self.setExecEnv(targetEnv, linkDependencies + targetBuildSettings.get('requires', []))
 
-        targetVars = targetBuildSettings.get('public', {}).get('appendUnique',
-                                                               {})
+        targetVars = targetBuildSettings.get('public', {}).get('appendUnique', {})
         targetEnv.AppendUnique(**targetVars)
         if envVars is not None:
             targetEnv.AppendUnique(**envVars)
@@ -283,24 +262,16 @@ class TargetMaker(object):
 
     def setModuleDependencies(self, env, modules, **kw):
         for fulltargetname in modules:
-            packagename, targetname = self.registry.splitFulltargetname(
-                fulltargetname, default=True)
-            module_target = self.registry.loadPackageTarget(packagename,
-                                                            targetname)
-            buildSettings = self.registry.getBuildSettings(packagename,
-                                                           targetname)
-            self.setExternalDependencies(env,
-                                         packagename,
-                                         buildSettings,
-                                         target=module_target)
+            packagename, targetname = self.registry.splitFulltargetname(fulltargetname, default=True)
+            module_target = self.registry.loadPackageTarget(packagename, targetname)
+            buildSettings = self.registry.getBuildSettings(packagename, targetname)
+            self.setExternalDependencies(env, packagename, buildSettings, target=module_target)
 
     def setExecEnv(self, env, requiredTargets):
         for targ in requiredTargets:
-            packagename, targetname = self.registry.splitFulltargetname(
-                targ, default=True)
+            packagename, targetname = self.registry.splitFulltargetname(targ, default=True)
             if self.registry.hasPackageTarget(packagename, targetname):
-                settings = self.registry.getBuildSettings(packagename,
-                                                          targetname)
+                settings = self.registry.getBuildSettings(packagename, targetname)
                 target = self.registry.getPackageTarget(packagename, targetname)
                 public_execenv = settings.get('public', {}).get('execEnv', {})
                 for key, value in public_execenv.iteritems():
@@ -308,26 +279,19 @@ class TargetMaker(object):
                         env['ENV'][key] = value(target.env)
                     else:
                         env['ENV'][key] = target.env.subst(value)
-                reqTargets = settings.get('linkDependencies',
-                                          []) + settings.get('requires', [])
+                reqTargets = settings.get('linkDependencies', []) + settings.get('requires', [])
                 self.setExecEnv(env, reqTargets)
 
-    def setExternalDependencies(self,
-                                env,
-                                packagename,
-                                buildSettings,
-                                target=None):
+    def setExternalDependencies(self, env, packagename, buildSettings, target=None):
         linkDependencies = buildSettings.get('linkDependencies', [])
         if 'public' in buildSettings:
             appendUnique = buildSettings['public'].get('appendUnique', {})
             # flags / settings used by this library and users of it
             env.AppendUnique(**appendUnique)
 
-            includePublicSubdir = buildSettings['public'].get('includeSubdir',
-                                                              '')
+            includePublicSubdir = buildSettings['public'].get('includeSubdir', '')
             if is_String(includePublicSubdir):
-                includePublicSubdir = self.registry.getPackageDir(
-                    packagename).Dir(includePublicSubdir)
+                includePublicSubdir = self.registry.getPackageDir(packagename).Dir(includePublicSubdir)
 
             for incdir in includePublicSubdir.get_all_rdirs():
                 env.AppendUnique(CPPPATH=[incdir])
@@ -341,8 +305,7 @@ class TargetMaker(object):
             try:
                 strTargetType = target.builder.get_name(target.env)
                 if strTargetType == 'InstallBuilder':
-                    strTargetType = target.sources[0].builder.get_name(
-                        target.env)
+                    strTargetType = target.sources[0].builder.get_name(target.env)
                 if strTargetType.find('Library') != -1:
                     libname = multiple_replace([
                         ('^' + re.escape(env.subst("$LIBPREFIX")), ''),

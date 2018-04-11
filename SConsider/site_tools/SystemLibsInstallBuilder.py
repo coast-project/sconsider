@@ -1,7 +1,6 @@
 """SConsider.site_tools.SystemLibsInstallBuilder.
 
 Tool to collect system libraries needed by an executable/shared library
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -34,9 +33,8 @@ def notInDir(env, directory, path):
 
 def get_library_install_dir(env, sourcenode):
     if not hasattr(env, 'getLibraryInstallDir'):
-        raise UserError(
-            'environment on node [%s] is not a SConsider environment, can not continue'
-            % (str(sourcenode)))
+        raise UserError('environment on node [%s] is not a SConsider environment, can not continue' %
+                        (str(sourcenode)))
     return env.getLibraryInstallDir()
 
 
@@ -105,14 +103,11 @@ def installSystemLibs(source):
                     if node.sources:
                         install_node = node.sources[0]
                     else:
-                        install_node = env.File(os.path.realpath(
-                            node.get_abspath()))
+                        install_node = env.File(os.path.realpath(node.get_abspath()))
                 if not install_node.is_under(ownlibDir):
-                    target = install_node_to_destdir(systemLibTargets,
-                                                     install_node, ownlibDir)
+                    target = install_node_to_destdir(systemLibTargets, install_node, ownlibDir)
                     if target and is_link:
-                        target = env.Symlink(
-                            target[0].get_dir().File(node_name), target)
+                        target = env.Symlink(target[0].get_dir().File(node_name), target)
                         systemLibTargets[node_name] = target
             if target and not target[0] in source_syslibs:
                 source_syslibs.extend(target)
@@ -124,8 +119,7 @@ def installSystemLibs(source):
 def generate(env, *args, **kw):
     from SCons.Action import ActionFactory
     """Add the options, builders and wrappers to the current Environment."""
-    createDeferredAction = ActionFactory(installSystemLibs,
-                                         lambda *args, **kw: '')
+    createDeferredAction = ActionFactory(installSystemLibs, lambda *args, **kw: '')
 
     def createDeferredTarget(env, source):
         # bind 'source' parameter to an Action which is called in the build phase and
@@ -139,8 +133,7 @@ def generate(env, *args, **kw):
             # install syslibs once per target
             if default_ans.lookup(aliasPrefix + sourcenode.name):
                 return []
-            target = env.Command(sourcenode.name + '_syslibs_dummy', sourcenode,
-                                 createDeferredAction(source))
+            target = env.Command(sourcenode.name + '_syslibs_dummy', sourcenode, createDeferredAction(source))
             if env.GetOption('clean'):
                 """It makes no sense to find nodes to delete when target
                 doesn't exist..."""
@@ -148,8 +141,7 @@ def generate(env, *args, **kw):
                     return []
                 env = sourcenode.get_env()
                 ownlibDir = get_library_install_dir(env, sourcenode)
-                deplibs = get_dependent_libs(env, sourcenode,
-                                             lambda e, l, f: [ownlibDir])
+                deplibs = get_dependent_libs(env, sourcenode, lambda e, l, f: [ownlibDir])
                 global systemLibTargets, systemLibTargetsRLock
                 # build phase could be multi-threaded
                 with systemLibTargetsRLock:
@@ -163,16 +155,12 @@ def generate(env, *args, **kw):
                             if libfile.isfile() or libfile.islink():
                                 env.Clean(sourcenode, libfile)
                                 if libfile.islink():
-                                    path_to_real_lib = os.readlink(
-                                        libfile.abspath)
-                                    real_lib_name = os.path.basename(
-                                        path_to_real_lib)
+                                    path_to_real_lib = os.readlink(libfile.abspath)
+                                    real_lib_name = os.path.basename(path_to_real_lib)
                                     if real_lib_name not in systemLibTargets:
-                                        real_lib_node = libfile.get_dir().File(
-                                            real_lib_name)
+                                        real_lib_node = libfile.get_dir().File(real_lib_name)
                                         if real_lib_node.exists():
-                                            systemLibTargets[
-                                                real_lib_name] = real_lib_node
+                                            systemLibTargets[real_lib_name] = real_lib_node
                                             env.Clean(sourcenode, real_lib_node)
             # create intermediate target to which we add dependency in the
             # build phase

@@ -1,7 +1,7 @@
 """SConsider.maintenance.ChangeImportLines.
 
-Simple helper tool to search/replace old-style c++ file contents in WebDisplay2 source and header files
-
+Simple helper tool to search/replace old-style c++ file contents in
+WebDisplay2 source and header files
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -20,9 +20,7 @@ import time
 import sys
 import subprocess
 
-excludelist = [
-    'build', 'CVS', 'data', 'xml', 'doc', 'bin', 'lib', '.git', '.gitmodules'
-]
+excludelist = ['build', 'CVS', 'data', 'xml', 'doc', 'bin', 'lib', '.git', '.gitmodules']
 
 reCpp = re.compile(r'\.(cpp|C)$')
 reHeader = re.compile(r'\.(hp*|ip*)$')
@@ -76,9 +74,7 @@ strReIdentOld = re.compile(
     + strReStaticRcsId + r").*$\s+)+)([ \t]*#endif\s*$\s+))", re.M)
 identoldReplace = (strReIdentOld, "\n")
 
-strReRCSId = re.compile(
-    r"(^([ \t]*/\*\s*RCS\s*Id\s*\*/\s*$\s)|(" + strReStaticRcsId + r".*$\s))",
-    re.M)
+strReRCSId = re.compile(r"(^([ \t]*/\*\s*RCS\s*Id\s*\*/\s*$\s)|(" + strReStaticRcsId + r".*$\s))", re.M)
 rcsidReplace = (strReRCSId, "")
 """#ifdef __370__
     #pragma nomargins
@@ -87,8 +83,7 @@ rcsidReplace = (strReRCSId, "")
     #pragma implementation
 #endif"""
 strRePragma = re.compile(
-    r"(^[ \t]*#if.*$\s*#\s*pragma\s+(nomargins|implementation|interface)\s*$\s+#endif\s*$\s)",
-    re.M)
+    r"(^[ \t]*#if.*$\s*#\s*pragma\s+(nomargins|implementation|interface)\s*$\s+#endif\s*$\s)", re.M)
 pragmaReplace = (strRePragma, "")
 """#--------------------------------------------------------------------
 # Copyright (c) 1999 itopia
@@ -98,8 +93,7 @@ pragmaReplace = (strRePragma, "")
 #
 #--------------------------------------------------------------------"""
 strReCopyrightAnyShell = re.compile(
-    r"(^(\s*(#[-#]{2}).*$\s)^([ \t]*#[^#-]?.*$\s)+^([ \t]*#[-#]{2}.*$\s)?\s*)",
-    re.M)
+    r"(^(\s*(#[-#]{2}).*$\s)^([ \t]*#[^#-]?.*$\s)+^([ \t]*#[-#]{2}.*$\s)?\s*)", re.M)
 
 headerTemplateAnyShell = """# -------------------------------------------------------------------------
 # Copyright (c) 2005, Peter Sommerlad and IFS Institute for Software
@@ -139,8 +133,7 @@ headerTemplateC = """/*
  */
 
 """
-replacementFromDate = time.mktime(time.strptime('20050101000000',
-                                                '%Y%m%d%H%M%S'))
+replacementFromDate = time.mktime(time.strptime('20050101000000', '%Y%m%d%H%M%S'))
 reCopyYear = re.compile(r"(Copyright \(c\) )(\d{4})?(, Peter Sommerlad)?")
 """
 //--- interface include --------------------------------------------------------
@@ -163,8 +156,7 @@ reCopyYear = re.compile(r"(Copyright \(c\) )(\d{4})?(, Peter Sommerlad)?")
 #include "StringStream.h"
 """
 #reIncludeCommentBloat = re.compile(r"(^[ \t]*$\s)*^//[- ]--*[ \t]*.*[ \t]*--+[ \t]*$\s+#", re.M)
-reIncludeCommentBloat = re.compile(
-    r"(^[ \t]*$\s)*^//[- ]--*[ \t]*.*[ \t]*--+[ \t]*$\s(^[ \t]*$\s)*", re.M)
+reIncludeCommentBloat = re.compile(r"(^[ \t]*$\s)*^//[- ]--*[ \t]*.*[ \t]*--+[ \t]*$\s(^[ \t]*$\s)*", re.M)
 
 
 def insertNewLineIfAtLeastOneWasThere(mo):
@@ -173,8 +165,7 @@ def insertNewLineIfAtLeastOneWasThere(mo):
     return ""
 
 
-includeCommentBloatReplace = (reIncludeCommentBloat,
-                              lambda mo: insertNewLineIfAtLeastOneWasThere(mo))
+includeCommentBloatReplace = (reIncludeCommentBloat, lambda mo: insertNewLineIfAtLeastOneWasThere(mo))
 """
 //---- TraceUtilsTest ----------------------------------------------------------------
 TraceUtilsTest::TraceUtilsTest...
@@ -182,12 +173,9 @@ TraceUtilsTest::TraceUtilsTest...
 reClassnameCommentHeader = re.compile(
     r"(^[ \t]*$\s)*^//--*[ \t]*(?P<classname>\w+)[ \t]*--+[ \t]*$\s+(?P<classline>^(class\s*(?P=classname)|(?P=classname)::))",
     re.M)
-classnameCommentHeaderReplace = (reClassnameCommentHeader,
-                                 lambda mo: "\n" + mo.group('classline'))
+classnameCommentHeaderReplace = (reClassnameCommentHeader, lambda mo: "\n" + mo.group('classline'))
 
-reTestsuiteHeader = re.compile(
-    r"^// builds up a suite of testcases, add a line for each testmethod\s*",
-    re.M)
+reTestsuiteHeader = re.compile(r"^// builds up a suite of testcases, add a line for each testmethod\s*", re.M)
 testsuiteHeaderReplace = (reTestsuiteHeader, "")
 
 
@@ -196,7 +184,6 @@ def multiple_replace(replist, text):
     pattern (supports regex) with replacement.
 
     Returns the new string.
-
     """
     for pattern, replacement in replist:
         if not pattern or not text:
@@ -205,10 +192,7 @@ def multiple_replace(replist, text):
     return text
 
 
-def replaceRegexInFile(fname,
-                       searchReplace,
-                       multiReplFunc=multiple_replace,
-                       replacedCallback=None):
+def replaceRegexInFile(fname, searchReplace, multiReplFunc=multiple_replace, replacedCallback=None):
     try:
         fo = open(fname)
         if fo:
@@ -263,54 +247,40 @@ def replaceHeaderFunc(mo, newheader, fileCopyrightYear=None):
             authYear = time.strftime('%Y', time.gmtime(authdate))
         # assume the header is of new format when ", Peter Sommerlad" is
         # matched
-        yearHeader = re.sub(
-            reCopyYear,
-            lambda moSub: moSub.group(1) + authYear + moSub.group(3), newheader)
+        yearHeader = re.sub(reCopyYear, lambda moSub: moSub.group(1) + authYear + moSub.group(3), newheader)
         # if string is equal already, it returns None
         return yearHeader
     return originalHeader
 
 
-copyReplace = (strReCopyright,
-               lambda mo: replaceHeaderFunc(mo, headerTemplateC))
-copyReplaceAnyShell = (strReCopyrightAnyShell,
-                       lambda mo: replaceHeaderFunc(mo, headerTemplateAnyShell))
+copyReplace = (strReCopyright, lambda mo: replaceHeaderFunc(mo, headerTemplateC))
+copyReplaceAnyShell = (strReCopyrightAnyShell, lambda mo: replaceHeaderFunc(mo, headerTemplateAnyShell))
 
 cleanNewLines = (re.compile(r"(^[ \t]*$\s)+", re.M), "\n")
-cleanDomain = (re.compile(r"(itopia|synlogic)\.(ch|loc)"),
-               lambda mo: 'hsr.' + mo.group(2))
-cleanESport = (re.compile(r"(esport|eSport)\.(ch)"),
-               lambda mo: mo.group(1) + '.hsr.' + mo.group(2))
+cleanDomain = (re.compile(r"(itopia|synlogic)\.(ch|loc)"), lambda mo: 'hsr.' + mo.group(2))
+cleanESport = (re.compile(r"(esport|eSport)\.(ch)"), lambda mo: mo.group(1) + '.hsr.' + mo.group(2))
 cleanTokens = (re.compile(
     r"\s*#(\s*(TestCases|tkf|foolabs|HSR|soplinux|itopia|hexa|Hank|scarl|bondo|bernina|zuoz|davos|ftan|surlej|hepta|penta|infoo|athla|tk\w+))+\s*$",
     re.M), "")
 cleanLineEnds = (re.compile(r"([ \t]+$)", re.M), "")
-cleanCompany = (re.compile(
-    r"([^\\/])(tkf|telekurs|itopia|<em>i</em>topia|synlogic)\b", re.I),
+cleanCompany = (re.compile(r"([^\\/])(tkf|telekurs|itopia|<em>i</em>topia|synlogic)\b", re.I),
                 lambda mo: str(mo.group(1)) + "ifs")
-cleanWebDisplay = (re.compile(r"([^\\/])webdisplay2?", re.I),
-                   lambda mo: str(mo.group(1)) + "Coast")
-cleanFinanzInfo = (re.compile(r"Telekurs Finanzinformationen AG"),
-                   "Institut fuer Software")
+cleanWebDisplay = (re.compile(r"([^\\/])webdisplay2?", re.I), lambda mo: str(mo.group(1)) + "Coast")
+cleanFinanzInfo = (re.compile(r"Telekurs Finanzinformationen AG"), "Institut fuer Software")
 cleanTKFPath = (re.compile(r"\.\./TKF/"), "")
 cleanTKFID = (re.compile(r"tkf-id"), "ifs-id")
-correctKeyFile = (re.compile(r"(/(Key|Cert)File)\b"),
-                  lambda mo: str(mo.group(1)) + "Client")
-cleanWD2 = (re.compile(r"(WWW[\\/]+)?webdisplay2([\\/]+)?"),
-            lambda mo: "coast" + str(mo.group(2)))
+correctKeyFile = (re.compile(r"(/(Key|Cert)File)\b"), lambda mo: str(mo.group(1)) + "Client")
+cleanWD2 = (re.compile(r"(WWW[\\/]+)?webdisplay2([\\/]+)?"), lambda mo: "coast" + str(mo.group(2)))
 cleanEXPORTDECL = (re.compile(r"(\s+)(EXPORTDECL_\w+[ \t]*)(.*)$", re.M),
                    lambda mo: mo.group(1) + mo.group(3))
 
 myshellcleanlist = []
 myshellcleanlist.extend([(re.compile(r"ftp-fd"), "myApp")])
-myshellcleanlist.extend(
-    [(re.compile(r"Telekurs FTP-Frontdoor"), "SomeCompany myApp")])
-myshellcleanlist.extend([(re.compile(
-    r"(^(\s*# specify ALL.*$\s)^(\s*#.*$\s)+^(ALL_CONFIGS.*$\s))", re.M),
+myshellcleanlist.extend([(re.compile(r"Telekurs FTP-Frontdoor"), "SomeCompany myApp")])
+myshellcleanlist.extend([(re.compile(r"(^(\s*# specify ALL.*$\s)^(\s*#.*$\s)+^(ALL_CONFIGS.*$\s))", re.M),
                           "\n")])
 myshellcleanlist.extend([(re.compile(r"(^\s*#?DEF_CONF.*$\s)", re.M), "\n")])
-myshellcleanlist.extend(
-    [(re.compile(r"(^\s*#\s*use setConfig\.sh.*$\s)", re.M), "\n")])
+myshellcleanlist.extend([(re.compile(r"(^\s*#\s*use setConfig\.sh.*$\s)", re.M), "\n")])
 myshellcleanlist.append(cleanDomain)
 myshellcleanlist.append(cleanCompany)
 myshellcleanlist.append(cleanWebDisplay)
@@ -321,10 +291,8 @@ myshellcleanlist.append(cleanNewLines)
 
 myldifcleanlist = []
 myldifcleanlist.append(cleanFinanzInfo)
-myldifcleanlist.extend(
-    [(re.compile(r"street:: .*"), "street: Oberseestrasse 10")])
-myldifcleanlist.extend(
-    [(re.compile(r"street: .*"), "street: Oberseestrasse 10")])
+myldifcleanlist.extend([(re.compile(r"street:: .*"), "street: Oberseestrasse 10")])
+myldifcleanlist.extend([(re.compile(r"street: .*"), "street: Oberseestrasse 10")])
 myldifcleanlist.extend([(re.compile(r"postalcode: .*"), "postalcode: 8640")])
 myldifcleanlist.extend([(re.compile(r"city: .*"), "city: Rapperswil")])
 myldifcleanlist.append(cleanTKFID)
@@ -333,8 +301,8 @@ myldifcleanlist.append(cleanCompany)
 
 removeVersion = (re.compile(r'(^\s*/Version\s*"\$Id\$"\s*$\s)', re.M), "\n")
 
-cleanQuotedSpaces = [(re.compile(r"([/%])\s+"), lambda mo: mo.group(1)),
-                     (re.compile(r"\s*([<>=-?])\s*"), lambda mo: mo.group(1))]
+cleanQuotedSpaces = [(re.compile(r"([/%])\s+"), lambda mo: mo.group(1)), (re.compile(r"\s*([<>=-?])\s*"),
+                                                                          lambda mo: mo.group(1))]
 
 
 def correctQuote(mo):
@@ -344,8 +312,7 @@ def correctQuote(mo):
 quoteCorrect = (re.compile(r"(_QUOTE_\s*\()([^)]+)", re.M), correctQuote)
 
 fgExcludeDirs = excludelist
-fgExcludeDirs.extend(['3rdparty', 'site_scons', 'scripts', 'helloworld',
-                      'recipes', 'sso'])
+fgExcludeDirs.extend(['3rdparty', 'site_scons', 'scripts', 'helloworld', 'recipes', 'sso'])
 
 fgExtensionReList = [reCpp, reHeader, reAny, reShell, reMake]
 
@@ -422,8 +389,12 @@ def extendMapWithHSRSpecifics(extensionToReplaceFuncMap):
         cleanDomain,
         cleanCompany,
     ])
-    extensionToReplaceFuncMap[reText].extend([cleanDomain, ])
-    extensionToReplaceFuncMap[reDoxy].extend([cleanTKFPath, ])
+    extensionToReplaceFuncMap[reText].extend([
+        cleanDomain,
+    ])
+    extensionToReplaceFuncMap[reDoxy].extend([
+        cleanTKFPath,
+    ])
     extensionToReplaceFuncMap[reHtml].extend([
         cleanDomain,
         cleanESport,
@@ -435,10 +406,7 @@ def extendMapWithHSRSpecifics(extensionToReplaceFuncMap):
     extensionToReplaceFuncMap[reMake].extend([])
 
 
-def processFiles(theFiles,
-                 fileCopyrightDict,
-                 extensionToReplaceFuncMap,
-                 doAstyle=False):
+def processFiles(theFiles, fileCopyrightDict, extensionToReplaceFuncMap, doAstyle=False):
     astyleFiles = []
     #     fileCopyrightYear = None
     authdate = getAuthorDate()
@@ -480,8 +448,7 @@ def processFiles(theFiles,
                             copyDate = time.mktime(time.strptime(year, "%Y"))
                             if copyDate >= replacementFromDate:
                                 fileCopyrightDict.setdefault(fname, year)
-                        if doAstyle and reCpp.search(fname) or reHeader.search(
-                                fname):
+                        if doAstyle and reCpp.search(fname) or reHeader.search(fname):
                             astyleFiles.append(fname)
                     break
             if didMatch and didReplace and options.verbose:
@@ -490,9 +457,7 @@ def processFiles(theFiles,
     if astyleFiles and doAstyle:
         astyleCmd = ["astyle", "--quiet", "--suffix=none", "--mode=c"]
         astyleCmd.extend(astyleFiles)
-        proc = subprocess.Popen(astyleCmd,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
+        proc = subprocess.Popen(astyleCmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         proc.wait()
 
 
@@ -536,18 +501,12 @@ def healDictFile(options, filesToProcess):
                     newDict[os.path.join('WWW', df)] = oldDict.pop(df)
 
     newDict.update(oldDict)
-    remainingFileList = [f for f in filesToProcess
-                         if f not in newDict.keys() and not f.startswith('TKF')]
+    remainingFileList = [f for f in filesToProcess if f not in newDict.keys() and not f.startswith('TKF')]
     remainDict = {}
     for f in remainingFileList:
-        Cmd = [
-            "git", "log", "--pretty=format:%ad", "--date=short", "--reverse",
-            "--", f
-        ]
+        Cmd = ["git", "log", "--pretty=format:%ad", "--date=short", "--reverse", "--", f]
         authorDate = 2005
-        proc = subprocess.Popen(Cmd,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
+        proc = subprocess.Popen(Cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
             popen_out, popen_err = proc.communicate(None)
             if popen_err:
@@ -582,19 +541,19 @@ if __name__ == "__main__":
         dest="allfiles",
         help="process directories and files recursively and ignore command line files",
         default=False)
-    parser.add_option("-s",
-                      "--astyle",
-                      action="store_true",
-                      dest="astyle",
-                      help="process modified files using astyle",
-                      default=False)
+    parser.add_option(
+        "-s",
+        "--astyle",
+        action="store_true",
+        dest="astyle",
+        help="process modified files using astyle",
+        default=False)
     parser.add_option(
         "-x",
         "--fileregex",
         action="append",
         dest="fileregex",
-        help="process only files matching regular expression, like '" +
-        reCpp.pattern + "'",
+        help="process only files matching regular expression, like '" + reCpp.pattern + "'",
         default=[])
     parser.add_option(
         "-f",
@@ -603,30 +562,19 @@ if __name__ == "__main__":
         dest="filepattern",
         help="process only files matching glob spec, like '*.cpp'",
         default=[])
-    parser.add_option("-d",
-                      "--dictfile",
-                      action="store",
-                      dest="dictfilename",
-                      help="write processed entries to FILE",
-                      metavar="FILE")
-    parser.add_option("-v",
-                      "--verbose",
-                      action="count",
-                      dest="verbose",
-                      help="write messages to stderr",
-                      default=0)
-    parser.add_option("-i",
-                      "--ifs",
-                      action="store_true",
-                      dest="ifs",
-                      help="do hsr specific replacements",
-                      default=False)
-    parser.add_option("-e",
-                      "--extra",
-                      action="store_true",
-                      dest="xtra",
-                      help="try to heal a dictfile",
-                      default=False)
+    parser.add_option(
+        "-d",
+        "--dictfile",
+        action="store",
+        dest="dictfilename",
+        help="write processed entries to FILE",
+        metavar="FILE")
+    parser.add_option(
+        "-v", "--verbose", action="count", dest="verbose", help="write messages to stderr", default=0)
+    parser.add_option(
+        "-i", "--ifs", action="store_true", dest="ifs", help="do hsr specific replacements", default=False)
+    parser.add_option(
+        "-e", "--extra", action="store_true", dest="xtra", help="try to heal a dictfile", default=False)
 
     (options, positionalArgs) = parser.parse_args()
     if not options.allfiles and len(positionalArgs) < 1:
@@ -674,15 +622,15 @@ if __name__ == "__main__":
     if options.verbose > 2:
         print "Time elapsed = %ds for %d files" % (end - start, numFiles)
     start = time.clock()
-    processFiles(filesToProcess,
-                 fileCopyrightDict=fileCopyrightDict,
-                 extensionToReplaceFuncMap=extensionToReplaceFuncMap,
-                 doAstyle=options.astyle)
+    processFiles(
+        filesToProcess,
+        fileCopyrightDict=fileCopyrightDict,
+        extensionToReplaceFuncMap=extensionToReplaceFuncMap,
+        doAstyle=options.astyle)
     end = time.clock()
     chgElapsed = end - start
     if options.verbose > 2:
-        print "Time elapsed = %ds for processing, %ds per file" % (chgElapsed, (
-            chgElapsed / numFiles))
+        print "Time elapsed = %ds for processing, %ds per file" % (chgElapsed, (chgElapsed / numFiles))
 
     if options.dictfilename:
         writeDictToFile(options.dictfilename, fileCopyrightDict)

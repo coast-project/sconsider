@@ -1,7 +1,6 @@
 """SConsider.site_tools.ThirdParty.
 
 SConsider-specific 3rdparty library handling
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -42,8 +41,7 @@ def getBinaryDistDir(packagename):
 def collectPackages(directory, direxcludesrel=None):
     packages = {}
 
-    package_file_re = re.compile(
-        r'^(?P<packagename>.*)\.(?P<type>sys|src|bin)\.sconsider$')
+    package_file_re = re.compile(r'^(?P<packagename>.*)\.(?P<type>sys|src|bin)\.sconsider$')
 
     def scanmatchfun(root, filename):
         match = package_file_re.match(filename)
@@ -51,30 +49,24 @@ def collectPackages(directory, direxcludesrel=None):
             dirobj = Dir(root)
             fileobj = dirobj.File(filename)
             if 0:
-                logger.debug('found package [%s](%s) in [%s]',
-                             match.group('packagename'), match.group('type'),
-                             fileobj.path)
-            packages.setdefault(
-                match.group('packagename'), {})[match.group('type')] = fileobj
+                logger.debug('found package [%s](%s) in [%s]', match.group('packagename'),
+                             match.group('type'), fileobj.path)
+            packages.setdefault(match.group('packagename'), {})[match.group('type')] = fileobj
 
     from SConsider.PackageRegistry import PackageRegistry
-    PackageRegistry().collectPackageFiles(directory,
-                                          scanmatchfun,
-                                          excludes_rel=direxcludesrel)
+    PackageRegistry().collectPackageFiles(directory, scanmatchfun, excludes_rel=direxcludesrel)
     return packages
 
 
 def registerDist(registry, packagename, package, distType, distDir, duplicate):
     package_dir = package[distType].get_dir()
-    logger.debug('using package [%s](%s) in [%s]', packagename, distType,
-                 package_dir)
-    registry.setPackage(packagename,
-                        package[distType],
-                        package_dir,
-                        duplicate,
-                        package_relpath=os.path.join(
-                            str(GetOption('3rdparty-build-prefix')),
-                            packagename))
+    logger.debug('using package [%s](%s) in [%s]', packagename, distType, package_dir)
+    registry.setPackage(
+        packagename,
+        package[distType],
+        package_dir,
+        duplicate,
+        package_relpath=os.path.join(str(GetOption('3rdparty-build-prefix')), packagename))
     package_dir.addRepository(distDir)
     thirdPartyPackages.setdefault(packagename, {})[distType] = distDir
 
@@ -89,16 +81,16 @@ def postPackageCollection(env, registry, **kw):
 
     for packagename, package in packages.iteritems():
         if registry.hasPackage(packagename):
-            logger.warning('package [%s] already registered, skipping [%s]',
-                           packagename,
+            logger.warning('package [%s] already registered, skipping [%s]', packagename,
                            package.items()[0][1].get_dir().get_abspath())
             continue
-        AddOption('--with-src-' + packagename,
-                  dest='with-src-' + packagename,
-                  action='store',
-                  default='',
-                  metavar=packagename + '_SOURCEDIR',
-                  help='Specify the ' + packagename + ' source directory')
+        AddOption(
+            '--with-src-' + packagename,
+            dest='with-src-' + packagename,
+            action='store',
+            default='',
+            metavar=packagename + '_SOURCEDIR',
+            help='Specify the ' + packagename + ' source directory')
         AddOption(
             '--with-bin-' + packagename,
             dest='with-bin-' + packagename,
@@ -106,45 +98,39 @@ def postPackageCollection(env, registry, **kw):
             default='',
             metavar=packagename + '_DIR',
             help='Specify the ' + packagename + ' legacy binary directory')
-        AddOption('--with-' + packagename,
-                  dest='with-' + packagename,
-                  action='store',
-                  default='',
-                  metavar=packagename + '_DIR',
-                  help='Specify the ' + packagename + ' binary directory')
+        AddOption(
+            '--with-' + packagename,
+            dest='with-' + packagename,
+            action='store',
+            default='',
+            metavar=packagename + '_DIR',
+            help='Specify the ' + packagename + ' binary directory')
 
         libpath = GetOption('with-src-' + packagename)
         if libpath:
             if 'src' not in package:
-                logger.error(
-                    'Third party source distribution definition for %s not found, aborting!',
-                    packagename)
+                logger.error('Third party source distribution definition for %s not found, aborting!',
+                             packagename)
                 Exit(1)
-            registerDist(registry, packagename, package, 'src',
-                         env.Dir(libpath), True)
+            registerDist(registry, packagename, package, 'src', env.Dir(libpath), True)
         else:
             distpath = GetOption('with-bin-' + packagename)
             if distpath:
                 if 'bin' not in package:
-                    logger.error(
-                        'Third party binary distribution definition for %s not found, aborting!',
-                        packagename)
+                    logger.error('Third party binary distribution definition for %s not found, aborting!',
+                                 packagename)
                     Exit(1)
-                registerDist(registry, packagename, package, 'bin',
-                             env.Dir(distpath), False)
+                registerDist(registry, packagename, package, 'bin', env.Dir(distpath), False)
             else:
                 if 'sys' not in package:
-                    logger.error(
-                        'Third party system definition for %s not found, aborting!',
-                        packagename)
+                    logger.error('Third party system definition for %s not found, aborting!', packagename)
                     Exit(1)
                 path = GetOption('with-' + packagename)
                 if path:
                     baseDir = env.Dir(path)
                     env.AppendUnique(LIBPATH=baseDir.Dir('lib'))
                     # add first available include dir
-                    includeDirList = os.getenv('INCLUDEDIRLIST',
-                                               'include:inc:.').split(':')
+                    includeDirList = os.getenv('INCLUDEDIRLIST', 'include:inc:.').split(':')
                     for incdir in includeDirList:
                         try:
                             includeDir = baseDir.Dir(incdir)
@@ -154,10 +140,8 @@ def postPackageCollection(env, registry, **kw):
                         except TypeError:
                             pass
                     env.PrependENVPath('PATH', baseDir.Dir('bin').get_abspath())
-                logger.debug('using package [%s](%s) in [%s]', packagename,
-                             'sys', package['sys'].get_dir())
-                registry.setPackage(packagename, package['sys'],
-                                    package['sys'].get_dir(), False)
+                logger.debug('using package [%s](%s) in [%s]', packagename, 'sys', package['sys'].get_dir())
+                registry.setPackage(packagename, package['sys'], package['sys'].get_dir(), False)
 
 
 def prePackageCollection(env, **_):
@@ -177,8 +161,8 @@ def generate(env):
         '--3rdparty',
         dest='3rdparty',
         action='append',
-        help='Specify directory containing package files for third party libraries, default=["'
-        + get_third_party_default() + '"]')
+        help='Specify directory containing package files for third party libraries, default=["' +
+        get_third_party_default() + '"]')
     prefix_default = '.ThirdParty'
     AddOption(
         '--3rdparty-build-prefix',
@@ -186,8 +170,7 @@ def generate(env):
         nargs='?',
         default=prefix_default,
         const=prefix_default,
-        help='Specify directory prefix for third party build output, default=["'
-        + prefix_default + '"]')
+        help='Specify directory prefix for third party build output, default=["' + prefix_default + '"]')
 
     Callback().register('PostPackageCollection', postPackageCollection)
     Callback().register('PrePackageCollection', prePackageCollection)

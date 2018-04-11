@@ -5,7 +5,6 @@ This tool adds --run, --run-force and --runparams to the list of SCons options.
 After successful creation of an executable target, it tries to execute it with
 the possibility to add program options. Further it allows to specify specific
 setup/teardown functions executed before and after running the program.
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -51,9 +50,7 @@ def getTargets(packagename=None, targetname=None):
                 alltargets.append(target)
         return alltargets
     elif not targetname:
-        return [
-            target for _, target in runtargets.get(packagename, {}).iteritems()
-        ]
+        return [target for _, target in runtargets.get(packagename, {}).iteritems()]
     targets = runtargets.get(packagename, {}).get(targetname, [])
     if not is_List(targets):
         targets = [targets]
@@ -118,9 +115,7 @@ def emitPassedFile(target, source, env):
 
 def execute(command, env):
     args = [command]
-    args.extend(shlex.split(
-        env.get('runParams', ''),
-        posix=env["PLATFORM"] != 'win32'))
+    args.extend(shlex.split(env.get('runParams', ''), posix=env["PLATFORM"] != 'win32'))
 
     if 'mingw' in env["TOOLS"]:
         args.insert(0, "sh.exe")
@@ -170,8 +165,7 @@ def wrapSetUp(setUpFunc):
         try:
             return setUpFunc(target, source, env)
         except SkipTest as ex:
-            env['__SKIP_TEST__'] = "Test skipped for target {0}: {1}".format(
-                source[0].name, ex.message)
+            env['__SKIP_TEST__'] = "Test skipped for target {0}: {1}".format(source[0].name, ex.message)
             return 0
 
     return setUp
@@ -185,21 +179,13 @@ def addRunConfigHooks(env, source, runner, buildSettings):
     tearDown = runConfig.get('tearDown', '')
 
     if callable(setUp):
-        env.AddPreAction(runner, Action(
-            wrapSetUp(setUp), lambda *args, **kw: ''))
+        env.AddPreAction(runner, Action(wrapSetUp(setUp), lambda *args, **kw: ''))
     if callable(tearDown):
-        Callback().register(
-            '__PostAction_' + str(id(runner[0])),
-            lambda: tearDown(target=runner, source=source, env=env))
+        Callback().register('__PostAction_' + str(id(runner[0])),
+                            lambda: tearDown(target=runner, source=source, env=env))
 
 
-def createTestTarget(env,
-                     source,
-                     packagename,
-                     targetname,
-                     settings,
-                     defaultRunParams='-- -all',
-                     **kw):
+def createTestTarget(env, source, packagename, targetname, settings, defaultRunParams='-- -all', **kw):
     """Creates a target which runs a target given in parameter 'source'.
 
     If ran successfully a file is generated (name given in parameter
@@ -210,20 +196,15 @@ def createTestTarget(env,
     'tearDown' in 'runConfig' accept a string (executed as shell
     command), a Python function (with arguments 'target', 'source',
     'env') or any SCons.Action.
-
     """
 
-    fullTargetName = PackageRegistry.createFulltargetname(packagename,
-                                                          targetname)
+    fullTargetName = PackageRegistry.createFulltargetname(packagename, targetname)
     source = PackageRegistry().getRealTarget(source)
     if not source or (not GetOption('run') and not GetOption('run-force')):
         return (source, fullTargetName)
 
     logfile = env.getLogInstallDir().File(targetname + '.test.log')
-    runner = env.TestBuilder([],
-                             source,
-                             runParams=getRunParams(settings, defaultRunParams),
-                             logfile=logfile)
+    runner = env.TestBuilder([], source, runParams=getRunParams(settings, defaultRunParams), logfile=logfile)
     if GetOption('run-force'):
         env.AlwaysBuild(runner)
 
@@ -255,13 +236,7 @@ def createTestTarget(env,
     return (runner, fullTargetName)
 
 
-def createRunTarget(env,
-                    source,
-                    packagename,
-                    targetname,
-                    settings,
-                    defaultRunParams='',
-                    **kw):
+def createRunTarget(env, source, packagename, targetname, settings, defaultRunParams='', **kw):
     """Creates a target which runs a target given in parameter 'source'.
 
     Command line parameters could be handed over by using
@@ -270,20 +245,19 @@ def createRunTarget(env,
     'tearDown' in 'runConfig' accept a string (executed as shell
     command), a Python function (with arguments 'target', 'source',
     'env') or any SCons.Action.
-
     """
 
-    fullTargetName = PackageRegistry.createFulltargetname(packagename,
-                                                          targetname)
+    fullTargetName = PackageRegistry.createFulltargetname(packagename, targetname)
     source = PackageRegistry().getRealTarget(source)
     if not source or (not GetOption('run') and not GetOption('run-force')):
         return (source, fullTargetName)
 
     logfile = env.getLogInstallDir().File(targetname + '.run.log')
-    runner = env.RunBuilder(['dummyRunner_' + fullTargetName],
-                            source,
-                            runParams=getRunParams(settings, defaultRunParams),
-                            logfile=logfile)
+    runner = env.RunBuilder(
+        ['dummyRunner_' + fullTargetName],
+        source,
+        runParams=getRunParams(settings, defaultRunParams),
+        logfile=logfile)
 
     addRunConfigHooks(env, source, runner, settings)
 
@@ -303,21 +277,12 @@ def createRunTarget(env,
     return (runner, fullTargetName)
 
 
-def composeRunTargets(env,
-                      source,
-                      packagename,
-                      targetname,
-                      settings,
-                      defaultRunParams='',
-                      **kw):
+def composeRunTargets(env, source, packagename, targetname, settings, defaultRunParams='', **kw):
     targets = []
-    for ftname in settings.get('requires', []) + settings.get(
-            'linkDependencies', []):
-        otherPackagename, otherTargetname = PackageRegistry.splitFulltargetname(
-            ftname)
+    for ftname in settings.get('requires', []) + settings.get('linkDependencies', []):
+        otherPackagename, otherTargetname = PackageRegistry.splitFulltargetname(ftname)
         targets.extend(getTargets(otherPackagename, otherTargetname))
-    fullTargetName = PackageRegistry.createFulltargetname(packagename,
-                                                          targetname)
+    fullTargetName = PackageRegistry.createFulltargetname(packagename, targetname)
     runner = env.Alias('dummyRunner_' + fullTargetName, targets)
     setTarget(packagename, targetname, runner)
     if callable(kw.get('runner_hook_func', None)):
@@ -327,33 +292,27 @@ def composeRunTargets(env,
 
 def generate(env):
     try:
-        AddOption('--run',
-                  dest='run',
-                  action='store_true',
-                  default=False,
-                  help='Should we run the target')
-        AddOption('--run-force',
-                  dest='run-force',
-                  action='store_true',
-                  default=False,
-                  help='Should we run the target and ignore .passed files')
-        AddOption('--runparams',
-                  dest='runParams',
-                  action='append',
-                  type='string',
-                  default=[],
-                  help='The parameters to hand over')
+        AddOption('--run', dest='run', action='store_true', default=False, help='Should we run the target')
+        AddOption(
+            '--run-force',
+            dest='run-force',
+            action='store_true',
+            default=False,
+            help='Should we run the target and ignore .passed files')
+        AddOption(
+            '--runparams',
+            dest='runParams',
+            action='append',
+            type='string',
+            default=[],
+            help='The parameters to hand over')
     except optparse.OptionConflictError:
         pass
 
-    TestAction = Action(doTest,
-                        "Running Test '$SOURCE'\n with runParams [$runParams]")
-    TestBuilder = Builder(action=[TestAction],
-                          emitter=emitPassedFile,
-                          single_source=True)
+    TestAction = Action(doTest, "Running Test '$SOURCE'\n with runParams [$runParams]")
+    TestBuilder = Builder(action=[TestAction], emitter=emitPassedFile, single_source=True)
 
-    RunAction = Action(
-        doRun, "Running Executable '$SOURCE'\n with runParams [$runParams]")
+    RunAction = Action(doRun, "Running Executable '$SOURCE'\n with runParams [$runParams]")
     RunBuilder = Builder(action=[RunAction], single_source=True)
 
     env.Append(BUILDERS={'TestBuilder': TestBuilder})
@@ -363,8 +322,7 @@ def generate(env):
     import SConsider
     SConsider.SkipTest = SkipTest
 
-    def createTargetCallback(env, target, packagename, targetname,
-                             buildSettings, **kw):
+    def createTargetCallback(env, target, packagename, targetname, buildSettings, **kw):
         runConfig = buildSettings.get('runConfig', {})
         if not runConfig:
             return None
@@ -388,19 +346,13 @@ def generate(env):
 
             factory = createRunTarget
             runner_hook_func = runner_alias_for_run
-        _, _ = factory(env,
-                       target,
-                       packagename,
-                       targetname,
-                       buildSettings,
-                       runner_hook_func=runner_hook_func,
-                       **kw)
+        _, _ = factory(
+            env, target, packagename, targetname, buildSettings, runner_hook_func=runner_hook_func, **kw)
 
     def addBuildTargetCallback(**kw):
         if COMMAND_LINE_TARGETS:
             for ftname in COMMAND_LINE_TARGETS:
-                packagename, targetname = PackageRegistry.splitFulltargetname(
-                    ftname)
+                packagename, targetname = PackageRegistry.splitFulltargetname(ftname)
                 BUILD_TARGETS.extend(getTargets(packagename, targetname))
         else:
             BUILD_TARGETS.extend(getTargets())

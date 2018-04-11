@@ -40,22 +40,18 @@ class TestProjectFuncs(object):
     def setup_method(self, method):
         self.tempdir = tempfile.mkdtemp()
         self.noprojectdir = os.path.join(self.tempdir, 'noproject')
-        self.noprojecteitherdir = os.path.join(self.noprojectdir,
-                                               'noprojecteither')
+        self.noprojecteitherdir = os.path.join(self.noprojectdir, 'noprojecteither')
         self.projectdir = os.path.join(self.noprojecteitherdir, 'project')
         os.makedirs(self.projectdir)
 
         self.topproject = os.path.join(self.tempdir, '.project')
         with open(self.topproject, 'w') as file:
-            file.write(
-                '<projectDescription><name>Top</name></projectDescription>')
+            file.write('<projectDescription><name>Top</name></projectDescription>')
         self.bottomproject = os.path.join(self.projectdir, '.project')
         with open(self.bottomproject, 'w') as file:
-            file.write(
-                '<projectDescription><name>Bottom</name></projectDescription>')
+            file.write('<projectDescription><name>Bottom</name></projectDescription>')
 
-        self.invalidprojectdesc = os.path.join(self.tempdir,
-                                               'invalidprojectdesc')
+        self.invalidprojectdesc = os.path.join(self.tempdir, 'invalidprojectdesc')
         with open(self.invalidprojectdesc, 'w') as file:
             file.write('<projectDescription></projectDescription>')
 
@@ -63,30 +59,24 @@ class TestProjectFuncs(object):
         shutil.rmtree(self.tempdir)
 
     def test_DetermineProjectFilePathTop(self):
-        projectPath = WorkingSetWriter.determineProjectFilePath(self.tempdir,
-                                                                self.tempdir)
+        projectPath = WorkingSetWriter.determineProjectFilePath(self.tempdir, self.tempdir)
         assert self.topproject == projectPath
 
     def test_DetermineProjectFilePathBottom(self):
-        projectPath = WorkingSetWriter.determineProjectFilePath(self.projectdir,
-                                                                self.tempdir)
+        projectPath = WorkingSetWriter.determineProjectFilePath(self.projectdir, self.tempdir)
         assert self.bottomproject == projectPath
 
     def test_DetermineProjectFilePathNoProject(self):
-        assert self.topproject == WorkingSetWriter.determineProjectFilePath(
-            self.noprojectdir, self.tempdir)
-        assert self.topproject == WorkingSetWriter.determineProjectFilePath(
-            self.noprojecteitherdir, self.tempdir)
+        assert self.topproject == WorkingSetWriter.determineProjectFilePath(self.noprojectdir, self.tempdir)
+        assert self.topproject == WorkingSetWriter.determineProjectFilePath(self.noprojecteitherdir,
+                                                                            self.tempdir)
 
     def test_GetProjectNameFromProjectFile(self):
-        assert 'Top' == WorkingSetWriter.getProjectNameFromProjectFile(
-            self.topproject)
-        assert 'Bottom' == WorkingSetWriter.getProjectNameFromProjectFile(
-            self.bottomproject)
+        assert 'Top' == WorkingSetWriter.getProjectNameFromProjectFile(self.topproject)
+        assert 'Bottom' == WorkingSetWriter.getProjectNameFromProjectFile(self.bottomproject)
         assert None is WorkingSetWriter.getProjectNameFromProjectFile(
             os.path.join(self.noprojectdir, '.project'))
-        assert None is WorkingSetWriter.getProjectNameFromProjectFile(
-            self.invalidprojectdesc)
+        assert None is WorkingSetWriter.getProjectNameFromProjectFile(self.invalidprojectdesc)
 
     def test_DetermineProjectDependencies(self):
         pkgdict = {
@@ -98,18 +88,9 @@ class TestProjectFuncs(object):
         registry = RegistryStub(pkgdict)
 
         dependencyDict = {'Top.t1': {'NoProject1.t1': {}, 'NoProject2.t1': {}}}
-        deps = WorkingSetWriter.determineProjectDependencies(
-            dependencyDict, registry, self.tempdir)
+        deps = WorkingSetWriter.determineProjectDependencies(dependencyDict, registry, self.tempdir)
         assert set(['Top']) == deps
 
-        dependencyDict = {
-            'Top.t1': {
-                'NoProject1.t1': {},
-                'NoProject2.t1': {
-                    'Bottom.t1': {}
-                }
-            }
-        }
-        deps = WorkingSetWriter.determineProjectDependencies(
-            dependencyDict, registry, self.tempdir)
+        dependencyDict = {'Top.t1': {'NoProject1.t1': {}, 'NoProject2.t1': {'Bottom.t1': {}}}}
+        deps = WorkingSetWriter.determineProjectDependencies(dependencyDict, registry, self.tempdir)
         assert set(['Top', 'Bottom']) == deps

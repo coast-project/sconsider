@@ -23,8 +23,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
         packagename: {
             'sourceFiles': sources,
             'targetType': 'LibraryShared',
-            'appendUnique': {
-            },
+            'appendUnique': {},
             'public': {
                 'includeSubdir': '',
             },
@@ -35,17 +34,11 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
 elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
     from TargetMaker import EnvBuilder
     from TargetHelpers import createPackageSharedLibrary
-    includeTarget = EnvBuilder(export=[
-        EnvBuilder().include(Dir('.'))
-    ]).build().RegisterPackageTarget(packagename=packagename,
-                                     targetname='include')
+    includeTarget = EnvBuilder(export=[EnvBuilder().include(Dir('.'))]).build().RegisterPackageTarget(
+        packagename=packagename, targetname='include')
 
-    libs = createPackageSharedLibrary(packagename,
-                                      packagename,
-                                      sources,
-                                      depend=[includeTarget])
-    libs = EnvBuilder().depend(libs).build().RegisterPackageTarget(
-        packagename=packagename, targetname='libs')
+    libs = createPackageSharedLibrary(packagename, packagename, sources, depend=[includeTarget])
+    libs = EnvBuilder().depend(libs).build().RegisterPackageTarget(packagename=packagename, targetname='libs')
 
     EnvBuilder().depend(includeTarget, libs).build().RegisterPackageTarget(
         packagename=packagename, targetname=packagename)

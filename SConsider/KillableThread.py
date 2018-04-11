@@ -2,7 +2,6 @@
 
 Class and functions intended to be used when wanting to terminate
 asynchronous background tasks.
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -24,14 +23,12 @@ def _async_raise(tid, exctype):
     """raises the exception, performs cleanup if needed."""
     if not inspect.isclass(exctype):
         raise TypeError("Only types can be raised (not instances)")
-    res = ctypes.pythonapi.PyThreadState_SetAsyncExc(tid,
-                                                     ctypes.py_object(exctype))
+    res = ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, ctypes.py_object(exctype))
     if res == 0:
         raise ValueError("invalid thread id")
     elif res != 1:
-        """if it returns a number greater than one, you're in trouble,
-        and you should call it again with exc=NULL to revert the
-        effect"""
+        """if it returns a number greater than one, you're in trouble, and you
+        should call it again with exc=NULL to revert the effect."""
         ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, None)
         raise SystemError("PyThreadState_SetAsyncExc failed")
 

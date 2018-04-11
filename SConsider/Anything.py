@@ -2,7 +2,6 @@
 
 Utility module to parse Anything files and provide a python, dict-based,
 equivalent
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -47,9 +46,7 @@ class AnythingEntry(object):
     value = property(get_value, set_value)
 
     def __eq__(self, other):
-        return isinstance(
-            other,
-            AnythingEntry) and self.key == other.key and self.value == other.value
+        return isinstance(other, AnythingEntry) and self.key == other.key and self.value == other.value
 
     def __str__(self):
         return '(' + str(self.key) + ', ' + str(self.value) + ')'
@@ -161,13 +158,11 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
                 del self.__keys[data.key]
         if isinstance(other, Anything):
             self.__data[start:stop:step] = [
-                AnythingEntry(key, value)
-                for key, value in other.items(all_items=True)
+                AnythingEntry(key, value) for key, value in other.items(all_items=True)
             ]
         elif isinstance(other, collections.Sequence):
             self.__data[start:stop:step] = [
-                AnythingEntry(key, value)
-                for key, value in Anything(other).items(all_items=True)
+                AnythingEntry(key, value) for key, value in Anything(other).items(all_items=True)
             ]
         self.__updateKeys(start)
 
@@ -193,11 +188,9 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 
     def items(self, all_items=False):
         if all_items:
-            return [(self.slotname(pos), value)
-                    for pos, value in enumerate(self)]
+            return [(self.slotname(pos), value) for pos, value in enumerate(self)]
         else:
-            return [(key, self.__data[pos].value)
-                    for key, pos in self.__keys.iteritems()]
+            return [(key, self.__data[pos].value) for key, pos in self.__keys.iteritems()]
 
     def iteritems(self, all_items=False):
         if all_items:
@@ -219,9 +212,7 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
         if all_items:
             return list(self)
         else:
-            return [
-                self.__data[pos].value for _, pos in self.__keys.iteritems()
-            ]
+            return [self.__data[pos].value for _, pos in self.__keys.iteritems()]
 
     def popitem(self):
         try:
@@ -257,8 +248,7 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
 
     def __repr__(self):
         return 'Anything(' + str([data if data[0] else data[1]
-                                  for data in self.iteritems(all_items=True)
-                                  ]) + ')'
+                                  for data in self.iteritems(all_items=True)]) + ')'
 
     def copy(self):
         return Anything(self)
@@ -268,8 +258,7 @@ class Anything(collections.MutableSequence, collections.MutableMapping):
         self.__updateKeys()
 
     def __eq__(self, other):
-        return isinstance(other, Anything) and self.items(
-            all_items=True) == other.items(all_items=True)
+        return isinstance(other, Anything) and self.items(all_items=True) == other.items(all_items=True)
 
     def __add__(self, other):
         return self.copy().extend(other)
@@ -329,8 +318,7 @@ class AnythingReference(object):
         return result
 
     def __repr__(self):
-        return 'AnythingReference(' + repr(self.keys) + (
-            ", '" + self.file + "'" if self.file else '') + ')'
+        return 'AnythingReference(' + repr(self.keys) + (", '" + self.file + "'" if self.file else '') + ')'
 
 
 class TLS(threading.local):
@@ -343,8 +331,10 @@ tls = TLS()
 
 def setLocalEnv(env=None, **kw):
     """Use env to set the entire env: setLocalEnv({'COAST_ROOT':
+
     '/path/to/dir'}) Use kw to add/update single values:
-    setLocalEnv(COAST_PATH='.:config')"""
+    setLocalEnv(COAST_PATH='.:config')
+    """
     if env is not None:
         tls.env = env
     tls.env.update(kw)
@@ -372,8 +362,7 @@ def resolvePath(filename, root=None, path=None):
         root = first(resolvers + [lambda key: os.getcwd()], 'COAST_ROOT')
 
     if not path:
-        path = first(resolvers + [lambda key: ['.', 'config', 'src']],
-                     'COAST_PATH')
+        path = first(resolvers + [lambda key: ['.', 'config', 'src']], 'COAST_PATH')
     if isinstance(path, basestring):
         path = path.split(':')
 
@@ -412,8 +401,7 @@ def createAnythingReferenceGrammar():
     indexstart = Literal(':')
     keystart = Literal('.')
     escape = Literal('\\')
-    key = Optional(~keystart) & Word(And(~escape, keystart | indexstart) |
-                                     AnyBut(keystart | indexstart))
+    key = Optional(~keystart) & Word(And(~escape, keystart | indexstart) | AnyBut(keystart | indexstart))
     index = ~indexstart & Integer() >> int
     internalref = (key | index)[:] > list
 

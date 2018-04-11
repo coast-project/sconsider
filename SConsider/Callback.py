@@ -1,7 +1,6 @@
 """SConsider.Callback.
 
 Provide callback function support
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -34,10 +33,8 @@ class Callback(object):
         frame = inspect.currentframe().f_back
         filename = inspect.getfile(frame.f_code)
         lineno = frame.f_lineno
-        logger.info("running %s callback from %s:%s", signalname, filename,
-                    lineno)
+        logger.info("running %s callback from %s:%s", signalname, filename, lineno)
         for func, kw in self.callbacks.get(signalname, []):
             kw.update(overrides)
-            logger.debug("  calling %s.%s with args %s", func.__module__,
-                         func.func_name, pprint.pformat(kw))
+            logger.debug("  calling %s.%s with args %s", func.__module__, func.func_name, pprint.pformat(kw))
             func(**kw)
