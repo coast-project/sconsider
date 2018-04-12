@@ -135,6 +135,7 @@ def verifyBaseoutDirWritable(baseoutdir):
 
 def prePackageCollection(env, **kw):
     sconstruct_dir = kw.get('sconstruct_dir', Dir('#'))
+    env.AppendUnique(LIBPATH=[getLibraryInstallDir(env)])
     env.AppendUnique(EXCLUDE_DIRS_REL=[env['BUILDDIR']])
     if env.getBaseOutDir() == sconstruct_dir:
         env.AppendUnique(EXCLUDE_DIRS_TOPLEVEL=[
@@ -200,8 +201,6 @@ def generate(env):
     env.AddMethod(getScriptInstallDir, 'getScriptInstallDir')
     env.AddMethod(getLogInstallDir, 'getLogInstallDir')
     env.AddMethod(makeInstallablePathFromDir, 'makeInstallablePathFromDir')
-
-    env.AppendUnique(LIBPATH=[getLibraryInstallDir(env)])
 
     Callback().register('PrePackageCollection', prePackageCollection)
 
