@@ -10,28 +10,28 @@ Please check the [packaging][] information to learn more about this topic.
 
 ### Install
 
-The following command installs a development version into the current virtualenv:  
-`pip install --editable .`  
+The following command installs a development version into the current virtualenv:
+`pip install --editable .`
 If you want to omit installing dependencies, add `--no-deps` to the command.
 
-Alternatively you can use the _old style_ command:  
+Alternatively you can use the _old style_ command:
 `python setup.py develop`
 
 ### Uninstall
 
-To uninstall a previously installed editable version use:  
+To uninstall a previously installed editable version use:
 `pip uninstall sconsider`
 
-In case you used the _old style_ command, you need to use the following command:  
+In case you used the _old style_ command, you need to use the following command:
 `python setup.py develop --uninstall`
 
 ## Running tests
 
 I recommend using [tox][] to execute the tests as it properly sets up the right environment. To see a list of available test environment to execute, list them using `tox -l` and either
 
-  -  run the default environment(s)  
+  -  run the default environment(s)
      `tox`
-  -  run a specific environment  
+  -  run a specific environment
      `tox -e some-env`
 
 
@@ -39,12 +39,13 @@ I recommend using [tox][] to execute the tests as it properly sets up the right 
 
 The [packaging guide][] will show you how to deploy a package and a short [guide on wheels][] will explain you what wheels are.
 
-Creating a wheel package is also handled by [tox][] and the corresponding environment is `wheel`. It will create the wheel package and if you additionally want to get a source tarball, you can add `sdist` as argument to tox like:  
+Creating a wheel package is also handled by [tox][] and the corresponding environment is `wheel`. It will create the wheel package and if you additionally want to get a source tarball, you can add `sdist` as argument to tox like:
 `tox -e wheel sdist`
 
 ## (Test-) Upload to pypi
 
-A specific [tox][] environment `upload` exists in [tox.ini](tox.ini#L96) which can be used to either [test upload][] the package or to finally upload it to [pypi][]
+A specific [tox][] environment `upload` exists in [tox.ini](tox.ini#L96) which can be used to either [test upload][] the package or to finally upload it to [pypi][].
+More on this can be found [in this thread](https://mail.python.org/pipermail/distutils-sig/2017-June/030766.html) and in the [python packaging docu](https://packaging.python.org/guides/using-testpypi/#using-t).
 
 In order to run this environment, a `~/.pypirc` containing at least the following sections must exist and you need to register on both sites:
 ```ini
@@ -53,30 +54,31 @@ index-servers =
   pypi
   testpypi
 [pypi]
-repository=https://pypi.python.org/pypi
-username=MyPypiUserName
-password=MyPypiPass
+#recommended to leave default
+#repository:https://pypi.python.org/pypi
+username:MyPypiUserName
+password:MyPypiPass
 [testpypi]
-repository=https://testpypi.python.org/pypi
-username=MyTestpypiUserName
-password=MyTestpypiPass
+repository:https://test.pypi.org/legacy/
+username:MyTestpypiUserName
+password:MyTestpypiPass
 
 ```
 
-Issue the following command to test the package, `testpypi` is the default upload location:  
+Issue the following command to test the package, `testpypi` is the default upload location:
 `tox -e upload`
 
-or use the following to finally upload it to [pypi][]:  
+or use the following to finally upload it to [pypi][]:
 `PYPI_REPO_NAME=pypi tox -e upload`
 
 To use a different [pypi][] `rc` file, use `PYPIRC_LOCATION=/path/to/pypirc` prefix to the previous commands.
 
 ## Overview of available `setup.py` commands
 
-To get an overview of available commands use:  
+To get an overview of available commands use:
 `python setup.py --help-commands`
 
-Help regarding a specific command can be retrieved using:  
+Help regarding a specific command can be retrieved using:
 `python setup.py <command> --help`
 
 [SConsider]: https:/ifs/sconsider
@@ -86,4 +88,4 @@ Help regarding a specific command can be retrieved using:
 [packaging guide]: http://python-packaging-user-guide.readthedocs.org/en/latest/tutorial.html
 [guide on wheels]: http://wheel.readthedocs.org/en/latest
 [pypi]: https://pypi.python.org/pypi
-[test upload]: https://testpypi.python.org/pypi
+[test upload]: https://test.pypi.org/legacy/
