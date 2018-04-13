@@ -20,7 +20,6 @@ def test_SConsiderGetHelp(copy_testdir_to_tmp, pypath_extended_env,
                           popen_timeout, scons_platform_options, invocation_path):
 
     pypath_extended_env.update({'LOG_CFG': str(invocation_path('debuglog.yaml'))})
-    print(str(pypath_extended_env))
     sub_p = PopenHelper(r'scons -h' + scons_platform_options,
                         stdout=PIPE,
                         stderr=PIPE,
