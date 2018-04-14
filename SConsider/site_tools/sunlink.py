@@ -1,7 +1,6 @@
 """SConsider.site_tools.sunlink.
 
 SConsider-specific sunlink tool initialization
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------

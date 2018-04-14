@@ -61,6 +61,8 @@ class _XMLNode(object):
         self.parent -= 1
         self.builder.end(self.name)
         return False
+
+
 # -------------------------------------------------------------------------
 
 
@@ -74,12 +76,7 @@ class XMLBuilder(object):
     ~builder to obtaine etree.ElementTree
     """
 
-    def __init__(self,
-                 encoding='utf-8',
-                 builder=None,
-                 tab_level=None,
-                 format=False,
-                 tab_step=" " * 4):
+    def __init__(self, encoding='utf-8', builder=None, tab_level=None, format=False, tab_step=" " * 4):
         self.__builder = builder or TreeBuilder()
         self.__encoding = encoding
         if format:
@@ -92,6 +89,7 @@ class XMLBuilder(object):
         self.__tab_step = tab_step  # format step
         self.__has_sub_tag = False  # True, if current tag had childrens
         self.__node = None
+
     # called from _XMLNode when tag opened
 
     def __iadd__(self, val):
@@ -100,6 +98,7 @@ class XMLBuilder(object):
             self.__builder.data("\n" + self.__tab_level)
             self.__tab_level += self.__tab_step
         return self
+
     # called from XMLNode when tag closed
 
     def __isub__(self, val):
@@ -117,6 +116,7 @@ class XMLBuilder(object):
         x = _XMLNode(self, name, self.__builder)
         x(*dt, **mp)
         return x
+
     # create new tag or add text
     # possible shift values
     # string - text
@@ -129,12 +129,9 @@ class XMLBuilder(object):
             self.__builder.data(val)
         else:
             self.__has_sub_tag = True
-            assert hasattr(
-                val,
-                '__len__'), 'Shifted value should be tuple or list like object not %r' % val
-            assert hasattr(
-                val,
-                '__getitem__'), 'Shifted value should be tuple or list like object not %r' % val
+            assert hasattr(val, '__len__'), 'Shifted value should be tuple or list like object not %r' % val
+            assert hasattr(val,
+                           '__getitem__'), 'Shifted value should be tuple or list like object not %r' % val
             name = val[0]
             if len(val) == 3:
                 text = val[1]
@@ -151,12 +148,12 @@ class XMLBuilder(object):
                     attrs = val[1]
             if self.__tab_level is not None:
                 self.__builder.data("\n" + self.__tab_level)
-            self.__builder.start(name, dict((k, str(v))
-                                            for k, v in attrs.items()))
+            self.__builder.start(name, dict((k, str(v)) for k, v in attrs.items()))
             if text:
                 self.__builder.data(text)
             self.__builder.end(name)
         return self  # to allow xml << some1 << some2 << some3
+
     # close builder
 
     def __invert__(self):
@@ -173,4 +170,6 @@ class XMLBuilder(object):
         """return generated xml."""
         res = tostring(~self, self.__encoding)
         return res.decode(self.__encoding)
+
+
 # -------------------------------------------------------------------------

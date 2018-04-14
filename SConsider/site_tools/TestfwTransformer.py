@@ -2,7 +2,6 @@
 
 Tool to adapt output of coast-testfw to xUnit xml output parseable by
 most programs
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -74,29 +73,26 @@ class Result(object):
         with xml.testsuites():
             for section in self.getSections():
                 classname = package + '.' + section.get('name', 'unknown')
-                with xml.testsuite(tests=section.get('tests', 0),
-                                   errors=section.get('errors', 0),
-                                   failures=section.get('failures', 0),
-                                   hostname=section.get('hostname', 'unknown'),
-                                   time=float(section.get('msecs', 0)) / 1000,
-                                   timestamp=section.get('time', ''),
-                                   name=classname):
+                with xml.testsuite(
+                        tests=section.get('tests', 0),
+                        errors=section.get('errors', 0),
+                        failures=section.get('failures', 0),
+                        hostname=section.get('hostname', 'unknown'),
+                        time=float(section.get('msecs', 0)) / 1000,
+                        timestamp=section.get('time', ''),
+                        name=classname):
                     for name, testcase in section['testcases'].iteritems():
                         # Testfw prints 'Testcase.Testmethod', but we just need
                         # 'Testmethod' here
-                        testname = re.sub(
-                            '^' + section.get('name', 'unknown') + r'\.', '',
-                            name)
-                        with xml.testcase(name=testname,
-                                          classname=classname,
-                                          time=float(testcase.get('msecs', 0)) /
-                                          1000):
+                        testname = re.sub('^' + section.get('name', 'unknown') + r'\.', '', name)
+                        with xml.testcase(
+                                name=testname, classname=classname,
+                                time=float(testcase.get('msecs', 0)) / 1000):
                             if not testcase['passed']:
-                                xml << ('failure', testcase.get(
-                                    'message', ''), {
-                                        'message': testcase.get('cause', ''),
-                                        'type': 'Assertion'
-                                    })
+                                xml << ('failure', testcase.get('message', ''), {
+                                    'message': testcase.get('cause', ''),
+                                    'type': 'Assertion'
+                                })
                     xml << ('system-out', section.get('content', '').strip())
                     xml << ('system-err', '')
         return str(xml)
@@ -140,8 +136,7 @@ class StartedState(State):
         pattern = re.compile(r'\((\d+)[\)]*ms\)')
         match = re.search(pattern, line)
         if match:
-            self.result.setTestData(self.current_testcase, 'msecs',
-                                    match.group(1))
+            self.result.setTestData(self.current_testcase, 'msecs', match.group(1))
 
 
 class EndedState(State):
@@ -261,15 +256,12 @@ class Parser(object):
 def dependsOnTestfw(target):
     target = PackageRegistry().getRealTarget(target)
     # new target name first
-    registered_target = PackageRegistry().getPackageTarget('testfw',
-                                                           'lib_testfw')
+    registered_target = PackageRegistry().getPackageTarget('testfw', 'lib_testfw')
     if registered_target is None:
         # fallback to old target name
-        registered_target = PackageRegistry().getPackageTarget('testfw',
-                                                               'testfw')
-    return 'testfw' in target.get_env()['LIBS'] or (
-        registered_target
-        and registered_target.name in target.get_env()['LIBS'])
+        registered_target = PackageRegistry().getPackageTarget('testfw', 'testfw')
+    return 'testfw' in target.get_env()['LIBS'] or (registered_target
+                                                    and registered_target.name in target.get_env()['LIBS'])
 
 
 def callPostTest(target, packagename, targetname, logfile, **kw):
@@ -278,9 +270,7 @@ def callPostTest(target, packagename, targetname, logfile, **kw):
         if os.path.isfile(logfile.get_abspath()):
             with open(logfile.get_abspath()) as f:
                 result = parser.parse(f)
-                with open(
-                        logfile.dir.File(targetname + '.test.xml').get_abspath(
-                        ), 'w') as xmlfile:
+                with open(logfile.dir.File(targetname + '.test.xml').get_abspath(), 'w') as xmlfile:
                     xmlfile.write(result.toXML(packagename + '.' + targetname))
 
 

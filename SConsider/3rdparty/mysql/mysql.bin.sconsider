@@ -28,19 +28,16 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             },
         },
         'mysqlclient': {
-            'sourceFiles': [
-                getBinaryDistDir(packagename).File('mysql')],
+            'sourceFiles': [getBinaryDistDir(packagename).File('mysql')],
             'targetType': 'PrecompiledLibrary',
         },
         'mysqlbin': {
-            'sourceFiles': [
-                getBinaryDistDir(packagename).File('mysql')],
+            'sourceFiles': [getBinaryDistDir(packagename).File('mysql')],
             'targetType': 'PrecompiledBinary',
         },
         'script_mysql': {
             'targetType': 'ProgramApp',
-            'runConfig': {
-            },
+            'runConfig': {},
             'requires': [
                 packagename + '.mysqlclient',
             ],

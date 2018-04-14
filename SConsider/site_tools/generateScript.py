@@ -1,7 +1,6 @@
 """SConsider.site_tools.generateScript.
 
 SConsider-specific stand alone script to execute programs
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -52,8 +51,7 @@ def generateShellScript(scriptFile, env, binpath):
         if expansions is not None:
             for k, v in expansions:
                 try:
-                    stringToReturn += k + '="' + (v(env) if callable(v) else
-                                                  str(v)) + '"\n'
+                    stringToReturn += k + '="' + (v(env) if callable(v) else str(v)) + '"\n'
                     exportvars += ' ' + k
                 except:
                     pass
@@ -262,8 +260,7 @@ if [ -n "$toolPath" ]; then
     doCommandWithArgs=1
 fi
 if [ ${doDebug:-0} -ge 1 ]; then
-    cfg_gdbcommands="''' + (tempfile.gettempdir() + os.sep).replace(
-                   '\\', '/') + """`basename \\"$0\\"`_$$";
+    cfg_gdbcommands="''' + (tempfile.gettempdir() + os.sep).replace('\\', '/') + """`basename \\"$0\\"`_$$";
     generateGdbCommandFile "${cfg_gdbcommands}" "$CMD" $doDebug "$@"
     test ${doTrace} -eq 1 && echo "Generated gdb command file:"
     test ${doTrace} -eq 1 && cat ${cfg_gdbcommands}
@@ -300,25 +297,21 @@ def generateScriptEmitter(target, source, env):
             script_name = script_name.partition('_')[2]
         target_basepath = env.getScriptInstallDir().File(script_name)
         if src.has_builder() and src.builder.target_factory:
-            target.append(src.builder.target_factory(
-                env.makeInstallablePathFromDir(target_basepath)))
+            target.append(src.builder.target_factory(env.makeInstallablePathFromDir(target_basepath)))
         else:
             target.append(target_basepath)
     return (target, source)
 
 
 def generateWrapperScript(env, target):
-    return env.Depends(
-        env.GenerateScriptBuilder(target), getPyFilename(__file__))
+    return env.Depends(env.GenerateScriptBuilder(target), getPyFilename(__file__))
 
 
 def generate(env):
-    GenerateScriptAction = SCons.Action.Action(
-        generatePosixScript, "Creating wrapper script '$TARGET' for '$SOURCE'")
-    GenerateScriptBuilder = SCons.Builder.Builder(action=[
-        GenerateScriptAction, SCons.Defaults.Chmod('$TARGET', 0755)
-    ],
-                                                  emitter=generateScriptEmitter)
+    GenerateScriptAction = SCons.Action.Action(generatePosixScript,
+                                               "Creating wrapper script '$TARGET' for '$SOURCE'")
+    GenerateScriptBuilder = SCons.Builder.Builder(
+        action=[GenerateScriptAction, SCons.Defaults.Chmod('$TARGET', 0755)], emitter=generateScriptEmitter)
 
     env.Append(BUILDERS={'GenerateScriptBuilder': GenerateScriptBuilder})
     env.AddMethod(generateWrapperScript, "GenerateWrapperScript")

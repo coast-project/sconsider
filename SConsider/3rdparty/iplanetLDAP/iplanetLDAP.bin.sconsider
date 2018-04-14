@@ -19,18 +19,14 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     from ThirdParty import getBinaryDistDir
     buildSettings = {
         packagename: {
-            'linkDependencies': [
-                packagename + '.ldap50'
-            ],
+            'linkDependencies': [packagename + '.ldap50'],
             'targetType': 'IncludeOnly',
             'public': {
                 'includeSubdir': 'include',
             },
         },
         'ldap50': {
-            'sourceFiles': [
-                getBinaryDistDir(packagename).File('ldap50')
-            ],
+            'sourceFiles': [getBinaryDistDir(packagename).File('ldap50')],
             'targetType': 'PrecompiledLibrary',
         },
     }

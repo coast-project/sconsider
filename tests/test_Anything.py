@@ -24,9 +24,8 @@ def any2(monkeypatch):
     """Predefined Anything with values."""
     monkeypatch.setenv('COAST_ROOT', os.path.dirname(__file__))
     monkeypatch.setenv('COAST_PATH', '.:data')
-    return Anything([('a', 1), ('b', 2), 3,
-                     ('c', Anything([('a', Anything([1, 2, 3]))])), 5,
-                     ('a.b:3', 'escaped')])
+    return Anything([('a', 1), ('b', 2), 3, ('c', Anything([('a', Anything([1, 2, 3]))])), 5, ('a.b:3',
+                                                                                               'escaped')])
 
 
 def test_AnythingLen(any1):
@@ -213,34 +212,29 @@ def test_AnythingUpdateWithAnything(any1):
 
 def test_AnythingExtendWithList(any1):
     any1.extend([55, ('d', 66), 77])
-    assert Anything([('a', 1), ('b', 2), 3, ('c', 4), 5, 55,
-                     ('d', 66), 77]) == any1
+    assert Anything([('a', 1), ('b', 2), 3, ('c', 4), 5, 55, ('d', 66), 77]) == any1
 
 
 def test_AnythingExtendWithAnything(any1):
     any1.extend(Anything([55, ('d', 66), 77]))
-    assert Anything([('a', 1), ('b', 2), 3, ('c', 4), 5, 55,
-                     ('d', 66), 77]) == any1
+    assert Anything([('a', 1), ('b', 2), 3, ('c', 4), 5, 55, ('d', 66), 77]) == any1
 
 
 def test_AnythingAddAnything(any1):
     any1 += Anything([55, ('d', 66), 77])
-    assert Anything([('a', 1), ('b', 2), 3, ('c', 4), 5, 55,
-                     ('d', 66), 77]) == any1
+    assert Anything([('a', 1), ('b', 2), 3, ('c', 4), 5, 55, ('d', 66), 77]) == any1
 
 
 def test_AnythingAddList(any1):
     any1 += [55, ('d', 66), 77]
-    assert Anything([('a', 1), ('b', 2), 3, ('c', 4), 5, 55,
-                     ('d', 66), 77]) == any1
+    assert Anything([('a', 1), ('b', 2), 3, ('c', 4), 5, 55, ('d', 66), 77]) == any1
 
 
 def test_AnythingAddReturnsCopy(any1):
     any1before = any1.copy()
     any2 = any1 + Anything([55, ('d', 66), 77])
     assert any1before == any1
-    assert Anything(
-        [('a', 1), ('b', 2), 3, ('c', 4), 5, 55, ('d', 66), 77]) == any2
+    assert Anything([('a', 1), ('b', 2), 3, ('c', 4), 5, 55, ('d', 66), 77]) == any2
 
 
 def test_AnythingMergeWithAnything(any1):
@@ -437,11 +431,13 @@ dd
    """
     result = parse(content)
     expected = [
-        Anything(['bla', 'blub dd', 12, ('key', 'va3lue'),
-                  ('a nice key', 'value'), Anything(['ggg', 'xs']),
-                  Anything(['dsfd', 'dds']),
-                  ('blub', Anything(['sdfsd', 'sdf', 'ddd']))]),
-        Anything(['second']), Anything([1, 2, 3.0])
+        Anything([
+            'bla', 'blub dd', 12, ('key', 'va3lue'), ('a nice key', 'value'),
+            Anything(['ggg', 'xs']),
+            Anything(['dsfd', 'dds']), ('blub', Anything(['sdfsd', 'sdf', 'ddd']))
+        ]),
+        Anything(['second']),
+        Anything([1, 2, 3.0])
     ]
     assert expected == result
 
@@ -465,18 +461,14 @@ def any_files_dir(tmpdir_factory):
 def test_ResolvePathAbs(any_files_dir):
     with pytest.raises(IOError):
         resolvePath("test4.any")
-    assert os.path.join(
-        any_files_dir,
-        'test1.any') == resolvePath(os.path.join(any_files_dir, "test1.any"))
+    assert os.path.join(any_files_dir, 'test1.any') == resolvePath(os.path.join(any_files_dir, "test1.any"))
 
 
 def test_ResolvePathCwd(any_files_dir, monkeypatch):
     monkeypatch.chdir(any_files_dir)
     assert os.path.join(any_files_dir, 'test1.any') == resolvePath("test1.any")
-    assert os.path.join(any_files_dir, 'config',
-                        'test2.any') == resolvePath("test2.any")
-    assert os.path.join(any_files_dir, 'src',
-                        'test3.any') == resolvePath("test3.any")
+    assert os.path.join(any_files_dir, 'config', 'test2.any') == resolvePath("test2.any")
+    assert os.path.join(any_files_dir, 'src', 'test3.any') == resolvePath("test3.any")
     with pytest.raises(IOError):
         resolvePath("test4.any")
 
@@ -484,47 +476,36 @@ def test_ResolvePathCwd(any_files_dir, monkeypatch):
 def test_ResolvePathEnv(any_files_dir, monkeypatch):
     monkeypatch.setenv('COAST_ROOT', any_files_dir)
     assert os.path.join(any_files_dir, 'test1.any') == resolvePath("test1.any")
-    assert os.path.join(any_files_dir, 'config',
-                        'test2.any') == resolvePath("test2.any")
-    assert os.path.join(any_files_dir, 'src',
-                        'test3.any') == resolvePath("test3.any")
+    assert os.path.join(any_files_dir, 'config', 'test2.any') == resolvePath("test2.any")
+    assert os.path.join(any_files_dir, 'src', 'test3.any') == resolvePath("test3.any")
     with pytest.raises(IOError):
         resolvePath("test4.any")
     monkeypatch.setenv('COAST_PATH', '.:config:src:test')
-    assert os.path.join(any_files_dir, 'test',
-                        'test4.any') == resolvePath("test4.any")
+    assert os.path.join(any_files_dir, 'test', 'test4.any') == resolvePath("test4.any")
 
 
 def test_ResolvePathTLS(any_files_dir, monkeypatch):
     setLocalEnv({'COAST_ROOT': any_files_dir})
     assert os.path.join(any_files_dir, 'test1.any') == resolvePath("test1.any")
-    assert os.path.join(any_files_dir, 'config',
-                        'test2.any') == resolvePath("test2.any")
-    assert os.path.join(any_files_dir, 'src',
-                        'test3.any') == resolvePath("test3.any")
+    assert os.path.join(any_files_dir, 'config', 'test2.any') == resolvePath("test2.any")
+    assert os.path.join(any_files_dir, 'src', 'test3.any') == resolvePath("test3.any")
     with pytest.raises(IOError):
         resolvePath("test4.any")
     setLocalEnv(COAST_PATH='.:config:src:test')
-    assert os.path.join(any_files_dir, 'test',
-                        'test4.any') == resolvePath("test4.any")
+    assert os.path.join(any_files_dir, 'test', 'test4.any') == resolvePath("test4.any")
     setLocalEnv({})
 
 
 def test_ResolvePathPassed(any_files_dir, monkeypatch):
-    assert os.path.join(any_files_dir, 'test1.any') == resolvePath(
-        "test1.any", any_files_dir)
-    assert os.path.join(any_files_dir, 'config', 'test2.any') == resolvePath(
-        "test2.any", any_files_dir)
-    assert os.path.join(any_files_dir, 'src', 'test3.any') == resolvePath(
-        "test3.any", any_files_dir)
+    assert os.path.join(any_files_dir, 'test1.any') == resolvePath("test1.any", any_files_dir)
+    assert os.path.join(any_files_dir, 'config', 'test2.any') == resolvePath("test2.any", any_files_dir)
+    assert os.path.join(any_files_dir, 'src', 'test3.any') == resolvePath("test3.any", any_files_dir)
     with pytest.raises(IOError):
         resolvePath("test4.any", any_files_dir)
-    assert os.path.join(any_files_dir, 'test', 'test4.any') == resolvePath(
-        "test4.any", any_files_dir, '.:config:src:test')
-    assert os.path.join(any_files_dir, 'test', 'test4.any') == resolvePath(
-        "test4.any", any_files_dir, [
-            '.', 'config', 'src', 'test'
-        ])
+    assert os.path.join(any_files_dir, 'test', 'test4.any') == resolvePath("test4.any", any_files_dir,
+                                                                           '.:config:src:test')
+    assert os.path.join(any_files_dir, 'test', 'test4.any') == resolvePath("test4.any", any_files_dir,
+                                                                           ['.', 'config', 'src', 'test'])
 
 
 def test_UtilsFirst():
@@ -544,27 +525,23 @@ def test_UtilsToNumber():
 
 
 def test_UtilsLoadAllFromFile():
-    result = loadAllFromFile(resolvePath('AnythingLoadFromFileTest.any',
-                                         os.path.dirname(__file__), 'data'))
+    result = loadAllFromFile(resolvePath('AnythingLoadFromFileTest.any', os.path.dirname(__file__), 'data'))
     expected = [Anything([('key', 'value')])]
     assert expected == result
 
 
 def test_UtilsLoadFromFile():
-    result = loadFromFile(resolvePath('AnythingLoadFromFileTest.any',
-                                      os.path.dirname(__file__), 'data'))
+    result = loadFromFile(resolvePath('AnythingLoadFromFileTest.any', os.path.dirname(__file__), 'data'))
     expected = Anything([('key', 'value')])
     assert expected == result
 
 
 def test_UtilsLoadFromNonexistingFile():
     with pytest.raises(IOError):
-        loadFromFile(os.path.join(
-            os.path.dirname(__file__), 'data', 'NotThere.any'))
+        loadFromFile(os.path.join(os.path.dirname(__file__), 'data', 'NotThere.any'))
     result = None
     try:
-        result = loadFromFile(os.path.join(
-            os.path.dirname(__file__), 'data', 'NotThere.any'))
+        result = loadFromFile(os.path.join(os.path.dirname(__file__), 'data', 'NotThere.any'))
     except IOError:
         pass
     assert None is result

@@ -1,7 +1,6 @@
 """SConsider.site_tools.TargetPrinter.
 
 Tool to collect available targets for building
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -60,8 +59,7 @@ def printTargets(registry, **kw):
 
 def getDependencies(registry, callerdeps, packagename, targetname=None):
     if targetname:
-        return registry.getPackageTargetDependencies(packagename, targetname,
-                                                     callerdeps)
+        return registry.getPackageTargetDependencies(packagename, targetname, callerdeps)
     return registry.getPackageDependencies(packagename, callerdeps)
 
 
@@ -72,8 +70,8 @@ def getAliasDependencies(registry, deps, aliasname):
         for depnode in alias_node[0].sources:
             ext = getTargetExtension(depnode)
             if ext is not None:
-                new_deps[ext.getFulltargetname()] = getDependencies(
-                    registry, deps, ext.packagename, ext.targetname)
+                new_deps[ext.getFulltargetname()] = getDependencies(registry, deps, ext.packagename,
+                                                                    ext.targetname)
     return new_deps
 
 
@@ -106,25 +104,17 @@ def printTree(registry, buildTargets, **kw):
         if isinstance(fulltargetname, Alias):
             packagename, targetname = (fulltargetname.name, None)
         else:
-            packagename, targetname = PackageRegistry.splitFulltargetname(
-                fulltargetname, True)
+            packagename, targetname = PackageRegistry.splitFulltargetname(fulltargetname, True)
         if existsTarget(registry, packagename, targetname):
             node = Node(
                 PackageRegistry.createFulltargetname(packagename, targetname),
                 getDependencies(registry, deps, packagename, targetname))
-            print_tree(node,
-                       lambda node: node.children,
-                       prune=prune,
-                       visited={})
+            print_tree(node, lambda node: node.children, prune=prune, visited={})
             sys.stdout.write('\n')
         else:
             # maybe we have an alias name given
-            node = Node(fulltargetname,
-                        getAliasDependencies(registry, deps, fulltargetname))
-            print_tree(node,
-                       lambda node: node.children,
-                       prune=prune,
-                       visited={})
+            node = Node(fulltargetname, getAliasDependencies(registry, deps, fulltargetname))
+            print_tree(node, lambda node: node.children, prune=prune, visited={})
             sys.stdout.write('\n')
 
     print "\nOption 'showtree' active, exiting."
@@ -134,28 +124,31 @@ def printTree(registry, buildTargets, **kw):
 def generate(env):
     """Add the options, builders and wrappers to the current Environment."""
     try:
-        AddOption('--showtargets',
-                  dest='showtargets',
-                  action='store_true',
-                  default=False,
-                  help='Show available targets')
+        AddOption(
+            '--showtargets',
+            dest='showtargets',
+            action='store_true',
+            default=False,
+            help='Show available targets')
         tree_choices = ['all', 'prune']
-        AddOption('--showtree',
-                  dest='showtree',
-                  nargs='?',
-                  action='store',
-                  type='choice',
-                  const='all',
-                  default=None,
-                  choices=tree_choices,
-                  metavar='OPTIONS',
-                  help='Show target dependency tree in the format ' +
-                  str(tree_choices) + ', default=' + tree_choices[0])
-        AddOption('--showallaliases',
-                  dest='showallaliases',
-                  action='store_true',
-                  default=False,
-                  help='Show all defined aliases')
+        AddOption(
+            '--showtree',
+            dest='showtree',
+            nargs='?',
+            action='store',
+            type='choice',
+            const='all',
+            default=None,
+            choices=tree_choices,
+            metavar='OPTIONS',
+            help='Show target dependency tree in the format ' + str(tree_choices) + ', default=' +
+            tree_choices[0])
+        AddOption(
+            '--showallaliases',
+            dest='showallaliases',
+            action='store_true',
+            default=False,
+            help='Show all defined aliases')
     except optparse.OptionConflictError:
         pass
 

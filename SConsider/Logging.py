@@ -1,7 +1,6 @@
 """SConsider.Logging.
 
 Provides logging initialization and a regular expression based filter.
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -30,7 +29,9 @@ except:
     def captureWarnings(arg):
         pass
 
-DEFAULT_LEVEL=logging.WARNING
+
+DEFAULT_LEVEL = logging.WARNING
+
 
 def setup_logging(default_path='logging.yaml',
                   default_level=DEFAULT_LEVEL,
@@ -39,7 +40,6 @@ def setup_logging(default_path='logging.yaml',
     """Setup logging configuration.
 
     Based on http://victorlin.me/posts/2012/08/good-logging-practice-in-python/
-
     """
     path = default_path
     value = os.getenv(env_key, None)

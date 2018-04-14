@@ -16,17 +16,14 @@ from .test_Package import TargetStub
 class TestSomeUtils(object):
     def test_MultipleReplace(self):
         text = "this is a dummy text for testing"
-        result = SomeUtils.multiple_replace([
-            ('dummy', 'fantastic'), ('text', 'string'), ('^t\S*', 'blub')
-        ], text)
+        result = SomeUtils.multiple_replace([('dummy', 'fantastic'), ('text', 'string'), ('^t\S*', 'blub')],
+                                            text)
         assert "blub is a fantastic string for testing" == result
 
 
 class TestAllFuncs(object):
     def setup_method(self, method):
-        self.funcs = [
-            lambda *attrs: True, lambda *attrs: True, lambda *attrs: True
-        ]
+        self.funcs = [lambda *attrs: True, lambda *attrs: True, lambda *attrs: True]
 
     def test_AllFuncsTrue(self):
         assert SomeUtils.allFuncs(self.funcs, "blub")
@@ -99,18 +96,9 @@ class TestGetNodeDependencies(object):
 
         self.blub = TargetStub(path="blub", sources=[self.source1])
         self.bla = TargetStub(path="bla", sources=[self.source1, self.source2])
-        self.bloek = TargetStub(path="bloek",
-                                sources=[
-                                    self.source2, self.source3
-                                ])
+        self.bloek = TargetStub(path="bloek", sources=[self.source2, self.source3])
 
-        self.alias = TargetStub(sources=[
-            self.blub
-        ], depends=[
-            self.bla
-        ], prerequisites=[
-            self.bloek
-        ])
+        self.alias = TargetStub(sources=[self.blub], depends=[self.bla], prerequisites=[self.bloek])
 
     def test_NodeDependencies(self):
         deps = SomeUtils.getNodeDependencies(self.bloek)

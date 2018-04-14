@@ -2,7 +2,6 @@
 
 A bunch of simple methods to access output directory values during
 target creation.
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -50,17 +49,14 @@ def getTargetBaseInstallDir(env):
 
 
 def getBinaryInstallDir(env):
-    return getTargetBaseInstallDir(env).Dir(env['BINDIR']).Dir(
-        env.getRelativeVariantDirectory())
+    return getTargetBaseInstallDir(env).Dir(env['BINDIR']).Dir(env.getRelativeVariantDirectory())
 
 
 def getLibraryInstallDir(env, withRelTarget=False):
     if withRelTarget:
-        return getTargetBaseInstallDir(env).Dir(env['LIBDIR']).Dir(
-            env.getRelativeVariantDirectory())
+        return getTargetBaseInstallDir(env).Dir(env['LIBDIR']).Dir(env.getRelativeVariantDirectory())
     else:
-        return getBaseOutDir(env).Dir(env['LIBDIR']).Dir(
-            env.getRelativeVariantDirectory())
+        return getBaseOutDir(env).Dir(env['LIBDIR']).Dir(env.getRelativeVariantDirectory())
 
 
 def makeInstallablePathFromDir(env, the_dir):
@@ -71,13 +67,11 @@ def makeInstallablePathFromDir(env, the_dir):
 
 
 def getScriptInstallDir(env):
-    return getTargetBaseInstallDir(env).Dir(env['SCRIPTDIR']).Dir(
-        env.getRelativeVariantDirectory())
+    return getTargetBaseInstallDir(env).Dir(env['SCRIPTDIR']).Dir(env.getRelativeVariantDirectory())
 
 
 def getLogInstallDir(env):
-    return getTargetBaseInstallDir(env).Dir(env['LOGDIR']).Dir(
-        env.getRelativeVariantDirectory())
+    return getTargetBaseInstallDir(env).Dir(env['LOGDIR']).Dir(env.getRelativeVariantDirectory())
 
 
 def prepareVariantDir(env):
@@ -87,11 +81,9 @@ def prepareVariantDir(env):
     if myplatf == "posix":
         bitwidth = env.getBitwidth()
         libcver = getLibCVersion(bitwidth)
-        variant = platform.system() + "_" + libcver[0] + "_" + libcver[
-            1] + "-" + platform.machine()
+        variant = platform.system() + "_" + libcver[0] + "_" + libcver[1] + "-" + platform.machine()
     elif myplatf == "sunos":
-        variant = platform.system() + "_" + platform.release(
-        ) + "-" + platform.processor()
+        variant = platform.system() + "_" + platform.release() + "-" + platform.processor()
     elif myplatf == "darwin":
         import commands
         version = commands.getoutput("sw_vers -productVersion")
@@ -108,27 +100,21 @@ def prepareVariantDir(env):
     elif myplatf == "cygwin":
         variant = platform.system() + "-" + platform.machine()
     elif myplatf == "win32":
-        variant = platform.system() + "_" + platform.release(
-        ) + "-" + platform.machine()
+        variant = platform.system() + "_" + platform.release() + "-" + platform.machine()
 
     env.Append(VARIANTDIR=variant)
 
 
 def verifyBaseoutDirWritable(baseoutdir):
-    testfile = os.path.join(baseoutdir.get_abspath(),
-                            '.writefiletest.' + str(os.getpid()))
+    testfile = os.path.join(baseoutdir.get_abspath(), '.writefiletest.' + str(os.getpid()))
     try:
         if not os.path.isdir(baseoutdir.get_abspath()):
-            os.makedirs(baseoutdir.get_abspath(
-            ))  # test if we are able to create a file
+            os.makedirs(baseoutdir.get_abspath())  # test if we are able to create a file
         fp = open(testfile, 'w+')
         fp.close()
     except (os.error, IOError):
-        logger.error('Output directory [%s] not writable',
-                     baseoutdir.get_abspath(),
-                     exc_info=True)
-        raise UserError('Build aborted, baseoutdir [' + baseoutdir.get_abspath()
-                        + '] not writable for us!')
+        logger.error('Output directory [%s] not writable', baseoutdir.get_abspath(), exc_info=True)
+        raise UserError('Build aborted, baseoutdir [' + baseoutdir.get_abspath() + '] not writable for us!')
     finally:
         os.unlink(testfile)
 
@@ -138,14 +124,13 @@ def prePackageCollection(env, **kw):
     env.AppendUnique(LIBPATH=[getLibraryInstallDir(env)])
     env.AppendUnique(EXCLUDE_DIRS_REL=[env['BUILDDIR']])
     if env.getBaseOutDir() == sconstruct_dir:
-        env.AppendUnique(EXCLUDE_DIRS_TOPLEVEL=[
-            env[varname] for varname in [
+        env.AppendUnique(
+            EXCLUDE_DIRS_TOPLEVEL=[env[varname] for varname in [
                 'BINDIR',
                 'LIBDIR',
                 'LOGDIR',
                 'INCDIR',
-            ]
-        ])
+            ]])
 
 
 def generate(env):
@@ -162,8 +147,8 @@ def generate(env):
         type='string',
         default=None,
         metavar='DIR',
-        help='Directory to store build target files. Helps keeping your source directory clean, default="'
-        + get_sconstruct_dir(env).get_abspath() + '"')
+        help='Directory to store build target files. Helps keeping your source directory clean, default="' +
+        get_sconstruct_dir(env).get_abspath() + '"')
 
     # ensure we have getBitwidth() available
     if 'setupBuildTools' not in env['TOOLS']:

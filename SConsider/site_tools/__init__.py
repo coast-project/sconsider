@@ -1,7 +1,6 @@
 """SConsider.site_tools.
 
 Collection of SCons tools.
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------

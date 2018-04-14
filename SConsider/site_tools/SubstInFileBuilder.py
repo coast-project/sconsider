@@ -2,7 +2,6 @@
 
 Builder used to search/replace content in Files using regular expression
 syntax
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -33,8 +32,7 @@ def substInFile(target, source, searchre, subfn):
 
 def getLogMessage(target, source, env):
     items = [
-        'Substituting vars from {source} to {target}'.format(source=str(s),
-                                                             target=str(t))
+        'Substituting vars from {source} to {target}'.format(source=str(s), target=str(t))
         for (t, s) in zip(target, source)
     ]
     return '\n'.join(items)

@@ -2,7 +2,6 @@
 
 Builder to generate doxygen API documentation. It automatically adds a
 doxygen target for every target specified.
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -28,8 +27,7 @@ def __get_dependencies(registry, packagename, fnobj, recursive=False):
 
     buildSettings = registry.getBuildSettings(packagename)
     for _, settings in buildSettings.items():
-        deps = settings.get('requires', []) + settings.get('linkDependencies',
-                                                           [])
+        deps = settings.get('requires', []) + settings.get('linkDependencies', [])
         usedTarget = settings.get('usedTarget', '')
         if usedTarget:
             deps.append(usedTarget)
@@ -45,8 +43,7 @@ def __get_dependencies(registry, packagename, fnobj, recursive=False):
                     else:
                         dependencies.add(value)
                 if recursive:
-                    dependencies.update(__get_dependencies(registry, depPkgname,
-                                                           fnobj, recursive))
+                    dependencies.update(__get_dependencies(registry, depPkgname, fnobj, recursive))
 
     return list(dependencies)
 
@@ -86,25 +83,20 @@ def getPackageInputDirs(registry, packagename, relativeTo=None):
         # directories of own cpp files
         for sourcefile in settings.get('sourceFiles', []):
             if isinstance(sourcefile, SCons.Node.FS.File):
-                sourceDirs.add(resolvePath(sourcefile.srcnode().dir.get_abspath(
-                ), relativeTo))
+                sourceDirs.add(resolvePath(sourcefile.srcnode().dir.get_abspath(), relativeTo))
 
         # include directory of own private headers
         includeSubdirPrivate = settings.get('includeSubdir', '')
-        sourceDirs.add(resolvePath(
-            includeBasedir.Dir(includeSubdirPrivate).get_abspath(), relativeTo))
+        sourceDirs.add(resolvePath(includeBasedir.Dir(includeSubdirPrivate).get_abspath(), relativeTo))
 
         # include directory of own public headers
-        includeSubdirPublic = settings.get('public', {}).get('includeSubdir',
-                                                             '')
-        sourceDirs.add(resolvePath(
-            includeBasedir.Dir(includeSubdirPublic).get_abspath(), relativeTo))
+        includeSubdirPublic = settings.get('public', {}).get('includeSubdir', '')
+        sourceDirs.add(resolvePath(includeBasedir.Dir(includeSubdirPublic).get_abspath(), relativeTo))
 
         # directories of own public headers which are going to be copied
         for sourcefile in settings.get('public', {}).get('includes', []):
             if isinstance(sourcefile, SCons.Node.FS.File):
-                sourceDirs.add(resolvePath(sourcefile.srcnode().dir.get_abspath(
-                ), relativeTo))
+                sourceDirs.add(resolvePath(sourcefile.srcnode().dir.get_abspath(), relativeTo))
 
     return sourceDirs
 
@@ -172,7 +164,6 @@ def parseDoxyfileContent(file_content, env, include_basepath=None):
     """Parse a Doxygen source string and return a dictionary of all the values.
 
     Values will be strings and lists of strings.
-
     """
     data = {}
 
@@ -193,9 +184,7 @@ def parseDoxyfileContent(file_content, env, include_basepath=None):
             try:
                 token = env[token[2:token.find(')')]]
             except KeyError:
-                logger.warning(
-                    "Variable %s used in Doxygen file is not in environment!",
-                    token)
+                logger.warning("Variable %s used in Doxygen file is not in environment!", token)
                 token = ''
             # Convert space-separated list to actual list
             token = token.split()
@@ -289,28 +278,24 @@ def getTagfileDependencyLine(ownDoxyfile, ownData, otherDoxyfile, env):
     current Doxyfile depends. env is the current Environment. Parses the
     doxyfiles, gets their tagfile and determines the path relative to
     the current Doxyfile.
-
     """
     ownPath = ownData.get('HTML_OUTPUT', 'html')
     if not os.path.isabs(ownPath):
         ownPath = os.path.join(ownData.get('OUTPUT_DIRECTORY', ''), ownPath)
         if not os.path.isabs(ownPath):
-            ownPath = os.path.realpath(os.path.join(ownDoxyfile.dir.get_abspath(
-            ), ownPath))
+            ownPath = os.path.realpath(os.path.join(ownDoxyfile.dir.get_abspath(), ownPath))
 
     otherData = getDoxyfileData(otherDoxyfile, env)
     tagfile = otherData.get('GENERATE_TAGFILE', '')
 
-    tagfilePath = os.path.realpath(os.path.join(otherDoxyfile.dir.get_abspath(),
-                                                tagfile))
+    tagfilePath = os.path.realpath(os.path.join(otherDoxyfile.dir.get_abspath(), tagfile))
     tagfileRelPath = os.path.relpath(tagfilePath, ownDoxyfile.dir.get_abspath())
 
     linkPath = otherData.get('HTML_OUTPUT', 'html')
     if not os.path.isabs(linkPath):
         linkPath = os.path.join(otherData.get('OUTPUT_DIRECTORY', ''), linkPath)
         if not os.path.isabs(linkPath):
-            linkPath = os.path.realpath(os.path.join(
-                otherDoxyfile.dir.get_abspath(), linkPath))
+            linkPath = os.path.realpath(os.path.join(otherDoxyfile.dir.get_abspath(), linkPath))
 
     linkRelPath = os.path.relpath(linkPath, ownPath)
     return '%s=%s' % (tagfileRelPath, linkRelPath)
@@ -321,7 +306,6 @@ def buildDoxyfile(target, _, env):
 
     The first (and only) target should be the Doxyfile. Sourcefiles are
     used for dependency tracking only.
-
     """
     writeDoxyfile(str(target[0]), env.get('data', {}))
 
@@ -344,9 +328,7 @@ def buildDoxyfile(target, _, env):
 
     log_out, log_err = openLogFiles(env)
     try:
-        proc = PopenHelper(['doxygen', '-s', '-u', target[0].get_abspath()],
-                           stdout=log_out,
-                           stderr=log_err)
+        proc = PopenHelper(['doxygen', '-s', '-u', target[0].get_abspath()], stdout=log_out, stderr=log_err)
         proc.wait()
     finally:
         closeLogFiles(log_out, log_err)
@@ -380,7 +362,6 @@ def callDoxygen(_, source, env):
 
     The first source must be the Doxyfile, the other sources are used
     for dependency tracking only.
-
     """
     data = env.get('data', {})
     outputpath = data.get('OUTPUT_DIRECTORY', '')
@@ -390,8 +371,7 @@ def callDoxygen(_, source, env):
     if not os.path.isdir(outputpath):
         os.makedirs(outputpath)
 
-    cmd = 'cd %s && %s %s' % (source[0].get_dir().get_abspath(), 'doxygen',
-                              os.path.basename(str(source[0])))
+    cmd = 'cd %s && %s %s' % (source[0].get_dir().get_abspath(), 'doxygen', os.path.basename(str(source[0])))
 
     log_out, log_err = openLogFiles(env)
     try:
@@ -406,7 +386,6 @@ def emitDoxygen(target, source, env):
 
     The first source must be the Doxyfile, the other sources are used
     for dependency tracking only. The target array will be overwritten.
-
     """
     data = env.get('data', {})
     doxyfilepath = source[0].get_dir().get_abspath()
@@ -445,7 +424,6 @@ def getDoxyDefaults(env, registry, packagename=''):
     coast project.
 
     Used if the Doxyfile is not yet existing.
-
     """
 
     baseOutDir = env.getBaseOutDir()
@@ -453,12 +431,10 @@ def getDoxyDefaults(env, registry, packagename=''):
         packagename = 'Coast'
         basepathrel = os.path.relpath(os.path.curdir, baseOutDir.get_abspath())
         outputpath = os.path.relpath(
-            baseOutDir.Dir(env['DOCDIR']).Dir(packagename).get_abspath(),
-            baseOutDir.get_abspath())
+            baseOutDir.Dir(env['DOCDIR']).Dir(packagename).get_abspath(), baseOutDir.get_abspath())
     else:
-        basepathrel = os.path.relpath(
-            baseOutDir.get_abspath(),
-            registry.getPackageDir(packagename).get_abspath())
+        basepathrel = os.path.relpath(baseOutDir.get_abspath(),
+                                      registry.getPackageDir(packagename).get_abspath())
         outputpath = os.path.relpath(
             baseOutDir.Dir(env['DOCDIR']).Dir(packagename).get_abspath(),
             registry.getPackageDir(packagename).get_abspath())
@@ -504,14 +480,12 @@ def getDoxyDefaults(env, registry, packagename=''):
         'DOT_NUM_THREADS': '2',
         'MULTILINE_CPP_IS_BRIEF': 'NO',
         'REPEAT_BRIEF': 'NO',
-        'EXTENSION_MAPPING': ' '.join(['sh=Python', 'sconsider=Python',
-                                       'any=Python']),
+        'EXTENSION_MAPPING': ' '.join(['sh=Python', 'sconsider=Python', 'any=Python']),
         'GENERATE_HTML': 'YES',
         'HTML_OUTPUT': 'html',
         'GENERATE_LATEX': 'NO',
         'LATEX_HIDE_INDICES': 'YES',
-        'ALIASES':
-        '"FIXME=\\xrefitem FIXME \\"Fixme\\" \\"Locations to fix when possible\\" "',
+        'ALIASES': '"FIXME=\\xrefitem FIXME \\"Fixme\\" \\"Locations to fix when possible\\" "',
     }
     return doxyDefaults
 
@@ -549,20 +523,16 @@ def createDoxygenTarget(env, registry, packagename):
         otherTagfile = otherData.get('GENERATE_TAGFILE', False)
 
         if otherTagfile:
-            otherDoxygenSources.append(otherDoxyfile.get_dir().File(
-                otherTagfile).get_abspath())
+            otherDoxygenSources.append(otherDoxyfile.get_dir().File(otherTagfile).get_abspath())
 
-            doxyData['TAGFILES'].append(getTagfileDependencyLine(
-                doxyfile, doxyData, otherDoxyfile, env))
+            doxyData['TAGFILES'].append(getTagfileDependencyLine(doxyfile, doxyData, otherDoxyfile, env))
         else:
             otherDoxyfileSources.append(registry.getPackageFile(otherPackage))
             otherDoxygenSources.extend(getSourceFiles(registry, otherPackage))
             otherDoxygenSources.extend(getHeaderFiles(registry, otherPackage))
             otherPackageDir = registry.getPackageDir(otherPackage)
             otherInputDirs = getPackageInputDirs(
-                registry,
-                otherPackage,
-                relativeTo=doxyfile.get_dir().get_abspath())
+                registry, otherPackage, relativeTo=doxyfile.get_dir().get_abspath())
             if '3rdparty' in otherPackageDir.get_abspath():
                 doxyData['INCLUDE_PATH'].update(otherInputDirs)
                 doxyData['SEARCH_INCLUDES'] = 'YES'
@@ -574,10 +544,8 @@ def createDoxygenTarget(env, registry, packagename):
     doxyfileSources = [registry.getPackageFile(packagename)]
     doxyfileSources.extend(otherDoxyfileSources)
 
-    doxyfileTarget = env.DoxyfileBuilder(target=doxyfile,
-                                         source=doxyfileSources,
-                                         data=doxyData,
-                                         logname='doxyfile_' + packagename)
+    doxyfileTarget = env.DoxyfileBuilder(
+        target=doxyfile, source=doxyfileSources, data=doxyData, logname='doxyfile_' + packagename)
 
     env.Precious(doxyfileTarget)
     env.NoClean(doxyfileTarget)
@@ -589,9 +557,7 @@ def createDoxygenTarget(env, registry, packagename):
     doxygenSources.extend(getHeaderFiles(registry, packagename))
     doxygenSources.extend(otherDoxygenSources)
 
-    doxygenTarget = env.DoxygenBuilder(source=doxygenSources,
-                                       data=doxyData,
-                                       logname='doxygen_' + packagename)
+    doxygenTarget = env.DoxygenBuilder(source=doxygenSources, data=doxyData, logname='doxygen_' + packagename)
 
     from SConsider.SomeUtils import getPyFilename
     env.Depends(doxyfileTarget, getPyFilename(__file__))
@@ -636,27 +602,23 @@ def createDoxygenAllTarget(registry):
                 return True
         return False
 
-    allPackageNames = [package_name
-                       for package_name in registry.getPackageNames()
-                       if not isExcludedPackage(package_name)]
+    allPackageNames = [
+        package_name for package_name in registry.getPackageNames() if not isExcludedPackage(package_name)
+    ]
     allInputDirs = set()
     allPackageFiles = []
 
     for package_name in allPackageNames:
-        allInputDirs.update(getPackageInputDirs(registry,
-                                                package_name,
-                                                relativeTo=env.getBaseOutDir(
-                                                ).get_abspath()))
+        allInputDirs.update(
+            getPackageInputDirs(registry, package_name, relativeTo=env.getBaseOutDir().get_abspath()))
         allPackageFiles.append(registry.getPackageFile(package_name))
 
     doxyData['INPUT'] = []
     doxyData['INPUT'].extend(allInputDirs)
 
     # DoxyFileTarget: Dependent on all package sconsider files
-    doxyfileTarget = env.DoxyfileBuilder(target=doxyfile,
-                                         source=allPackageFiles,
-                                         data=doxyData,
-                                         logname='doxyfile_coast')
+    doxyfileTarget = env.DoxyfileBuilder(
+        target=doxyfile, source=allPackageFiles, data=doxyData, logname='doxyfile_coast')
 
     env.Precious(doxyfileTarget)
     env.NoClean(doxyfileTarget)
@@ -667,9 +629,7 @@ def createDoxygenAllTarget(registry):
     for package_name in allPackageNames:
         doxySources.extend(getSourceFiles(registry, package_name))
         doxySources.extend(getHeaderFiles(registry, package_name))
-    doxyTarget = env.DoxygenBuilder(source=doxySources,
-                                    data=doxyData,
-                                    logname='doxygen_coast')
+    doxyTarget = env.DoxygenBuilder(source=doxySources, data=doxyData, logname='doxygen_coast')
 
     # DoxyFileTarget and DoxyTarget depend on this python file
     from SConsider.SomeUtils import getPyFilename
@@ -724,29 +684,22 @@ def generate(env):
     from SCons.Action import Action
     from SCons.Builder import Builder
     from SCons.Scanner.C import CScanner
-    AddOption('--doxygen',
-              dest='doxygen',
-              action='store_true',
-              default=False,
-              help='Create module documentation')
-    AddOption('--doxygen-only',
-              dest='doxygen-only',
-              action='store_true',
-              default=False,
-              help='Same as --doxygen but skips all targets except doxygen')
+    AddOption(
+        '--doxygen', dest='doxygen', action='store_true', default=False, help='Create module documentation')
+    AddOption(
+        '--doxygen-only',
+        dest='doxygen-only',
+        action='store_true',
+        default=False,
+        help='Same as --doxygen but skips all targets except doxygen')
 
-    doxyfileAction = Action(buildDoxyfile,
-                            "Creating Doxygen config file '$TARGET'")
+    doxyfileAction = Action(buildDoxyfile, "Creating Doxygen config file '$TARGET'")
     doxyfileBuilder = Builder(
-        action=doxyfileAction,
-        source_scanner=CScanner())  # adds headers as dependencies
+        action=doxyfileAction, source_scanner=CScanner())  # adds headers as dependencies
 
-    doxygenAction = Action(callDoxygen,
-                           "Creating documentation using '$SOURCE'")
+    doxygenAction = Action(callDoxygen, "Creating documentation using '$SOURCE'")
     # adds headers as dependencies
-    doxygenBuilder = Builder(action=doxygenAction,
-                             emitter=emitDoxygen,
-                             source_scanner=CScanner())
+    doxygenBuilder = Builder(action=doxygenAction, emitter=emitDoxygen, source_scanner=CScanner())
 
     env.Append(BUILDERS={'DoxyfileBuilder': doxyfileBuilder})
     env.Append(BUILDERS={'DoxygenBuilder': doxygenBuilder})
@@ -780,8 +733,7 @@ def generate(env):
         if not BUILD_TARGETS or 'all' in BUILD_TARGETS:
             Callback().register("PreBuild", addBuildAllTargetCallback)
         else:
-            Callback().register("PostCreatePackageTargets",
-                                createTargetCallback)
+            Callback().register("PostCreatePackageTargets", createTargetCallback)
             Callback().register("PreBuild", addBuildTargetCallback)
 
 

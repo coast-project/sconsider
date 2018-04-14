@@ -3,7 +3,6 @@
 Simple helper tool to replace old WebDisplay2 dll names with new coast shared library names
 
 Usually it will be applied to Config.any and test configuration files using dynamic library loading
-
 """
 # -------------------------------------------------------------------------
 # Copyright (c) 2009, Peter Sommerlad and IFS Institute for Software
@@ -18,9 +17,7 @@ Usually it will be applied to Config.any and test configuration files using dyna
 import os
 import re
 
-excludelist = [
-    'build', 'CVS', 'data', 'xml', 'doc', 'bin', 'lib', '.git', '.gitmodules'
-]
+excludelist = ['build', 'CVS', 'data', 'xml', 'doc', 'bin', 'lib', '.git', '.gitmodules']
 list2 = []
 excludelist.extend(list2)
 print excludelist
@@ -30,8 +27,7 @@ libdict = {
     'actions': 'CoastActions',
     'stddataaccess': 'CoastStdDataAccess',
     'security': 'CoastSecurity',
-    'SSL':
-    'CoastSSL',
+    'SSL': 'CoastSSL',
     'ITOSSL': 'CoastSSL',
     'ldapdataaccess': 'CoastLDAPDataAccess',
     'ldapdataaccess2': 'CoastLDAP',
@@ -85,10 +81,8 @@ libdict = {
     'CoastOracle': 'CoastOracle',
     'HIKU_common': 'HIKUCommon',
     'HIKU_ChunkHandling': 'HIKUChunkHandling',
-    'BPL':
-    'HIKUBPL',
-    'DCD':
-    'HIKUDCD',
+    'BPL': 'HIKUBPL',
+    'DCD': 'HIKUDCD',
     'HIKU': 'HIKUPflegeSystem',
     'PoolFiller': 'HIKUPoolFiller',
     'momsmsg': 'MomsMsg',
@@ -120,9 +114,8 @@ for dirpath, dirnames, filenames in os.walk('.'):
                         outstr = mo.string[:mo.start(1)]
                         strGroup = mo.group(1)
                         strout = ''
-                        for it in re.finditer(
-                                r"^([^#\S]+)(\"?(lib)?(\w+)(\.so)?\"?)([\s]*)$",
-                                strGroup, re.M):
+                        for it in re.finditer(r"^([^#\S]+)(\"?(lib)?(\w+)(\.so)?\"?)([\s]*)$", strGroup,
+                                              re.M):
                             if len(strout):
                                 strout += '\n'
                             g = it.groups()
@@ -138,8 +131,7 @@ for dirpath, dirnames, filenames in os.walk('.'):
                                 print lname, "MISSING"
                                 strout += it.string[it.start(0):it.end(0)]
                         if len(strout):
-                            if outstr[len(outstr) - 1] != '\n' and strout[
-                                    0] != '\n':
+                            if outstr[len(outstr) - 1] != '\n' and strout[0] != '\n':
                                 outstr += '\n'
                             outstr += strout
                         else:

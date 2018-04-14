@@ -24,8 +24,7 @@ class StartStopMixin(object):
         self._ready = threading.Event()
 
     def start(self):
-        self._thread = t = threading.Thread(target=self.serve_forever,
-                                            args=(self.poll_interval, ))
+        self._thread = t = threading.Thread(target=self.serve_forever, args=(self.poll_interval, ))
         t.setDaemon(True)
         t.start()
 
@@ -45,15 +44,12 @@ class StoppableHttpServer(StartStopMixin, SecureHTTPServer):
         class SecureHTTPRequestHandler(SimpleHTTPRequestHandler):
             def setup(self):
                 self.connection = self.request
-                self.rfile = socket._fileobject(self.request, "rb",
-                                                self.rbufsize)
-                self.wfile = socket._fileobject(self.request, "wb",
-                                                self.wbufsize)
+                self.rfile = socket._fileobject(self.request, "rb", self.rbufsize)
+                self.wfile = socket._fileobject(self.request, "wb", self.wbufsize)
 
         self.bucket = bucket
         pem_file_name = os.path.join(os.path.dirname(__file__), "server.pem")
-        SecureHTTPServer.__init__(self, addr, SecureHTTPRequestHandler,
-                                  pem_file_name, pem_file_name)
+        SecureHTTPServer.__init__(self, addr, SecureHTTPRequestHandler, pem_file_name, pem_file_name)
         StartStopMixin.__init__(self, poll_interval)
 
     def process_request(self, request, client_address):
@@ -93,8 +89,8 @@ class TestSecureHTTPServer(object):
         try:
             import ssl
             try:
-                urllib.urlopen('https://%s:%d/' % self.server_address,
-                               context=ssl._create_unverified_context())
+                urllib.urlopen(
+                    'https://%s:%d/' % self.server_address, context=ssl._create_unverified_context())
             except (TypeError, AttributeError):
                 # old version does not take a context argument
                 # or _create_unverified_context might not be defined in ssl
@@ -103,8 +99,7 @@ class TestSecureHTTPServer(object):
             exc = self.bucket.get(block=True, timeout=1)
             exc_type, exc_obj, exc_trace = exc
             if exc_type is TypeError:
-                self.fail(
-                    "Python 2.7 requires no arguments for request.shutdown")
+                self.fail("Python 2.7 requires no arguments for request.shutdown")
         except Queue.Empty:
             pass
 

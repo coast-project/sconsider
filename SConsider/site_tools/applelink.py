@@ -1,7 +1,6 @@
 """SConsider.site_tools.applelink.
 
 SConsider-specific initialization for the Apple gnu-like linker.
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------

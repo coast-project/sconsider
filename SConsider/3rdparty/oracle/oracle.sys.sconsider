@@ -20,8 +20,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     env = cloneBaseEnv()
     conf = Configure(env)
     if conf.CheckCHeader('oci.h') and conf.CheckMultipleLibs(
-        ['occi', 'clntsh', 'nnz11', 'ociicus', 'ociei', 'sqlplus',
-         'sqlplusic']):
+        ['occi', 'clntsh', 'nnz11', 'ociicus', 'ociei', 'sqlplus', 'sqlplusic']):
         conf.env.Append(CPPDEFINES='HAS_ORACLE')
     sqlplusbin = conf.CheckExecutable('sqlplus')
     env = conf.Finish()
@@ -94,8 +93,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             }
             buildSettings['sqlplus'] = {
                 'targetType': 'ProgramApp',
-                'runConfig': {
-                },
+                'runConfig': {},
                 'requires': [
                     packagename + '.' + packagename,
                     packagename + '.lib_sqlplus',

@@ -37,53 +37,43 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             }
         },
         'gxi': {
-            'sourceFiles':
-            [getBinaryDistDir(packagename).File('gxi')],
+            'sourceFiles': [getBinaryDistDir(packagename).File('gxi')],
             'targetType': 'PrecompiledLibrary',
         },
         'gxibasicmatch': {
-            'sourceFiles':
-            [getBinaryDistDir(packagename).File('gxibasicmatch')],
+            'sourceFiles': [getBinaryDistDir(packagename).File('gxibasicmatch')],
             'targetType': 'PrecompiledLibrary',
         },
         'gxical': {
-            'sourceFiles':
-            [getBinaryDistDir(packagename).File('gxical')],
+            'sourceFiles': [getBinaryDistDir(packagename).File('gxical')],
             'targetType': 'PrecompiledLibrary',
         },
         'gxiosa': {
-            'sourceFiles':
-            [getBinaryDistDir(packagename).File('gxiosa')],
+            'sourceFiles': [getBinaryDistDir(packagename).File('gxiosa')],
             'targetType': 'PrecompiledLibrary',
         },
         'gxiplugin': {
-            'sourceFiles':
-            [getBinaryDistDir(packagename).File('gxiplugin')],
+            'sourceFiles': [getBinaryDistDir(packagename).File('gxiplugin')],
             'targetType': 'PrecompiledLibrary',
         },
         'gxiwmqprot': {
-            'sourceFiles':
-            [getBinaryDistDir(packagename).File('gxiwmqprot')],
+            'sourceFiles': [getBinaryDistDir(packagename).File('gxiwmqprot')],
             'targetType': 'PrecompiledLibrary',
         },
         'gxiwmqmsg': {
-            'sourceFiles':
-            [getBinaryDistDir(packagename).File('gxiwmqmsg')],
+            'sourceFiles': [getBinaryDistDir(packagename).File('gxiwmqmsg')],
             'targetType': 'PrecompiledLibrary',
         },
         'gxixil': {
-            'sourceFiles':
-            [getBinaryDistDir(packagename).File('gxixil')],
+            'sourceFiles': [getBinaryDistDir(packagename).File('gxixil')],
             'targetType': 'PrecompiledLibrary',
         },
         'icudata': {
-            'sourceFiles':
-            [getBinaryDistDir(packagename).File('icudata')],
+            'sourceFiles': [getBinaryDistDir(packagename).File('icudata')],
             'targetType': 'PrecompiledLibrary',
         },
         'icuuc': {
-            'sourceFiles':
-            [getBinaryDistDir(packagename).File('icuuc')],
+            'sourceFiles': [getBinaryDistDir(packagename).File('icuuc')],
             'targetType': 'PrecompiledLibrary',
         },
     }

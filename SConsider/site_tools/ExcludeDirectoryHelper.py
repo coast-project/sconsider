@@ -2,7 +2,6 @@
 
 A bunch of simple methods to access output directory values during
 target creation.
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -38,8 +37,7 @@ def prePackageCollection(env, **kw):
         if not os.path.isabs(exclude_path):
             absolute_path = Dir(exclude_path).get_abspath()
         else:
-            exclude_path = os.path.relpath(exclude_path, kw.get(
-                'sconstruct_dir', Dir('#')).get_abspath())
+            exclude_path = os.path.relpath(exclude_path, kw.get('sconstruct_dir', Dir('#')).get_abspath())
         if not exclude_path.startswith('..'):
             first_segment = exclude_path.split(os.pathsep)[0]
             env.AppendUnique(EXCLUDE_DIRS_TOPLEVEL=[first_segment])
@@ -53,25 +51,24 @@ def prePackageCollection(env, **kw):
 def generate(env):
     from SConsider.Callback import Callback
 
-    AddOption('--exclude',
-              dest='exclude',
-              action='append',
-              nargs=1,
-              type='string',
-              default=[],
-              metavar='DIR',
-              help='Exclude directory from being scanned for SConscript\
+    AddOption(
+        '--exclude',
+        dest='exclude',
+        action='append',
+        nargs=1,
+        type='string',
+        default=[],
+        metavar='DIR',
+        help='Exclude directory from being scanned for SConscript\
  (*.sconsider) files.')
 
     global relativeExcludeDirsList
     env.AppendUnique(EXCLUDE_DIRS_REL=relativeExcludeDirsList)
     env.AppendUnique(EXCLUDE_DIRS_ABS=[])
-    env.AppendUnique(EXCLUDE_DIRS_TOPLEVEL=relativeExcludeDirsList +
-                     [j.path for j in env.Glob('*.egg-*')])
+    env.AppendUnique(EXCLUDE_DIRS_TOPLEVEL=relativeExcludeDirsList + [j.path for j in env.Glob('*.egg-*')])
     env.AddMethod(lambda env: env['EXCLUDE_DIRS_REL'], 'relativeExcludeDirs')
     env.AddMethod(lambda env: env['EXCLUDE_DIRS_ABS'], 'absoluteExcludeDirs')
-    env.AddMethod(lambda env: env['EXCLUDE_DIRS_TOPLEVEL'],
-                  'toplevelExcludeDirs')
+    env.AddMethod(lambda env: env['EXCLUDE_DIRS_TOPLEVEL'], 'toplevelExcludeDirs')
 
     Callback().register('PrePackageCollection', prePackageCollection)
 

@@ -19,9 +19,10 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     from SConsider import createTargets, cloneBaseEnv
     env = cloneBaseEnv()
     conf = Configure(env)
-    if conf.CheckCHeader('xms.h') and conf.CheckMultipleLibs(
-        ['gxi', 'gxibasicmatch', 'gxical', 'gxiosa', 'gxiplugin', 'gxiwmqprot',
-         'gxiwmqmsg', 'gxixil', 'icudata', 'icuuc']):
+    if conf.CheckCHeader('xms.h') and conf.CheckMultipleLibs([
+            'gxi', 'gxibasicmatch', 'gxical', 'gxiosa', 'gxiplugin', 'gxiwmqprot', 'gxiwmqmsg', 'gxixil',
+            'icudata', 'icuuc'
+    ]):
         conf.env.Append(CPPDEFINES='HAS_XMS')
     env = conf.Finish()
 

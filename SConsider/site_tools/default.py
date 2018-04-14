@@ -4,7 +4,6 @@ SConsider-specific default initialization tool - postpones
 SCons.Tool.default loading  -> see setupBuildTools for details
 
 -> see setupBuildTools for details
-
 """
 
 # vim: set et ai ts=4 sw=4:

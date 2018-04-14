@@ -23,8 +23,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
         conf.env.Append(CPPDEFINES='HAS_BOOST')
     if conf.CheckLibWithHeader('boost_regex', 'boost/regex.h', 'CXX'):
         conf.env.Append(CPPDEFINES='HAS_BOOST_REGEX')
-    if conf.CheckLibWithHeader('boost_system', 'boost/system/error_code.hpp',
-                               'CXX'):
+    if conf.CheckLibWithHeader('boost_system', 'boost/system/error_code.hpp', 'CXX'):
         conf.env.Append(CPPDEFINES='HAS_BOOST_SYSTEM')
     env = conf.Finish()
 

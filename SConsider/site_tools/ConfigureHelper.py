@@ -1,7 +1,6 @@
 """SConsider.site_tools.ConfigureHelper.
 
 Helper functions used when executing configure like build steps
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -33,8 +32,7 @@ def CheckMultipleLibs(context, libraries=None, **kw):
     if not is_List(libraries):
         libraries = [libraries]
 
-    return functools.reduce(lambda x, y: CheckLib(context, y, **kw) and x,
-                            libraries, True)
+    return functools.reduce(lambda x, y: CheckLib(context, y, **kw) and x, libraries, True)
 
 
 def Configure(env, *args, **kw):
@@ -68,8 +66,7 @@ def prePackageCollection(env, **_):
 def generate(env):
     from SConsider.Callback import Callback
     env['CONFIGURELOG'] = env.getBaseOutDir().File("config.log").get_abspath()
-    env['CONFIGUREDIR'] = env.getBaseOutDir().Dir(
-        _sconf_tempdirrel).get_abspath()
+    env['CONFIGUREDIR'] = env.getBaseOutDir().Dir(_sconf_tempdirrel).get_abspath()
     Callback().register('PrePackageCollection', prePackageCollection)
 
 

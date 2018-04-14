@@ -67,12 +67,7 @@ def register_vcs_handler(vcs, method):  # decorator
     return decorate
 
 
-def run_command(commands,
-                args,
-                cwd=None,
-                verbose=False,
-                hide_stderr=False,
-                env=None):
+def run_command(commands, args, cwd=None, verbose=False, hide_stderr=False, env=None):
     """Call the given command(s)."""
     assert isinstance(commands, list)
     p = None
@@ -80,12 +75,12 @@ def run_command(commands,
         try:
             dispcmd = str([c] + args)
             # remember shell=False, so use git.cmd on windows, not just git
-            p = subprocess.Popen([c] + args,
-                                 cwd=cwd,
-                                 env=env,
-                                 stdout=subprocess.PIPE,
-                                 stderr=(subprocess.PIPE
-                                         if hide_stderr else None))
+            p = subprocess.Popen(
+                [c] + args,
+                cwd=cwd,
+                env=env,
+                stdout=subprocess.PIPE,
+                stderr=(subprocess.PIPE if hide_stderr else None))
             break
         except EnvironmentError:
             e = sys.exc_info()[1]
@@ -117,25 +112,25 @@ def versions_from_parentdir(parentdir_prefix, root, verbose):
     both the project name and a version string. We will also support
     searching up two directory levels for an appropriately named parent
     directory
-
     """
     rootdirs = []
 
     for i in range(3):
         dirname = os.path.basename(root)
         if dirname.startswith(parentdir_prefix):
-            return {"version": dirname[len(parentdir_prefix):],
-                    "full-revisionid": None,
-                    "dirty": False,
-                    "error": None,
-                    "date": None}
+            return {
+                "version": dirname[len(parentdir_prefix):],
+                "full-revisionid": None,
+                "dirty": False,
+                "error": None,
+                "date": None
+            }
         else:
             rootdirs.append(root)
             root = os.path.dirname(root)  # up a level
 
     if verbose:
-        print("Tried directories %s but none started with prefix %s" %
-              (str(rootdirs), parentdir_prefix))
+        print("Tried directories %s but none started with prefix %s" % (str(rootdirs), parentdir_prefix))
     raise NotThisMethod("rootdir doesn't start with parentdir_prefix")
 
 
@@ -202,19 +197,23 @@ def git_versions_from_keywords(keywords, tag_prefix, verbose):
             r = ref[len(tag_prefix):]
             if verbose:
                 print("picking %s" % r)
-            return {"version": r,
-                    "full-revisionid": keywords["full"].strip(),
-                    "dirty": False,
-                    "error": None,
-                    "date": keywords.get("date", "").strip()}
+            return {
+                "version": r,
+                "full-revisionid": keywords["full"].strip(),
+                "dirty": False,
+                "error": None,
+                "date": keywords.get("date", "").strip()
+            }
     # no suitable tags, so version is "0+unknown", but full hex is still there
     if verbose:
         print("no suitable tags, using unknown + full revision id")
-    return {"version": "0+unknown",
-            "full-revisionid": keywords["full"].strip(),
-            "dirty": False,
-            "error": "no suitable tags",
-            "date": None}
+    return {
+        "version": "0+unknown",
+        "full-revisionid": keywords["full"].strip(),
+        "dirty": False,
+        "error": "no suitable tags",
+        "date": None
+    }
 
 
 @register_vcs_handler("git", "pieces_from_vcs")
@@ -224,15 +223,12 @@ def git_pieces_from_vcs(tag_prefix, root, verbose, run_command=run_command):
     This only gets called if the git-archive 'subst' keywords were *not*
     expanded, and _version.py hasn't already been rewritten with a short
     version string, meaning we're inside a checked out source tree.
-
     """
     GITS = ["git"]
     if sys.platform == "win32":
         GITS = ["git.cmd", "git.exe"]
 
-    out, rc = run_command(GITS, ["rev-parse", "--git-dir"],
-                          cwd=root,
-                          hide_stderr=True)
+    out, rc = run_command(GITS, ["rev-parse", "--git-dir"], cwd=root, hide_stderr=True)
     if rc != 0:
         if verbose:
             print("Directory %s not under git control" % root)
@@ -240,10 +236,10 @@ def git_pieces_from_vcs(tag_prefix, root, verbose, run_command=run_command):
 
     # if there is a tag matching tag_prefix, this yields TAG-NUM-gHEX[-dirty]
     # if there isn't one, this yields HEX[-dirty] (no NUM)
-    describe_out, rc = run_command(GITS, ["describe", "--tags", "--dirty",
-                                          "--always", "--long", "--match",
-                                          "%s*" % tag_prefix],
-                                   cwd=root)
+    describe_out, rc = run_command(
+        GITS, ["describe", "--tags", "--dirty", "--always", "--long", "--match",
+               "%s*" % tag_prefix],
+        cwd=root)
     # --long was added in git-1.5.5
     if describe_out is None:
         raise NotThisMethod("'git describe' failed")
@@ -275,8 +271,7 @@ def git_pieces_from_vcs(tag_prefix, root, verbose, run_command=run_command):
         mo = re.search(r'^(.+)-(\d+)-g([0-9a-f]+)$', git_describe)
         if not mo:
             # unparseable. Maybe git-describe is misbehaving?
-            pieces["error"] = ("unable to parse git-describe output: '%s'" %
-                               describe_out)
+            pieces["error"] = ("unable to parse git-describe output: '%s'" % describe_out)
             return pieces
 
         # tag
@@ -285,8 +280,7 @@ def git_pieces_from_vcs(tag_prefix, root, verbose, run_command=run_command):
             if verbose:
                 fmt = "tag '%s' doesn't start with prefix '%s'"
                 print(fmt % (full_tag, tag_prefix))
-            pieces["error"] = ("tag '%s' doesn't start with prefix '%s'" %
-                               (full_tag, tag_prefix))
+            pieces["error"] = ("tag '%s' doesn't start with prefix '%s'" % (full_tag, tag_prefix))
             return pieces
         pieces["closest-tag"] = full_tag[len(tag_prefix):]
 
@@ -299,13 +293,11 @@ def git_pieces_from_vcs(tag_prefix, root, verbose, run_command=run_command):
     else:
         # HEX: no tags
         pieces["closest-tag"] = None
-        count_out, rc = run_command(GITS, ["rev-list", "HEAD", "--count"],
-                                    cwd=root)
+        count_out, rc = run_command(GITS, ["rev-list", "HEAD", "--count"], cwd=root)
         pieces["distance"] = int(count_out)  # total number of commits
 
     # commit date
-    pieces["date"] = run_command(GITS, ["show", "-s", "--format=%ci", "HEAD"],
-                                 cwd=root)[0].strip()
+    pieces["date"] = run_command(GITS, ["show", "-s", "--format=%ci", "HEAD"], cwd=root)[0].strip()
 
     return pieces
 
@@ -366,7 +358,6 @@ def render_pep440_post(pieces):
 
     Exceptions:
     1: no tags. 0.postDISTANCE[.dev0]
-
     """
     if pieces["closest-tag"]:
         rendered = pieces["closest-tag"]
@@ -392,7 +383,6 @@ def render_pep440_old(pieces):
 
     Eexceptions:
     1: no tags. 0.postDISTANCE[.dev0]
-
     """
     if pieces["closest-tag"]:
         rendered = pieces["closest-tag"]
@@ -451,11 +441,13 @@ def render_git_describe_long(pieces):
 def render(pieces, style):
     """Render the given version pieces into the requested style."""
     if pieces["error"]:
-        return {"version": "unknown",
-                "full-revisionid": pieces.get("long"),
-                "dirty": None,
-                "error": pieces["error"],
-                "date": pieces.get("date", "")}
+        return {
+            "version": "unknown",
+            "full-revisionid": pieces.get("long"),
+            "dirty": None,
+            "error": pieces["error"],
+            "date": pieces.get("date", "")
+        }
 
     if not style or style == "default":
         style = "pep440"  # the default
@@ -475,11 +467,13 @@ def render(pieces, style):
     else:
         raise ValueError("unknown style '%s'" % style)
 
-    return {"version": rendered,
-            "full-revisionid": pieces["long"],
-            "dirty": pieces["dirty"],
-            "error": None,
-            "date": pieces.get("date", "")}
+    return {
+        "version": rendered,
+        "full-revisionid": pieces["long"],
+        "dirty": pieces["dirty"],
+        "error": None,
+        "date": pieces.get("date", "")
+    }
 
 
 def get_versions():
@@ -493,8 +487,7 @@ def get_versions():
     verbose = cfg.verbose
 
     try:
-        return git_versions_from_keywords(get_keywords(), cfg.tag_prefix,
-                                          verbose)
+        return git_versions_from_keywords(get_keywords(), cfg.tag_prefix, verbose)
     except NotThisMethod:
         pass
 
@@ -506,11 +499,13 @@ def get_versions():
         for i in cfg.versionfile_source.split('/'):
             root = os.path.dirname(root)
     except NameError:
-        return {"version": "0+unknown",
-                "full-revisionid": None,
-                "dirty": None,
-                "error": "unable to find root of source tree",
-                "date": None}
+        return {
+            "version": "0+unknown",
+            "full-revisionid": None,
+            "dirty": None,
+            "error": "unable to find root of source tree",
+            "date": None
+        }
 
     try:
         pieces = git_pieces_from_vcs(cfg.tag_prefix, root, verbose)
@@ -524,8 +519,10 @@ def get_versions():
     except NotThisMethod:
         pass
 
-    return {"version": "0+unknown",
-            "full-revisionid": None,
-            "dirty": None,
-            "error": "unable to compute version",
-            "date": None}
+    return {
+        "version": "0+unknown",
+        "full-revisionid": None,
+        "dirty": None,
+        "error": "unable to compute version",
+        "date": None
+    }

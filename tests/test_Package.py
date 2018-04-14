@@ -52,7 +52,6 @@ class TargetStub(UpdateableObject):
 
         No builder (or None as builder means this is not a derived
         target.
-
         """
         return hasattr(self, 'builder') and self.builder is not None
 
@@ -65,56 +64,38 @@ class TestPackageTool(object):
 
         self.blub = TargetStub(path="blub", sources=[self.source1])
         self.bla = TargetStub(path="bla", sources=[self.source1, self.source2])
-        self.bloek = TargetStub(path="bloek",
-                                sources=[
-                                    self.source2, self.source3
-                                ])
+        self.bloek = TargetStub(path="bloek", sources=[self.source2, self.source3])
 
-        self.alias = TargetStub(sources=[
-            self.blub
-        ], depends=[
-            self.bla
-        ], prerequisites=[
-            self.bloek
-        ])
+        self.alias = TargetStub(sources=[self.blub], depends=[self.bla], prerequisites=[self.bloek])
 
     def test_TargetDependenciesAlias(self):
         deps = Package.getTargetDependencies(self.alias)
         assert len(deps) == 6
 
     def test_DerivedTargetDependenciesZero(self):
-        deps = Package.getTargetDependencies(self.alias,
-                                             SomeUtils.isDerivedNode)
+        deps = Package.getTargetDependencies(self.alias, SomeUtils.isDerivedNode)
         assert len(deps) == 0
 
     def test_DerivedTargetDependencies(self):
         self.blub.builder = object()
         self.bla.builder = object()
-        deps = Package.getTargetDependencies(self.alias,
-                                             SomeUtils.isDerivedNode)
+        deps = Package.getTargetDependencies(self.alias, SomeUtils.isDerivedNode)
         assert len(deps) == 2
 
     def test_TargetDependenciesTarget(self):
         self.alias.path = "target1"
         self.alias.builder = object()
-        deps = Package.getTargetDependencies(self.alias,
-                                             SomeUtils.isDerivedNode)
+        deps = Package.getTargetDependencies(self.alias, SomeUtils.isDerivedNode)
         assert len(deps) == 1
 
 
 class TestInstalledNode(object):
     def setup_method(self, method):
         self.node1 = TargetStub(path="3rdparty/blub")
-        self.node2 = TargetStub(path="bin/blub",
-                                sources=[
-                                    self.node1
-                                ],
-                                builder=UpdateableObject(name='InstallBuilder'))
-        self.node3 = TargetStub(path="tests/bla/bin/blub",
-                                sources=[
-                                    self.node2
-                                ],
-                                builder=UpdateableObject(name='InstallBuilder'))
+        self.node2 = TargetStub(
+            path="bin/blub", sources=[self.node1], builder=UpdateableObject(name='InstallBuilder'))
+        self.node3 = TargetStub(
+            path="tests/bla/bin/blub", sources=[self.node2], builder=UpdateableObject(name='InstallBuilder'))
         self.testnode = TargetStub(path="bin/blub")
 
     def test_IsInstalledNode(self):
@@ -130,10 +111,8 @@ class TestPathFilter(object):
         self.path = "apps/package/bin/variant123/blub"
 
     def test_FilterTestsAppsGlobalsPath(self):
-        assert Package.filterTestsAppsGlobalsPath(
-            self.path) == "bin/variant123/blub"
+        assert Package.filterTestsAppsGlobalsPath(self.path) == "bin/variant123/blub"
 
     def test_FilterVariantPath(self):
         env = EnvWrapper({'VARIANTDIR': 'variant123'})
-        assert Package.filterVariantPath(self.path,
-                                         env=env) == "apps/package/bin/blub"
+        assert Package.filterVariantPath(self.path, env=env) == "apps/package/bin/blub"

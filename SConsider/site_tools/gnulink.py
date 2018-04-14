@@ -1,7 +1,6 @@
 """SConsider.site_tools.gnulink.
 
 SConsider-specific gnulink tool initialization
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -95,9 +94,7 @@ def generate(env):
 
     buildmode = env.getBuildCfg()
     if buildmode in ['debug', 'profile']:
-        env.AppendUnique(SHLINKFLAGS=[
-            '-ggdb3' if str(platf) == 'sunos' else '-g'
-        ])
+        env.AppendUnique(SHLINKFLAGS=['-ggdb3' if str(platf) == 'sunos' else '-g'])
     if buildmode == 'debug':
         env.AppendUnique(LINKFLAGS=['-v'])
         env.AppendUnique(SHLINKFLAGS=['-v'])
@@ -110,8 +107,7 @@ def generate(env):
     elif buildmode == 'profile':
         env.AppendUnique(LINKFLAGS=['-pg'])
         env.AppendUnique(SHLINKFLAGS=['-pg'])
-    env.AddMethod(lambda env: env.Replace(_NONLAZYLINKFLAGS=''),
-                  'allowUnresolvedLinkSymbols')
+    env.AddMethod(lambda env: env.Replace(_NONLAZYLINKFLAGS=''), 'allowUnresolvedLinkSymbols')
 
 
 def exists(env):

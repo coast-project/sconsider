@@ -25,7 +25,9 @@ def tearDown(target, source, env):
 
 sourceFiles = ['hello.cpp']
 bin_name = 'hello'
-runConfigRunner = {'runParams': '', }
+runConfigRunner = {
+    'runParams': '',
+}
 
 _sconsider_dist = pkg_resources.get_distribution("SConsider").parsed_version
 if _sconsider_dist < pkg_resources.parse_version("0.5"):
@@ -50,28 +52,16 @@ elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
     from TargetMaker import EnvBuilder
     from TargetHelpers import createPackageTestTarget, createPackageRunTarget, createPackageProgramScript, createPackageProgram, createAlias
 
-    bin_target = createPackageProgram(packagename,
-                                      bin_name,
-                                      sourceFiles,
-                                      pkg_local=[])
+    bin_target = createPackageProgram(packagename, bin_name, sourceFiles, pkg_local=[])
 
-    script_target = createPackageProgramScript(packagename,
-                                               bin_name,
-                                               bin_target,
-                                               pkg_local=[])
+    script_target = createPackageProgramScript(packagename, bin_name, bin_target, pkg_local=[])
 
-    runner_target = createPackageRunTarget(packagename,
-                                           'runner',
-                                           script_target,
-                                           settings=runConfigRunner)
+    runner_target = createPackageRunTarget(packagename, 'runner', script_target, settings=runConfigRunner)
 
-    EnvBuilder().depend().build().RegisterPackageTarget(packagename=packagename,
-                                                        targetname='runner',
-                                                        target=runner_target)
+    EnvBuilder().depend().build().RegisterPackageTarget(
+        packagename=packagename, targetname='runner', target=runner_target)
 
     createAlias('binaries', runner_target)
 
-    EnvBuilder().depend(bin_target,
-                        script_target).build().RegisterPackageTarget(
-                            packagename=packagename,
-                            targetname=packagename)
+    EnvBuilder().depend(bin_target, script_target).build().RegisterPackageTarget(
+        packagename=packagename, targetname=packagename)

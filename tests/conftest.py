@@ -48,8 +48,7 @@ def scons_platform_options():
     specific_options = ''
     for i in ['cc', 'cxx']:
         if os.getenv(i + '_compiler'):
-            specific_options += ' --with-' + i + '=' + os.getenv(i +
-                                                                 '_compiler')
+            specific_options += ' --with-' + i + '=' + os.getenv(i + '_compiler')
     return specific_options
 
 
@@ -61,8 +60,7 @@ def current_testdir():
 @pytest.fixture(scope='function')
 def copy_testdir_to_tmp(tmpdir_factory, invocation_path, current_testdir):
     def ignorefiles(the_dir, names):
-        ignored_list = [j for j in names
-                        if j.startswith('.sconsign') or j.endswith('.log')]
+        ignored_list = [j for j in names if j.startswith('.sconsign') or j.endswith('.log')]
         return ignored_list
 
     fn = tmpdir_factory.mktemp(current_testdir, numbered=True).join('sources')

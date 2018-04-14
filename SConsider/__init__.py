@@ -2,7 +2,6 @@
 
 SCons build tool extension allowing automatic target finding within a
 directory tree.
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------

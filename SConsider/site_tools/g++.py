@@ -1,7 +1,6 @@
 """SConsider.site_tools.g++
 
 SConsider-specific g++ tool initialization
-
 """
 # vim: set et ai ts=4 sw=4:
 # -------------------------------------------------------------------------
@@ -58,10 +57,7 @@ def generate(env):
 
     bitwidth = env.getBitwidth()
     if compiler_subject:
-        _proc = PopenHelper(
-            [compiler_subject, '--version'],
-            stdout=PIPE,
-            stderr=PIPE)
+        _proc = PopenHelper([compiler_subject, '--version'], stdout=PIPE, stderr=PIPE)
         _out, _err = _proc.communicate()
 
         if _proc.returncode != 0:
@@ -85,16 +81,14 @@ def generate(env):
         import time
         fName = '.code2Compile.cpp.' + str(time.time()) + '.' + str(os.getpid())
         tFile = os.path.join(SCons.Script.Dir('.').get_abspath(), fName)
-        outFile = os.path.join(
-            SCons.Script.Dir('.').get_abspath(), fName + '.o')
+        outFile = os.path.join(SCons.Script.Dir('.').get_abspath(), fName + '.o')
         try:
             outf = open(tFile, 'w')
             outf.write('#include <cstdlib>\nint main(){return 0;}')
             outf.close()
         except:
             logger.error(
-                "failed to create compiler input file, check folder permissions and retry",
-                exc_info=True)
+                "failed to create compiler input file, check folder permissions and retry", exc_info=True)
             return
         _proc = PopenHelper(
             [compiler_subject, '-v', '-xc++', tFile, '-o', outFile, '-m' + bitwidth],
@@ -102,8 +96,7 @@ def generate(env):
             stderr=PIPE)
         _out, _err = _proc.communicate()
 
-        text_to_join = ['---- stdout ----', _out,
-                        '---- stderr ----', _err]
+        text_to_join = ['---- stdout ----', _out, '---- stderr ----', _err]
         build_output = os.linesep.join(text_to_join)
         logger.debug(build_output)
 
@@ -112,19 +105,17 @@ def generate(env):
                 os.remove(rfile)
         except:
             logger.error(
-                    "{0} {1}, check compiler output for errors:".format(
-                        rfile, 'could not be deleted'
-                        if os.path.exists(rfile) else 'was not created')+os.linesep+build_output,
+                "{0} {1}, check compiler output for errors:".format(
+                    rfile, 'could not be deleted'
+                    if os.path.exists(rfile) else 'was not created') + os.linesep + build_output,
                 exc_info=True)
             raise SCons.Errors.UserError(
-                'Build aborted, {0} compiler detection failed!'.format(
-                    compiler_subject))
+                'Build aborted, {0} compiler detection failed!'.format(compiler_subject))
         if _proc.returncode != 0:
-            logger.error(
-                "compile command failed with return code {0}:".format(proc.returncode)+os.linesep+build_output)
+            logger.error("compile command failed with return code {0}:".format(proc.returncode) + os.linesep +
+                         build_output)
             raise SCons.Errors.UserError(
-                'Build aborted, {0} compiler detection failed!'.format(
-                    compiler_subject))
+                'Build aborted, {0} compiler detection failed!'.format(compiler_subject))
         reIncl = re.compile(r'#include <\.\.\.>.*:$\s((^ .*\s)*)', re.M)
         match = reIncl.search(_err)
         sysincludes = []
