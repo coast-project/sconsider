@@ -116,3 +116,63 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             }
 
     createTargets(packagename, buildSettings)
+elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
+    import os
+    from TargetMaker import EnvBuilder
+    from ThirdParty import add_3rdparty_system_lib_target, add_3rdparty_system_header_target, add_3rdparty_system_binary_target
+    from TargetHelpers import createPackageProgramScript, createPackageRunTarget
+    includeTarget = add_3rdparty_system_header_target(EnvBuilder().build(), packagename,
+                                                      lambda conf: conf.CheckCHeader('sybdb.h'))
+
+    libnames = [('sybunic', 'lib_sybunic'), ('sybcs', 'lib_sybcs'), ('sybct', 'lib_sybct'),
+                ('sybintl', 'lib_sybintl'), ('sybtcl', 'lib_sybtcl'), ('sybcomn', 'lib_sybcomn')]
+    libs = add_3rdparty_system_lib_target(EnvBuilder().depend(includeTarget).build(), packagename,
+                                          lambda conf: conf.CheckMultipleLibs([lib for lib, _ in libnames]),
+                                          libnames)
+
+    libs = EnvBuilder().depend(libs).build().RegisterPackageTarget(packagename=packagename, targetname='libs')
+
+    reltargetdir = os.path.join('globals', packagename)
+
+    def setRelTargetDir(env):
+        env.setRelativeTargetDirectory(reltargetdir)
+
+    bin_env = EnvBuilder().depend(libs).build()
+    setRelTargetDir(bin_env)
+    bin_name = 'isql'
+    bin_target = add_3rdparty_system_binary_target(
+        bin_env, packagename, lambda conf: conf.CheckExecutable(bin_name), bin_name, 'bin_' + bin_name)
+    bins = EnvBuilder().depend(bin_target).build().RegisterPackageTarget(
+        packagename=packagename, targetname='bins')
+
+    from stat import *
+    copyFiles = [
+        (listFiles(['config/*', 'charsets/*', 'locales/*'], recursive=True), S_IRUSR | S_IRGRP | S_IROTH),
+    ]
+    copyTarget = createCopyFilesTarget(
+        packagename,
+        'config',
+        lambda env: env.getTargetBaseInstallDir(),
+        copyFiles,
+        pkg_local=[setRelTargetDir])
+
+    def addGenerateScriptVars(env):
+        env.AppendENVPath('SYBASE', os.path.join(env.getBaseOutDir().get_abspath(), reltargetdir))
+        env.AppendENVPath('LANG', 'C')
+        env.Append(GENERATESCRIPTVARS=[(
+            'SYBASE',
+            '${SYBASE:-' + os.path.join(env.getBaseOutDir().get_abspath(), reltargetdir) + '}'), ('LANG',
+                                                                                                  'C')])
+
+    generateScriptEnv = EnvBuilder().export(addGenerateScriptVars).build()
+    generateScriptTarget = generateScriptEnv.RegisterPackageTarget(packagename, 'generatescriptvars')
+
+    scriptTarget = createPackageProgramScript(
+        packagename, bin_name, bin_target, depend=[generateScriptTarget, copyTarget])
+    scripts = EnvBuilder().depend(scriptTarget).build().RegisterPackageTarget(
+        packagename=packagename, targetname='scripts')
+
+    runTarget = createPackageRunTarget(packagename, bin_name, scriptTarget, settings={'runParams': '-- help'})
+
+    EnvBuilder().depend(includeTarget, libs, bins, scripts).build().RegisterPackageTarget(
+        packagename=packagename, targetname=packagename)

@@ -36,3 +36,43 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     }
 
     createTargets(packagename, buildSettings)
+elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
+    from TargetMaker import EnvBuilder
+    from TargetHelpers import createPackageProgram, createPackageTestTarget, createPackageProgramScript, createAlias
+
+    def setUp(target, source, env):
+        pass
+
+    def tearDown(target, source, env):
+        pass
+
+    includeTarget = EnvBuilder(export=[EnvBuilder().include(Dir('cute_lib'))]).build().RegisterPackageTarget(
+        packagename=packagename, targetname='include')
+
+    bin_target = createPackageProgram(
+        packagename,
+        'cute_tests',
+        listFiles(['cute_tests/*.cpp']),
+        installdirprefix='tests',
+        depend=[includeTarget, 'boost.include'])
+    bins = EnvBuilder().depend(bin_target).build().RegisterPackageTarget(
+        packagename=packagename, targetname='bins')
+
+    scriptTarget = createPackageProgramScript(packagename, 'cute_tests', bin_target)
+    scripts = EnvBuilder().depend(scriptTarget).build().RegisterPackageTarget(
+        packagename=packagename, targetname='scripts')
+
+    testTarget = createPackageTestTarget(
+        packagename,
+        'cute_tests',
+        scriptTarget,
+        settings={
+            'setUp': setUp,
+            'tearDown': tearDown,
+            #              'runParams': '',
+        })
+
+    createAlias('tests', testTarget)
+
+    EnvBuilder().depend(includeTarget, bins, scripts).build().RegisterPackageTarget(
+        packagename=packagename, targetname=packagename)

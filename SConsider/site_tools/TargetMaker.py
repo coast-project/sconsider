@@ -331,4 +331,4 @@ def generate(env):
 
 
 def exists(env):
-    return 1
+    return True

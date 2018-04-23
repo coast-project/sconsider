@@ -28,3 +28,11 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
         buildSettings['include'] = {}
 
     createTargets(packagename, buildSettings)
+elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
+    from TargetMaker import EnvBuilder
+    from ThirdParty import add_3rdparty_system_header_target
+    includeTarget = add_3rdparty_system_header_target(
+        EnvBuilder().build(), packagename, lambda conf: conf.CheckCXXHeader('cute_lib/cute_version.h'))
+
+    EnvBuilder().depend(includeTarget).build().RegisterPackageTarget(
+        packagename=packagename, targetname=packagename)

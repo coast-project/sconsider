@@ -46,3 +46,28 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     }
 
     createTargets(packagename, buildSettings)
+elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
+    from TargetMaker import EnvBuilder
+    from TargetHelpers import createPackageRunTarget, createPackageProgramScripts, installPrecompiledBinaries, installPrecompiledLibraries
+
+    includeTarget = EnvBuilder(export=[EnvBuilder().include(Dir('include'))]).build().RegisterPackageTarget(
+        packagename=packagename, targetname='include')
+
+    libnames = [('mysql', 'lib_mysql')]
+    libs_installed = installPrecompiledLibraries(packagename, libnames)
+    libs = EnvBuilder().depend(libs_installed).build().RegisterPackageTarget(
+        packagename=packagename, targetname='libs')
+
+    binnames = [('mysql', 'bin_mysql', {'require': libs_installed})]
+    bins_installed = installPrecompiledBinaries(packagename, binnames)
+    bins = EnvBuilder().depend(bins_installed).build().RegisterPackageTarget(
+        packagename=packagename, targetname='bins')
+
+    scriptnames = [('bin_mysql', {}, {'runParams': '-- --help'})]
+    scripts_installed = createPackageProgramScripts(packagename, bins_installed, scriptnames,
+                                                    createPackageRunTarget)
+    scripts = EnvBuilder().depend(scripts_installed).build().RegisterPackageTarget(
+        packagename=packagename, targetname='scripts')
+
+    EnvBuilder().depend(includeTarget, libs, bins, scripts).build().RegisterPackageTarget(
+        packagename=packagename, targetname=packagename)

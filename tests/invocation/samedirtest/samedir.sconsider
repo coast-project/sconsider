@@ -52,9 +52,12 @@ elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
     from TargetMaker import EnvBuilder
     from TargetHelpers import createPackageTestTarget, createPackageRunTarget, createPackageProgramScript, createPackageProgram, createAlias
 
-    bin_target = createPackageProgram(packagename, bin_name, sourceFiles, pkg_local=[])
+    def setRelTargetDir(env, prefix='apps'):
+        env.setRelativeTargetDirectory(os.path.join(prefix, packagename))
 
-    script_target = createPackageProgramScript(packagename, bin_name, bin_target, pkg_local=[])
+    bin_target = createPackageProgram(packagename, bin_name, sourceFiles, pkg_local=[setRelTargetDir])
+
+    script_target = createPackageProgramScript(packagename, bin_name, bin_target, pkg_local=[setRelTargetDir])
 
     runner_target = createPackageRunTarget(packagename, 'runner', script_target, settings=runConfigRunner)
 
