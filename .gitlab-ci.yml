@@ -12,6 +12,7 @@ build:
   - docker
   script:
   - tox2 --version
+  - pip2 --version
   - tox2 --recreate -e wheel
 
 test:

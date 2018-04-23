@@ -18,7 +18,10 @@ Setup script to generate a python module from the sources.
 import os
 import codecs
 from setuptools import setup
-from pip.req import parse_requirements
+try:  # for pip >= 10
+    from pip._internal.req import parse_requirements
+except ImportError:  # for pip <= 9.0.3
+    from pip.req import parse_requirements
 import versioneer
 
 PACKAGE = 'SConsider'
