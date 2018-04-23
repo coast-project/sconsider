@@ -63,3 +63,35 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             buildSettings['script_openssl'] = buildSettings['openSSL']
 
     createTargets(packagename, buildSettings)
+elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
+    from TargetMaker import EnvBuilder
+    from ThirdParty import add_3rdparty_system_lib_target, add_3rdparty_system_header_target, add_3rdparty_system_binary_target
+    from TargetHelpers import createPackageProgramScript, createPackageRunTarget
+    includeTarget = add_3rdparty_system_header_target(EnvBuilder().build(), packagename,
+                                                      lambda conf: conf.CheckCHeader('openssl/ssl.h'))
+
+    libnames = [('ssl', 'lib_ssl'), ('crypto', 'lib_crypto')]
+    libs = add_3rdparty_system_lib_target(EnvBuilder().depend(includeTarget).build(), packagename,
+                                          lambda conf: conf.CheckMultipleLibs([lib for lib, _ in libnames]),
+                                          libnames)
+
+    libs = EnvBuilder().depend(libs).build().RegisterPackageTarget(packagename=packagename, targetname='libs')
+
+    bin_env = EnvBuilder().depend(libs).build()
+    import os
+    reltargetdir = os.path.join('globals', packagename)
+    bin_env.setRelativeTargetDirectory(reltargetdir)
+    bin_name = 'openssl'
+    bin_target = add_3rdparty_system_binary_target(
+        bin_env, packagename, lambda conf: conf.CheckExecutable(bin_name), bin_name, 'bin_' + bin_name)
+    bins = EnvBuilder().depend(bin_target).build().RegisterPackageTarget(
+        packagename=packagename, targetname='bins')
+
+    scriptTarget = createPackageProgramScript(packagename, bin_name, bin_target)
+    scripts = EnvBuilder().depend(scriptTarget).build().RegisterPackageTarget(
+        packagename=packagename, targetname='scripts')
+
+    runTarget = createPackageRunTarget(packagename, bin_name, scriptTarget, settings={'runParams': '-- help'})
+
+    EnvBuilder().depend(includeTarget, libs, bins, scripts).build().RegisterPackageTarget(
+        packagename=packagename, targetname=packagename)

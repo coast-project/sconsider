@@ -32,3 +32,17 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     }
 
     createTargets(packagename, buildSettings)
+elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
+    from TargetMaker import EnvBuilder
+    from TargetHelpers import installPrecompiledLibraries
+
+    includeTarget = EnvBuilder(export=[EnvBuilder().include(Dir('include'))]).build().RegisterPackageTarget(
+        packagename=packagename, targetname='include')
+
+    libnames = [('ldap50', 'lib_iplanetLDAP')]
+    libs_installed = installPrecompiledLibraries(packagename, libnames)
+    libs = EnvBuilder().depend(libs_installed).build().RegisterPackageTarget(
+        packagename=packagename, targetname='libs')
+
+    EnvBuilder().depend(includeTarget, libs).build().RegisterPackageTarget(
+        packagename=packagename, targetname=packagename)
