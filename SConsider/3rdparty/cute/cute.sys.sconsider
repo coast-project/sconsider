@@ -34,5 +34,5 @@ elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
     includeTarget = add_3rdparty_system_header_target(
         EnvBuilder().build(), packagename, lambda conf: conf.CheckCXXHeader('cute_lib/cute_version.h'))
 
-    EnvBuilder().depend(includeTarget).build().RegisterPackageTarget(
-        packagename=packagename, targetname=packagename)
+    EnvBuilder().depend(includeTarget).build().RegisterPackageTarget(packagename=packagename,
+                                                                     targetname=packagename)

@@ -53,15 +53,18 @@ def generateEclipseLaunchConfiguration(target, source, env):
 def generate(env):
     import optparse
     try:
-        AddOption(
-            '--workspace', dest='workspace', action='store', default='', help='Select workspace directory')
+        AddOption('--workspace',
+                  dest='workspace',
+                  action='store',
+                  default='',
+                  help='Select workspace directory')
     except optparse.OptionConflictError:
         pass
 
     GenerateEclipseDebugLaunchConfigAction = Action(generateEclipseLaunchConfiguration,
                                                     "Creating Eclipse debug launch config for '$TARGET'")
-    GenerateEclipseDebugLaunchConfigBuilder = Builder(
-        action=[GenerateEclipseDebugLaunchConfigAction], emitter=[generateEclipseLaunchEmitter])
+    GenerateEclipseDebugLaunchConfigBuilder = Builder(action=[GenerateEclipseDebugLaunchConfigAction],
+                                                      emitter=[generateEclipseLaunchEmitter])
     env.Append(BUILDERS={'GenerateEclipseDebugLaunchConfigBuilder': GenerateEclipseDebugLaunchConfigBuilder})
 
 

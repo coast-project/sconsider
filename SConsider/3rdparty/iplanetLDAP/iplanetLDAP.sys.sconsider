@@ -49,5 +49,5 @@ elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
                                           libnames)
 
     libs = EnvBuilder().depend(libs).build().RegisterPackageTarget(packagename=packagename, targetname='libs')
-    EnvBuilder().depend(includeTarget, libs).build().RegisterPackageTarget(
-        packagename=packagename, targetname=packagename)
+    EnvBuilder().depend(includeTarget, libs).build().RegisterPackageTarget(packagename=packagename,
+                                                                           targetname=packagename)

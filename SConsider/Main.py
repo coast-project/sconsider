@@ -112,22 +112,20 @@ def create_default_environment():
 
 
 def add_path_extend_options():
-    AddOption(
-        '--appendPath',
-        dest='appendPath',
-        action='append',
-        nargs=1,
-        type='string',
-        metavar='DIR',
-        help='Append this directory to the PATH environment variable.')
-    AddOption(
-        '--prependPath',
-        dest='prependPath',
-        action='append',
-        nargs=1,
-        type='string',
-        metavar='DIR',
-        help='Prepend this directory to the PATH environment variable.')
+    AddOption('--appendPath',
+              dest='appendPath',
+              action='append',
+              nargs=1,
+              type='string',
+              metavar='DIR',
+              help='Append this directory to the PATH environment variable.')
+    AddOption('--prependPath',
+              dest='prependPath',
+              action='append',
+              nargs=1,
+              type='string',
+              metavar='DIR',
+              help='Prepend this directory to the PATH environment variable.')
 
 
 def process_path_options(the_env, logto):
@@ -156,15 +154,14 @@ sconsider_default_tools = [
 
 
 def add_options_for_tools():
-    AddOption(
-        '--usetool',
-        dest='usetools',
-        action='append',
-        nargs=1,
-        type='string',
-        default=[],
-        metavar='VAR',
-        help='SCons tools to use for constructing the default environment. Default\
+    AddOption('--usetool',
+              dest='usetools',
+              action='append',
+              nargs=1,
+              type='string',
+              default=[],
+              metavar='VAR',
+              help='SCons tools to use for constructing the default environment. Default\
  tools are %s' % Flatten(sconsider_default_tools))
 
 
@@ -173,8 +170,8 @@ def get_list_of_scons_tools(logto):
     option_tools = GetOption('usetools')
     if option_tools is None:
         option_tools = []
-    usetools = OrderedDict.fromkeys(
-        sconsider_default_tools + DefaultEnvironment().get('_SCONSIDER_TOOLS_', []) + option_tools).keys()
+    usetools = OrderedDict.fromkeys(sconsider_default_tools +
+                                    DefaultEnvironment().get('_SCONSIDER_TOOLS_', []) + option_tools).keys()
     logto.debug('tools to use %s', Flatten(usetools))
     return usetools
 
@@ -276,8 +273,10 @@ def extend_env_lookup_by_package_registry(the_env, registry):
 
 
 def run_post_package_collection_cb(the_env, registry):
-    Callback().run(
-        'PostPackageCollection', env=the_env, registry=registry, sconstruct_dir=get_sconstruct_dir(the_env))
+    Callback().run('PostPackageCollection',
+                   env=the_env,
+                   registry=registry,
+                   sconstruct_dir=get_sconstruct_dir(the_env))
 
 
 def createTargets(pkg_name, buildSettings):
@@ -362,12 +361,11 @@ def load_targets_from_package_files(the_env, registry, logto):
 
             for ftname in buildtargets:
                 packagename, targetname = PackageRegistry.splitFulltargetname(ftname)
-                tryLoadPackageTarget(
-                    registry,
-                    pkg_name=packagename,
-                    tgt_name=targetname,
-                    logto=logto,
-                    build_targets=BUILD_TARGETS)
+                tryLoadPackageTarget(registry,
+                                     pkg_name=packagename,
+                                     tgt_name=targetname,
+                                     logto=logto,
+                                     build_targets=BUILD_TARGETS)
 
         except PackageNotFound as ex:
             logto.warning('%s, loading all packages to find potential alias target', ex, exc_info=False)
@@ -395,8 +393,10 @@ def run_pre_build_cb(the_env, registry, build_targets):
 
     Note: buildTargets is passed by reference and might be extended in callback functions!
     """
-    Callback().run(
-        "PreBuild", registry=registry, buildTargets=build_targets, sconstruct_dir=get_sconstruct_dir(the_env))
+    Callback().run("PreBuild",
+                   registry=registry,
+                   buildTargets=build_targets,
+                   sconstruct_dir=get_sconstruct_dir(the_env))
 
 
 def print_collected_build_targets(build_targets, logto):

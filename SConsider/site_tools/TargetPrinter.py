@@ -106,9 +106,8 @@ def printTree(registry, buildTargets, **kw):
         else:
             packagename, targetname = PackageRegistry.splitFulltargetname(fulltargetname, True)
         if existsTarget(registry, packagename, targetname):
-            node = Node(
-                PackageRegistry.createFulltargetname(packagename, targetname),
-                getDependencies(registry, deps, packagename, targetname))
+            node = Node(PackageRegistry.createFulltargetname(packagename, targetname),
+                        getDependencies(registry, deps, packagename, targetname))
             print_tree(node, lambda node: node.children, prune=prune, visited={})
             sys.stdout.write('\n')
         else:
@@ -124,31 +123,28 @@ def printTree(registry, buildTargets, **kw):
 def generate(env):
     """Add the options, builders and wrappers to the current Environment."""
     try:
-        AddOption(
-            '--showtargets',
-            dest='showtargets',
-            action='store_true',
-            default=False,
-            help='Show available targets')
+        AddOption('--showtargets',
+                  dest='showtargets',
+                  action='store_true',
+                  default=False,
+                  help='Show available targets')
         tree_choices = ['all', 'prune']
-        AddOption(
-            '--showtree',
-            dest='showtree',
-            nargs='?',
-            action='store',
-            type='choice',
-            const='all',
-            default=None,
-            choices=tree_choices,
-            metavar='OPTIONS',
-            help='Show target dependency tree in the format ' + str(tree_choices) + ', default=' +
-            tree_choices[0])
-        AddOption(
-            '--showallaliases',
-            dest='showallaliases',
-            action='store_true',
-            default=False,
-            help='Show all defined aliases')
+        AddOption('--showtree',
+                  dest='showtree',
+                  nargs='?',
+                  action='store',
+                  type='choice',
+                  const='all',
+                  default=None,
+                  choices=tree_choices,
+                  metavar='OPTIONS',
+                  help='Show target dependency tree in the format ' + str(tree_choices) + ', default=' +
+                  tree_choices[0])
+        AddOption('--showallaliases',
+                  dest='showallaliases',
+                  action='store_true',
+                  default=False,
+                  help='Show all defined aliases')
     except optparse.OptionConflictError:
         pass
 

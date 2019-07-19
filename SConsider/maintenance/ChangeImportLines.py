@@ -263,22 +263,22 @@ cleanTokens = (re.compile(
     r"\s*#(\s*(TestCases|tkf|foolabs|HSR|soplinux|itopia|hexa|Hank|scarl|bondo|bernina|zuoz|davos|ftan|surlej|hepta|penta|infoo|athla|tk\w+))+\s*$",
     re.M), "")
 cleanLineEnds = (re.compile(r"([ \t]+$)", re.M), "")
-cleanCompany = (re.compile(r"([^\\/])(tkf|telekurs|itopia|<em>i</em>topia|synlogic)\b", re.I),
-                lambda mo: str(mo.group(1)) + "ifs")
+cleanCompany = (re.compile(r"([^\\/])(tkf|telekurs|itopia|<em>i</em>topia|synlogic)\b",
+                           re.I), lambda mo: str(mo.group(1)) + "ifs")
 cleanWebDisplay = (re.compile(r"([^\\/])webdisplay2?", re.I), lambda mo: str(mo.group(1)) + "Coast")
 cleanFinanzInfo = (re.compile(r"Telekurs Finanzinformationen AG"), "Institut fuer Software")
 cleanTKFPath = (re.compile(r"\.\./TKF/"), "")
 cleanTKFID = (re.compile(r"tkf-id"), "ifs-id")
 correctKeyFile = (re.compile(r"(/(Key|Cert)File)\b"), lambda mo: str(mo.group(1)) + "Client")
 cleanWD2 = (re.compile(r"(WWW[\\/]+)?webdisplay2([\\/]+)?"), lambda mo: "coast" + str(mo.group(2)))
-cleanEXPORTDECL = (re.compile(r"(\s+)(EXPORTDECL_\w+[ \t]*)(.*)$", re.M),
-                   lambda mo: mo.group(1) + mo.group(3))
+cleanEXPORTDECL = (re.compile(r"(\s+)(EXPORTDECL_\w+[ \t]*)(.*)$",
+                              re.M), lambda mo: mo.group(1) + mo.group(3))
 
 myshellcleanlist = []
 myshellcleanlist.extend([(re.compile(r"ftp-fd"), "myApp")])
 myshellcleanlist.extend([(re.compile(r"Telekurs FTP-Frontdoor"), "SomeCompany myApp")])
-myshellcleanlist.extend([(re.compile(r"(^(\s*# specify ALL.*$\s)^(\s*#.*$\s)+^(ALL_CONFIGS.*$\s))", re.M),
-                          "\n")])
+myshellcleanlist.extend([(re.compile(r"(^(\s*# specify ALL.*$\s)^(\s*#.*$\s)+^(ALL_CONFIGS.*$\s))",
+                                     re.M), "\n")])
 myshellcleanlist.extend([(re.compile(r"(^\s*#?DEF_CONF.*$\s)", re.M), "\n")])
 myshellcleanlist.extend([(re.compile(r"(^\s*#\s*use setConfig\.sh.*$\s)", re.M), "\n")])
 myshellcleanlist.append(cleanDomain)
@@ -301,8 +301,8 @@ myldifcleanlist.append(cleanCompany)
 
 removeVersion = (re.compile(r'(^\s*/Version\s*"\$Id\$"\s*$\s)', re.M), "\n")
 
-cleanQuotedSpaces = [(re.compile(r"([/%])\s+"), lambda mo: mo.group(1)), (re.compile(r"\s*([<>=-?])\s*"),
-                                                                          lambda mo: mo.group(1))]
+cleanQuotedSpaces = [(re.compile(r"([/%])\s+"), lambda mo: mo.group(1)),
+                     (re.compile(r"\s*([<>=-?])\s*"), lambda mo: mo.group(1))]
 
 
 def correctQuote(mo):
@@ -534,47 +534,54 @@ if __name__ == "__main__":
 
     usage = "usage: %prog [options] <file>..."
     parser = OptionParser(usage=usage)
-    parser.add_option(
-        "-a",
-        "--allfiles",
-        action="store_true",
-        dest="allfiles",
-        help="process directories and files recursively and ignore command line files",
-        default=False)
-    parser.add_option(
-        "-s",
-        "--astyle",
-        action="store_true",
-        dest="astyle",
-        help="process modified files using astyle",
-        default=False)
-    parser.add_option(
-        "-x",
-        "--fileregex",
-        action="append",
-        dest="fileregex",
-        help="process only files matching regular expression, like '" + reCpp.pattern + "'",
-        default=[])
-    parser.add_option(
-        "-f",
-        "--filepattern",
-        action="append",
-        dest="filepattern",
-        help="process only files matching glob spec, like '*.cpp'",
-        default=[])
-    parser.add_option(
-        "-d",
-        "--dictfile",
-        action="store",
-        dest="dictfilename",
-        help="write processed entries to FILE",
-        metavar="FILE")
-    parser.add_option(
-        "-v", "--verbose", action="count", dest="verbose", help="write messages to stderr", default=0)
-    parser.add_option(
-        "-i", "--ifs", action="store_true", dest="ifs", help="do hsr specific replacements", default=False)
-    parser.add_option(
-        "-e", "--extra", action="store_true", dest="xtra", help="try to heal a dictfile", default=False)
+    parser.add_option("-a",
+                      "--allfiles",
+                      action="store_true",
+                      dest="allfiles",
+                      help="process directories and files recursively and ignore command line files",
+                      default=False)
+    parser.add_option("-s",
+                      "--astyle",
+                      action="store_true",
+                      dest="astyle",
+                      help="process modified files using astyle",
+                      default=False)
+    parser.add_option("-x",
+                      "--fileregex",
+                      action="append",
+                      dest="fileregex",
+                      help="process only files matching regular expression, like '" + reCpp.pattern + "'",
+                      default=[])
+    parser.add_option("-f",
+                      "--filepattern",
+                      action="append",
+                      dest="filepattern",
+                      help="process only files matching glob spec, like '*.cpp'",
+                      default=[])
+    parser.add_option("-d",
+                      "--dictfile",
+                      action="store",
+                      dest="dictfilename",
+                      help="write processed entries to FILE",
+                      metavar="FILE")
+    parser.add_option("-v",
+                      "--verbose",
+                      action="count",
+                      dest="verbose",
+                      help="write messages to stderr",
+                      default=0)
+    parser.add_option("-i",
+                      "--ifs",
+                      action="store_true",
+                      dest="ifs",
+                      help="do hsr specific replacements",
+                      default=False)
+    parser.add_option("-e",
+                      "--extra",
+                      action="store_true",
+                      dest="xtra",
+                      help="try to heal a dictfile",
+                      default=False)
 
     (options, positionalArgs) = parser.parse_args()
     if not options.allfiles and len(positionalArgs) < 1:
@@ -622,11 +629,10 @@ if __name__ == "__main__":
     if options.verbose > 2:
         print "Time elapsed = %ds for %d files" % (end - start, numFiles)
     start = time.clock()
-    processFiles(
-        filesToProcess,
-        fileCopyrightDict=fileCopyrightDict,
-        extensionToReplaceFuncMap=extensionToReplaceFuncMap,
-        doAstyle=options.astyle)
+    processFiles(filesToProcess,
+                 fileCopyrightDict=fileCopyrightDict,
+                 extensionToReplaceFuncMap=extensionToReplaceFuncMap,
+                 doAstyle=options.astyle)
     end = time.clock()
     chgElapsed = end - start
     if options.verbose > 2:

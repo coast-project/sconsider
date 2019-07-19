@@ -221,13 +221,8 @@ def createTestTarget(env, source, packagename, targetname, settings, defaultRunP
     addRunConfigHooks(env, source, runner, settings)
 
     Callback().register(
-        '__PostTestOrRun',
-        lambda: Callback().run(
-            'PostTest',
-            target=source,
-            packagename=packagename,
-            targetname=targetname,
-            logfile=logfile))
+        '__PostTestOrRun', lambda: Callback().run(
+            'PostTest', target=source, packagename=packagename, targetname=targetname, logfile=logfile))
 
     setTarget(packagename, targetname, runner)
     if callable(kw.get('runner_hook_func', None)):
@@ -253,22 +248,16 @@ def createRunTarget(env, source, packagename, targetname, settings, defaultRunPa
         return (source, fullTargetName)
 
     logfile = env.getLogInstallDir().File(targetname + '.run.log')
-    runner = env.RunBuilder(
-        ['dummyRunner_' + fullTargetName],
-        source,
-        runParams=getRunParams(settings, defaultRunParams),
-        logfile=logfile)
+    runner = env.RunBuilder(['dummyRunner_' + fullTargetName],
+                            source,
+                            runParams=getRunParams(settings, defaultRunParams),
+                            logfile=logfile)
 
     addRunConfigHooks(env, source, runner, settings)
 
     Callback().register(
-        '__PostTestOrRun',
-        lambda: Callback().run(
-            'PostRun',
-            target=source,
-            packagename=packagename,
-            targetname=targetname,
-            logfile=logfile))
+        '__PostTestOrRun', lambda: Callback().run(
+            'PostRun', target=source, packagename=packagename, targetname=targetname, logfile=logfile))
 
     setTarget(packagename, targetname, runner)
     if callable(kw.get('runner_hook_func', None)):
@@ -293,19 +282,17 @@ def composeRunTargets(env, source, packagename, targetname, settings, defaultRun
 def generate(env):
     try:
         AddOption('--run', dest='run', action='store_true', default=False, help='Should we run the target')
-        AddOption(
-            '--run-force',
-            dest='run-force',
-            action='store_true',
-            default=False,
-            help='Should we run the target and ignore .passed files')
-        AddOption(
-            '--runparams',
-            dest='runParams',
-            action='append',
-            type='string',
-            default=[],
-            help='The parameters to hand over')
+        AddOption('--run-force',
+                  dest='run-force',
+                  action='store_true',
+                  default=False,
+                  help='Should we run the target and ignore .passed files')
+        AddOption('--runparams',
+                  dest='runParams',
+                  action='append',
+                  type='string',
+                  default=[],
+                  help='The parameters to hand over')
     except optparse.OptionConflictError:
         pass
 
@@ -346,8 +333,13 @@ def generate(env):
 
             factory = createRunTarget
             runner_hook_func = runner_alias_for_run
-        _, _ = factory(
-            env, target, packagename, targetname, buildSettings, runner_hook_func=runner_hook_func, **kw)
+        _, _ = factory(env,
+                       target,
+                       packagename,
+                       targetname,
+                       buildSettings,
+                       runner_hook_func=runner_hook_func,
+                       **kw)
 
     def addBuildTargetCallback(**kw):
         if COMMAND_LINE_TARGETS:

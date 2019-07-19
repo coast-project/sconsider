@@ -24,8 +24,8 @@ def any2(monkeypatch):
     """Predefined Anything with values."""
     monkeypatch.setenv('COAST_ROOT', os.path.dirname(__file__))
     monkeypatch.setenv('COAST_PATH', '.:data')
-    return Anything([('a', 1), ('b', 2), 3, ('c', Anything([('a', Anything([1, 2, 3]))])), 5, ('a.b:3',
-                                                                                               'escaped')])
+    return Anything([('a', 1), ('b', 2), 3, ('c', Anything([('a', Anything([1, 2, 3]))])), 5,
+                     ('a.b:3', 'escaped')])
 
 
 def test_AnythingLen(any1):

@@ -53,8 +53,8 @@ elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
 
     libnames = [('mqic', 'lib_mqic'), ('mqiz', 'lib_mqiz'), ('mqmcs', 'lib_mqmcs')]
     libs_installed = installPrecompiledLibraries(packagename, libnames)
-    libs = EnvBuilder().depend(libs_installed).build().RegisterPackageTarget(
-        packagename=packagename, targetname='libs')
+    libs = EnvBuilder().depend(libs_installed).build().RegisterPackageTarget(packagename=packagename,
+                                                                             targetname='libs')
 
-    EnvBuilder().depend(includeTarget, libs).build().RegisterPackageTarget(
-        packagename=packagename, targetname=packagename)
+    EnvBuilder().depend(includeTarget, libs).build().RegisterPackageTarget(packagename=packagename,
+                                                                           targetname=packagename)

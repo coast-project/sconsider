@@ -56,62 +56,57 @@ def extractOsVersion(platf):
 
 def generate(env, **kw):
     """Add build tools."""
-    AddOption(
-        '--with-cxx',
-        dest='whichcxx',
-        action='store',
-        nargs=1,
-        type='string',
-        default=None,
-        metavar='PATH',
-        help='Fully qualified path and name to gnu g++ compiler')
-    AddOption(
-        '--with-cc',
-        dest='whichcc',
-        action='store',
-        nargs=1,
-        type='string',
-        default=None,
-        metavar='PATH',
-        help='Fully qualified path and name to gnu gcc compiler')
+    AddOption('--with-cxx',
+              dest='whichcxx',
+              action='store',
+              nargs=1,
+              type='string',
+              default=None,
+              metavar='PATH',
+              help='Fully qualified path and name to gnu g++ compiler')
+    AddOption('--with-cc',
+              dest='whichcc',
+              action='store',
+              nargs=1,
+              type='string',
+              default=None,
+              metavar='PATH',
+              help='Fully qualified path and name to gnu gcc compiler')
     bitchoices = ['32', '64']
     bitdefault = '32'
-    AddOption(
-        '--archbits',
-        dest='archbits',
-        action='store',
-        nargs=1,
-        type='choice',
-        choices=bitchoices,
-        default=bitdefault,
-        metavar='OPTIONS',
-        help='Select target bit width (if compiler supports it), ' + str(bitchoices) + ', default=' +
-        bitdefault)
+    AddOption('--archbits',
+              dest='archbits',
+              action='store',
+              nargs=1,
+              type='choice',
+              choices=bitchoices,
+              default=bitdefault,
+              metavar='OPTIONS',
+              help='Select target bit width (if compiler supports it), ' + str(bitchoices) + ', default=' +
+              bitdefault)
     buildchoices = ['debug', 'optimized', 'profile', 'coverage']
     builddefault = 'optimized'
-    AddOption(
-        '--build-cfg',
-        dest='buildcfg',
-        action='store',
-        nargs=1,
-        type='choice',
-        choices=buildchoices,
-        default=builddefault,
-        metavar='OPTIONS',
-        help='Select build configuration, ' + str(buildchoices) + ', default=' + builddefault +
-        '. Use profile in conjunction with gprof and coverage in conjunction with gcov.')
+    AddOption('--build-cfg',
+              dest='buildcfg',
+              action='store',
+              nargs=1,
+              type='choice',
+              choices=buildchoices,
+              default=builddefault,
+              metavar='OPTIONS',
+              help='Select build configuration, ' + str(buildchoices) + ', default=' + builddefault +
+              '. Use profile in conjunction with gprof and coverage in conjunction with gcov.')
     langchoices = ['c++03', 'c++11', 'c++14', 'c++17', 'c++0x', 'c++1y', 'c++1z', 'gnu++98', 'tr1']
     langdefault = 'gnu++98'
-    AddOption(
-        '--use-lang-features',
-        dest='whichlangfeat',
-        action='store',
-        nargs=1,
-        type='choice',
-        choices=langchoices,
-        default=langdefault,
-        metavar='OPTIONS',
-        help='Select which language features, ' + str(langchoices) + ', default=' + langdefault + '.')
+    AddOption('--use-lang-features',
+              dest='whichlangfeat',
+              action='store',
+              nargs=1,
+              type='choice',
+              choices=langchoices,
+              default=langdefault,
+              metavar='OPTIONS',
+              help='Select which language features, ' + str(langchoices) + ', default=' + langdefault + '.')
     warnchoices = ['none', 'medium', 'full']
     warndefault = 'medium'
     AddOption(
@@ -124,11 +119,10 @@ def generate(env, **kw):
         default=warndefault,
         metavar='OPTIONS',
         help='Select compilation warning level, one of ' + str(warnchoices) + ', default=' + warndefault)
-    AddOption(
-        '--no-largefilesupport',
-        dest='no-largefilesupport',
-        action='store_true',
-        help='Disable use of std libraries iostream headers')
+    AddOption('--no-largefilesupport',
+              dest='no-largefilesupport',
+              action='store_true',
+              help='Disable use of std libraries iostream headers')
 
     cxxCompiler = checkCompiler(env, GetOption('whichcxx'), 'CXX')
     ccCompiler = checkCompiler(env, GetOption('whichcc'), 'CC')

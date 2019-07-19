@@ -61,12 +61,11 @@ def collectPackages(directory, direxcludesrel=None):
 def registerDist(registry, packagename, package, distType, distDir, duplicate):
     package_dir = package[distType].get_dir()
     logger.debug('using package [%s](%s) in [%s]', packagename, distType, package_dir)
-    registry.setPackage(
-        packagename,
-        package[distType],
-        package_dir,
-        duplicate,
-        package_relpath=os.path.join(str(GetOption('3rdparty-build-prefix')), packagename))
+    registry.setPackage(packagename,
+                        package[distType],
+                        package_dir,
+                        duplicate,
+                        package_relpath=os.path.join(str(GetOption('3rdparty-build-prefix')), packagename))
     package_dir.addRepository(distDir)
     thirdPartyPackages.setdefault(packagename, {})[distType] = distDir
 
@@ -84,27 +83,24 @@ def postPackageCollection(env, registry, **kw):
             logger.warning('package [%s] already registered, skipping [%s]', packagename,
                            package.items()[0][1].get_dir().get_abspath())
             continue
-        AddOption(
-            '--with-src-' + packagename,
-            dest='with-src-' + packagename,
-            action='store',
-            default='',
-            metavar=packagename + '_SOURCEDIR',
-            help='Specify the ' + packagename + ' source directory')
-        AddOption(
-            '--with-bin-' + packagename,
-            dest='with-bin-' + packagename,
-            action='store',
-            default='',
-            metavar=packagename + '_DIR',
-            help='Specify the ' + packagename + ' legacy binary directory')
-        AddOption(
-            '--with-' + packagename,
-            dest='with-' + packagename,
-            action='store',
-            default='',
-            metavar=packagename + '_DIR',
-            help='Specify the ' + packagename + ' binary directory')
+        AddOption('--with-src-' + packagename,
+                  dest='with-src-' + packagename,
+                  action='store',
+                  default='',
+                  metavar=packagename + '_SOURCEDIR',
+                  help='Specify the ' + packagename + ' source directory')
+        AddOption('--with-bin-' + packagename,
+                  dest='with-bin-' + packagename,
+                  action='store',
+                  default='',
+                  metavar=packagename + '_DIR',
+                  help='Specify the ' + packagename + ' legacy binary directory')
+        AddOption('--with-' + packagename,
+                  dest='with-' + packagename,
+                  action='store',
+                  default='',
+                  metavar=packagename + '_DIR',
+                  help='Specify the ' + packagename + ' binary directory')
 
         libpath = GetOption('with-src-' + packagename)
         if libpath:
@@ -157,12 +153,11 @@ def get_third_party_default():
 
 def generate(env):
     from SConsider.Callback import Callback
-    AddOption(
-        '--3rdparty',
-        dest='3rdparty',
-        action='append',
-        help='Specify directory containing package files for third party libraries, default=["' +
-        get_third_party_default() + '"]')
+    AddOption('--3rdparty',
+              dest='3rdparty',
+              action='append',
+              help='Specify directory containing package files for third party libraries, default=["' +
+              get_third_party_default() + '"]')
     prefix_default = '.ThirdParty'
     AddOption(
         '--3rdparty-build-prefix',

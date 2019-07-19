@@ -29,7 +29,6 @@ print str(x)
 
 class _XMLNode(object):
     """Class for internal usage."""
-
     def __init__(self, parent, name, builder):
         self.builder = builder
         self.name = name
@@ -75,7 +74,6 @@ class XMLBuilder(object):
     use str(builder) or unicode(builder) to get xml text or
     ~builder to obtaine etree.ElementTree
     """
-
     def __init__(self, encoding='utf-8', builder=None, tab_level=None, format=False, tab_step=" " * 4):
         self.__builder = builder or TreeBuilder()
         self.__encoding = encoding
