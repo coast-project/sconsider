@@ -57,6 +57,7 @@ setup(
     cmdclass=versioneer.get_cmdclass(),
     description="scons build system extension",
     long_description=_README + '\n\n' + _CHANGES,
+    long_description_content_type="text/markdown",
     # classifier list:
     # https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
