@@ -18,10 +18,6 @@ Setup script to generate a python module from the sources.
 import os
 import codecs
 from setuptools import setup
-try:  # for pip >= 10
-    from pip._internal.req import parse_requirements
-except ImportError:  # for pip <= 9.0.3
-    from pip.req import parse_requirements
 import versioneer
 
 PACKAGE = 'SConsider'
@@ -40,13 +36,19 @@ def get_packages(package):
 
 def get_requirements():
     """Read and parse requirements from file."""
-    requirements_file_path = os.path.join(os.path.dirname(__file__), 'requirements.txt')
-    if os.path.exists(requirements_file_path):
-        parsed_requirements = parse_requirements(requirements_file_path, session=False)
-        requirements = [str(ir.req) for ir in parsed_requirements]
-    else:
-        requirements = []
-    return requirements
+    def read_contents(path, filename):
+        requires = []
+        with open(os.path.join(path, filename)) as f:
+            for ln in f:
+                if ln.startswith('-r'):
+                    requires.extend(read_contents(path, ln.split()[1]))
+                else:
+                    requires.append(ln)
+        return requires
+
+    base_path = os.path.dirname(__file__)
+    requirements_file_path = os.path.join(base_path, 'requirements.txt')
+    return read_contents(base_path, requirements_file_path)
 
 
 setup(
