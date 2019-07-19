@@ -57,18 +57,17 @@ elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
 
     all_libs = []
     for libname in ['regex', 'system']:
-        shared_lib = createPackageSharedLibrary(
-            packagename,
-            'boost_' + libname,
-            listFiles(['libs/' + libname + '/src/*.cpp']),
-            depend=[includeTarget])
+        shared_lib = createPackageSharedLibrary(packagename,
+                                                'boost_' + libname,
+                                                listFiles(['libs/' + libname + '/src/*.cpp']),
+                                                depend=[includeTarget])
         # register lib with backward compatibility name
-        EnvBuilder().depend(shared_lib).build().RegisterPackageTarget(
-            packagename=packagename, targetname=libname)
+        EnvBuilder().depend(shared_lib).build().RegisterPackageTarget(packagename=packagename,
+                                                                      targetname=libname)
         all_libs.append(shared_lib)
 
-    libs = EnvBuilder().depend(all_libs).build().RegisterPackageTarget(
-        packagename=packagename, targetname='libs')
+    libs = EnvBuilder().depend(all_libs).build().RegisterPackageTarget(packagename=packagename,
+                                                                       targetname='libs')
 
-    EnvBuilder().depend(includeTarget, libs).build().RegisterPackageTarget(
-        packagename=packagename, targetname=packagename)
+    EnvBuilder().depend(includeTarget, libs).build().RegisterPackageTarget(packagename=packagename,
+                                                                           targetname=packagename)

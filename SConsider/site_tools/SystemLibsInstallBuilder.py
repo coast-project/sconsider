@@ -33,8 +33,8 @@ def notInDir(env, directory, path):
 
 def get_library_install_dir(env, sourcenode):
     if not hasattr(env, 'getLibraryInstallDir'):
-        raise UserError('environment on node [%s] is not a SConsider environment, can not continue' %
-                        (str(sourcenode)))
+        raise UserError(
+            'environment on node [%s] is not a SConsider environment, can not continue' % (str(sourcenode)))
     return env.getLibraryInstallDir()
 
 

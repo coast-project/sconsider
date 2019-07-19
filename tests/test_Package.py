@@ -92,10 +92,12 @@ class TestPackageTool(object):
 class TestInstalledNode(object):
     def setup_method(self, method):
         self.node1 = TargetStub(path="3rdparty/blub")
-        self.node2 = TargetStub(
-            path="bin/blub", sources=[self.node1], builder=UpdateableObject(name='InstallBuilder'))
-        self.node3 = TargetStub(
-            path="tests/bla/bin/blub", sources=[self.node2], builder=UpdateableObject(name='InstallBuilder'))
+        self.node2 = TargetStub(path="bin/blub",
+                                sources=[self.node1],
+                                builder=UpdateableObject(name='InstallBuilder'))
+        self.node3 = TargetStub(path="tests/bla/bin/blub",
+                                sources=[self.node2],
+                                builder=UpdateableObject(name='InstallBuilder'))
         self.testnode = TargetStub(path="bin/blub")
 
     def test_IsInstalledNode(self):

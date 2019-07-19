@@ -277,15 +277,17 @@ def generate(env):
 
     PrecompLibAction = SCons.Action.Action(installFunc,
                                            "Installing precompiled library '$SOURCE' as '$TARGET'")
-    PrecompLibBuilder = SCons.Builder.Builder(
-        action=[PrecompLibAction], emitter=precompLibNamesEmitter, single_source=True)
+    PrecompLibBuilder = SCons.Builder.Builder(action=[PrecompLibAction],
+                                              emitter=precompLibNamesEmitter,
+                                              single_source=True)
 
     env.Append(BUILDERS={'PrecompiledLibraryInstallBuilder': PrecompLibBuilder})
 
     PrecompBinAction = SCons.Action.Action(installFunc,
                                            "Installing precompiled binary '$SOURCE' as '$TARGET'")
-    PrecompBinBuilder = SCons.Builder.Builder(
-        action=[PrecompBinAction], emitter=precompBinNamesEmitter, single_source=False)
+    PrecompBinBuilder = SCons.Builder.Builder(action=[PrecompBinAction],
+                                              emitter=precompBinNamesEmitter,
+                                              single_source=False)
 
     env.Append(BUILDERS={'PrecompiledBinaryInstallBuilder': PrecompBinBuilder})
     Callback().register('PrePackageCollection', prePackageCollection)

@@ -87,13 +87,12 @@ def generate(env):
             outf.write('#include <cstdlib>\nint main(){return 0;}')
             outf.close()
         except:
-            logger.error(
-                "failed to create compiler input file, check folder permissions and retry", exc_info=True)
+            logger.error("failed to create compiler input file, check folder permissions and retry",
+                         exc_info=True)
             return
-        _proc = PopenHelper(
-            [compiler_subject, '-v', '-xc++', tFile, '-o', outFile, '-m' + bitwidth],
-            stdout=PIPE,
-            stderr=PIPE)
+        _proc = PopenHelper([compiler_subject, '-v', '-xc++', tFile, '-o', outFile, '-m' + bitwidth],
+                            stdout=PIPE,
+                            stderr=PIPE)
         _out, _err = _proc.communicate()
 
         text_to_join = ['---- stdout ----', _out, '---- stderr ----', _err]
@@ -104,11 +103,10 @@ def generate(env):
             for rfile in [tFile, outFile]:
                 os.remove(rfile)
         except:
-            logger.error(
-                "{0} {1}, check compiler output for errors:".format(
-                    rfile, 'could not be deleted'
-                    if os.path.exists(rfile) else 'was not created') + os.linesep + build_output,
-                exc_info=True)
+            logger.error("{0} {1}, check compiler output for errors:".format(
+                rfile, 'could not be deleted' if os.path.exists(rfile) else 'was not created') + os.linesep +
+                         build_output,
+                         exc_info=True)
             raise SCons.Errors.UserError(
                 'Build aborted, {0} compiler detection failed!'.format(compiler_subject))
         if _proc.returncode != 0:

@@ -109,12 +109,11 @@ class TargetMaker(object):
             if str(env['PLATFORM']) not in ["cygwin", "win32"]:
                 mode = stat.S_IREAD
                 mode |= stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
-            instTargets = copyFileNodes(
-                env,
-                self.prepareFileNodeTuples(ifiles, pkgdir),
-                destdir,
-                stripRelDirs=stripRelDirs,
-                mode=mode)
+            instTargets = copyFileNodes(env,
+                                        self.prepareFileNodeTuples(ifiles, pkgdir),
+                                        destdir,
+                                        stripRelDirs=stripRelDirs,
+                                        mode=mode)
         return instTargets
 
     def copyFiles(self, env, destdir, pkgname, copyFiles):
@@ -135,12 +134,11 @@ class TargetMaker(object):
             if str(env['PLATFORM']) in ["cygwin", "win32"]:
                 mode = None
             instTargets.extend(
-                copyFileNodes(
-                    env,
-                    self.prepareFileNodeTuples(files, pkgdir, envconfigdir),
-                    destdir,
-                    mode=mode,
-                    replaceDict=replaceDict))
+                copyFileNodes(env,
+                              self.prepareFileNodeTuples(files, pkgdir, envconfigdir),
+                              destdir,
+                              mode=mode,
+                              replaceDict=replaceDict))
 
         return instTargets
 
@@ -187,9 +185,8 @@ class TargetMaker(object):
                 # The following is a workaround, otherwise an alias won't get
                 # built in newer SCons versions (because it has depends but no
                 # sources)
-                target = targetEnv.Alias(
-                    self.registry.createFulltargetname(packagename, targetname),
-                    self.registry.getPackageFile(packagename))
+                target = targetEnv.Alias(self.registry.createFulltargetname(packagename, targetname),
+                                         self.registry.getPackageFile(packagename))
 
             # handle hard dependencies and softer requirements differently
             self.requireTargets(targetEnv, target, targetBuildSettings.get('linkDependencies', []))
@@ -208,13 +205,12 @@ class TargetMaker(object):
             if targetBuildSettings.get('runConfig', {}).get('type', '') == 'test':
                 targetEnv.Alias('tests', target)
 
-            Callback().run(
-                "PostCreateTarget",
-                env=targetEnv,
-                target=target,
-                packagename=packagename,
-                targetname=targetname,
-                buildSettings=targetBuildSettings)
+            Callback().run("PostCreateTarget",
+                           env=targetEnv,
+                           target=target,
+                           packagename=packagename,
+                           targetname=targetname,
+                           buildSettings=targetBuildSettings)
 
             self.registry.setPackageTarget(packagename, targetname, target)
             return True
@@ -223,12 +219,11 @@ class TargetMaker(object):
             # is required by an explicit command line target
             raise_again = not bool(GetOption('ignore-missing')) or self.registry.createFulltargetname(
                 packagename, targetname) in BUILD_TARGETS
-            logger.warning(
-                '%s (referenced by [%s])%s',
-                ex,
-                self.registry.createFulltargetname(packagename, targetname),
-                ', ignoring as requested' if not raise_again else '',
-                exc_info=False)
+            logger.warning('%s (referenced by [%s])%s',
+                           ex,
+                           self.registry.createFulltargetname(packagename, targetname),
+                           ', ignoring as requested' if not raise_again else '',
+                           exc_info=False)
             if raise_again:
                 raise PackageRequirementsNotFulfilled(packagename, self.registry.getPackageFile(packagename),
                                                       ex.name)
@@ -319,15 +314,14 @@ class TargetMaker(object):
 
 
 def generate(env):
-    AddOption(
-        '--ignore-missing',
-        dest='ignore-missing',
-        nargs='?',
-        action='store',
-        const=1,
-        default=0,
-        metavar='[*0*|1]',
-        help='Ignore missing dependencies instead of failing the whole build.')
+    AddOption('--ignore-missing',
+              dest='ignore-missing',
+              nargs='?',
+              action='store',
+              const=1,
+              default=0,
+              metavar='[*0*|1]',
+              help='Ignore missing dependencies instead of failing the whole build.')
 
 
 def exists(env):

@@ -51,15 +51,14 @@ def prePackageCollection(env, **kw):
 def generate(env):
     from SConsider.Callback import Callback
 
-    AddOption(
-        '--exclude',
-        dest='exclude',
-        action='append',
-        nargs=1,
-        type='string',
-        default=[],
-        metavar='DIR',
-        help='Exclude directory from being scanned for SConscript\
+    AddOption('--exclude',
+              dest='exclude',
+              action='append',
+              nargs=1,
+              type='string',
+              default=[],
+              metavar='DIR',
+              help='Exclude directory from being scanned for SConscript\
  (*.sconsider) files.')
 
     global relativeExcludeDirsList

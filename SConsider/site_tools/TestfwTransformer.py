@@ -73,21 +73,20 @@ class Result(object):
         with xml.testsuites():
             for section in self.getSections():
                 classname = package + '.' + section.get('name', 'unknown')
-                with xml.testsuite(
-                        tests=section.get('tests', 0),
-                        errors=section.get('errors', 0),
-                        failures=section.get('failures', 0),
-                        hostname=section.get('hostname', 'unknown'),
-                        time=float(section.get('msecs', 0)) / 1000,
-                        timestamp=section.get('time', ''),
-                        name=classname):
+                with xml.testsuite(tests=section.get('tests', 0),
+                                   errors=section.get('errors', 0),
+                                   failures=section.get('failures', 0),
+                                   hostname=section.get('hostname', 'unknown'),
+                                   time=float(section.get('msecs', 0)) / 1000,
+                                   timestamp=section.get('time', ''),
+                                   name=classname):
                     for name, testcase in section['testcases'].iteritems():
                         # Testfw prints 'Testcase.Testmethod', but we just need
                         # 'Testmethod' here
                         testname = re.sub('^' + section.get('name', 'unknown') + r'\.', '', name)
-                        with xml.testcase(
-                                name=testname, classname=classname,
-                                time=float(testcase.get('msecs', 0)) / 1000):
+                        with xml.testcase(name=testname,
+                                          classname=classname,
+                                          time=float(testcase.get('msecs', 0)) / 1000):
                             if not testcase['passed']:
                                 xml << ('failure', testcase.get('message', ''), {
                                     'message': testcase.get('cause', ''),
@@ -192,38 +191,21 @@ class Parser(object):
         }
         self.patterns = [
             (re.compile('^Running (.*)'),
-             lambda line, match: self.state.start(
-                 line=line, name=match.group(1))),
-            (re.compile(
-                r'^OK \((\d+)\D*test\D*(\d+)\D*assertion\D*(\d+)\D*ms.*\)'),
-             lambda line, match: self.state.end(
-                 line=line, tests=match.group(1),
-                 assertions=match.group(2),
-                 msecs=match.group(3))),
-            (re.compile('^--([^-]+)--'),
-             lambda line, match: self.state.test(
-                 line=line, name=match.group(1))),
-            (re.compile('^!!!FAILURES!!!'),
-             lambda line, match: self.state.fail(line=line)),
-            (re.compile(r'^(\d+)\D*assertion\D*(\d+)\D*ms\D*(\d+)\D*failure.*'),
-             lambda line, match: self.state.stop(
-                 line=line, assertions=match.group(1),
-                 msecs=match.group(2),
-                 failures=match.group(3))),
-            (re.compile(r'^Run\D*(\d+)\D*Failure\D*(\d+)\D*Error\D*(\d+)'),
-             lambda line, match: self.state.failResult(
-                 line=line, runs=match.group(1),
-                 failures=match.group(2),
-                 errors=match.group(3))),
-            (re.compile(r'^\((\d+)\D*assertion\D*(\d+)\D*ms.*\)'),
-             lambda line, match: self.state.failSuccess(
-                 line=line, assertions=match.group(1),
-                 msecs=match.group(2))),
+             lambda line, match: self.state.start(line=line, name=match.group(1))),
+            (re.compile(r'^OK \((\d+)\D*test\D*(\d+)\D*assertion\D*(\d+)\D*ms.*\)'), lambda line, match: self.
+             state.end(line=line, tests=match.group(1), assertions=match.group(2), msecs=match.group(3))),
+            (re.compile('^--([^-]+)--'), lambda line, match: self.state.test(line=line, name=match.group(1))),
+            (re.compile('^!!!FAILURES!!!'), lambda line, match: self.state.fail(line=line)),
+            (re.compile(r'^(\d+)\D*assertion\D*(\d+)\D*ms\D*(\d+)\D*failure.*'), lambda line, match: self.
+             state.stop(line=line, assertions=match.group(1), msecs=match.group(2), failures=match.group(3))),
+            (re.compile(r'^Run\D*(\d+)\D*Failure\D*(\d+)\D*Error\D*(\d+)'), lambda line, match: self.state.
+             failResult(line=line, runs=match.group(1), failures=match.group(2), errors=match.group(3))),
+            (re.compile(r'^\((\d+)\D*assertion\D*(\d+)\D*ms.*\)'), lambda line, match: self.state.failSuccess(
+                line=line, assertions=match.group(1), msecs=match.group(2))),
             (re.compile(r'^\d+\)\s+([^\s]+):\s*(.*:\d+:\s*(.*))'),
              lambda line, match: self.state.failStartFailure(
-                 line=line, testcase=match.group(1),
-                 message=match.group(2),
-                 cause=match.group(3)))]
+                 line=line, testcase=match.group(1), message=match.group(2), cause=match.group(3)))
+        ]
 
     def setState(self, state):
         if isinstance(state, str):

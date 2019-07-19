@@ -60,7 +60,6 @@ except ImportError:
 
 class ConvertingDict(dict):
     """A converting dictionary wrapper."""
-
     def __getitem__(self, key):
         value = dict.__getitem__(self, key)
         result = self.configurator.convert(value)
@@ -95,7 +94,6 @@ class ConvertingDict(dict):
 
 class ConvertingList(list):
     """A converting list wrapper."""
-
     def __getitem__(self, key):
         value = list.__getitem__(self, key)
         result = self.configurator.convert(value)
@@ -118,7 +116,6 @@ class ConvertingList(list):
 
 class ConvertingTuple(tuple):
     """A converting tuple wrapper."""
-
     def __getitem__(self, key):
         value = tuple.__getitem__(self, key)
         result = self.configurator.convert(value)
@@ -263,7 +260,6 @@ class BaseConfigurator(object):
 class DictConfigurator(BaseConfigurator):
     """Configure logging using a dictionary-like object to describe the
     configuration."""
-
     def configure(self):
         """Do the configuration."""
 
