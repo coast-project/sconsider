@@ -39,11 +39,11 @@ def get_requirements():
     def read_contents(path, filename):
         requires = []
         with open(os.path.join(path, filename)) as f:
-            for ln in f:
-                if ln.startswith('-r'):
-                    requires.extend(read_contents(path, ln.split()[1]))
+            for req_line in f:
+                if req_line.startswith('-r'):
+                    requires.extend(read_contents(path, req_line.split()[1]))
                 else:
-                    requires.append(ln)
+                    requires.append(req_line)
         return requires
 
     base_path = os.path.dirname(__file__)
