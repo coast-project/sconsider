@@ -140,8 +140,9 @@ elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
     bin_env = EnvBuilder().depend(libs).build()
     setRelTargetDir(bin_env)
     bin_name = 'isql'
-    bin_target = add_3rdparty_system_binary_target(
-        bin_env, packagename, lambda conf: conf.CheckExecutable(bin_name), bin_name, 'bin_' + bin_name)
+    bin_target = add_3rdparty_system_binary_target(bin_env, packagename,
+                                                   lambda conf: conf.CheckExecutable(bin_name), bin_name,
+                                                   'bin_' + bin_name)
     bins = EnvBuilder().depend(bin_target).build().RegisterPackageTarget(packagename=packagename,
                                                                          targetname='bins')
 

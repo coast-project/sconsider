@@ -156,15 +156,16 @@ def test_SConsiderStaticProgBuildOutputFilesBelowStartdir(copy_testdir_to_tmp, p
 
 
 @pytest.mark.invocation
-def test_SConsiderStaticProgBuildOutputFilesInBaseoutdir(
-        copy_testdir_to_tmp, pypath_extended_env, popen_timeout, scons_platform_options, tmpdir_factory):
+def test_SConsiderStaticProgBuildOutputFilesInBaseoutdir(copy_testdir_to_tmp, pypath_extended_env,
+                                                         popen_timeout, scons_platform_options,
+                                                         tmpdir_factory):
     baseoutdir = str(tmpdir_factory.mktemp('baseoutdir', numbered=True))
-    sub_p = PopenHelper(
-        r'scons --3rdparty= --baseoutdir=' + baseoutdir + ' --run hello.runner' + scons_platform_options,
-        stdout=PIPE,
-        stderr=PIPE,
-        cwd=str(copy_testdir_to_tmp),
-        env=pypath_extended_env)
+    sub_p = PopenHelper(r'scons --3rdparty= --baseoutdir=' + baseoutdir + ' --run hello.runner' +
+                        scons_platform_options,
+                        stdout=PIPE,
+                        stderr=PIPE,
+                        cwd=str(copy_testdir_to_tmp),
+                        env=pypath_extended_env)
     _, _ = sub_p.communicate(timeout=popen_timeout)
     assert 0 == sub_p.returncode
     assert not copy_testdir_to_tmp.join('apps').isdir()

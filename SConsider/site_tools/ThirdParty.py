@@ -159,13 +159,13 @@ def generate(env):
               help='Specify directory containing package files for third party libraries, default=["' +
               get_third_party_default() + '"]')
     prefix_default = '.ThirdParty'
-    AddOption(
-        '--3rdparty-build-prefix',
-        dest='3rdparty-build-prefix',
-        nargs='?',
-        default=prefix_default,
-        const=prefix_default,
-        help='Specify directory prefix for third party build output, default=["' + prefix_default + '"]')
+    AddOption('--3rdparty-build-prefix',
+              dest='3rdparty-build-prefix',
+              nargs='?',
+              default=prefix_default,
+              const=prefix_default,
+              help='Specify directory prefix for third party build output, default=["' + prefix_default +
+              '"]')
 
     Callback().register('PostPackageCollection', postPackageCollection)
     Callback().register('PrePackageCollection', prePackageCollection)

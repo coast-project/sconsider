@@ -148,8 +148,8 @@ def findLibrary(env, basedir, libname, dir_has_to_match=True, strict_lib_name_ma
 
     if allLibs:
         entry = allLibs[0]
-        return (entry['path'], entry['file'], entry['linkfile'], (entry['suffix'] == env.subst(
-            env['LIBSUFFIX'])))
+        return (entry['path'], entry['file'], entry['linkfile'],
+                (entry['suffix'] == env.subst(env['LIBSUFFIX'])))
 
     logger.warning('library [%s] not available for this platform [%s] and bitwidth[%s]', libname,
                    env['PLATFORM'], env.getBitwidth())

@@ -109,16 +109,16 @@ def generate(env, **kw):
               help='Select which language features, ' + str(langchoices) + ', default=' + langdefault + '.')
     warnchoices = ['none', 'medium', 'full']
     warndefault = 'medium'
-    AddOption(
-        '--warnlevel',
-        dest='warnlevel',
-        action='store',
-        nargs=1,
-        type='choice',
-        choices=warnchoices,
-        default=warndefault,
-        metavar='OPTIONS',
-        help='Select compilation warning level, one of ' + str(warnchoices) + ', default=' + warndefault)
+    AddOption('--warnlevel',
+              dest='warnlevel',
+              action='store',
+              nargs=1,
+              type='choice',
+              choices=warnchoices,
+              default=warndefault,
+              metavar='OPTIONS',
+              help='Select compilation warning level, one of ' + str(warnchoices) + ', default=' +
+              warndefault)
     AddOption('--no-largefilesupport',
               dest='no-largefilesupport',
               action='store_true',
