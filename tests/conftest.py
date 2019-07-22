@@ -17,7 +17,7 @@ from py.path import local
 
 @pytest.fixture
 def popen_timeout():
-    timout_value = 10
+    timout_value = 30
     if platform.system().lower() == 'sunos':
         timout_value = 60
     timout_value = int(os.getenv('POPEN_COMMUNICATE_TIMEOUT', timout_value))
