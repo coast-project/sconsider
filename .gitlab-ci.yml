@@ -5,7 +5,6 @@ variables:
 
 before_script:
 - echo -e "[distutils]\\nindex-servers =\\n  pypi\\n  testpypi\\n[pypi]\\n#repository:$PYPI_REPOSITORY\\nusername:$PYPI_USERNAME\\npassword:$PYPI_PASSWORD\\n[testpypi]\\nrepository:$PYPI_TEST_REPOSITORY\\nusername:$PYPI_TEST_USERNAME\\npassword:$PYPI_TEST_PASSWORD\\n" >$PYPIRC_LOCATION
-- echo -e "[pytest]\\nlog_cli = 1\\nlog_cli_level = ERROR\\nlog_file = pytest.log\\nlog_file_level = DEBUG\\n" >$CI_PROJECT_DIR/pytest.ini
 - type -fP tox || pip install tox
 
 build:
