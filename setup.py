@@ -16,15 +16,24 @@ Setup script to generate a python module from the sources.
 # -------------------------------------------------------------------------
 
 import os
-import codecs
+import sys
 from setuptools import setup
 import versioneer
 
+if sys.hexversion >= 0x03000000:
+    open_file = open
+else:
+    import codecs
+    open_file = codecs.open
+
+
 PACKAGE = 'SConsider'
 
-_THISPATH = os.path.abspath(os.path.dirname(__file__))
-_README = codecs.open(os.path.join(_THISPATH, 'README.md'), encoding='utf8').read()
-_CHANGES = codecs.open(os.path.join(_THISPATH, 'CHANGES.md'), encoding='utf8').read()
+
+def read_file(name):
+    """Get the string contained in the file named name."""
+    with open_file(name, 'r', encoding='utf-8') as f:
+        return f.read()
 
 
 def get_packages(package):
@@ -56,8 +65,8 @@ setup(
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
     description="scons build system extension",
-    long_description=_README + '\n\n' + _CHANGES,
-    long_description_content_type="text/markdown",
+    long_description=read_file('README.adoc'),
+    long_description_content_type="text/plain",
     # classifier list:
     # https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
@@ -78,7 +87,7 @@ setup(
     ],
     author="Marcel Huber",
     author_email="marcel.huber@hsr.ch",
-    url="https://redmine.coast-project.org/projects/sconsider",
+    url="https://gitlab.dev.ifs.hsr.ch/ifs/sconsider",
     keywords=['sconsider', 'scons', 'build'],
     license="BSD",
     packages=get_packages(PACKAGE),
