@@ -12,9 +12,9 @@ build:
   tags:
   - docker
   script:
-  - tox --recreate -e wheel
+  - tox --recreate -e wheel --result-json "$(pwd)/$CI_JOBNAME.tox.log"
 
-test deployment to testpypi:
+test and deploy to testpypi:
   stage: test
   tags:
   - docker
@@ -25,8 +25,8 @@ test deployment to testpypi:
     - dist/*.whl
     - dist/*.tar.gz
   script:
-  - tox --recreate
-  - tox --recreate -e upload
+  - tox --recreate --result-json "$(pwd)/$CI_JOBNAME.tox.log"
+  - tox --recreate -e upload --result-json "$(pwd)/$CI_JOBNAME.upload.tox.log"
 
 deploy to pypi:
   stage: deploy
@@ -44,4 +44,4 @@ deploy to pypi:
     - dist/*.whl
     - dist/*.tar.gz
   script:
-  - tox --recreate -e upload
+  - tox --recreate -e upload --result-json "$(pwd)/$CI_JOBNAME.tox.log"
