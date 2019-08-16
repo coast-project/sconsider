@@ -50,8 +50,7 @@ def test_SConsiderSconstructDirSameAsLaunchDir(copy_testdir_to_tmp, pypath_exten
 def test_SConsiderSconstructDirBelowLaunchDir(copy_testdir_to_tmp, pypath_extended_env, popen_timeout,
                                               scons_platform_options, capfd):
     sconstruct_file = os.path.join(str(copy_testdir_to_tmp), 'SConstruct')
-    sub_p = PopenHelper(r'scons -h -f ' + sconstruct_file + scons_platform_options,
-                        env=pypath_extended_env)
+    sub_p = PopenHelper(r'scons -h -f ' + sconstruct_file + scons_platform_options, env=pypath_extended_env)
     sub_p.communicate(timeout=popen_timeout)
     assert 0 == sub_p.returncode
     captured = capfd.readouterr()
@@ -174,16 +173,12 @@ def test_SConsiderThirdPartyBuildOnceOnly(copy_testdir_to_tmp, pypath_extended_e
     cmdline = r'scons --3rdparty=my3pscons --with-src-3plib=my3psrc' + scons_platform_options
     if buildprefix:
         cmdline += ' --3rdparty-build-prefix=' + buildprefix
-    sub_p = PopenHelper(cmdline,
-                        cwd=str(copy_testdir_to_tmp),
-                        env=pypath_extended_env)
+    sub_p = PopenHelper(cmdline, cwd=str(copy_testdir_to_tmp), env=pypath_extended_env)
     sub_p.communicate(timeout=popen_timeout)
     assert 0 == sub_p.returncode
     captured = capfd.readouterr()
     assert os.sep + '3plib.cpp' in captured.out
-    sub_p = PopenHelper(cmdline,
-                        cwd=str(copy_testdir_to_tmp),
-                        env=pypath_extended_env)
+    sub_p = PopenHelper(cmdline, cwd=str(copy_testdir_to_tmp), env=pypath_extended_env)
     sub_p.communicate(timeout=popen_timeout)
     assert 0 == sub_p.returncode
     captured = capfd.readouterr()
@@ -206,7 +201,8 @@ def test_SConstructAndSConsiderInSameDirBuild(copy_testdir_to_tmp, pypath_extend
 @pytest.mark.invocation
 @pytest.mark.parametrize('current_testdir', ['samedirtest'])
 def test_SConstructAndSConsiderInSameDirRunWithoutCommandLineTarget(copy_testdir_to_tmp, pypath_extended_env,
-                                                                    popen_timeout, scons_platform_options, capfd):
+                                                                    popen_timeout, scons_platform_options,
+                                                                    capfd):
     sub_p = PopenHelper(r'scons --3rdparty= --run' + scons_platform_options,
                         cwd=str(copy_testdir_to_tmp),
                         env=pypath_extended_env)
