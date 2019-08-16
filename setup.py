@@ -28,7 +28,10 @@ else:
 
 PACKAGE = 'SConsider'
 
-_THISPATH = os.path.abspath(os.path.dirname(__file__))
+try:
+    BASEDIR = os.path.dirname(os.path.realpath(__file__))
+except NameError:
+    BASEDIR = None
 
 
 def read_file(name):
@@ -66,7 +69,7 @@ setup(
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
     description="scons build system extension",
-    long_description=read_file(os.path.join(_THISPATH, 'README.adoc')),
+    long_description=read_file(os.path.join(BASEDIR, 'README.adoc')),
     long_description_content_type="text/plain",
     # classifier list:
     # https://pypi.python.org/pypi?%3Aaction=list_classifiers
