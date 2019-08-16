@@ -1,4 +1,4 @@
-image: marcelhuberfoo/arch-build-coast:latest
+image: instituteforsoftware/coast-build:latest
 
 variables:
   PYPIRC_LOCATION: $CI_PROJECT_DIR/.pypirc
@@ -11,11 +11,9 @@ build:
   tags:
   - docker
   script:
-  - tox2 --version
-  - pip2 --version
   - tox2 --recreate -e wheel
 
-test:
+test deployment to testpypi:
   stage: test
   tags:
   - docker
@@ -29,7 +27,7 @@ test:
   - tox2 --recreate
   - tox2 --recreate -e upload
 
-deploy:
+deploy to pypi:
   stage: deploy
   tags:
   - docker
@@ -38,6 +36,7 @@ deploy:
   only:
   - tags
   - triggers
+  when: manual
   dependencies: []
   artifacts:
     paths:
