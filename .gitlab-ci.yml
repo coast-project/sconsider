@@ -5,13 +5,14 @@ variables:
 
 before_script:
 - echo -e "[distutils]\\nindex-servers =\\n  pypi\\n  testpypi\\n[pypi]\\n#repository:$PYPI_REPOSITORY\\nusername:$PYPI_USERNAME\\npassword:$PYPI_PASSWORD\\n[testpypi]\\nrepository:$PYPI_TEST_REPOSITORY\\nusername:$PYPI_TEST_USERNAME\\npassword:$PYPI_TEST_PASSWORD\\n" >$PYPIRC_LOCATION
+- type -fP tox || pip install tox
 
 build:
   stage: build
   tags:
   - docker
   script:
-  - tox2 --recreate -e wheel
+  - tox --recreate -e wheel
 
 test deployment to testpypi:
   stage: test
@@ -24,8 +25,8 @@ test deployment to testpypi:
     - dist/*.whl
     - dist/*.tar.gz
   script:
-  - tox2 --recreate
-  - tox2 --recreate -e upload
+  - tox --recreate
+  - tox --recreate -e upload
 
 deploy to pypi:
   stage: deploy
@@ -43,4 +44,4 @@ deploy to pypi:
     - dist/*.whl
     - dist/*.tar.gz
   script:
-  - tox2 --recreate -e upload
+  - tox --recreate -e upload
