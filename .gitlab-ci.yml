@@ -17,7 +17,7 @@ build:
     - "*.tox.log"
     - pytest.log
   script:
-  - tox --recreate -e wheel --result-json "$(pwd)/$CI_JOBNAME.tox.log"
+  - tox --recreate -e wheel --result-json "$(pwd)/$CI_JOB_NAME.tox.log"
 
 test and deploy to testpypi:
   stage: test
@@ -33,8 +33,8 @@ test and deploy to testpypi:
     - "*.tox.log"
     - pytest.log
   script:
-  - tox --recreate --result-json "$(pwd)/$CI_JOBNAME.tox.log"
-  - tox --recreate -e upload --result-json "$(pwd)/$CI_JOBNAME.upload.tox.log"
+  - tox --recreate --result-json "$(pwd)/$CI_JOB_NAME.tox.log"
+  - tox --recreate -e upload --result-json "$(pwd)/$CI_JOB_NAME.upload.tox.log"
 
 deploy to pypi:
   stage: deploy
@@ -55,4 +55,4 @@ deploy to pypi:
     - "*.tox.log"
     - pytest.log
   script:
-  - tox --recreate -e upload --result-json "$(pwd)/$CI_JOBNAME.tox.log"
+  - tox --recreate -e upload --result-json "$(pwd)/$CI_JOB_NAME.tox.log"
