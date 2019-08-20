@@ -11,6 +11,11 @@ build:
   stage: build
   tags:
   - docker
+  artifacts:
+    expire_in: 1 day
+    paths:
+    - "*.tox.log"
+    - pytest.log
   script:
   - tox --recreate -e wheel --result-json "$(pwd)/$CI_JOBNAME.tox.log"
 
@@ -21,9 +26,12 @@ test and deploy to testpypi:
   variables:
     PYPI_REPO_NAME: testpypi
   artifacts:
+    expire_in: 1 day
     paths:
     - dist/*.whl
     - dist/*.tar.gz
+    - "*.tox.log"
+    - pytest.log
   script:
   - tox --recreate --result-json "$(pwd)/$CI_JOBNAME.tox.log"
   - tox --recreate -e upload --result-json "$(pwd)/$CI_JOBNAME.upload.tox.log"
@@ -40,8 +48,11 @@ deploy to pypi:
   when: manual
   dependencies: []
   artifacts:
+    expire_in: 1 day
     paths:
     - dist/*.whl
     - dist/*.tar.gz
+    - "*.tox.log"
+    - pytest.log
   script:
   - tox --recreate -e upload --result-json "$(pwd)/$CI_JOBNAME.tox.log"
