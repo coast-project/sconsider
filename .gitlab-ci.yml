@@ -14,10 +14,10 @@ build:
   artifacts:
     expire_in: 1 day
     paths:
-    - "*.tox.log"
+    - "*.tox.json"
     - pytest.log
   script:
-  - tox --recreate -e wheel --result-json "$(pwd)/$CI_JOB_NAME.tox.log"
+  - tox --recreate -e wheel --result-json "$(pwd)/$CI_JOB_NAME.tox.json"
 
 test and deploy to testpypi:
   stage: test
@@ -30,11 +30,11 @@ test and deploy to testpypi:
     paths:
     - dist/*.whl
     - dist/*.tar.gz
-    - "*.tox.log"
+    - "*.tox.json"
     - pytest.log
   script:
   - tox --recreate --result-json "$(pwd)/$CI_JOB_NAME.tox.log"
-  - tox --recreate -e upload --result-json "$(pwd)/$CI_JOB_NAME.upload.tox.log"
+  - tox --recreate -e upload --result-json "$(pwd)/$CI_JOB_NAME.upload.tox.json"
 
 deploy to pypi:
   stage: deploy
@@ -52,7 +52,7 @@ deploy to pypi:
     paths:
     - dist/*.whl
     - dist/*.tar.gz
-    - "*.tox.log"
+    - "*.tox.json"
     - pytest.log
   script:
-  - tox --recreate -e upload --result-json "$(pwd)/$CI_JOB_NAME.tox.log"
+  - tox --recreate -e upload --result-json "$(pwd)/$CI_JOB_NAME.tox.json"
