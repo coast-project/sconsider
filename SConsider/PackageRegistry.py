@@ -141,9 +141,11 @@ class PackageRegistry(object):
             if match:
                 rootDir = self.env.Dir(root)
                 _filename = rootDir.File(filename)
-                logger.debug('found package [%s] in [%s]', match.group('packagename'),
-                             start_dir.rel_path(_filename))
-                register_func(match.group('packagename'), _filename, rootDir, package_relpath=rootDir.path)
+                _packagename = match.group('packagename')
+                if not self.hasPackage(_packagename):
+                    logger.debug('found package [%s] in [%s]', _packagename,
+                                 start_dir.rel_path(_filename))
+                    register_func(_packagename, _filename, rootDir, package_relpath=rootDir.path)
 
         logger.info("Recursively collecting package files ...")
         for scandir in scan_dirs:
