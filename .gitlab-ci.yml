@@ -32,8 +32,10 @@ test and deploy to testpypi:
     - dist/*.tar.gz
     - "*.tox.json"
     - pytest.log
+    - testresults.xml
+    - coverage/report.xml
   script:
-  - tox --recreate --result-json "$(pwd)/$CI_JOB_NAME.tox.log"
+  - tox --recreate --result-json "$(pwd)/$CI_JOB_NAME.tox.json"
   - tox --recreate -e upload --result-json "$(pwd)/$CI_JOB_NAME.upload.tox.json"
 
 deploy to pypi:
