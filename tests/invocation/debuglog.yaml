@@ -61,7 +61,7 @@ loggers:
         filters: []
 
     SConsider.Callback:
-        level: INFO
+        level: DEBUG
         handlers: [console]
         propagate: no
         filters: []
