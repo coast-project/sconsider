@@ -1,6 +1,9 @@
 = Changelog
 
 == HEAD -> develop, origin/develop
+* update of changelog and change of mime type (3f200ff)
+
+
 * Build fixing and changing README to asciidoc (6bb7133)
 
 

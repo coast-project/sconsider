@@ -1,3 +1,5 @@
+// If you are reading this in plaintext or on PyPi, checkout the rendered version
+// at https://gitlab.dev.ifs.hsr.ch/ifs/sconsider/blob/master/README.adoc
 == SConsider
 
 https://gitlab.dev.ifs.hsr.ch/ifs/sconsider[SConsider] is a https://scons.org[SCons] extension to provide a recursive target detection and dependency handling mechanism.
