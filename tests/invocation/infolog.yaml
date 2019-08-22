@@ -3,11 +3,14 @@ version: 1
 
 disable_existing_loggers: False
 
+# https://docs.python.org/2/library/logging.config.html#module-logging.config
 formatters:
     simple:
-        format: "%(asctime)s %(levelname)s %(name)s: %(message)s"
+        format: "%(asctime)s,%(msecs)03d [%(levelname)-8s] [%(name)-32s]: %(message)s (%(filename)s:%(lineno)s)"
+        datefmt: '%Y-%m-%d %H:%M:%S'
     detailed:
-        format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        format: "%(asctime)s,%(msecs)03d - %(name)s - %(levelname)s - %(message)s"
+        datefmt: '%Y-%m-%d %H:%M:%S'
 
 filters:
     filterLookup:

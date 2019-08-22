@@ -1,0 +1,1738 @@
+= Changelog
+
+== HEAD -> feature/ChangelogAndReadmeToAsciidoc, origin/feature/ChangelogAndReadmeToAsciidoc
+* persisting test results (c2b4b9c)
+
+
+* increased log level of Callback in case we are debugging (41fd254)
+
+
+* use local variable for packagename (ce75cd6)
+
+
+* fixed duplicate node case when linkname==targetname (e9013c5)
+
+
+* time logging format adjusted (1180fa8)
+
+
+* tox log file name changed to json (1de24ad)
+
+
+* corrected jobname environment variable (67c366f)
+
+
+* explicitly set log format (f0b855f)
+
+
+* store build logs as artifacts to simplify exploration (76b715f)
+
+
+* logging command to execute in Popen (2bc0ea8)
+
+
+* added missing pytest.ini (b68158f)
+
+
+* moved pytest config into separate file (6c3207c)
+
+
+* formatting corrections (a384710)
+
+
+* changed to using capfd for testing stdout/stderr values (095ef9e)
+
+
+* prepared simple pytest.ini with logging settings (3c87cd9)
+
+
+* extended tox commands to log to file in case of errors (23b538b)
+
+
+* added missing *.adoc filter to MANIFEST (cc86bf1)
+
+
+* corrected description filename in setup.cfg (8834b72)
+
+
+* added missing path component of README.adoc (6a30afa)
+
+
+* install tox if not provided by docker image (bc92d79)
+
+
+* adjusted pypi package url (8a77758)
+
+
+* changed docker image used to build (db6bbac)
+
+
+* read description from adoc file (6b0a060)
+
+
+* converted changelog and readme to asciidoc (86416de)
+
+== develop
+* reformatted according to new yapf configuration (4b829fc)
+
+
+* updated yapf styles config (99518f3)
+
+== origin/develop
+* increased popen timeout (67faaa3)
+
+
+* updated to latest versioneer (bd7909a)
+
+
+* Merge branch 'feature/GetRidOfParseRequirements' into develop (929494e)
+
+
+* added description content type (d40f5b3)
+
+
+* increased upper bound of scons version (f4a9c5c)
+
+
+* fixed invalid variable name (076e973)
+
+
+* fixed deprecation warning of yaml.load (f5aab64)
+
+
+* code reformatted (6ddd867)
+
+
+* search pypi index first when installing (e9028f4)
+
+
+* parse_requirements replaced with simple function (afe665e)
+
+== origin/master, origin/HEAD, master
+* Merge branch 'MinimizeNewSconsiderDiffs' into 'master' (f030179)
+
+
+* reduced diff to new sconsider (58c875a)
+
+
+* use True instead of 1 (089769d)
+
+
+* added 3rdparty target definitions for sconsider >=0.5 (5f85847)
+
+
+* Merge branch 'FixPipRequirements' into 'master' (d27bacc)
+
+
+* fix parse_requirements for newer pip versions (7516ac2)
+
+
+* Merge branch 'ReformattedWithYapf' into 'master' (9297b09)
+
+
+* yapf styling rules made explicit and adjusted where needed (0781ced)
+
+
+* Merge branch 'PostponeLibpathSetting' into 'master' (af33332)
+
+
+* postpone LIBPATH setting as other tools might modify environment (09f075b)
+
+
+* Merge branch 'FixSconsInvocationTests' into 'master' (655133b)
+
+
+* less test verbosity (5d9ec34)
+
+
+* removed twine register step as not required anymore (d4a09f8)
+
+
+* adjusted pypi upload related section (eff56fa)
+
+
+* pypirc modifications according to https://mail.python.org/pipermail/distutils-sig/2017-June/030766.html and https://packaging.python.org/guides/using-testpypi/#using-test-pypi (2451acc)
+
+
+* use PopenHelper instead of Action._subproc (837fa0a)
+
+
+* Merge branch '8-wheel-posargs' into 'master' (adc63c9)
+
+
+* adds positional args to wheel environment (0397d8b)
+
+
+* Merge branch '3-readme-tox' into 'master' (671c72b)
+
+
+* shows tox commands to test-/upload package (4d2bc20)
+
+
+* show tox commands used to build, test and deploy the package (0bb919f)
+
+
+* Merge branch '6-toplevel-sconsider-scan' into 'master' (57f22c0)
+
+
+* also scan SConstruct directory for .sconsider files (bea1d55)
+
+
+* Merge branch '5-allow-loglevel-through-env' into 'master' (46b4377)
+
+
+* use value of LOG_LEVEL env variable as default log level (c5f2297)
+
+
+* Merge branch '4-sconsider-should-still-depend-on-scons' into 'master' (3376a8a)
+
+
+* scons is a requirement again (737a14d)
+
+
+* Merge branch '2-setup-gitlab-build' into 'master' (f1bc37e)
+
+
+* store artifacts either from test or deploy stage (7388183)
+
+
+* pypirc location corrected (85f1c43)
+
+
+* scons requirement added (c4fdc9a)
+
+
+* style changed to pep440-old (d0192eb)
+
+
+* creating ~/.pypirc on the fly with contents of env variables (068406a)
+
+
+* upload to pypi section added (3b46f22)
+
+
+* creating .pypirc on the fly from within .gitlab-ci.yml (07e3032)
+
+
+* .pypirc template file added (22c1190)
+
+
+* build and test stages added (0badb98)
+
+
+* scons requirement is now specified in tox.ini (ec72611)
+
+
+* tests more scons versions (5d484dd)
+
+
+* Merge branch 'files-as-markdown-correction' into 'master' (216b5a9)
+
+
+* changed to include CHANGES.md (1f88c72)
+
+
+* do also copy .md files as README and CHANGES end in it now (89dade7)
+
+
+* Merge branch 'changelog-as-markdown' into 'master' (b992f9e)
+
+
+* extension changed to .md to see if it is rendered as markdown (5aee481)
+
+
+* Merge branch '1-rename-readme-to-be-rendered-as-markdown' into 'master' (dfbac6a)
+
+
+* point to renamed [README](README.md) file (acea75c)
+
+
+* Renamed the file (7765e6a)
+
+
+* consistently install systemlibs for targets (2e52572)
+
+
+* resolve up-to-date check failure for 3rdparty libs (bb85536)
+
+
+* not put build output into the sconsider directory anymore (fc5eac4)
+
+
+* use abspath in call to readlink function (288368e)
+
+
+* have backwards compatibility (deprecated) functions re-added (fa67d88)
+
+
+* fix build without baseoutdir (af3352d)
+
+
+* import SCons related stuff from SConsider.Main (ccee295)
+
+
+* correctly register atexit function (882de7c)
+
+
+* use cloned base environment in invocation tests (6d52844)
+
+
+* provide get_launch_dir to get directory we were launched from (9de511e)
+
+
+* execute basic scons invocation tests and use pytest as default (e605c01)
+
+
+* have SConsider prepared for extraction of parts into separate main module (08c20e3)
+
+
+* use more explicit imports (88f211f)
+
+
+* guard import of GetBuildFailures without SCons (24a7bec)
+
+
+* make use of baseoutdir a bit safer (9d49184)
+
+
+* not register same target more than once (a8cbc54)
+
+
+* run runner targets even if no command line target was specified (20ac2b8)
+
+
+* ensure PackageRegistry is initialized for tests (830eecc)
+
+
+* use PopenHelper instead of subprocess (4bccfe7)
+
+
+* not already collect package files from within PackageRegistry ctor (3e85ab3)
+
+
+* make use of pytest fixtures for Anything tests (a36b199)
+
+
+* use pytest for test execution (c15a7cf)
+
+
+* prepared test files for future pytest use (e602085)
+
+
+* use editorconfig to define formatting styles (9c8a722)
+
+
+* allow shell style globbing for exlude dirs (3030fea)
+
+
+* have less diffs to new sconsider for PackageRegistry (2dcc20f)
+
+
+* use new lib_ prefixed names for package libraries (ffedcf6)
+
+
+* be more tolerant to testfw target name (223cc53)
+
+
+* corrected/improved --showtree printing (dc34d66)
+
+
+* renamed  shared object name of boost libs (cbe81e5)
+
+
+* minimized diffs to new sconsider (0b9da4a)
+
+
+* plaintarget not used anymore in registry and accessing methods (97593bd)
+
+
+* reformatted (yapf) some code parts (2b55b62)
+
+
+* have getPackageDependencies similar to the new one (a181e95)
+
+
+* improve loading alias or explicit package target (a26be77)
+
+
+* remove registry parameters from methods (7b1a520)
+
+
+* Simplify using PackageRegistry as it is a singleton now (718ecd1)
+
+
+* implicitly import from modules (88c7447)
+
+
+* implicitly import names from modules (348df9c)
+
+
+* use Callback singleton to register and run callbacks (54c6896)
+
+
+* added deprecation notice to methods which will disappear (d8418c5)
+
+
+* fixed permissions typo (cec1a4f)
+
+
+* moved SomeUtils import (7992d82)
+
+
+* explicit import of methods from modules (1d8850b)
+
+
+* changed first arguments of env.Install* calls to strings (1714aba)
+
+
+* fixed system lib and package lib symlinks (b769caf)
+
+
+* get_executor fix for newer scons versions (48a333b)
+
+
+* simplified and extended getRealTarget (fc4c64d)
+
+
+* changed to explicit import and use of getFlatENV (12cce73)
+
+
+* applied fix to also work with scons<2.5 (0c1e6c2)
+
+
+* reformatted by yapf (4772c05)
+
+
+* more pylint cleanup (1348c1a)
+
+
+* corrected functions with sticky [] and {} defaults (79d383b)
+
+
+* use logger lazy formatting using value arguments (6b7a393)
+
+
+* tox testing added (82eedcc)
+
+
+* --package regression fix (16361f2)
+
+
+* pkg_resources version string corrected (01f8282)
+
+== tag: 0.3.12
+* updated changes (78994c7)
+
+
+* explicit command line target fails on missing dependencies (43f1dfb)
+
+
+* using versioneer to provide __version__ field (e5fb883)
+
+
+* corrected setting OS_* defines for sunos (6b0fc46)
+
+
+* explicitly setting language default to gnu++98 (eb4d8fc)
+
+
+* buildcfg corrections for profile/coverage option (287fbab)
+
+== tag: 0.3.11
+* SConsider 0.3.11: improvements and fixes (17ddc62)
+
+
+* extending temporary filenames with pid to prevent name clashes (dcd64eb)
+
+
+* fix overwriting CXXFLAGS from g++.py tool (2d20e04)
+
+
+* use -std only in CXXFLAGS (ca834cb)
+
+
+* here document fixed: must use tabs instead of spaces (14ca887)
+
+
+* gdb batch extension: allow background execution of gdb in batch mode (7b77148)
+
+
+* langfeatures: allow empty argument and print info (bd2f00d)
+
+
+* language features extended (72b557e)
+
+
+* buildmode: extended for 'coverage' options (35ed4f5)
+
+
+* WD2Coast: corrected copydoc reference for IFAObject::Clone (d460ac8)
+
+
+* scons --showtree: corrected fulltargetname access with Alias (fa03f20)
+
+
+* generated script: suppress error message without gdbserver (be12a47)
+
+
+* scripts target: should conform to script_<targetname> naming scheme (7cceeff)
+
+
+* ThirdParty: extending CPPPATH with include dir for sys libraries (7d92f16)
+
+== tag: 0.3.10
+* SConsider 0.3.10: improvements and bugfixes (da7d96f)
+
+
+* PackageRegistry: getRealTarget moved in from TargetMaker (bc8d105)
+
+
+* scons tools: better hinting in case a tool fails to load (c6c649a)
+
+
+* PackageRegistry: Exception handling fixed, moved static functions (aaeb6a0)
+
+
+* update of WD2Coast search/replace expressions (0ac1606)
+
+
+* extended/corrected search/replace expressions (3290d91)
+
+
+* aborting with user error in case setupBuildTools is not loaded (6f38c78)
+
+
+* added -x option to execute the real binary from within any other tool (038a07f)
+
+
+* allowing callables from within public.execEnv (251a0a3)
+
+
+* improved message in case a Target can not be found (3e03d7c)
+
+
+* consequently using getTargetBaseInstallDir and getLogInstallDir (dca56db)
+
+== tag: 0.3.9
+* namefilter was not defined when not using -u/-U option (37c7c9f)
+
+== tag: 0.3.8
+* getOsVersionTuple fixed for solaris (bb0f30a)
+
+
+* fixed env.getOsVersionTuple which caused solaris builds to fail (602e647)
+
+== tag: 0.3.7
+* backward compatibility (py2.6.x) for OrderedDict (f724b00)
+
+
+* prepared for 0.3.7 version (96fd2b9)
+
+== tag: 0.3.6
+* version bump to 0.3.6 (6f053c0)
+
+
+* ignoring lepl INFO messages using increased logging severity (c414a48)
+
+
+* removed coast_options which was specific to the COAST build (92d8498)
+
+
+* renamed local variable for sconsider dist version (604f0a0)
+
+
+* alias target build corrected (11f8937)
+
+
+* renamed TargetNotFound exception (e7abdeb)
+
+
+* corrected initial copyright year or added copyright message (0319741)
+
+
+* corrected handling of versioned shared libraries and cleanup (fee02ab)
+
+
+* restructured PackageRegistry for less diffs against branch (675b99b)
+
+
+* refactor: only one copy of current_os_version extraction method (11cf0e7)
+
+
+* ARCHBITS: removed from env, use env.getBitwidth() instead (9e1e70d)
+
+
+* tools: Keep order of tools in list but remove duplicates (3661468)
+
+
+* scons tools extensible from SConstruct setting _SCONSIDER_TOOLS_ (d61575e)
+
+
+* prepared for 0.3.6 version (8d12a4a)
+
+== tag: 0.3.5
+* sconsider: version specific target creation (954b371)
+
+
+* file split: SConsider main module split into parts (2f34a6f)
+
+
+* runbuilder: added skipped target in skiptest message (837a9a2)
+
+
+* skiptest: gaining more attention using critical message (3c1e07e)
+
+== tag: 0.3.4
+* package: do not copy include files when using baseoutdir (6e06f79)
+
+== tag: 0.3.3
+* incremented version for new bugfix release (0c47ec9)
+
+
+* package: fixed package behavior without baseoutdir (c6bc07c)
+
+
+* build: documented how to uninstall a development version (adcb3bd)
+
+== tag: coast_20141003, tag: 0.3.2
+* generatescript: corrected generated gdb batch file (62dc78c)
+
+
+* packagebuild: correct return types to not create path segments like 'None' (6adc1c1)
+
+
+* packagebuilding: do not raise an exception with an empty path (9a66dff)
+
+
+* helptext: improved help text for sconsider options (fc8c836)
+
+
+* version: integrated SConsider module version into __init__.py (1d981f4)
+
+
+* version: changed to 0.3.0, added author, style updates (7ff8f74)
+
+
+* package-handling: exclude dir handling improved (ab88499)
+
+
+* pep8: corrections applied as reported by pyflakes (8481d45)
+
+
+* setup: adapted setup.py to layout seen in wheel (0edc21e)
+
+
+* package-handling: raising specific exception during package collection (6dbf712)
+
+
+* logging: use specific loggers (d470d92)
+
+
+* printing sconsider version when being executed (39a4288)
+
+
+* pep8: reformatted methods (b8c88f1)
+
+
+* structure: moved files and added setup.py (8d5e7f1)
+
+
+* logging: added regex filter and compatibility for python <2.7 (6cf2315)
+
+
+* tests: better path detection for test server certificate (cb70577)
+
+
+* replaced print with logging commands (c41c35b)
+
+
+* allow specifying 'targetName' in buildsettings if he default is not sufficient (58348ef)
+
+
+* corrected version detection of OpenSSL using tuples now (a29e7a0)
+
+
+* moved -Wundef flag to full warnings section (acc8c08)
+
+
+* added boost.system target (5a30f35)
+
+
+* corrected doxygen file creation and added Test (83c4f7e)
+
+
+* pip requirements specification (e7e5e67)
+
+
+* lowercasing fqdn and hostname entries to be consistent with own resolver (99f085b)
+
+
+* removed obsoleted check for gzio.h (28f97d6)
+
+
+* file list changed for zlib 1.2.7 (010e906)
+
+
+* simplified getfqdn (a51b90f)
+
+
+* removed unused decider function (90039b4)
+
+
+* always changing fqdn and its components to lowercase (19483a8)
+
+
+* extended SecureHTTPServer for specifying ciphers to use (462d029)
+
+
+* extended cleanup tokens as some code contained references to customer related projects (60910d1)
+
+
+* testing if baseoutdir is writable before continueing (840eef3)
+
+
+* added test to prove that our SecureHTTPServer implementation works (909c983)
+
+
+* improved searching for files in relative paths when using findFiles (f6f0e25)
+
+
+* added scons build files for IBM WebSphereMQ, XMS and RSa (710477d)
+
+
+* extended to replace names in sniff shared files also (661eea3)
+
+
+* --3rdparty option is a list of directories now (13b17f1)
+
+
+* added rt library for non windows systems to support posix clock_get* functions (1b39905)
+
+
+* Eclipse debug functionality with gdbserver (9865f44)
+
+
+* simple comment added (e63cff8)
+
+
+* eliminated --no-undefined linker flag as it seems to be duplicate of -z defs (93778b3)
+
+
+* added filter function matching BASEOUTDIR path prefixes (e8dcf9b)
+
+
+* corrections according to PEP8 (8e17471)
+
+
+* adjusted name of precompiled mysql client library as it was in the binary distribution downloaded (8fe4171)
+
+
+* 64bit: added new precompiler macro ARCHBITS carrying either the value of 32 or 64 (cda79ba)
+
+
+* changed trace description reference from Dbg.h to Tracer.h (79cc47d)
+
+
+* corrected version comparison error (acaecfc)
+
+
+* added more information to help the user using python2.7 why the secure server might not work (eeee962)
+
+
+* conditionally adding shutdown_request method when incompatible python and pyopenssl version is detected (d23dca8)
+
+
+* corrected variant strings for MACs (aa3c74b)
+
+
+* added mac support with DYLD_LIBRARY_PATH (9181cbf)
+
+
+* implemented lazy linking for mac - do not abort when unresolved symbols are found (e4ea201)
+
+
+* added MacFinder to resolve own and system libraries (e707bff)
+
+
+* license header added (2151aba)
+
+
+* apple specific linker extensions (e2fb9a3)
+
+
+* fixes for mac 32/64 bit compilation (5b87481)
+
+
+* appending buildcfg name to compilation variant string (892eb47)
+
+
+* fixed bug in libc location detection mechanism (c706db6)
+
+
+* factored out and enhanced code to retrieve (e)glibc version number on posix/linux compliant systems (42be306)
+
+
+* temporary fix to get rid of doxygen problems with 3rdparty packages (#286) (bc94e9a)
+
+
+* got rid of loki features (#24) (476490f)
+
+
+* fixed a small bug in LibFinder and SystemLibsInstallBuilder (6a08176)
+
+
+* using more random file name for compiling as multiple builds might run in parallel... (9824138)
+
+
+* adjusted use of shlex when composing execution arguments by not shlex'ing the command itself as it might contain spaces (b3653bf)
+
+
+* need to extend libdirlist by LibFinder.GetSystemLibDirs() to find/use compiler specific libs (880b655)
+
+
+* replaced superfluous registerCallback/runCallback calls (80b2819)
+
+
+* fixed a dependency bug with --ignore-missing (#189) (784813c)
+
+
+* implemented new binary distribution form (#189) (9c293f6)
+
+
+* replaced PseudoFile with InstallBinary (d87da4e)
+
+
+* modified CompilerLibsInstallBuilder to copy all system libs the build depends on (14b1ac3)
+
+
+* extracted LibFinder (69d1ab4)
+
+
+* refactored third party system sconsider files (#189) (7ad66e0)
+
+
+* split of third party sconsiders into separate files (#189) (e1c6a08)
+
+
+* fixed bugs in sconsider for mysql, openss, oracle and sybase (#189) (ffe12f4)
+
+
+* enabled option '3rdparty' which allows to configure the directory which contains the 3rdparty sconsider definitions (#189) (3e8acc2)
+
+
+* ignore non existing targets and targets which depend on them (#189) (632173d)
+
+
+* blub, blub, ... (#189) (ca7ee16)
+
+
+* ignore env['BUILDDIR'] instead of hardcoded '.build' (#189) (e624bc1)
+
+
+* experimental improvement for third party handling (41e1ace)
+
+
+* outputting stdout/stderr in case of compiler detection errors (93839e7)
+
+
+* factored out packagename/targetname separator (01d5f8c)
+
+
+* refactored runCommandWithFile to work for both cases and renamed back to runCommand (92543ad)
+
+
+* factored in runCommandWith[File|Input] (0d5e96c)
+
+
+* factored out HTTPS/SMTP specific servers into this module (107e447)
+
+
+* added wrapper around socket.getfqdn to hopefully provide a stable method of retrieving the fqdn of the current host (11f1406)
+
+
+* include original headers and not the copies (be60702)
+
+
+* baseoutdir as default target is no longer needed (94bc32f)
+
+== tag: coast_2010_1.2
+* only adding baseoutdir when no BUILD_TARGETS collected so far (9d29c33)
+
+
+* fixed the behaviour of -u, -U and -D (c59f82d)
+
+
+* used SCons.Utils.print_tree() instead of render_tree() (977b38c)
+
+
+* set baseoutdir as default target (4fa2f1a)
+
+
+* fixed TestfwTransformer to support latest changes (e31eae0)
+
+
+* fixed a ugly dependency cycle (d1af665)
+
+
+* removed ONLY_STD_IOSTREAM leftovers (5709b07)
+
+
+* updated TargetPrinter to use SCons.Util.render_tree() (c41288e)
+
+
+* always convert replacement to str in SubstInFileBuilder (58fe400)
+
+
+* fixes for win32 build (5a4f8d1)
+
+
+* fixed Windows CRLF (b28ef9c)
+
+
+* fixed python anything to support escaped points and colons (#244) (c91df7c)
+
+
+* fixed wrong help message for the language support commandline option (9f4e3c8)
+
+
+* fixed a bug in RunBuilder which was caused because of SCons issue 2460 (064c3a2)
+
+
+* implemented more tests for SomeUtils and WorkingSetWriter (d3518ca)
+
+
+* corrected relations to be projectname from .project and not packagename (#206) (2c82fe5)
+
+
+* implemented partial update of working sets (#206) (5cdf744)
+
+
+* implemented tool to write Eclipse working sets (#206) (0376059)
+
+
+* fixed a RunBuilder bug, introduced ComposedRunner instead (#241) (c58fb52)
+
+
+* slightly modified RunBuilder behaviour (f2d1681)
+
+
+* replaces WD_ with COAST_ (4395f3b)
+
+
+* Added command line options for scons to define language features (C++0x, TR+, Boost) (6960ab6)
+
+
+* fixed tests (c7d2132)
+
+
+* replace WD_ prefix with COAST_ (fe5352c)
+
+
+* changed name of resulting lib/executable to PackagenameTargetname (bdd1e6f)
+
+
+* fixed includeSubdir bug (2e8700d)
+
+
+* fixed RunBuilder dependencies (fixes #225) (571893b)
+
+
+* pass env to value function (b1cf14e)
+
+
+* putting sconsign file to same location as basoutdir this allows using the same source tree at different locations without the need to recompile every time you switch environment given that you specified --baseoutdir=/location/dependent/dir (b5da31b)
+
+
+* Allow doxygen to generate include dependency graphs (38c826c)
+
+
+* removed threading option as python is not able to support concurrency quite well yet (2e6e978)
+
+
+* added awk extension to files with shell comment syntax corrected regular expression of shell style copyright message (2e3bb03)
+
+
+* skip packages containing a test target for global doxygen target (e5d0e21)
+
+
+* Merge branch 'master' of ssh://sifs-coast1.hsr.ch/var/repositories/git/sconsider (eef717b)
+
+
+* Allow doxygen to process multiple dot files in one run and use two threads per default (f1c2417)
+
+
+* added SubstInFileBuilder, use the third tuple value in copyFiles slot as replacement dict (fixes #217) (1bb22d5)
+
+
+* improved Anything parsing performance (0ae6217)
+
+
+* added --doxygen-only which skips building of all targets except doxygen (960c1c9)
+
+
+* setting for preventing doxygen deleting the generated dot files (b9f4da3)
+
+
+* refactored doxygen creation (3rdparty packages linked using tagfiles), fixed small Anything glitch (3e23411)
+
+== tag: coast_2010_1.1
+* replaced readlink -f with cd && pwd (36ec09b)
+
+
+* added possibility to reset env of Anything added IOError exception test when loading Anything from file fails (608465b)
+
+
+* should fix the failing tests in mockito 0.5.1 in TestfwTransformer_Test, but seems actually to be caused due to a bug in mockito (9388f6f)
+
+
+* only registering doxygen callbacks when corresponding command line option was specified (b492cc5)
+
+
+* fixed doxygen target dependencies bug and got rid of latex doxygen impl (58e22d3)
+
+
+* initialized dirs3rdParty variable added missing BUILD_TARGETS path segment in assigment (7c76ee5)
+
+
+* doxygen support for overall documentation (20d2211)
+
+
+* replaced build_dir by variant_dir according to deprecation warning of scons 2.0 (6b2e2a4)
+
+
+* added code to read away stdout from popened-proc object when interrupt signal is sent (94a3cdc)
+
+
+* added try block around Dir() creation because in case a directory segment also evaluates to a target, the call will fail (935de5a)
+
+
+* fixed TLS initialization (64d08d4)
+
+
+* chdir before rmtree... (0dafde3)
+
+
+* replaced os.mknod which doesn't exist on solaris (http://bugs.python.org/issue3928) (54584e5)
+
+
+* changed loadFromFile to resolve filename and return first Anything (c6300ba)
+
+
+* path adjustments (725aeb5)
+
+
+* removed debugging code... blub blub ;) (d8e5235)
+
+
+* optimized some tests (b159c4e)
+
+
+* moved local env cleanup (2f8cf06)
+
+
+* enhanced tls.env (7a629d5)
+
+
+* store root/path in tls (c6ee1d1)
+
+
+* implemented references, refined parsing (d9e948f)
+
+
+* changed internal storage, implemented sort (db40784)
+
+
+* fixed += (b01928c)
+
+
+* implemented parsing (a2ae4bc)
+
+
+* added tests for index, count (3dd96bb)
+
+
+* implemented __add__, reverse, fixed str (91fa5a6)
+
+
+* converted tabs to spaces (db7fa6e)
+
+
+* implemented extend, sliceing (2952f15)
+
+
+* modified output of __str__ (8729801)
+
+
+* implemented copy, __eq__ (c4b2ca8)
+
+
+* implemented pop, popitem, values, __repr__, keyword initialization (a0f59bf)
+
+
+* implemented itervalues (a67431d)
+
+
+* implemented initialization with merge (45d056e)
+
+
+* simplified __str__ (8ab90dc)
+
+
+* implemented update, merge (9fda598)
+
+
+* fixed insert/delete (314d5d0)
+
+
+* initial commit (bc2e960)
+
+
+* passing back returncode of subprocess was not safe (5785060)
+
+
+* fixed getPackageTarget (14fa68d)
+
+
+* corrected findFiles method (d66479e)
+
+
+* using shlex to correctly split runparams (1c6b709)
+
+
+* outputting runParams when executing target (e07bcf7)
+
+
+* moved some more compiler warning flags to the mdeium section (3a94b72)
+
+
+* added -Wold-style-cast to print out potential cast problem locations, use with --warnlevel=full (0816cc3)
+
+
+* test and app runners can use setUp/tearDown hooks now (5a3d5f6)
+
+
+* refactored common parts of appTest and programTest into separate methods (21d2ef0)
+
+
+* removed deprecated gdb option (00a5a47)
+
+
+* added more specific default settings for doxygen (5ec163c)
+
+
+* added Package as default tool (a7b8225)
+
+
+* removed targetType requirement (fc6fc7a)
+
+
+* fixed tests (c4d2581)
+
+
+* use archbits to evaluate sysincludes (b8c8fb5)
+
+
+* fixed callable check (e1b9c1b)
+
+
+* skipping tests (fixes #210), always touch test result file (19b01fe)
+
+
+* suppress helper aliases, fixed bug in RunBuilder (fixes #213) (1caae9f)
+
+
+* flatten env['ENV'] (1a2a8dd)
+
+
+* small Package tool cleanups (05ef5da)
+
+
+* corrected RE used to find correct version numbers, fixes #212 (9e0de24)
+
+
+* fixed subcommand environment to get compiler libs (234809d)
+
+
+* added -- separator to default params for tests (c479e6a)
+
+
+* added missing global default tool CompilerLibsInstallBuilder (5aaf7e8)
+
+
+* fixed Package tool to collect targets added in the build phase (da61da6)
+
+
+* copy compiler libs (154b3d1)
+
+
+* add libstdc++ only if needed (a65f0f8)
+
+
+* changed to using nodefaultlibs and specifying needed libs (6384e15)
+
+
+* fully sh'ified generated script (536a4d8)
+
+
+* added options to not change directory before executing target (e09091c)
+
+
+* inject variables into execution environment using ['public']['execEnv'], added RELTARGETDIR to PrecompiledBinary/LibraryInstallBuilder (732573c)
+
+
+* fixed RunBuilder bug (c840ad1)
+
+
+* corrected binary/library emitter where we are looking for a corresponding source-node (e11396f)
+
+
+* passing env['ENV'] instead of the env of the current process (41af167)
+
+
+* add include path to .scb of the enclosing project (f277723)
+
+
+* added initial settings for compilation on mac (a861c49)
+
+
+* fixed bug: Alias defined with same name as filenode before Program (5d24f58)
+
+
+* fixed missing import (84db440)
+
+
+* some cleanups (5bfaa52)
+
+
+* use executor to get targets (55c7e3e)
+
+
+* strip variant dir in package (1297d80)
+
+
+* moved maintenance scripts (f6b0ca2)
+
+
+* fix to handle install targets (b46f1f7)
+
+
+* implemented package tool (87fa52c)
+
+
+* implemented dependency output (9164f7b)
+
+
+* introduced stripSubdir flag (d326e2b)
+
+
+* removed types import (500eec9)
+
+
+* fixed no given build target and not found package cases (fff5050)
+
+
+* more cleanups and deprecation of SConscripts (#48) (294dd43)
+
+
+* some refactorings, removed EnvVarDict (3d573a8)
+
+
+* name of dummyfile is now target dependent (a67db0c)
+
+
+* allow simple str type files, but sconsify them before continueing (803cba6)
+
+
+* changed eclipse project name (e9ac1b7)
+
+
+* added re-replacefunc map (32be336)
+
+
+* added regex to correct QUOTE macro uses (599f734)
+
+
+* added tests for ChangeImportLines (3fff3c5)
+
+
+* corrected regex to remove ident strings (3ca286b)
+
+
+* renamed StanfordUtils to SConsider (e051d8c)
+
+
+* fixed a bug in Callback (5830e8b)
+
+
+* initial test setup (83a05ff)
+
+
+* added multiple_replace() (a5f0d43)
+
+
+* changed timing information from msecs to secs (finally fixes #114) (c2c0faf)
+
+
+* parses timing information of a single testcase (fixes #114) (17da0d1)
+
+
+* fixed xml test reports to support package information (fixes #113) (dfb7c31)
+
+
+* added missing nsl library (e9cb2d0)
+
+
+* factored out regex replacing in files into SomeUtils.py (d277ee8)
+
+
+* refactored - generalized - regex replacement in fgi (2fee747)
+
+
+* removed -fast option because it breaks static initialization (closes #100) (1ca70d7)
+
+
+* added test for sun specific g++ to adjust optimize options accordingly (46f6b63)
+
+
+* changed to using default python interpreter (6525ffe)
+
+
+* lowered gcc optimize flag on sun to O1, higher values break static initializers (83e0897)
+
+
+* added python code to regex-remove #ident sections from source files (d326349)
+
+
+* corrected file copying (af7cb1c)
+
+
+* Merge branch 'master' of ssh://sifs-coast1.hsr.ch/var/repositories/git/sconsider (0386313)
+
+
+* factor out unrelated part of copyFileNodes (d53e92c)
+
+
+* doxygen builder considers defines (#71) (ad77d3e)
+
+
+* added --env-cfg switch to specify site specific configuration directory (#85) (64c7e8f)
+
+
+* moved generated scripts to RELTARGETDIR (#81) (1490860)
+
+
+* moved monkey patching of os.path.relpath to SomeUtils (47d329d)
+
+
+* deleted already replaced doxygen (31459df)
+
+
+* targets with linkDependencies to a target in an unavailable package are ignored (#89) (b6309b2)
+
+
+* added replaceRegexInFile method to search and replace regular expression in a file (5fffe52)
+
+
+* removed deprecated warning option from C compilation flags (39f1415)
+
+
+* added still missing build flags, closes #32 (ebb6928)
+
+
+* corrected iostream callback (5dddfea)
+
+
+* ensure setState gets the correct type$ (9006cd4)
+
+
+* adapted to new testfw output (2e437f9)
+
+
+* refactored some parts of TestfwTransformer for easier tests (2568ec2)
+
+
+* changed to using threading.Thread because ctypes is not fully available on solaris (2b6915f)
+
+
+* socket helpers for location independent socket tests (#85) (33bcd56)
+
+
+* switched from PostAction to Callback (dfc7f07)
+
+
+* fixes a bug with multiple failures of one testcase (448664c)
+
+
+* added support for different compiler versions in same directory (resolved #78) (a88c205)
+
+
+* TestfwTransformer transforms Testfw logs to JUnit XML (support to allow #21) (00a8cdf)
+
+
+* added xmlbuilder 0.9 (90aab50)
+
+
+* added callback hooks, changed to new-style classes (02e0e33)
+
+
+* refactored log file writing (b65a7da)
+
+
+* logfile creation for tests (8841446)
+
+
+* refactored callback feature (e237871)
+
+
+* extracted callback class (c9a371d)
+
+
+* removed unused files (3242ba0)
+
+
+* changed config file copying slotname to copyFiles (687e668)
+
+
+* removed unused files (394a101)
+
+
+* prefer p.e. libtargetname.so over libtargetname64.so (0218a33)
+
+
+* fixed SCBWriter not finding env['SYSINCLUDES'] (3b64012)
+
+
+* corrected alias targets 'tests' and 'all' (9f39ba8)
+
+
+* added tool to print target (#72) (e048197)
+
+
+* removed risky Clean in copyFileNodes (afcdadc)
+
+
+* extracted test/run target creation to tool using a callback (395c1a6)
+
+
+* refactored using callback hooks (41b83f7)
+
+
+* source dirs are written to .scb (1acd021)
+
+
+* minor renames in RunBuilder and generateScript (9cce340)
+
+
+* simplified header copying (b17ec55)
+
+
+* minimal gdb script fix (e394f5f)
+
+
+* fixed a bug causing unnecessary rebuilds with doxygen (d5fe74d)
+
+
+* /bin/sh'ified some sections (c78961d)
+
+
+* Merge branch 'SconsSetup' of ssh://m1huber@sifs-coast1/var/repositories/git/coast into SconsSetup (16a59b2)
+
+
+* experimentally fixed a bug wiht empty Aliases in includeOnly-targets (1369874)
+
+
+* added windows relpath for python 2.5 (bfacc28)
+
+
+* minimal refactoring of determining doxygen dependencies using lambda (467c100)
+
+
+* Merge branch 'MemLeak' into SconsSetup (b151fe9)
+
+
+* Merge branch 'SconsSetup' of ssh://m1huber@sifs-coast1/var/repositories/git/coast into SconsSetup (d2c4264)
+
+
+* prepared for changes to script where options are possible (97f684d)
+
+
+* Merge branch 'SconsSetup' of ssh://m1huber@sifs-coast1/var/repositories/git/coast into MemLeak (c3addc4)
+
+
+* supplied os.path.relpath for python 2.5 compatibility (7a7e613)
+
+
+* added clean for doxygen targets (a5de67e)
+
+
+* now doxygen and doxyfile targets dependend on tool file (48520ca)
+
+
+* reorganised doxygen dependencies (15b0158)
+
+
+* added resursive tagfile dependencies (030a277)
+
+
+* refactored doxygen builder and added tagfile support (f90a1f6)
+
+
+* initial DoxygenBuilder version without tag file support (a4f09c1)
+
+
+* refactored .scb creation (aff226b)
+
+
+* Merge branch 'SconsSetup' of ssh://m1huber@sifs-coast1/var/repositories/git/coast into MemLeak (c8d7d3d)
+
+
+* corrected includeSubdir handling (e36ccda)
+
+
+* use AddMethod to add custom builder wrappers to env (19e6db7)
+
+
+* Merge branch 'SconsSetup' of ssh://dwild@sifs-coast1.hsr.ch/var/repositories/git/coast into SconsSetup (a63945d)
+
+
+* refactored linkDependencies, requires, copyConfigFiles, etc (23deb9f)
+
+
+* generate separate script if gdb-option is active (5c6ed25)
+
+
+* added run-force option to RunBuilder (004327a)
+
+
+* changed back to using OCI API (8e8137b)
+
+
+* added --gdb option to let the target run within gdb (674460b)
+
+
+* Squashed commit of the following: (4b399db)
+
+
+* refactoring of include file copying (5cc66cb)
+
+
+* replaced copyConfigFiles with copyConfigFilesTarget (d981c52)
+
+
+* dir variable cleanup (cc69ce1)
+
+
+* added with feature from future (according to python 2.5.x) (b3ce7ea)
+
+
+* fixed a bug causing setUp und tearDown to be run every time (a0e7bd8)
+
+
+* added setUp and tearDown (6cddb06)
+
+
+* Refactored RunBuilder to get rid of duplicated code (85f2efd)
+
+
+* Added Builder for Run and Test targets (4846b17)
+
+
+* added g++ include search path into scons plugin build settings file (70847a0)
+
+
+* set platform to win32 depending if mingw was specified in usetool (681b31f)
+
+
+* added initial settings for win32 compilation (35fdb9c)
+
+
+* added tool to generate doxygen documentation (3d136e2)
+
+
+* added feature to create .scb (scons plugin build settings) file to enable include file resolving in eclipse (1866109)
+
+
+* Merge branch 'SconsSetup' of ssh://m1huber@sifs-coast1/var/repositories/git/coast into SconsSetup (0da05cd)
+
+
+* fixed usedTarget bug (ebda0af)
+
+
+* added requires feature for library target (c076ee9)
+
+
+* corrected bitwidth print format flag (f3661df)
+
+
+* added --enable-Trace compilation setting/variant for using WebDisplay Traces (a1e62fa)
+
+
+* whitespace cleanup (38597d0)
+
+
+* removed code lines used for testing (5404ea1)
+
+
+* implemented version and libstring settings for sunOS (38aa9b8)
+
+
+* added precompiled library support (f1e2afb)
+
+
+* eliminated registerObjects and replaced with appropriate functions (58b59cb)
+
+
+* added useTargetNames flag to create script for every target specified and not only for wrapping package (901e9f2)
+
+
+* changed testfwFoundation to use new build mode (51d0934)
+
+
+* nested target specific build settings using the targetname as key (2113b04)
+
+
+* applied some changes to enable g++ link work on cygwin (9080868)
+
+
+* generalized includePath handling by adding basedir param (23c87dd)
+
+
+* factored out generate mechanism into StanfordUtils (30f5575)
+
+
+* Squashed commit of the following: (03bd74e)
+
+
+* removal of unnecessary stuff (d5de22f)
+
+
+* replaced the scons tool mechanism (42bac3f)
+
+
+* Squashed commit of the following: (e222047)
+
+
+* changed the way of using libraries as other targets dependencies (1d24890)
+
+
+* corrected re.match to re.search (df3044c)
+
+
+* python script to change old to new library names in Anythings (a5fee5d)
+
+
+* removed src directory from inclusion list (9dbe6e7)
+
+
+* corrected file copying when no path segment exists (b420adc)
+
+
+* adjusted scons build settings and libnames (0708ed9)
+
+
+* Merge branch 'SconsSetup' of ssh://m1huber@sifs-coast1/var/repositories/git/coast into SconsSetup (68a217a)
+
+
+* optimized handling of files to install (a2d51c2)
+
+
+* removed externals.sons inclusion (096870a)
+
+
+* added openssl scons support (b5b2d25)
+
+
+* removed stanford package retrieval function (6043d2a)
+
+
+* intermediary commit to have both package retrieval functions handy (c2e5bc4)
+
+
+* customized sun-link tool (d4287b7)
+
+
+* removed explicit setting of SHCCFLAGS; values copied from CCFLAGS (51cd901)
+
+
+* Revert "few lines rewritten to be more python-like" -> because older python version (< 2.6) are not able to interpret new format This reverts commit 5533d990ed249990c83802f938d26e576523837a. (0314aa6)
+
+
+* Merge branch 'SconsSetup' of ssh://m1huber@sifs-coast1/var/repositories/git/coast into SconsSetup (999bd2f)
+
+
+* added -z linker flags again because I found a workaround ;) (ea5a398)
+
+
+* few lines rewritten to be more python-like (215a11b)
+
+
+* updated zlib version (e4cdfe7)
+
+
+* added more libraries to link with (9e057c9)
+
+
+* building end executing tests improved (9064685)
+
+
+* disable use of rpath when using sunCC (4781436)
+
+
+* moved some POSIX relevant compilation flags to setupBuildTools (1af5137)
+
+
+* moved iostream option to setupBuildTools (50f46e8)
+
+
+* added sun-CC specific options to use stl features and non-classic iostreams (8cbd580)
+
+
+* added option to select target architecture bit width (a653cbb)
+
+
+* library files (yyyLib.py) refactoring (7004538)
+
+
+* added tool to specify g++ compiler to use (4e6003d)
+
+
+* added missing libraries for sun-gcc compilation (00cd4d4)
+
+
+* corrected shell variable exports (d836dc2)
+
+
+* adjusted platform variant string (a5ed6bf)
+
+
+* prepared for baseoutdir when it is not inside the source tree (306cce1)
+
+
+* added AddOption guard (8b574bf)
+
+
+* moved optional things out of StanfordUtils.py (12df102)
+
+
+* build working up to mtoundation tests (c12fccb)
+
+
+* corrected small things (2e47de6)
+
+
+* file cleanup (ed7d831)
+
+
+* scons build working with limitations using stanford utilities (edd1d7f)
+
+
+* re-added missing stanford utility parts (342de17)
+
+
+* initially working stanford scons build (9df108b)
+
+
+* moved stanford specific files into site_scons directory (d895dae)
+
+
+* stanford scons support added (b558445)

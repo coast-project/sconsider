@@ -1,35 +1,44 @@
-image: marcelhuberfoo/arch-build-coast:latest
+image: instituteforsoftware/coast-build:latest
 
 variables:
   PYPIRC_LOCATION: $CI_PROJECT_DIR/.pypirc
 
 before_script:
 - echo -e "[distutils]\\nindex-servers =\\n  pypi\\n  testpypi\\n[pypi]\\n#repository:$PYPI_REPOSITORY\\nusername:$PYPI_USERNAME\\npassword:$PYPI_PASSWORD\\n[testpypi]\\nrepository:$PYPI_TEST_REPOSITORY\\nusername:$PYPI_TEST_USERNAME\\npassword:$PYPI_TEST_PASSWORD\\n" >$PYPIRC_LOCATION
+- type -fP tox || pip install tox
 
 build:
   stage: build
   tags:
   - docker
+  artifacts:
+    expire_in: 1 day
+    paths:
+    - "*.tox.json"
+    - pytest.log
   script:
-  - tox2 --version
-  - pip2 --version
-  - tox2 --recreate -e wheel
+  - tox --recreate -e wheel --result-json "$(pwd)/$CI_JOB_NAME.tox.json"
 
-test:
+test and deploy to testpypi:
   stage: test
   tags:
   - docker
   variables:
     PYPI_REPO_NAME: testpypi
   artifacts:
+    expire_in: 1 day
     paths:
     - dist/*.whl
     - dist/*.tar.gz
+    - "*.tox.json"
+    - pytest.log
+    - testresults.xml
+    - coverage/report.xml
   script:
-  - tox2 --recreate
-  - tox2 --recreate -e upload
+  - tox --recreate --result-json "$(pwd)/$CI_JOB_NAME.tox.json"
+  - tox --recreate -e upload --result-json "$(pwd)/$CI_JOB_NAME.upload.tox.json"
 
-deploy:
+deploy to pypi:
   stage: deploy
   tags:
   - docker
@@ -38,10 +47,14 @@ deploy:
   only:
   - tags
   - triggers
+  when: manual
   dependencies: []
   artifacts:
+    expire_in: 1 day
     paths:
     - dist/*.whl
     - dist/*.tar.gz
+    - "*.tox.json"
+    - pytest.log
   script:
-  - tox2 --recreate -e upload
+  - tox --recreate -e upload --result-json "$(pwd)/$CI_JOB_NAME.tox.json"
