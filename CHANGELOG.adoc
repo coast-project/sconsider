@@ -1,6 +1,78 @@
 = Changelog
 
-== HEAD -> develop
+== HEAD -> feature/ChangelogAndReadmeToAsciidoc, origin/feature/ChangelogAndReadmeToAsciidoc
+* persisting test results (c2b4b9c)
+
+
+* increased log level of Callback in case we are debugging (41fd254)
+
+
+* use local variable for packagename (ce75cd6)
+
+
+* fixed duplicate node case when linkname==targetname (e9013c5)
+
+
+* time logging format adjusted (1180fa8)
+
+
+* tox log file name changed to json (1de24ad)
+
+
+* corrected jobname environment variable (67c366f)
+
+
+* explicitly set log format (f0b855f)
+
+
+* store build logs as artifacts to simplify exploration (76b715f)
+
+
+* logging command to execute in Popen (2bc0ea8)
+
+
+* added missing pytest.ini (b68158f)
+
+
+* moved pytest config into separate file (6c3207c)
+
+
+* formatting corrections (a384710)
+
+
+* changed to using capfd for testing stdout/stderr values (095ef9e)
+
+
+* prepared simple pytest.ini with logging settings (3c87cd9)
+
+
+* extended tox commands to log to file in case of errors (23b538b)
+
+
+* added missing *.adoc filter to MANIFEST (cc86bf1)
+
+
+* corrected description filename in setup.cfg (8834b72)
+
+
+* added missing path component of README.adoc (6a30afa)
+
+
+* install tox if not provided by docker image (bc92d79)
+
+
+* adjusted pypi package url (8a77758)
+
+
+* changed docker image used to build (db6bbac)
+
+
+* read description from adoc file (6b0a060)
+
+
+* converted changelog and readme to asciidoc (86416de)
+
+== develop
 * reformatted according to new yapf configuration (4b829fc)
 
 
