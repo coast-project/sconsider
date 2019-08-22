@@ -1,6 +1,12 @@
 = Changelog
 
-== HEAD -> feature/ChangelogAndReadmeToAsciidoc, origin/feature/ChangelogAndReadmeToAsciidoc
+== HEAD -> develop, origin/develop
+* Build fixing and changing README to asciidoc (6bb7133)
+
+
+* updated changelog (fab2271)
+
+
 * persisting test results (c2b4b9c)
 
 
@@ -72,13 +78,13 @@
 
 * converted changelog and readme to asciidoc (86416de)
 
-== develop
+
 * reformatted according to new yapf configuration (4b829fc)
 
 
 * updated yapf styles config (99518f3)
 
-== origin/develop
+
 * increased popen timeout (67faaa3)
 
 

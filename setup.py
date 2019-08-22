@@ -70,7 +70,7 @@ setup(
     cmdclass=versioneer.get_cmdclass(),
     description="scons build system extension",
     long_description=read_file(os.path.join(BASEDIR, 'README.adoc')),
-    long_description_content_type="text/plain",
+    long_description_content_type="text/asciidoc",
     # classifier list:
     # https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
