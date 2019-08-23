@@ -1,6 +1,18 @@
 = Changelog
 
-== tag: 0.3.13
+== HEAD -> develop
+* split test and deploy job to testpypi (e5f2eb8)
+
+== origin/develop
+* Merge tag '0.3.13' into develop (619bc91)
+
+== tag: 0.3.13, origin/master, origin/HEAD, master
+* python code cleaned, gitlab based building/testing added (c4ea326)
+
+
+* more changelog updates (14a41b6)
+
+
 * changelog updated (189838a)
 
 
@@ -689,9 +701,6 @@
 
 
 * file list changed for zlib 1.2.7 (010e906)
-
-== tag: 0.5.0
-* separated PackageRegistry and TargetMaker (252f502)
 
 
 * simplified getfqdn (a51b90f)
