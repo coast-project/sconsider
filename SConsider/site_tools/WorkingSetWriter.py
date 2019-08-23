@@ -61,9 +61,9 @@ def rememberWorkingSet(registry, packagename, **kw):
     from SCons.Script import Dir
 
     dependencyDict = registry.getPackageDependencies(packagename)
-    dependencies[packagename] = determineProjectDependencies(dependencyDict, registry,
-                                                             kw.get('sconstruct_dir',
-                                                                    Dir('#')).srcnode().get_abspath())
+    dependencies[packagename] = determineProjectDependencies(
+        dependencyDict, registry,
+        kw.get('sconstruct_dir', Dir('#')).srcnode().get_abspath())
 
 
 def writeWorkingSets(**kw):

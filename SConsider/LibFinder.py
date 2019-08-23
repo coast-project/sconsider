@@ -71,11 +71,10 @@ class UnixFinder(LibFinder):
     def getLibs(self, env, source, libnames=None, libdirs=None):
         if libdirs:
             env.AppendENVPath('LD_LIBRARY_PATH', [self.absolutify(j) for j in libdirs])
-        ldd = PopenHelper(
-            ['ldd', os.path.basename(source[0].get_abspath())],
-            stdout=PIPE,
-            cwd=os.path.dirname(source[0].get_abspath()),
-            env=getFlatENV(env))
+        ldd = PopenHelper(['ldd', os.path.basename(source[0].get_abspath())],
+                          stdout=PIPE,
+                          cwd=os.path.dirname(source[0].get_abspath()),
+                          env=getFlatENV(env))
         out, _ = ldd.communicate()
         libs = [
             j for j in re.findall(r'^.*=>\s*(not found|[^\s^\(]+)', out, re.MULTILINE)
@@ -121,11 +120,10 @@ class MacFinder(LibFinder):
     def getLibs(self, env, source, libnames=None, libdirs=None):
         if libdirs:
             env.AppendENVPath('DYLD_LIBRARY_PATH', [self.absolutify(j) for j in libdirs])
-        ldd = PopenHelper(
-            ['otool', '-L', os.path.basename(source[0].get_abspath())],
-            stdout=PIPE,
-            cwd=os.path.dirname(source[0].get_abspath()),
-            env=getFlatENV(env))
+        ldd = PopenHelper(['otool', '-L', os.path.basename(source[0].get_abspath())],
+                          stdout=PIPE,
+                          cwd=os.path.dirname(source[0].get_abspath()),
+                          env=getFlatENV(env))
         out, _ = ldd.communicate()
         libs = [
             j for j in re.findall(r'^.*=>\s*(not found|[^\s^\(]+)', out, re.MULTILINE)
@@ -155,8 +153,9 @@ class Win32Finder(LibFinder):
     def __filterLibs(self, env, filename, libnames):
         basename = os.path.basename(filename)
         libNamesStr = '(' + '|'.join([re.escape(j) for j in libnames]) + ')'
-        match = re.match(r'^(' + re.escape(env.subst('$LIBPREFIX')) + ')?' + libNamesStr + '.*' +
-                         re.escape(env.subst('$SHLIBSUFFIX')) + '$', basename)
+        match = re.match(
+            r'^(' + re.escape(env.subst('$LIBPREFIX')) + ')?' + libNamesStr + '.*' +
+            re.escape(env.subst('$SHLIBSUFFIX')) + '$', basename)
         return bool(match)
 
     def __findFileInPath(self, filename, paths):
@@ -166,11 +165,10 @@ class Win32Finder(LibFinder):
         return None
 
     def getLibs(self, env, source, libnames=None, libdirs=None):
-        ldd = PopenHelper(
-            ['objdump', '-p', os.path.basename(source[0].get_abspath())],
-            stdout=PIPE,
-            cwd=os.path.dirname(source[0].get_abspath()),
-            env=getFlatENV(env))
+        ldd = PopenHelper(['objdump', '-p', os.path.basename(source[0].get_abspath())],
+                          stdout=PIPE,
+                          cwd=os.path.dirname(source[0].get_abspath()),
+                          env=getFlatENV(env))
         out, _ = ldd.communicate()
         deplibs = re.findall(r'DLL Name:\s*(\S*)', out, re.MULTILINE)
         if not libdirs:

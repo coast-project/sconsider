@@ -341,8 +341,8 @@ def setLocalEnv(env=None, **kw):
 
 
 resolvers = [
-    lambda key: tls.env.get(key, None) if hasattr(tls, 'env') else None,
-    lambda key: os.environ.get(key, None)
+    lambda key: tls.env.get(key, None)
+    if hasattr(tls, 'env') else None, lambda key: os.environ.get(key, None)
 ]
 
 

@@ -9,7 +9,9 @@
 # -------------------------------------------------------------------------
 
 import shlex
+from logging import getLogger
 
+logger = getLogger(__name__)
 has_timeout_param = True
 try:
     from subprocess32 import Popen, PIPE, STDOUT, TimeoutExpired
@@ -35,6 +37,7 @@ class PopenHelper(object):
         _command_list = command
         if not _exec_using_shell and not isinstance(command, list):
             _command_list = shlex.split(command)
+        logger.debug("Executing command: %s with kw-args: %s", _command_list, kw)
         self.po = Popen(_command_list, **kw)
 
     def communicate(self, stdincontent=None, timeout=10, raise_except=False):

@@ -18,7 +18,6 @@ Helper decorator to mark a class as a singleton class
 class SingletonDecorator:
     """Decorator class inspired by http://python-3-patterns-idioms-
     test.readthedocs.io/en/latest/Singleton.html."""
-
     def __init__(self, klass):
         self.klass = klass
         self.instance = None

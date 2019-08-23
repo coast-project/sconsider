@@ -148,8 +148,8 @@ def filterBaseOutDir(path, **kw):
 
 
 def filterTestsAppsGlobalsPath(path, **kw):
-    replist = [('^tests' + os.sep + '[^' + os.sep + ']*' + os.sep + '?',
-                ''), ('^apps' + os.sep + '[^' + os.sep + ']*' + os.sep + '?', ''),
+    replist = [('^tests' + os.sep + '[^' + os.sep + ']*' + os.sep + '?', ''),
+               ('^apps' + os.sep + '[^' + os.sep + ']*' + os.sep + '?', ''),
                ('^globals' + os.sep + '[^' + os.sep + ']*' + os.sep + '?', '')]
     for r in replist:
         res = multiple_replace([r], path)
@@ -188,12 +188,11 @@ class PackageToolException(Exception):
 def generate(env):
     from SCons.Script import GetOption, Dir, AddOption
     from SCons.Script.Main import OptionsParser
-    AddOption(
-        '--package',
-        dest='package',
-        action='store',
-        default='',
-        help='Destination base directory for target specific files. Target\
+    AddOption('--package',
+              dest='package',
+              action='store',
+              default='',
+              help='Destination base directory for target specific files. Target\
     files will be put into a subdirectory named <packagename>. If a specific\
     package target is specified, the subdirectory will be named <packagename>.\
     <targetname>.')

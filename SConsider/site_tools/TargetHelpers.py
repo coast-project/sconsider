@@ -24,8 +24,8 @@ def getUsedTarget(env, buildSettings):
     used_target = None
     usedFullTargetname = buildSettings.get('usedTarget', None)
     if usedFullTargetname:
-        usedPackagename, usedTargetname = PackageRegistry.splitFulltargetname(
-            usedFullTargetname, default=True)
+        usedPackagename, usedTargetname = PackageRegistry.splitFulltargetname(usedFullTargetname,
+                                                                              default=True)
         used_target = PackageRegistry().loadPackageTarget(usedPackagename, usedTargetname)
     return used_target
 

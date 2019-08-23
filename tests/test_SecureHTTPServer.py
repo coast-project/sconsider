@@ -89,8 +89,8 @@ class TestSecureHTTPServer(object):
         try:
             import ssl
             try:
-                urllib.urlopen(
-                    'https://%s:%d/' % self.server_address, context=ssl._create_unverified_context())
+                urllib.urlopen('https://%s:%d/' % self.server_address,
+                               context=ssl._create_unverified_context())
             except (TypeError, AttributeError):
                 # old version does not take a context argument
                 # or _create_unverified_context might not be defined in ssl

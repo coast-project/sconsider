@@ -1,4 +1,4 @@
-include SConsider/*.yaml *.txt *.md
+include SConsider/*.yaml *.txt *.md *.adoc
 recursive-include SConsider/3rdparty *.sconsider
 include SConsider/maintenance/*.py
 include SConsider/xmlbuilder/LICENSE

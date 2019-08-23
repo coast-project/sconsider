@@ -148,8 +148,8 @@ def findLibrary(env, basedir, libname, dir_has_to_match=True, strict_lib_name_ma
 
     if allLibs:
         entry = allLibs[0]
-        return (entry['path'], entry['file'], entry['linkfile'], (entry['suffix'] == env.subst(
-            env['LIBSUFFIX'])))
+        return (entry['path'], entry['file'], entry['linkfile'],
+                (entry['suffix'] == env.subst(env['LIBSUFFIX'])))
 
     logger.warning('library [%s] not available for this platform [%s] and bitwidth[%s]', libname,
                    env['PLATFORM'], env.getBitwidth())
@@ -277,15 +277,17 @@ def generate(env):
 
     PrecompLibAction = SCons.Action.Action(installFunc,
                                            "Installing precompiled library '$SOURCE' as '$TARGET'")
-    PrecompLibBuilder = SCons.Builder.Builder(
-        action=[PrecompLibAction], emitter=precompLibNamesEmitter, single_source=True)
+    PrecompLibBuilder = SCons.Builder.Builder(action=[PrecompLibAction],
+                                              emitter=precompLibNamesEmitter,
+                                              single_source=True)
 
     env.Append(BUILDERS={'PrecompiledLibraryInstallBuilder': PrecompLibBuilder})
 
     PrecompBinAction = SCons.Action.Action(installFunc,
                                            "Installing precompiled binary '$SOURCE' as '$TARGET'")
-    PrecompBinBuilder = SCons.Builder.Builder(
-        action=[PrecompBinAction], emitter=precompBinNamesEmitter, single_source=False)
+    PrecompBinBuilder = SCons.Builder.Builder(action=[PrecompBinAction],
+                                              emitter=precompBinNamesEmitter,
+                                              single_source=False)
 
     env.Append(BUILDERS={'PrecompiledBinaryInstallBuilder': PrecompBinBuilder})
     Callback().register('PrePackageCollection', prePackageCollection)

@@ -141,17 +141,17 @@ class PackageRegistry(object):
             if match:
                 rootDir = self.env.Dir(root)
                 _filename = rootDir.File(filename)
-                logger.debug('found package [%s] in [%s]', match.group('packagename'),
-                             start_dir.rel_path(_filename))
-                register_func(match.group('packagename'), _filename, rootDir, package_relpath=rootDir.path)
+                _packagename = match.group('packagename')
+                if not self.hasPackage(_packagename):
+                    logger.debug('found package [%s] in [%s]', _packagename, start_dir.rel_path(_filename))
+                    register_func(_packagename, _filename, rootDir, package_relpath=rootDir.path)
 
         logger.info("Recursively collecting package files ...")
         for scandir in scan_dirs:
-            PackageRegistry.collectPackageFiles(
-                scandir,
-                lambda p, f: scanmatchfun(p, f, self.setPackage),
-                excludes_rel=scan_dirs_exclude_rel,
-                excludes_abs=scan_dirs_exclude_abs)
+            PackageRegistry.collectPackageFiles(scandir,
+                                                lambda p, f: scanmatchfun(p, f, self.setPackage),
+                                                excludes_rel=scan_dirs_exclude_rel,
+                                                excludes_abs=scan_dirs_exclude_abs)
 
     @staticmethod
     def splitFulltargetname(fulltargetname, default=False):
@@ -332,8 +332,8 @@ Original exception message:
             dep_targets = deps.get(fulltargetname, callerdeps.get(fulltargetname, None))
             if dep_targets is None and ext is not None:
                 callerdeps.get('pending', []).extend([fulltargetname])
-                dep_targets = self.getPackageTargetDependencies(
-                    *self.splitFulltargetname(fulltargetname), callerdeps=callerdeps)
+                dep_targets = self.getPackageTargetDependencies(*self.splitFulltargetname(fulltargetname),
+                                                                callerdeps=callerdeps)
                 callerdeps.get('pending', []).remove(fulltargetname)
             if dep_targets is not None:
                 callerdeps.setdefault(fulltargetname, dep_targets)
@@ -408,8 +408,10 @@ Original exception message:
                 exports = {'packagename': packagename, 'registry': self}
                 self.lookupStack.append(fulltargetname)
                 try:
-                    self.env.SConscript(
-                        packagefile, variant_dir=builddir, duplicate=packageduplicate, exports=exports)
+                    self.env.SConscript(packagefile,
+                                        variant_dir=builddir,
+                                        duplicate=packageduplicate,
+                                        exports=exports)
                     if self.getPackageTargetNames(packagename):
                         from SConsider.Callback import Callback
                         self.env.Default(packagename)

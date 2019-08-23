@@ -531,8 +531,9 @@ def createDoxygenTarget(env, registry, packagename):
             otherDoxygenSources.extend(getSourceFiles(registry, otherPackage))
             otherDoxygenSources.extend(getHeaderFiles(registry, otherPackage))
             otherPackageDir = registry.getPackageDir(otherPackage)
-            otherInputDirs = getPackageInputDirs(
-                registry, otherPackage, relativeTo=doxyfile.get_dir().get_abspath())
+            otherInputDirs = getPackageInputDirs(registry,
+                                                 otherPackage,
+                                                 relativeTo=doxyfile.get_dir().get_abspath())
             if '3rdparty' in otherPackageDir.get_abspath():
                 doxyData['INCLUDE_PATH'].update(otherInputDirs)
                 doxyData['SEARCH_INCLUDES'] = 'YES'
@@ -544,8 +545,10 @@ def createDoxygenTarget(env, registry, packagename):
     doxyfileSources = [registry.getPackageFile(packagename)]
     doxyfileSources.extend(otherDoxyfileSources)
 
-    doxyfileTarget = env.DoxyfileBuilder(
-        target=doxyfile, source=doxyfileSources, data=doxyData, logname='doxyfile_' + packagename)
+    doxyfileTarget = env.DoxyfileBuilder(target=doxyfile,
+                                         source=doxyfileSources,
+                                         data=doxyData,
+                                         logname='doxyfile_' + packagename)
 
     env.Precious(doxyfileTarget)
     env.NoClean(doxyfileTarget)
@@ -617,8 +620,10 @@ def createDoxygenAllTarget(registry):
     doxyData['INPUT'].extend(allInputDirs)
 
     # DoxyFileTarget: Dependent on all package sconsider files
-    doxyfileTarget = env.DoxyfileBuilder(
-        target=doxyfile, source=allPackageFiles, data=doxyData, logname='doxyfile_coast')
+    doxyfileTarget = env.DoxyfileBuilder(target=doxyfile,
+                                         source=allPackageFiles,
+                                         data=doxyData,
+                                         logname='doxyfile_coast')
 
     env.Precious(doxyfileTarget)
     env.NoClean(doxyfileTarget)
@@ -684,18 +689,20 @@ def generate(env):
     from SCons.Action import Action
     from SCons.Builder import Builder
     from SCons.Scanner.C import CScanner
-    AddOption(
-        '--doxygen', dest='doxygen', action='store_true', default=False, help='Create module documentation')
-    AddOption(
-        '--doxygen-only',
-        dest='doxygen-only',
-        action='store_true',
-        default=False,
-        help='Same as --doxygen but skips all targets except doxygen')
+    AddOption('--doxygen',
+              dest='doxygen',
+              action='store_true',
+              default=False,
+              help='Create module documentation')
+    AddOption('--doxygen-only',
+              dest='doxygen-only',
+              action='store_true',
+              default=False,
+              help='Same as --doxygen but skips all targets except doxygen')
 
     doxyfileAction = Action(buildDoxyfile, "Creating Doxygen config file '$TARGET'")
-    doxyfileBuilder = Builder(
-        action=doxyfileAction, source_scanner=CScanner())  # adds headers as dependencies
+    doxyfileBuilder = Builder(action=doxyfileAction,
+                              source_scanner=CScanner())  # adds headers as dependencies
 
     doxygenAction = Action(callDoxygen, "Creating documentation using '$SOURCE'")
     # adds headers as dependencies

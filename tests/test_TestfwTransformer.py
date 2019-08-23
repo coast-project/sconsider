@@ -95,16 +95,15 @@ class TestTestfwTranformerStateMachine(object):
         verify(self.failed).failSuccess(line=line, assertions="2", msecs="35")
 
     def test_ParserFailedFailStartFailure(self):
-        when(self.failed).failStartFailure(
-            line=any(), testcase=any(), message=any(), cause=any()).thenReturn(None)
+        when(self.failed).failStartFailure(line=any(), testcase=any(), message=any(),
+                                           cause=any()).thenReturn(None)
         self.parser.setState('failed')
         line = "21) SystemTest: File.cpp:123: this is the cause"
         self.parser.parseLine(line)
-        verify(self.failed).failStartFailure(
-            line=line,
-            testcase="SystemTest",
-            message="File.cpp:123: this is the cause",
-            cause="this is the cause")
+        verify(self.failed).failStartFailure(line=line,
+                                             testcase="SystemTest",
+                                             message="File.cpp:123: this is the cause",
+                                             cause="this is the cause")
 
     def test_ParserFailedHandle(self):
         when(self.failed).handle(any()).thenReturn(None)

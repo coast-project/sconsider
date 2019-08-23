@@ -61,10 +61,11 @@ elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
 
     runner_target = createPackageRunTarget(packagename, 'runner', script_target, settings=runConfigRunner)
 
-    EnvBuilder().depend().build().RegisterPackageTarget(
-        packagename=packagename, targetname='runner', target=runner_target)
+    EnvBuilder().depend().build().RegisterPackageTarget(packagename=packagename,
+                                                        targetname='runner',
+                                                        target=runner_target)
 
     createAlias('binaries', runner_target)
 
-    EnvBuilder().depend(bin_target, script_target).build().RegisterPackageTarget(
-        packagename=packagename, targetname=packagename)
+    EnvBuilder().depend(bin_target, script_target).build().RegisterPackageTarget(packagename=packagename,
+                                                                                 targetname=packagename)
