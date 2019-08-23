@@ -1,6 +1,15 @@
 = Changelog
 
-== HEAD -> develop, origin/develop
+== tag: 0.3.13
+* changelog updated (189838a)
+
+
+* reformatting changes (b766877)
+
+
+* changed mime type of readme back to text/plain (c53b8a2)
+
+
 * update of changelog and change of mime type (3f200ff)
 
 
@@ -117,7 +126,7 @@
 
 * parse_requirements replaced with simple function (afe665e)
 
-== origin/master, origin/HEAD, master
+
 * Merge branch 'MinimizeNewSconsiderDiffs' into 'master' (f030179)
 
 
@@ -680,6 +689,9 @@
 
 
 * file list changed for zlib 1.2.7 (010e906)
+
+== tag: 0.5.0
+* separated PackageRegistry and TargetMaker (252f502)
 
 
 * simplified getfqdn (a51b90f)
