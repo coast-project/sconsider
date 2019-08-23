@@ -1,6 +1,7 @@
 = Changelog
 
-* changelog updated (03fcffb)
+== tag: 0.3.13
+* changelog updated (189838a)
 
 
 * reformatting changes (b766877)
