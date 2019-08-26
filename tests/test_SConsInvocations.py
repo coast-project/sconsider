@@ -10,6 +10,7 @@
 
 import pytest
 import os
+import re
 from glob import glob
 from SConsider.PopenHelper import PopenHelper
 
@@ -89,25 +90,28 @@ def test_SConsiderStaticProgBuild(copy_testdir_to_tmp, pypath_extended_env, pope
 @pytest.mark.invocation
 def test_SConsiderStaticProgDoxygenOnly(copy_testdir_to_tmp, pypath_extended_env, popen_timeout,
                                         scons_platform_options, capfd):
-    sub_p = PopenHelper(r'scons --usetool=DoxygenBuilder --doxygen-only' + scons_platform_options,
+    sub_p = PopenHelper(r'scons --usetool=DoxygenBuilder --doxygen-only hello' + scons_platform_options,
                         cwd=str(copy_testdir_to_tmp),
                         env=pypath_extended_env)
     sub_p.communicate(timeout=popen_timeout)
     assert 0 == sub_p.returncode
     captured = capfd.readouterr()
     assert 'done building targets.' in captured.out
+    assert re.search('BUILD_TARGETS.*doxygen', captured.out)
 
 
 @pytest.mark.invocation
 def test_SConsiderStaticProgIncludingDoxygen(copy_testdir_to_tmp, pypath_extended_env, popen_timeout,
                                              scons_platform_options, capfd):
-    sub_p = PopenHelper(r'scons --usetool=DoxygenBuilder --doxygen' + scons_platform_options,
+    sub_p = PopenHelper(r'scons --usetool=DoxygenBuilder --doxygen hello' + scons_platform_options,
                         cwd=str(copy_testdir_to_tmp),
                         env=pypath_extended_env)
     sub_p.communicate(timeout=popen_timeout)
     assert 0 == sub_p.returncode
     captured = capfd.readouterr()
     assert 'done building targets.' in captured.out
+    assert re.search('BUILD_TARGETS.*doxygen', captured.out)
+    assert re.search('BUILD_TARGETS.*hello', captured.out)
 
 
 @pytest.mark.invocation
