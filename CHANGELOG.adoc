@@ -1,12 +1,42 @@
 = Changelog
 
-== HEAD -> develop
+== tag: 0.3.15
+* updated changelog
+
+
+* Bumped version to 0.3.15 (5bdabde)
+
+
+* updated DoxygenBuilder to work with new Callback structure (913c1a6)
+
+
+* changelog updated (d12c6ee)
+
+
+* reformatted code (74d1cb3)
+
+
+* use buildTargets from function parameters (2ae63a7)
+
+
+* use buildTargets from function parameters (d126e3b)
+
+
+* Merge tag '0.3.14' into develop (ec327f7)
+
+== tag: 0.3.14
+* only upload once to testpypi (822679b)
+
+
+* update of changelog (81d5e9c)
+
+
 * split test and deploy job to testpypi (e5f2eb8)
 
-== origin/develop
+
 * Merge tag '0.3.13' into develop (619bc91)
 
-== tag: 0.3.13, origin/master, origin/HEAD, master
+== tag: 0.3.13
 * python code cleaned, gitlab based building/testing added (c4ea326)
 
 

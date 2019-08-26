@@ -25,7 +25,7 @@ import shlex
 from logging import getLogger
 from SCons.Action import Action
 from SCons.Builder import Builder
-from SCons.Script import AddOption, GetOption, COMMAND_LINE_TARGETS, BUILD_TARGETS
+from SCons.Script import AddOption, GetOption, COMMAND_LINE_TARGETS
 from SCons.Util import is_List
 from SConsider.PackageRegistry import PackageRegistry
 from SConsider.Callback import Callback
@@ -341,13 +341,13 @@ def generate(env):
                        runner_hook_func=runner_hook_func,
                        **kw)
 
-    def addBuildTargetCallback(**kw):
+    def addBuildTargetCallback(buildTargets, **kw):
         if COMMAND_LINE_TARGETS:
             for ftname in COMMAND_LINE_TARGETS:
                 packagename, targetname = PackageRegistry.splitFulltargetname(ftname)
-                BUILD_TARGETS.extend(getTargets(packagename, targetname))
+                buildTargets.extend(getTargets(packagename, targetname))
         else:
-            BUILD_TARGETS.extend(getTargets())
+            buildTargets.extend(getTargets())
 
     if GetOption("run") or GetOption("run-force"):
         Callback().register("PostCreateTarget", createTargetCallback)
