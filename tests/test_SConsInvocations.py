@@ -88,7 +88,7 @@ def test_SConsiderStaticProgBuild(copy_testdir_to_tmp, pypath_extended_env, pope
 
 @pytest.mark.invocation
 def test_SConsiderStaticProgDoxygenOnly(copy_testdir_to_tmp, pypath_extended_env, popen_timeout,
-                                  scons_platform_options, capfd):
+                                        scons_platform_options, capfd):
     sub_p = PopenHelper(r'scons --usetool=DoxygenBuilder --doxygen-only' + scons_platform_options,
                         cwd=str(copy_testdir_to_tmp),
                         env=pypath_extended_env)
@@ -100,7 +100,7 @@ def test_SConsiderStaticProgDoxygenOnly(copy_testdir_to_tmp, pypath_extended_env
 
 @pytest.mark.invocation
 def test_SConsiderStaticProgIncludingDoxygen(copy_testdir_to_tmp, pypath_extended_env, popen_timeout,
-                                  scons_platform_options, capfd):
+                                             scons_platform_options, capfd):
     sub_p = PopenHelper(r'scons --usetool=DoxygenBuilder --doxygen' + scons_platform_options,
                         cwd=str(copy_testdir_to_tmp),
                         env=pypath_extended_env)
