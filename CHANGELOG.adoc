@@ -1,6 +1,18 @@
 = Changelog
 
-== HEAD -> feature/DoxyfileBuilderFix, origin/feature/DoxyfileBuilderFix
+== tag: 0.3.15
+* updated changelog
+
+
+* Bumped version to 0.3.15 (5bdabde)
+
+
+* updated DoxygenBuilder to work with new Callback structure (913c1a6)
+
+
+* changelog updated (d12c6ee)
+
+
 * reformatted code (74d1cb3)
 
 
@@ -9,10 +21,10 @@
 
 * use buildTargets from function parameters (d126e3b)
 
-== origin/develop, develop
+
 * Merge tag '0.3.14' into develop (ec327f7)
 
-== tag: 0.3.14, origin/master, origin/HEAD, master
+== tag: 0.3.14
 * only upload once to testpypi (822679b)
 
 
