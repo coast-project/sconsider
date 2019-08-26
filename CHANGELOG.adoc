@@ -1,7 +1,22 @@
 = Changelog
 
-== tag: 0.3.15
+== tag: 0.3.16
 * updated changelog
+
+
+* Bumped version to 0.3.16 (718be28)
+
+
+* fixed buildTarget list modification (c3411c9)
+
+
+* Merge tag '0.3.15' into develop (b671291)
+
+== tag: 0.3.15
+* updated DoxygenBuilder to work with new Callback structure (d43a3bc)
+
+
+* updated changelog (dfdab9a)
 
 
 * Bumped version to 0.3.15 (5bdabde)
