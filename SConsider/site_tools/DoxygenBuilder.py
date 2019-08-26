@@ -723,7 +723,7 @@ def generate(env):
 
     def addBuildTargetCallback(registry, buildTargets, **kw):
         if GetOption("doxygen-only"):
-            buildTargets = ["doxygen"]
+            buildTargets[:] = ["doxygen"]
         else:
             buildTargets.append("doxygen")
 
