@@ -301,7 +301,7 @@ def getTagfileDependencyLine(ownDoxyfile, ownData, otherDoxyfile, env):
     return '%s=%s' % (tagfileRelPath, linkRelPath)
 
 
-def buildDoxyfile(target, _, env):
+def buildDoxyfile(target, env, **kw):
     """Creates the Doxyfile.
 
     The first (and only) target should be the Doxyfile. Sourcefiles are
@@ -356,7 +356,7 @@ def closeLogFiles(log_out, log_err):
         log_err.close()
 
 
-def callDoxygen(_, source, env):
+def callDoxygen(source, env, **kw):
     """Creates the output directory (doxygen can't do that recursively) and
     calls doxygen.
 
@@ -715,24 +715,24 @@ def generate(env):
 
     env.Append(DOCDIR='doc')
 
-    def createTargetCallback(registry, packagename):
+    def createTargetCallback(registry, packagename, **kw):
         from SConsider import cloneBaseEnv
         doxyEnv = cloneBaseEnv()
         doxyTarget = doxyEnv.PackageDoxygen(registry, packagename)
         doxyEnv.Alias("doxygen", doxyTarget)
 
-    def addBuildTargetCallback():
+    def addBuildTargetCallback(registry, buildTargets, **kw):
         if GetOption("doxygen-only"):
-            BUILD_TARGETS = ["doxygen"]
+            buildTargets = ["doxygen"]
         else:
-            BUILD_TARGETS.append("doxygen")
+            buildTargets.append("doxygen")
 
-    def addBuildAllTargetCallback(registry):
+    def addBuildAllTargetCallback(registry, **kw):
         from SConsider import cloneBaseEnv
         doxyEnv = cloneBaseEnv()
         doxyTarget = createDoxygenAllTarget(registry)
         doxyEnv.Alias("doxygen", doxyTarget)
-        addBuildTargetCallback()
+        addBuildTargetCallback(registry, **kw)
 
     if GetOption("doxygen") or GetOption("doxygen-only"):
         from SConsider.Callback import Callback
