@@ -81,27 +81,26 @@ def run(cmd, logfile=None, **kw):
     tee = Tee()
     tee.add(sys.stdout, flush=True, close=False)
     rcode = 99
-    proc = None
+    if logfile:
+        if not os.path.isdir(logfile.dir.get_abspath()):
+            os.makedirs(logfile.dir.get_abspath())
+        tee.add(open(logfile.get_abspath(), 'w'), flush=False, close=True)
+    proc = PopenHelper(cmd, stdin=None, stdout=PIPE, stderr=STDOUT, **kw)
     try:
-        if logfile:
-            if not os.path.isdir(logfile.dir.get_abspath()):
-                os.makedirs(logfile.dir.get_abspath())
-            tee.add(open(logfile.get_abspath(), 'w'))
-        proc = PopenHelper(cmd, stdin=None, stdout=PIPE, stderr=STDOUT, **kw)
-        while True:
-            out = proc.stdout.read(1)
-            if out == '' and proc.poll() is not None:
-                break
-            tee.write(out)
-        rcode = proc.returncode
+        # tee code inspired by:
+        # - https://stackoverflow.com/questions/18421757/live-output-from-subprocess-command#answer-18422264
+        # proc.poll() returns None until process has terminated
+        while proc.poll() is None:
+            tee.write(proc.stdout.read(1))
+    except Exception as e:
+        logger.debug("exception occurred, exception: %s", e)
     finally:
-        while True and proc:
-            out = proc.stdout.readline()
-            if out == '' and proc.poll() is not None:
-                break
-            tee.write(out)
+        rcode = proc.poll()
+        # Read the remaining output
+        tee.write(proc.stdout.read())
         tee.close()
 
+    logger.debug("returncode: %d", rcode)
     return rcode
 
 
