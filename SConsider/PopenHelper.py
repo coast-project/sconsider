@@ -45,6 +45,7 @@ class PopenHelper(object):
         if self.has_timeout:
             _kwargs['timeout'] = timeout
         try:
+            logger.debug("communicating with _kwargs: %s", _kwargs)
             _stdout, _stderr = self.po.communicate(**_kwargs)
         except TimeoutExpired:
             _kwargs = {'input': None}
@@ -56,6 +57,7 @@ class PopenHelper(object):
             self.os_except = ex
         finally:
             self.returncode = self.po.poll()
+            logger.debug("Popen returncode: %d, poll() returncode: %d", self.po.returncode, self.returncode)
             if raise_except:
                 raise
         return (_stdout, _stderr)
