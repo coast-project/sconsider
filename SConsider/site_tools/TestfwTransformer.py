@@ -253,6 +253,7 @@ def callPostTest(target, packagename, targetname, logfile, **kw):
             with open(logfile.get_abspath()) as f:
                 result = parser.parse(f)
                 with open(logfile.dir.File(targetname + '.test.xml').get_abspath(), 'w') as xmlfile:
+                    xmlfile.write('<?xml version="1.0" encoding="UTF-8" ?>')
                     xmlfile.write(result.toXML(packagename + '.' + targetname))
 
 
