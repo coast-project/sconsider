@@ -8,3 +8,5 @@ dist/
 *.log
 .venv*/
 .tox/
+/coverage/
+/.eggs/
