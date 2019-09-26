@@ -12,6 +12,9 @@ import shlex
 import sys
 import os
 from locale import getpreferredencoding
+import time
+from threading import Timer, Thread, Event
+from tempfile import NamedTemporaryFile
 from logging import getLogger
 
 logger = getLogger(__name__)
@@ -136,3 +139,116 @@ class Tee(object):
     def close(self):
         for stream, _, _, closer in self.writers:
             closer(stream)
+
+
+#https://stackoverflow.com/a/54868710/542082
+class ProcessRunner(object):
+    def __init__(self, args, timeout=None, bufsize=-1, seconds_to_wait=0.25, **kwargs):
+        """Constructor facade to subprocess.Popen that receives parameters
+        which are more specifically required for the.
+
+        Process Runner. This is a class that should be used as a context manager - and that provides an iterator
+        for reading captured output from subprocess.communicate in near realtime.
+
+        Example usage:
+
+        exitcode = -9
+        with Tee() as tee:
+            tee.attach_std()
+            process_runner = None
+            try:
+                with ProcessRunner(('ls', '-lAR', '.'), seconds_to_wait=0.25) as process_runner:
+                    for out in process_runner:
+                        tee.write(out)
+                    exitcode = process_runner.return_code
+            except CalledProcessError as e:
+                logger.debug("non-zero exitcode: %s", e)
+            except TimeoutExpired as e:
+                logger.debug(e)
+            except OSError as e:
+                logger.debug("executable error: %s", e)
+                # follow shell exit code
+                exitcode = 127
+            except Exception as e:
+                logger.debug("process creation failure: %s", e)
+            finally:
+                if process_runner:
+                    exitcode = process_runner.return_code
+
+        :param args: same as subprocess.Popen
+        :param timeout: same as subprocess.communicate
+        :param bufsize: same as subprocess.Popen
+        :param seconds_to_wait: time to wait between each readline from the temporary file
+        :param kwargs: same as subprocess.Popen
+        """
+        self._seconds_to_wait = seconds_to_wait
+        self._process_has_timed_out = False
+        self._timeout = timeout
+        self._has_timeout = has_timeout_param
+        self._process_done = False
+        self._std_file_handle = NamedTemporaryFile()
+
+        _exec_using_shell = kwargs.get('shell', False)
+        self._command_list = args
+        if not _exec_using_shell and not isinstance(args, list) and not isinstance(args, tuple):
+            self._command_list = shlex.split(args)
+        logger.debug("Executing command: %s with kwargs: %s", self._command_list, kwargs)
+
+        self._process = Popen(self._command_list,
+                              bufsize=bufsize,
+                              stdout=self._std_file_handle,
+                              stderr=self._std_file_handle,
+                              **kwargs)
+        self._thread = Thread(target=self._run_process)
+        self._thread.daemon = True
+
+    def __enter__(self):
+        self._thread.start()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._thread.join()
+        self._std_file_handle.close()
+
+    def __iter__(self):
+        # read all output from stdout file that subprocess.communicate fills
+        with open(self._std_file_handle.name, 'r') as stdout:
+            # while process is alive, keep reading data
+            while not self._process_done:
+                out = stdout.readline()
+                if out:
+                    yield out
+                else:
+                    # if there is nothing to read, then please wait a tiny little bit
+                    logger.debug("Command %s (pid: %s) has nothing to read from, sleeping for %ss",
+                                 self._command_list, self._process.pid, self._seconds_to_wait)
+                    time.sleep(self._seconds_to_wait)
+
+            # catch writes to buffer after process has finished
+            out = stdout.read()
+            if out:
+                yield out
+
+        if self._process_has_timed_out:
+            raise TimeoutExpired(self._command_list, self._timeout)
+
+        if self._process.returncode != 0:
+            raise CalledProcessError(self.return_code, self._command_list)
+
+    def _run_process(self):
+        try:
+            # Start gathering information (stdout and stderr) from the opened process
+            self._process.communicate(timeout=self._timeout)
+            # Graceful termination of the opened process
+            self._process.terminate()
+        except TimeoutExpired:
+            self._process_has_timed_out = True
+            # Force termination of the opened process
+            self._process.kill()
+            self._process.communicate(timeout=5.0)
+
+        self._process_done = True
+
+    @property
+    def return_code(self):
+        return self._process.returncode
