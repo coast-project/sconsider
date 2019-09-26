@@ -23,6 +23,7 @@ import optparse
 import sys
 import shlex
 from logging import getLogger
+from locale import getpreferredencoding
 from SCons.Action import Action
 from SCons.Builder import Builder
 from SCons.Script import AddOption, GetOption, COMMAND_LINE_TARGETS
@@ -60,45 +61,72 @@ def getTargets(packagename=None, targetname=None):
 class Tee(object):
     def __init__(self):
         self.writers = []
+        # Wrap sys.stdout into a StreamWriter to allow writing unicode.
+        # https://stackoverflow.com/a/4546129/542082
+        #  if not sys.stdout.isatty():
+        #      sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
+        self._preferred_encoding = getpreferredencoding()
 
-    def add(self, writer, flush=False, close=True):
-        self.writers.append((writer, flush, close))
+    def __del__(self):
+        self.close()
 
-    def write(self, output):
-        for writer, flush, _ in self.writers:
-            writer.write(output)
-            if flush:
-                writer.flush()
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+
+    def attach_file(self, writer):
+        def flush(stream):
+            stream.flush()
+            os.fsync(stream.fileno())
+
+        _decoder = (lambda msg: msg.decode(writer.encoding)) if writer.encoding else (lambda msg: msg)
+        self.writers.append((writer, _decoder, flush, lambda stream: stream.close()))
+
+    def attach_std(self, writer=sys.stdout):
+        def flush(stream):
+            stream.flush()
+
+        _decoder = (lambda msg: msg.decode(writer.encoding)) if writer.encoding else (lambda msg: msg)
+        self.writers.append((writer, _decoder, flush, lambda _: ()))
+
+    def write(self, message):
+        for writer, decoder, _, _ in self.writers:
+            if not writer.closed:
+                writer.write(decoder(message))
+
+    def flush(self):
+        for stream, _, flusher, _ in self.writers:
+            flusher(stream)
 
     def close(self):
-        for writer, _, close in self.writers:
-            if close:
-                writer.close()
+        for stream, _, _, closer in self.writers:
+            closer(stream)
 
 
 def run(cmd, logfile=None, **kw):
     """Run a Unix command and return the exit code."""
-    tee = Tee()
-    tee.add(sys.stdout, flush=True, close=False)
     rcode = 99
-    if logfile:
-        if not os.path.isdir(logfile.dir.get_abspath()):
-            os.makedirs(logfile.dir.get_abspath())
-        tee.add(open(logfile.get_abspath(), 'w'), flush=False, close=True)
-    proc = PopenHelper(cmd, stdin=None, stdout=PIPE, stderr=STDOUT, **kw)
-    try:
-        # tee code inspired by:
-        # - https://stackoverflow.com/questions/18421757/live-output-from-subprocess-command#answer-18422264
-        # proc.poll() returns None until process has terminated
-        while proc.poll() is None:
-            tee.write(proc.stdout.read(1))
-    except Exception as e:
-        logger.debug("exception occurred, exception: %s", e)
-    finally:
-        rcode = proc.poll()
-        # Read the remaining output
-        tee.write(proc.stdout.read())
-        tee.close()
+    with Tee() as tee:
+        tee.attach_std()
+        if logfile:
+            if not os.path.isdir(logfile.dir.get_abspath()):
+                os.makedirs(logfile.dir.get_abspath())
+            tee.attach_file(open(logfile.get_abspath(), 'w'))
+        proc = PopenHelper(cmd, stdin=None, stdout=PIPE, stderr=STDOUT, **kw)
+        try:
+            # tee code inspired by:
+            # - https://stackoverflow.com/questions/18421757/live-output-from-subprocess-command#answer-18422264
+            # proc.poll() returns None until process has terminated
+            while proc.poll() is None:
+                tee.write(proc.stdout.read(1))
+        except Exception as e:
+            logger.debug("exception occurred, exception: %s", e)
+        finally:
+            rcode = proc.poll()
+            # Read the remaining output
+            tee.write(proc.stdout.read())
 
     logger.debug("returncode: %d", rcode)
     return rcode
