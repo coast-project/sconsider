@@ -10,29 +10,53 @@
 
 import shlex
 import sys
+import os
 from locale import getpreferredencoding
 from logging import getLogger
 
 logger = getLogger(__name__)
 has_timeout_param = True
 try:
-    from subprocess32 import Popen, PIPE, STDOUT, TimeoutExpired
+    from subprocess32 import Popen, PIPE, STDOUT, TimeoutExpired, CalledProcessError
 except:
     try:
-        from subprocess import Popen, PIPE, STDOUT, TimeoutExpired
+        from subprocess import Popen, PIPE, STDOUT, TimeoutExpired, CalledProcessError
     except:
         from subprocess import Popen, PIPE, STDOUT
 
+        # Exception classes copied over from subprocess32
+        class CalledProcessError(Exception):
+            """This exception is raised when a process run by check_call() or
+            check_output() returns a non-zero exit status.
+
+            The exit status will be stored in the returncode attribute;
+            check_output() will also store the output in the output
+            attribute.
+            """
+            def __init__(self, returncode, cmd, output=None):
+                self.returncode = returncode
+                self.cmd = cmd
+                self.output = output
+
+            def __str__(self):
+                return "Command '%s' returned non-zero exit status %d" % (self.cmd, self.returncode)
+
         class TimeoutExpired(Exception):
-            def __init__(self):
-                pass
+            """This exception is raised when the timeout expires while waiting
+            for a child process."""
+            def __init__(self, cmd, timeout, output=None):
+                self.cmd = cmd
+                self.timeout = timeout
+                self.output = output
+
+            def __str__(self):
+                return ("Command '%s' timed out after %s seconds" % (self.cmd, self.timeout))
 
         has_timeout_param = False
 
 
 class PopenHelper(object):
     def __init__(self, command, **kw):
-        self.os_except = None
         self.returncode = None
         self.has_timeout = has_timeout_param
         _exec_using_shell = kw.get('shell', False)
@@ -42,7 +66,7 @@ class PopenHelper(object):
         logger.debug("Executing command: %s with kw-args: %s", _command_list, kw)
         self.po = Popen(_command_list, **kw)
 
-    def communicate(self, stdincontent=None, timeout=10, raise_except=False):
+    def communicate(self, stdincontent=None, timeout=10):
         _kwargs = {'input': stdincontent}
         if self.has_timeout:
             _kwargs['timeout'] = timeout
@@ -56,12 +80,11 @@ class PopenHelper(object):
             self.po.kill()
             _stdout, _stderr = self.po.communicate(**_kwargs)
         except OSError as ex:
-            self.os_except = ex
+            # raised if the executed program cannot be found
+            logger.debug(ex)
         finally:
             self.returncode = self.po.poll()
             logger.debug("Popen returncode: %d, poll() returncode: %d", self.po.returncode, self.returncode)
-            if raise_except:
-                raise
         return (_stdout, _stderr)
 
     def __getattr__(self, name):
