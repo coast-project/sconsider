@@ -9,6 +9,8 @@
 # -------------------------------------------------------------------------
 
 import shlex
+import sys
+from locale import getpreferredencoding
 from logging import getLogger
 
 logger = getLogger(__name__)
@@ -64,3 +66,50 @@ class PopenHelper(object):
 
     def __getattr__(self, name):
         return getattr(self.po, name)
+
+
+class Tee(object):
+    def __init__(self):
+        self.writers = []
+        # Wrap sys.stdout into a StreamWriter to allow writing unicode.
+        # https://stackoverflow.com/a/4546129/542082
+        #  if not sys.stdout.isatty():
+        #      sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
+        self._preferred_encoding = getpreferredencoding()
+
+    def __del__(self):
+        self.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+
+    def attach_file(self, writer):
+        def flush(stream):
+            stream.flush()
+            os.fsync(stream.fileno())
+
+        _decoder = (lambda msg: msg.decode(writer.encoding)) if writer.encoding else (lambda msg: msg)
+        self.writers.append((writer, _decoder, flush, lambda stream: stream.close()))
+
+    def attach_std(self, writer=sys.stdout):
+        def flush(stream):
+            stream.flush()
+
+        _decoder = (lambda msg: msg.decode(writer.encoding)) if writer.encoding else (lambda msg: msg)
+        self.writers.append((writer, _decoder, flush, lambda _: ()))
+
+    def write(self, message):
+        for writer, decoder, _, _ in self.writers:
+            if not writer.closed:
+                writer.write(decoder(message))
+
+    def flush(self):
+        for stream, _, flusher, _ in self.writers:
+            flusher(stream)
+
+    def close(self):
+        for stream, _, _, closer in self.writers:
+            closer(stream)

@@ -20,10 +20,8 @@ setup/teardown functions executed before and after running the program.
 from __future__ import with_statement
 import os
 import optparse
-import sys
 import shlex
 from logging import getLogger
-from locale import getpreferredencoding
 from SCons.Action import Action
 from SCons.Builder import Builder
 from SCons.Script import AddOption, GetOption, COMMAND_LINE_TARGETS
@@ -31,7 +29,7 @@ from SCons.Util import is_List
 from SConsider.PackageRegistry import PackageRegistry
 from SConsider.Callback import Callback
 from SConsider.SomeUtils import hasPathPart, isFileNode, isDerivedNode, getNodeDependencies, getFlatENV
-from SConsider.PopenHelper import PopenHelper, PIPE, STDOUT
+from SConsider.PopenHelper import PopenHelper, Tee, PIPE, STDOUT
 logger = getLogger(__name__)
 
 runtargets = {}
@@ -56,53 +54,6 @@ def getTargets(packagename=None, targetname=None):
     if not is_List(targets):
         targets = [targets]
     return targets
-
-
-class Tee(object):
-    def __init__(self):
-        self.writers = []
-        # Wrap sys.stdout into a StreamWriter to allow writing unicode.
-        # https://stackoverflow.com/a/4546129/542082
-        #  if not sys.stdout.isatty():
-        #      sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
-        self._preferred_encoding = getpreferredencoding()
-
-    def __del__(self):
-        self.close()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args):
-        self.close()
-
-    def attach_file(self, writer):
-        def flush(stream):
-            stream.flush()
-            os.fsync(stream.fileno())
-
-        _decoder = (lambda msg: msg.decode(writer.encoding)) if writer.encoding else (lambda msg: msg)
-        self.writers.append((writer, _decoder, flush, lambda stream: stream.close()))
-
-    def attach_std(self, writer=sys.stdout):
-        def flush(stream):
-            stream.flush()
-
-        _decoder = (lambda msg: msg.decode(writer.encoding)) if writer.encoding else (lambda msg: msg)
-        self.writers.append((writer, _decoder, flush, lambda _: ()))
-
-    def write(self, message):
-        for writer, decoder, _, _ in self.writers:
-            if not writer.closed:
-                writer.write(decoder(message))
-
-    def flush(self):
-        for stream, _, flusher, _ in self.writers:
-            flusher(stream)
-
-    def close(self):
-        for stream, _, _, closer in self.writers:
-            closer(stream)
 
 
 def run(cmd, logfile=None, **kw):
