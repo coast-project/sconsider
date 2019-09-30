@@ -161,7 +161,7 @@ class ProcessRunner(object):
                 with ProcessRunner(('ls', '-lAR', '.'), seconds_to_wait=0.25) as process_runner:
                     for out in process_runner:
                         tee.write(out)
-                    exitcode = process_runner.return_code
+                    exitcode = process_runner.returncode
             except CalledProcessError as e:
                 logger.debug("non-zero exitcode: %s", e)
             except TimeoutExpired as e:
@@ -174,7 +174,7 @@ class ProcessRunner(object):
                 logger.debug("process creation failure: %s", e)
             finally:
                 if process_runner:
-                    exitcode = process_runner.return_code
+                    exitcode = process_runner.returncode
 
         :param args: same as subprocess.Popen
         :param timeout: same as subprocess.communicate
@@ -234,7 +234,7 @@ class ProcessRunner(object):
             raise TimeoutExpired(self._command_list, self._timeout)
 
         if self._process.returncode != 0:
-            raise CalledProcessError(self.return_code, self._command_list)
+            raise CalledProcessError(self.returncode, self._command_list)
 
     def _run_process(self):
         try:
@@ -251,5 +251,5 @@ class ProcessRunner(object):
         self._process_done = True
 
     @property
-    def return_code(self):
+    def returncode(self):
         return self._process.returncode

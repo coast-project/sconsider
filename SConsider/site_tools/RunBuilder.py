@@ -67,10 +67,11 @@ def run(cmd, logfile=None, **kw):
             tee.attach_file(open(logfile.get_abspath(), 'w'))
         process_runner = None
         try:
+            #FIXME: add timeout parameter
             with ProcessRunner(cmd, seconds_to_wait=0.25, **kw) as process_runner:
                 for out in process_runner:
                     tee.write(out)
-                exitcode = process_runner.return_code
+                exitcode = process_runner.returncode
         except CalledProcessError as e:
             logger.debug("non-zero exitcode: %s", e)
         except TimeoutExpired as e:
@@ -83,7 +84,7 @@ def run(cmd, logfile=None, **kw):
             logger.debug("process creation failure: %s", e)
         finally:
             if process_runner:
-                exitcode = process_runner.return_code
+                exitcode = process_runner.returncode
 
     logger.debug("returncode: %d", exitcode)
     return exitcode
