@@ -137,7 +137,8 @@ class Tee(object):
             flusher(stream)
 
     def close(self):
-        for stream, _, _, closer in self.writers:
+        while self.writers:
+            stream, _, _, closer = self.writers.pop()
             closer(stream)
 
 
