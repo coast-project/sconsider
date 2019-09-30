@@ -29,7 +29,7 @@ from SCons.Util import is_List
 from SConsider.PackageRegistry import PackageRegistry
 from SConsider.Callback import Callback
 from SConsider.SomeUtils import hasPathPart, isFileNode, isDerivedNode, getNodeDependencies, getFlatENV
-from SConsider.PopenHelper import PopenHelper, Tee, PIPE, STDOUT
+from SConsider.PopenHelper import ProcessRunner, Tee, CalledProcessError, TimeoutExpired
 logger = getLogger(__name__)
 
 runtargets = {}
@@ -58,29 +58,35 @@ def getTargets(packagename=None, targetname=None):
 
 def run(cmd, logfile=None, **kw):
     """Run a Unix command and return the exit code."""
-    rcode = 99
+    exitcode = 99
     with Tee() as tee:
         tee.attach_std()
         if logfile:
             if not os.path.isdir(logfile.dir.get_abspath()):
                 os.makedirs(logfile.dir.get_abspath())
             tee.attach_file(open(logfile.get_abspath(), 'w'))
-        proc = PopenHelper(cmd, stdin=None, stdout=PIPE, stderr=STDOUT, **kw)
+        process_runner = None
         try:
-            # tee code inspired by:
-            # - https://stackoverflow.com/questions/18421757/live-output-from-subprocess-command#answer-18422264
-            # proc.poll() returns None until process has terminated
-            while proc.poll() is None:
-                tee.write(proc.stdout.read(1))
+            with ProcessRunner(cmd, seconds_to_wait=0.25, **kw) as process_runner:
+                for out in process_runner:
+                    tee.write(out)
+                exitcode = process_runner.return_code
+        except CalledProcessError as e:
+            logger.debug("non-zero exitcode: %s", e)
+        except TimeoutExpired as e:
+            logger.debug(e)
+        except OSError as e:
+            logger.debug("executable error: %s", e)
+            # follow shell exit code
+            exitcode = 127
         except Exception as e:
-            logger.debug("exception occurred, exception: %s", e)
+            logger.debug("process creation failure: %s", e)
         finally:
-            rcode = proc.poll()
-            # Read the remaining output
-            tee.write(proc.stdout.read())
+            if process_runner:
+                exitcode = process_runner.return_code
 
-    logger.debug("returncode: %d", rcode)
-    return rcode
+    logger.debug("returncode: %d", exitcode)
+    return exitcode
 
 
 def emitPassedFile(target, source, env):
