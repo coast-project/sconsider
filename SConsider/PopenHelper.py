@@ -159,7 +159,7 @@ class ProcessRunner(object):
             process_runner = None
             try:
                 with ProcessRunner(('ls', '-lAR', '.'), seconds_to_wait=0.25) as process_runner:
-                    for out in process_runner:
+                    for out, err in process_runner:
                         tee.write(out)
                     exitcode = process_runner.returncode
             except CalledProcessError as e:
@@ -187,7 +187,15 @@ class ProcessRunner(object):
         self._timeout = timeout
         self._has_timeout = has_timeout_param
         self._process_done = False
-        self._std_file_handle = NamedTemporaryFile()
+        self._stdout_file_handle = NamedTemporaryFile()
+        self._stderr_file_handle = kwargs.pop('stderr', None)
+        # DEVNULL and STDOUT will be passed through
+        # redirect to err file otherwise
+        if self._stderr_file_handle in (None, PIPE):
+            self._stderr_file_handle = NamedTemporaryFile()
+        self._stdin_handle = kwargs.pop('stdin_handle', None)
+        if not self._stdin_handle is None:
+            kwargs.setdefault('stdin', PIPE)
 
         _exec_using_shell = kwargs.get('shell', False)
         self._command_list = args
@@ -197,8 +205,8 @@ class ProcessRunner(object):
 
         self._process = Popen(self._command_list,
                               bufsize=bufsize,
-                              stdout=self._std_file_handle,
-                              stderr=self._std_file_handle,
+                              stdout=self._stdout_file_handle,
+                              stderr=self._stderr_file_handle,
                               **kwargs)
         self._thread = Thread(target=self._run_process)
         self._thread.daemon = True
@@ -209,26 +217,46 @@ class ProcessRunner(object):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._thread.join()
-        self._std_file_handle.close()
+        self._stdout_file_handle.close()
+        # for newer versions, DEVNULL should also be masked
+        if not self._stderr_file_handle == STDOUT:
+            self._stderr_file_handle.close()
 
     def __iter__(self):
         # read all output from stdout file that subprocess.communicate fills
-        with open(self._std_file_handle.name, 'r') as stdout:
-            # while process is alive, keep reading data
-            while not self._process_done:
-                out = stdout.readline()
-                if out:
-                    yield out
-                else:
-                    # if there is nothing to read, then please wait a tiny little bit
-                    logger.debug("Command %s (pid: %s) has nothing to read from, sleeping for %ss",
-                                 self._command_list, self._process.pid, self._seconds_to_wait)
-                    time.sleep(self._seconds_to_wait)
+        _firstiter = True
+        _stderr = None
+        _err = ''
+        try:
+            if not self._stderr_file_handle == STDOUT:
+                _stderr = open(self._stderr_file_handle.name, 'r')
+            with open(self._stdout_file_handle.name, 'r') as _stdout:
+                # while process is alive, keep reading data
+                while not self._process_done:
+                    _out = _stdout.readline()
+                    if _stderr:
+                        _err = _stderr.readline()
+                    if _out or _err:
+                        yield (_out, _err)
+                    else:
+                        # if there is nothing to read, then please wait a tiny little bit
+                        if _firstiter:
+                            time.sleep(0.001)
+                            _firstiter = False
+                            continue
+                        logger.debug("Command %s (pid: %s) has nothing to read from, sleeping for %ss",
+                                     self._command_list, self._process.pid, self._seconds_to_wait)
+                        time.sleep(self._seconds_to_wait)
 
-            # catch writes to buffer after process has finished
-            out = stdout.read()
-            if out:
-                yield out
+                # catch writes to buffer after process has finished
+                _out = _stdout.read()
+                if _stderr:
+                    _err = _stderr.read()
+                if _out or _err:
+                    yield (_out, _err)
+        finally:
+            if _stderr:
+                _stderr.close()
 
         if self._process_has_timed_out:
             raise TimeoutExpired(self._command_list, self._timeout)
@@ -239,7 +267,7 @@ class ProcessRunner(object):
     def _run_process(self):
         try:
             # Start gathering information (stdout and stderr) from the opened process
-            self._process.communicate(timeout=self._timeout)
+            self._process.communicate(input=self._stdin_handle, timeout=self._timeout)
             # Graceful termination of the opened process
             self._process.terminate()
         except TimeoutExpired:

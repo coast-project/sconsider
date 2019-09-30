@@ -22,6 +22,7 @@ import os
 import optparse
 import shlex
 from logging import getLogger
+import sys
 from SCons.Action import Action
 from SCons.Builder import Builder
 from SCons.Script import AddOption, GetOption, COMMAND_LINE_TARGETS
@@ -69,8 +70,9 @@ def run(cmd, logfile=None, **kw):
         try:
             #FIXME: add timeout parameter
             with ProcessRunner(cmd, seconds_to_wait=0.25, **kw) as process_runner:
-                for out in process_runner:
+                for out, err in process_runner:
                     tee.write(out)
+                    sys.stderr.write(err)
                 exitcode = process_runner.returncode
         except CalledProcessError as e:
             logger.debug("non-zero exitcode: %s", e)
