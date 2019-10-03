@@ -15,7 +15,9 @@ Collection of helper functions
 
 import os
 import re
-from SConsider.PopenHelper import PopenHelper, PIPE
+from logging import getLogger
+from SConsider.PopenHelper import ProcessRunner, CalledProcessError, TimeoutExpired
+logger = getLogger(__name__)
 
 
 def FileNodeComparer(left, right):
@@ -326,7 +328,6 @@ def getfqdn():
 
 
 def runCommand(args, logpath='', filename=None, stdincontent=None, timeout=120, **kw):
-    res = 1
     if filename:
         with open(filename) as f:
             stdincontent = f.read()
@@ -341,8 +342,6 @@ def runCommand(args, logpath='', filename=None, stdincontent=None, timeout=120, 
     if callable(filter_func):
         stdincontent = filter_func(stdincontent)
 
-    popenObject = PopenHelper(args, stdin=PIPE, stderr=PIPE, stdout=PIPE, **kw)
-
     if not os.path.isdir(logpath):
         os.makedirs(logpath)
     logfilebasename = os.path.basename(args[0])
@@ -350,21 +349,32 @@ def runCommand(args, logpath='', filename=None, stdincontent=None, timeout=120, 
         logfilebasename = logfilebasename + '.' + os.path.basename(filename)
     errfilename = os.path.join(logpath, logfilebasename + '.stderr')
     outfilename = os.path.join(logpath, logfilebasename + '.stdout')
+
+    executor = None
     try:
-        popen_out, popen_err = popenObject.communicate(stdincontent, timeout=timeout)
-        if popen_err:
-            with open(errfilename, 'w') as errfile:
-                errfile.write(popen_err)
-        if popen_out:
-            with open(outfilename, 'w') as outfile:
-                outfile.write(popen_out)
-        res = popenObject.returncode
-    except OSError as ex:
-        with open(errfilename, 'w') as errfile:
-            print >> errfile, ex
-            for line in popenObject.stderr:
-                print >> errfile, line
-    return res
+        errfile = open(errfilename, 'w')
+        outfile = open(outfilename, 'w')
+        with ProcessRunner(args, timeout=timeout, stdin_handle=stdincontent, **kw) as executor:
+            for out, err in executor:
+                outfile.write(out)
+                errfile.write(err)
+    except CalledProcessError as e:
+        logger.debug("non-zero exitcode: %s", e)
+    except TimeoutExpired as e:
+        logger.debug(e)
+    except OSError as e:
+        logger.debug("executable error: %s", e)
+        # follow shell exit code
+        exitcode = 127
+    except Exception as e:
+        logger.debug("process creation failure: %s", e)
+        print >> errfile, e
+    finally:
+        if executor:
+            exitcode = executor.returncode
+        errfile.close()
+        outfile.close()
+    return exitcode
 
 
 def getLibCVersion(bits='32'):

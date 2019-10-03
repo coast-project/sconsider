@@ -19,7 +19,7 @@ import functools
 import itertools
 import operator
 from SConsider.SomeUtils import getFlatENV
-from SConsider.PopenHelper import PopenHelper, PIPE
+from SConsider.PopenHelper import PopenHelper, ProcessRunner
 
 
 def uniquelist(iterable):
@@ -71,15 +71,14 @@ class UnixFinder(LibFinder):
     def getLibs(self, env, source, libnames=None, libdirs=None):
         if libdirs:
             env.AppendENVPath('LD_LIBRARY_PATH', [self.absolutify(j) for j in libdirs])
-        ldd = PopenHelper(['ldd', os.path.basename(source[0].get_abspath())],
-                          stdout=PIPE,
-                          cwd=os.path.dirname(source[0].get_abspath()),
-                          env=getFlatENV(env))
-        out, _ = ldd.communicate()
-        libs = [
-            j for j in re.findall(r'^.*=>\s*(not found|[^\s^\(]+)', out, re.MULTILINE)
-            if functools.partial(operator.ne, 'not found')(j)
-        ]
+        libs = []
+        cmd = ['ldd', os.path.basename(source[0].get_abspath())]
+        with ProcessRunner(cmd, timeout=30, cwd=os.path.dirname(source[0].get_abspath()),
+                           env=getFlatENV(env)) as executor:
+            for out, _ in executor:
+                for j in re.findall(r'^.*=>\s*(not found|[^\s^\(]+)', out, re.MULTILINE):
+                    if functools.partial(operator.ne, 'not found')(j):
+                        libs.append(j)
         if libnames:
             libs = [j for j in libs if functools.partial(self.__filterLibs, env, libnames=libnames)(j)]
         return libs
@@ -89,16 +88,16 @@ class UnixFinder(LibFinder):
         linkercmd = env.subst('$LINK')
         if not linkercmd:
             return libdirs
-        cmdargs = [linkercmd, '-print-search-dirs'] + env.subst('$LINKFLAGS').split(' ')
-        linker = PopenHelper(cmdargs, stdout=PIPE, env=getFlatENV(env))
-        out, _ = linker.communicate()
-        match = re.search('^libraries.*=(.*)$', out, re.MULTILINE)
-        if match:
-            libdirs.extend(
-                unique([
-                    os.path.abspath(j) for j in match.group(1).split(os.pathsep)
-                    if os.path.exists(os.path.abspath(j))
-                ]))
+        cmd = [linkercmd, '-print-search-dirs'] + env.subst('$LINKFLAGS').split(' ')
+        with ProcessRunner(cmd, timeout=30, env=getFlatENV(env)) as executor:
+            for out, _ in executor:
+                match = re.search('^libraries.*=(.*)$', out, re.MULTILINE)
+                if match:
+                    libdirs.extend(
+                        unique([
+                            os.path.abspath(j) for j in match.group(1).split(os.pathsep)
+                            if os.path.exists(os.path.abspath(j))
+                        ]))
         return libdirs
 
 
@@ -120,15 +119,16 @@ class MacFinder(LibFinder):
     def getLibs(self, env, source, libnames=None, libdirs=None):
         if libdirs:
             env.AppendENVPath('DYLD_LIBRARY_PATH', [self.absolutify(j) for j in libdirs])
-        ldd = PopenHelper(['otool', '-L', os.path.basename(source[0].get_abspath())],
-                          stdout=PIPE,
-                          cwd=os.path.dirname(source[0].get_abspath()),
-                          env=getFlatENV(env))
-        out, _ = ldd.communicate()
-        libs = [
-            j for j in re.findall(r'^.*=>\s*(not found|[^\s^\(]+)', out, re.MULTILINE)
-            if functools.partial(operator.ne, 'not found')(j)
-        ]
+
+        libs = []
+        cmd = ['otool', '-L', os.path.basename(source[0].get_abspath())]
+        with ProcessRunner(cmd, timeout=30, cwd=os.path.dirname(source[0].get_abspath()),
+                           env=getFlatENV(env)) as executor:
+            for out, _ in executor:
+                for j in re.findall(r'^.*=>\s*(not found|[^\s^\(]+)', out, re.MULTILINE):
+                    if functools.partial(operator.ne, 'not found')(j):
+                        libs.append(j)
+
         if libnames:
             libs = [j for j in libs if functools.partial(self.__filterLibs, env, libnames=libnames)(j)]
         return libs
@@ -136,16 +136,17 @@ class MacFinder(LibFinder):
     def getSystemLibDirs(self, env):
         libdirs = []
         linkercmd = env.subst('$LINK')
-        cmdargs = [linkercmd, '-print-search-dirs'] + env.subst('$LINKFLAGS').split(' ')
-        linker = PopenHelper(cmdargs, stdout=PIPE, env=getFlatENV(env))
-        out, _ = linker.communicate()
-        match = re.search('^libraries.*=(.*)$', out, re.MULTILINE)
-        if match:
-            libdirs.extend(
-                unique([
-                    os.path.abspath(j) for j in match.group(1).split(os.pathsep)
-                    if os.path.exists(os.path.abspath(j))
-                ]))
+        cmd = [linkercmd, '-print-search-dirs'] + env.subst('$LINKFLAGS').split(' ')
+
+        with ProcessRunner(cmd, timeout=30, env=getFlatENV(env)) as executor:
+            for out, _ in executor:
+                match = re.search('^libraries.*=(.*)$', out, re.MULTILINE)
+                if match:
+                    libdirs.extend(
+                        unique([
+                            os.path.abspath(j) for j in match.group(1).split(os.pathsep)
+                            if os.path.exists(os.path.abspath(j))
+                        ]))
         return libdirs
 
 
@@ -165,12 +166,12 @@ class Win32Finder(LibFinder):
         return None
 
     def getLibs(self, env, source, libnames=None, libdirs=None):
-        ldd = PopenHelper(['objdump', '-p', os.path.basename(source[0].get_abspath())],
-                          stdout=PIPE,
-                          cwd=os.path.dirname(source[0].get_abspath()),
-                          env=getFlatENV(env))
-        out, _ = ldd.communicate()
-        deplibs = re.findall(r'DLL Name:\s*(\S*)', out, re.MULTILINE)
+        deplibs = []
+        cmd = ['objdump', '-p', os.path.basename(source[0].get_abspath())]
+        with ProcessRunner(cmd, timeout=30, cwd=os.path.dirname(source[0].get_abspath()),
+                           env=getFlatENV(env)) as executor:
+            for out, _ in executor:
+                deplibs.extend(re.findall(r'DLL Name:\s*(\S*)', out, re.MULTILINE))
         if not libdirs:
             libdirs = self.getSystemLibDirs(env)
         if libnames:

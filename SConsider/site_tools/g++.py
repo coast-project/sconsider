@@ -18,7 +18,7 @@ import re
 from logging import getLogger
 import SCons.Tool
 import SCons.Util
-from SConsider.PopenHelper import PopenHelper, PIPE
+from SConsider.PopenHelper import ProcessRunner
 logger = getLogger(__name__)
 
 compilers = ['g++']
@@ -57,10 +57,15 @@ def generate(env):
 
     bitwidth = env.getBitwidth()
     if compiler_subject:
-        _proc = PopenHelper([compiler_subject, '--version'], stdout=PIPE, stderr=PIPE)
-        _out, _err = _proc.communicate()
+        _cmd = [compiler_subject, '--version']
+        _out = ''
+        _err = ''
+        with ProcessRunner(_cmd, timeout=20) as executor:
+            for out, err in executor:
+                _out += out
+                _err += err
 
-        if _proc.returncode != 0:
+        if executor.returncode != 0:
             return
         # -dumpversion was added in GCC 3.0.  As long as we're supporting
         # GCC versions older than that, we should use --version and a
@@ -90,10 +95,13 @@ def generate(env):
             logger.error("failed to create compiler input file, check folder permissions and retry",
                          exc_info=True)
             return
-        _proc = PopenHelper([compiler_subject, '-v', '-xc++', tFile, '-o', outFile, '-m' + bitwidth],
-                            stdout=PIPE,
-                            stderr=PIPE)
-        _out, _err = _proc.communicate()
+        _cmd = [compiler_subject, '-v', '-xc++', tFile, '-o', outFile, '-m' + bitwidth]
+        _out = ''
+        _err = ''
+        with ProcessRunner(_cmd, timeout=20) as executor:
+            for out, err in executor:
+                _out += out
+                _err += err
 
         text_to_join = ['---- stdout ----', _out, '---- stderr ----', _err]
         build_output = os.linesep.join(text_to_join)
@@ -109,7 +117,7 @@ def generate(env):
                          exc_info=True)
             raise SCons.Errors.UserError(
                 'Build aborted, {0} compiler detection failed!'.format(compiler_subject))
-        if _proc.returncode != 0:
+        if executor.returncode != 0:
             logger.error("compile command failed with return code {0}:".format(proc.returncode) + os.linesep +
                          build_output)
             raise SCons.Errors.UserError(
