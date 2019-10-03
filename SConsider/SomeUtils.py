@@ -354,6 +354,7 @@ def runCommand(args, logpath='', filename=None, stdincontent=None, timeout=120, 
     try:
         errfile = open(errfilename, 'w')
         outfile = open(outfilename, 'w')
+        kw.setdefault('seconds_to_wait', 0.1)
         with ProcessRunner(args, timeout=timeout, stdin_handle=stdincontent, **kw) as executor:
             for out, err in executor:
                 outfile.write(out)

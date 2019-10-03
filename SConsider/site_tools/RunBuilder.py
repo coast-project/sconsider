@@ -69,7 +69,7 @@ def run(cmd, logfile=None, **kw):
         process_runner = None
         try:
             #FIXME: add timeout parameter
-            with ProcessRunner(cmd, seconds_to_wait=0.25, **kw) as process_runner:
+            with ProcessRunner(cmd, seconds_to_wait=0.2, **kw) as process_runner:
                 for out, err in process_runner:
                     tee.write(out)
                     sys.stderr.write(err)

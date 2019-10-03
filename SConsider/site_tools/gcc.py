@@ -47,7 +47,7 @@ def generate(env):
         _cmd = [compiler_subject, '--version']
         _out = ''
         _err = ''
-        with ProcessRunner(_cmd, timeout=20) as executor:
+        with ProcessRunner(_cmd, timeout=20, seconds_to_wait=0.1) as executor:
             for out, err in executor:
                 _out += out
                 _err += err
@@ -84,7 +84,7 @@ def generate(env):
         _cmd = [compiler_subject, '-v', '-xc', tFile, '-o', outFile, '-m' + bitwidth]
         _out = ''
         _err = ''
-        with ProcessRunner(_cmd, timeout=20) as executor:
+        with ProcessRunner(_cmd, timeout=20, seconds_to_wait=0.1) as executor:
             for out, err in executor:
                 _out += out
                 _err += err

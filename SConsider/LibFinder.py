@@ -73,7 +73,10 @@ class UnixFinder(LibFinder):
             env.AppendENVPath('LD_LIBRARY_PATH', [self.absolutify(j) for j in libdirs])
         libs = []
         cmd = ['ldd', os.path.basename(source[0].get_abspath())]
-        with ProcessRunner(cmd, timeout=30, cwd=os.path.dirname(source[0].get_abspath()),
+        with ProcessRunner(cmd,
+                           timeout=30,
+                           seconds_to_wait=0.1,
+                           cwd=os.path.dirname(source[0].get_abspath()),
                            env=getFlatENV(env)) as executor:
             for out, _ in executor:
                 for j in re.findall(r'^.*=>\s*(not found|[^\s^\(]+)', out, re.MULTILINE):
@@ -122,7 +125,10 @@ class MacFinder(LibFinder):
 
         libs = []
         cmd = ['otool', '-L', os.path.basename(source[0].get_abspath())]
-        with ProcessRunner(cmd, timeout=30, cwd=os.path.dirname(source[0].get_abspath()),
+        with ProcessRunner(cmd,
+                           timeout=30,
+                           seconds_to_wait=0.1,
+                           cwd=os.path.dirname(source[0].get_abspath()),
                            env=getFlatENV(env)) as executor:
             for out, _ in executor:
                 for j in re.findall(r'^.*=>\s*(not found|[^\s^\(]+)', out, re.MULTILINE):
@@ -138,7 +144,7 @@ class MacFinder(LibFinder):
         linkercmd = env.subst('$LINK')
         cmd = [linkercmd, '-print-search-dirs'] + env.subst('$LINKFLAGS').split(' ')
 
-        with ProcessRunner(cmd, timeout=30, env=getFlatENV(env)) as executor:
+        with ProcessRunner(cmd, timeout=30, seconds_to_wait=0.1, env=getFlatENV(env)) as executor:
             for out, _ in executor:
                 match = re.search('^libraries.*=(.*)$', out, re.MULTILINE)
                 if match:
@@ -168,7 +174,10 @@ class Win32Finder(LibFinder):
     def getLibs(self, env, source, libnames=None, libdirs=None):
         deplibs = []
         cmd = ['objdump', '-p', os.path.basename(source[0].get_abspath())]
-        with ProcessRunner(cmd, timeout=30, cwd=os.path.dirname(source[0].get_abspath()),
+        with ProcessRunner(cmd,
+                           timeout=30,
+                           seconds_to_wait=0.1,
+                           cwd=os.path.dirname(source[0].get_abspath()),
                            env=getFlatENV(env)) as executor:
             for out, _ in executor:
                 deplibs.extend(re.findall(r'DLL Name:\s*(\S*)', out, re.MULTILINE))
