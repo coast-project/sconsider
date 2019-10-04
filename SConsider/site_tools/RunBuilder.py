@@ -30,7 +30,7 @@ from SCons.Util import is_List
 from SConsider.PackageRegistry import PackageRegistry
 from SConsider.Callback import Callback
 from SConsider.SomeUtils import hasPathPart, isFileNode, isDerivedNode, getNodeDependencies, getFlatENV
-from SConsider.PopenHelper import ProcessRunner, Tee, CalledProcessError, TimeoutExpired
+from SConsider.PopenHelper import ProcessRunner, Tee, CalledProcessError, TimeoutExpired, STDOUT
 logger = getLogger(__name__)
 
 runtargets = {}
@@ -69,10 +69,9 @@ def run(cmd, logfile=None, **kw):
         process_runner = None
         try:
             #FIXME: add timeout parameter
-            with ProcessRunner(cmd, seconds_to_wait=0.2, **kw) as process_runner:
-                for out, err in process_runner:
+            with ProcessRunner(cmd, stderr=STDOUT, seconds_to_wait=0.2, **kw) as process_runner:
+                for out, _ in process_runner:
                     tee.write(out)
-                    sys.stderr.write(err)
                 exitcode = process_runner.returncode
         except CalledProcessError as e:
             logger.debug("non-zero exitcode: %s", e)
