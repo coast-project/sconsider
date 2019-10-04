@@ -271,10 +271,10 @@ class ProcessRunner(object):
             # Graceful termination of the opened process
             self._process.terminate()
         except TimeoutExpired:
-            self._process_has_timed_out = True
             # Force termination of the opened process
-            self._process.kill()
+            self._process.terminate()
             self._process.communicate(timeout=5.0)
+            self._process_has_timed_out = True
 
         self._process_done = True
 
