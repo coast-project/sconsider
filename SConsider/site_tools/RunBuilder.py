@@ -34,6 +34,7 @@ from SConsider.PopenHelper import ProcessRunner, Tee, CalledProcessError, Timeou
 logger = getLogger(__name__)
 
 runtargets = {}
+_DEFAULT_TIMEOUT = 120.0
 
 
 def setTarget(packagename, targetname, target):
@@ -85,6 +86,8 @@ def run(cmd, logfile=None, **kw):
             logger.debug("process creation failure: %s", e)
         finally:
             if process_runner:
+                for out, _ in process_runner:
+                    tee.write(out)
                 exitcode = process_runner.returncode
 
     logger.debug("returncode: %d", exitcode)
@@ -106,7 +109,10 @@ def execute(command, env):
     if 'mingw' in env["TOOLS"]:
         args.insert(0, "sh.exe")
 
-    return run(args, env=getFlatENV(env), logfile=env.get('logfile', None))
+    return run(args,
+               env=getFlatENV(env),
+               logfile=env.get('logfile', None),
+               timeout=env.get('timeout', _DEFAULT_TIMEOUT))
 
 
 def doTest(target, source, env):
@@ -130,15 +136,25 @@ def doRun(target, source, env):
     return res
 
 
-def getRunParams(buildSettings, defaultRunParams):
+def getRunParams(buildSettings, default):
     runConfig = buildSettings.get('runConfig', {})
-    if GetOption('runParams'):
-        runParams = " ".join(GetOption('runParams'))
-    else:
+    params = GetOption('runParams')
+    if not params:
         if not runConfig:
             runConfig = dict()
-        runParams = runConfig.get('runParams', defaultRunParams)
-    return runParams
+        params = runConfig.get('runParams', default)
+    if isinstance(params, list):
+        params = ' '.join(params)
+    return params
+
+
+def getFromRunConfig(buildSettings, key, default):
+    runConfig = buildSettings.get('runConfig', {})
+    if GetOption(key):
+        return GetOption(key)
+    if not runConfig:
+        runConfig = dict()
+    return runConfig.get(key, default)
 
 
 class SkipTest(Exception):
@@ -190,7 +206,11 @@ def createTestTarget(env, source, packagename, targetname, settings, defaultRunP
         return (source, fullTargetName)
 
     logfile = env.getLogInstallDir().File(targetname + '.test.log')
-    runner = env.TestBuilder([], source, runParams=getRunParams(settings, defaultRunParams), logfile=logfile)
+    runner = env.TestBuilder([],
+                             source,
+                             runParams=getRunParams(settings, defaultRunParams),
+                             logfile=logfile,
+                             timeout=getFromRunConfig(settings, key='runTimeout', default=_DEFAULT_TIMEOUT))
     if GetOption('run-force'):
         env.AlwaysBuild(runner)
 
@@ -237,7 +257,8 @@ def createRunTarget(env, source, packagename, targetname, settings, defaultRunPa
     runner = env.RunBuilder(['dummyRunner_' + fullTargetName],
                             source,
                             runParams=getRunParams(settings, defaultRunParams),
-                            logfile=logfile)
+                            logfile=logfile,
+                            timeout=getFromRunConfig(settings, key='runTimeout', default=_DEFAULT_TIMEOUT))
 
     addRunConfigHooks(env, source, runner, settings)
 
@@ -267,18 +288,28 @@ def composeRunTargets(env, source, packagename, targetname, settings, defaultRun
 
 def generate(env):
     try:
-        AddOption('--run', dest='run', action='store_true', default=False, help='Should we run the target')
+        AddOption('--run',
+                  dest='run',
+                  action='store_true',
+                  default=False,
+                  help='Run the target if not done yet')
         AddOption('--run-force',
                   dest='run-force',
                   action='store_true',
                   default=False,
-                  help='Should we run the target and ignore .passed files')
+                  help='Run the target regardless of the last state (.passed file)')
         AddOption('--runparams',
                   dest='runParams',
                   action='append',
                   type='string',
                   default=[],
                   help='The parameters to hand over')
+        AddOption('--run-timeout',
+                  dest='runTimeout',
+                  action='store',
+                  type='float',
+                  default=None,
+                  help='Time in seconds after which the running process gets killed')
     except optparse.OptionConflictError:
         pass
 
