@@ -146,13 +146,16 @@ def getRunParams(buildSettings, default):
     return params
 
 
-def getFromRunConfig(buildSettings, key, default):
+def getRunTimeout(buildSettings, default):
     runConfig = buildSettings.get('runConfig', {})
-    if GetOption(key):
-        return GetOption(key)
-    if not runConfig:
-        runConfig = dict()
-    return runConfig.get(key, default)
+    param = GetOption('runTimeout')
+    if param < 0.0:
+        if not runConfig:
+            runConfig = dict()
+        param = runConfig.get('runTimeout', default)
+    if param <= 0.0:
+        param = None
+    return param
 
 
 class SkipTest(Exception):
@@ -208,7 +211,7 @@ def createTestTarget(env, source, packagename, targetname, settings, defaultRunP
                              source,
                              runParams=getRunParams(settings, defaultRunParams),
                              logfile=logfile,
-                             timeout=getFromRunConfig(settings, key='runTimeout', default=_DEFAULT_TIMEOUT))
+                             timeout=getRunTimeout(settings, default=_DEFAULT_TIMEOUT))
     if GetOption('run-force'):
         env.AlwaysBuild(runner)
 
@@ -256,7 +259,7 @@ def createRunTarget(env, source, packagename, targetname, settings, defaultRunPa
                             source,
                             runParams=getRunParams(settings, defaultRunParams),
                             logfile=logfile,
-                            timeout=getFromRunConfig(settings, key='runTimeout', default=_DEFAULT_TIMEOUT))
+                            timeout=getRunTimeout(settings, default=_DEFAULT_TIMEOUT))
 
     addRunConfigHooks(env, source, runner, settings)
 
@@ -306,7 +309,6 @@ def generate(env):
                   dest='runTimeout',
                   action='store',
                   type='float',
-                  default=None,
                   help='Time in seconds after which the running process gets killed')
     except optparse.OptionConflictError:
         pass
