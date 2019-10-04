@@ -86,8 +86,6 @@ def run(cmd, logfile=None, **kw):
             logger.debug("process creation failure: %s", e)
         finally:
             if process_runner:
-                for out, _ in process_runner:
-                    tee.write(out)
                 exitcode = process_runner.returncode
 
     logger.debug("returncode: %d", exitcode)
