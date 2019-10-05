@@ -327,7 +327,7 @@ def getfqdn():
     return (hostname, domain, fqdn)
 
 
-def runCommand(args, logpath='', filename=None, stdincontent=None, timeout=120, **kw):
+def runCommand(args, logpath='', filename=None, stdincontent=None, timeout=120.0, **kw):
     if filename:
         with open(filename) as f:
             stdincontent = f.read()
