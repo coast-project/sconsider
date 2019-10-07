@@ -78,12 +78,13 @@ def getPackageInputDirs(registry, packagename, relativeTo=None):
         else:
             return abspath
 
+    import SCons
     for _, settings in buildSettings.items():
-        import SCons
         # directories of own cpp files
         for sourcefile in settings.get('sourceFiles', []):
-            if isinstance(sourcefile, SCons.Node.FS.File):
-                sourceDirs.add(resolvePath(sourcefile.srcnode().dir.get_abspath(), relativeTo))
+            if not isinstance(sourcefile, SCons.Node.FS.File):
+                sourcefile = includeBasedir.File(sourcefile)
+            sourceDirs.add(resolvePath(sourcefile.srcnode().dir.get_abspath(), relativeTo))
 
         # include directory of own private headers
         includeSubdirPrivate = settings.get('includeSubdir', '')
@@ -95,8 +96,9 @@ def getPackageInputDirs(registry, packagename, relativeTo=None):
 
         # directories of own public headers which are going to be copied
         for sourcefile in settings.get('public', {}).get('includes', []):
-            if isinstance(sourcefile, SCons.Node.FS.File):
-                sourceDirs.add(resolvePath(sourcefile.srcnode().dir.get_abspath(), relativeTo))
+            if not isinstance(sourcefile, SCons.Node.FS.File):
+                sourcefile = includeBasedir.File(sourcefile)
+            sourceDirs.add(resolvePath(sourcefile.srcnode().dir.get_abspath(), relativeTo))
 
     return sourceDirs
 
