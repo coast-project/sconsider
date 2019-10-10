@@ -1,7 +1,94 @@
 = Changelog
 
+== tag: 0.3.17
+* Bumped version to 0.3.17 (91de657)
+
+
+* Worked heavily on how to run and control backend processes (bfac068)
+
+
+* expand search directories for source files (90512af)
+
+
+* make it clear that timeout is a float value (2377aff)
+
+
+* fixed runTimeout setting from command line (6d0faf4)
+
+
+* fixed spurious temp file close errors (ae5461d)
+
+
+* handover signals to started process using exec (9876a1b)
+
+
+* extended RunBuilder to use a timeout for the started subprocess (fdef451)
+
+
+* collecting stderr along with stdout messages in RunBuilder (4019dbb)
+
+
+* terminating subprocess before setting internal termination flag (1fd70ab)
+
+
+* using explicit seconds_to_wait for ProcessRunner (958d436)
+
+
+* replaced all PopenHelper classes with PreocessRunner (6a14556)
+
+
+* exchanged PopenHelper with ProcessRunner (7c0a463)
+
+
+* logging test duration (fbfd0b6)
+
+
+* separated stderr from stdout in ProcessRunner (17e9721)
+
+
+* tests added to test basic functionality of ProcessRunner (eba0229)
+
+
+* renamed property to allow easier PopenHelper replacement (9d92db1)
+
+
+* remove writer to close from witers list prior to closing (1276655)
+
+
+* replaced PopenHelper in RunBuilder with ProcessRunner (9284dc2)
+
+
+* new ProcessRunner to replace PopenHelper class (8567d46)
+
+
+* removed unused code sections (b3c6148)
+
+
+* moved Tee to PopenHelper (3a2e58f)
+
+
+* reworked Tee class to be more flexible (2085fdc)
+
+
+* fixed incorrect return code (fb3e09e)
+
+
+* extended Popen logging to show return code (a9640c7)
+
+
+* added xml file header (1f1e4fe)
+
+
+* removed gitreview file (e225f08)
+
+
+* Merge tag '0.3.16' into develop (38805d0)
+
 == tag: 0.3.16
-* updated changelog
+* fixed DoxygenBuilder by using correct array by reference modification (44b2d9f)
+
+
+* updated changelog (cec2fc5)
 
 
 * Bumped version to 0.3.16 (718be28)
