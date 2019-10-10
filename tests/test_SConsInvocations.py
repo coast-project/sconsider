@@ -11,8 +11,9 @@
 import pytest
 import os
 import re
+import sys
 from glob import glob
-from SConsider.PopenHelper import PopenHelper
+from SConsider.PopenHelper import ProcessRunner
 
 
 @pytest.mark.invocation
@@ -21,11 +22,13 @@ def test_SConsiderGetHelp(copy_testdir_to_tmp, pypath_extended_env, popen_timeou
                           invocation_path, capfd):
 
     pypath_extended_env.update({'LOG_CFG': str(invocation_path('debuglog.yaml'))})
-    sub_p = PopenHelper(r'scons -h' + scons_platform_options,
-                        cwd=str(copy_testdir_to_tmp),
-                        env=pypath_extended_env)
-    sub_p.communicate(timeout=popen_timeout)
-    assert 0 == sub_p.returncode
+    cmd = r'scons -h' + scons_platform_options
+    with ProcessRunner(cmd, timeout=popen_timeout, cwd=str(copy_testdir_to_tmp),
+                       env=pypath_extended_env) as executor:
+        for out, err in executor:
+            sys.stdout.write(out)
+            sys.stderr.write(err)
+    assert 0 == executor.returncode
     captured = capfd.readouterr()
     assert '--baseoutdir' in captured.out
     assert '--archbits' in captured.out
@@ -35,11 +38,13 @@ def test_SConsiderGetHelp(copy_testdir_to_tmp, pypath_extended_env, popen_timeou
 @pytest.mark.parametrize('current_testdir', ['gethelp'])
 def test_SConsiderSconstructDirSameAsLaunchDir(copy_testdir_to_tmp, pypath_extended_env, popen_timeout,
                                                scons_platform_options, capfd):
-    sub_p = PopenHelper(r'scons -h' + scons_platform_options,
-                        cwd=str(copy_testdir_to_tmp),
-                        env=pypath_extended_env)
-    sub_p.communicate(timeout=popen_timeout)
-    assert 0 == sub_p.returncode
+    cmd = r'scons -h' + scons_platform_options
+    with ProcessRunner(cmd, timeout=popen_timeout, cwd=str(copy_testdir_to_tmp),
+                       env=pypath_extended_env) as executor:
+        for out, err in executor:
+            sys.stdout.write(out)
+            sys.stderr.write(err)
+    assert 0 == executor.returncode
     captured = capfd.readouterr()
     assert 'get_sconstruct_dir=' + str(copy_testdir_to_tmp) in captured.out
     assert 'get_launch_dir=' + str(copy_testdir_to_tmp) in captured.out
@@ -51,9 +56,12 @@ def test_SConsiderSconstructDirSameAsLaunchDir(copy_testdir_to_tmp, pypath_exten
 def test_SConsiderSconstructDirBelowLaunchDir(copy_testdir_to_tmp, pypath_extended_env, popen_timeout,
                                               scons_platform_options, capfd):
     sconstruct_file = os.path.join(str(copy_testdir_to_tmp), 'SConstruct')
-    sub_p = PopenHelper(r'scons -h -f ' + sconstruct_file + scons_platform_options, env=pypath_extended_env)
-    sub_p.communicate(timeout=popen_timeout)
-    assert 0 == sub_p.returncode
+    cmd = r'scons -h -f ' + sconstruct_file + scons_platform_options
+    with ProcessRunner(cmd, timeout=popen_timeout, env=pypath_extended_env) as executor:
+        for out, err in executor:
+            sys.stdout.write(out)
+            sys.stderr.write(err)
+    assert 0 == executor.returncode
     captured = capfd.readouterr()
     assert 'get_sconstruct_dir=' + str(copy_testdir_to_tmp) in captured.out
     assert 'get_launch_dir=' + os.getcwd() in captured.out
@@ -64,11 +72,13 @@ def test_SConsiderSconstructDirBelowLaunchDir(copy_testdir_to_tmp, pypath_extend
 def test_SConsiderSconstructAboveLaunchDir(copy_testdir_to_tmp, pypath_extended_env, popen_timeout,
                                            scons_platform_options, capfd):
     progdir_path = copy_testdir_to_tmp.join('progdir')
-    sub_p = PopenHelper(r'scons -h -u ' + scons_platform_options,
-                        cwd=str(progdir_path),
-                        env=pypath_extended_env)
-    sub_p.communicate(timeout=popen_timeout)
-    assert 0 == sub_p.returncode
+    cmd = r'scons -h -u ' + scons_platform_options
+    with ProcessRunner(cmd, timeout=popen_timeout, cwd=str(progdir_path),
+                       env=pypath_extended_env) as executor:
+        for out, err in executor:
+            sys.stdout.write(out)
+            sys.stderr.write(err)
+    assert 0 == executor.returncode
     captured = capfd.readouterr()
     assert 'get_sconstruct_dir=' + str(copy_testdir_to_tmp) in captured.out
     assert 'get_launch_dir=' + str(progdir_path) in captured.out
@@ -78,11 +88,13 @@ def test_SConsiderSconstructAboveLaunchDir(copy_testdir_to_tmp, pypath_extended_
 @pytest.mark.invocation
 def test_SConsiderStaticProgBuild(copy_testdir_to_tmp, pypath_extended_env, popen_timeout,
                                   scons_platform_options, capfd):
-    sub_p = PopenHelper(r'scons --3rdparty=' + scons_platform_options,
-                        cwd=str(copy_testdir_to_tmp),
-                        env=pypath_extended_env)
-    sub_p.communicate(timeout=popen_timeout)
-    assert 0 == sub_p.returncode
+    cmd = r'scons --3rdparty=' + scons_platform_options
+    with ProcessRunner(cmd, timeout=popen_timeout, cwd=str(copy_testdir_to_tmp),
+                       env=pypath_extended_env) as executor:
+        for out, err in executor:
+            sys.stdout.write(out)
+            sys.stderr.write(err)
+    assert 0 == executor.returncode
     captured = capfd.readouterr()
     assert 'done building targets.' in captured.out
 
@@ -90,11 +102,13 @@ def test_SConsiderStaticProgBuild(copy_testdir_to_tmp, pypath_extended_env, pope
 @pytest.mark.invocation
 def test_SConsiderStaticProgDoxygenOnly(copy_testdir_to_tmp, pypath_extended_env, popen_timeout,
                                         scons_platform_options, capfd):
-    sub_p = PopenHelper(r'scons --usetool=DoxygenBuilder --doxygen-only hello' + scons_platform_options,
-                        cwd=str(copy_testdir_to_tmp),
-                        env=pypath_extended_env)
-    sub_p.communicate(timeout=popen_timeout)
-    assert 0 == sub_p.returncode
+    cmd = r'scons --usetool=DoxygenBuilder --doxygen-only hello' + scons_platform_options
+    with ProcessRunner(cmd, timeout=popen_timeout, cwd=str(copy_testdir_to_tmp),
+                       env=pypath_extended_env) as executor:
+        for out, err in executor:
+            sys.stdout.write(out)
+            sys.stderr.write(err)
+    assert 0 == executor.returncode
     captured = capfd.readouterr()
     assert 'done building targets.' in captured.out
     assert re.search('BUILD_TARGETS.*doxygen', captured.out)
@@ -103,11 +117,13 @@ def test_SConsiderStaticProgDoxygenOnly(copy_testdir_to_tmp, pypath_extended_env
 @pytest.mark.invocation
 def test_SConsiderStaticProgIncludingDoxygen(copy_testdir_to_tmp, pypath_extended_env, popen_timeout,
                                              scons_platform_options, capfd):
-    sub_p = PopenHelper(r'scons --usetool=DoxygenBuilder --doxygen hello' + scons_platform_options,
-                        cwd=str(copy_testdir_to_tmp),
-                        env=pypath_extended_env)
-    sub_p.communicate(timeout=popen_timeout)
-    assert 0 == sub_p.returncode
+    cmd = r'scons --usetool=DoxygenBuilder --doxygen hello' + scons_platform_options
+    with ProcessRunner(cmd, timeout=popen_timeout, cwd=str(copy_testdir_to_tmp),
+                       env=pypath_extended_env) as executor:
+        for out, err in executor:
+            sys.stdout.write(out)
+            sys.stderr.write(err)
+    assert 0 == executor.returncode
     captured = capfd.readouterr()
     assert 'done building targets.' in captured.out
     assert re.search('BUILD_TARGETS.*doxygen', captured.out)
@@ -117,11 +133,13 @@ def test_SConsiderStaticProgIncludingDoxygen(copy_testdir_to_tmp, pypath_extende
 @pytest.mark.invocation
 def test_SConsiderStaticProgRunWithoutCommandLineTarget(copy_testdir_to_tmp, pypath_extended_env,
                                                         popen_timeout, scons_platform_options, capfd):
-    sub_p = PopenHelper(r'scons --3rdparty= --run' + scons_platform_options,
-                        cwd=str(copy_testdir_to_tmp),
-                        env=pypath_extended_env)
-    sub_p.communicate(timeout=popen_timeout)
-    assert 0 == sub_p.returncode
+    cmd = r'scons --3rdparty= --run' + scons_platform_options
+    with ProcessRunner(cmd, timeout=popen_timeout, cwd=str(copy_testdir_to_tmp),
+                       env=pypath_extended_env) as executor:
+        for out, err in executor:
+            sys.stdout.write(out)
+            sys.stderr.write(err)
+    assert 0 == executor.returncode
     captured = capfd.readouterr()
     assert 'Hello from SConsider' in captured.out
 
@@ -129,11 +147,13 @@ def test_SConsiderStaticProgRunWithoutCommandLineTarget(copy_testdir_to_tmp, pyp
 @pytest.mark.invocation
 def test_SConsiderStaticProgRunWithPackageAsTarget(copy_testdir_to_tmp, pypath_extended_env, popen_timeout,
                                                    scons_platform_options, capfd):
-    sub_p = PopenHelper(r'scons --3rdparty= --run hello' + scons_platform_options,
-                        cwd=str(copy_testdir_to_tmp),
-                        env=pypath_extended_env)
-    sub_p.communicate(timeout=popen_timeout)
-    assert 0 == sub_p.returncode
+    cmd = r'scons --3rdparty= --run hello' + scons_platform_options
+    with ProcessRunner(cmd, timeout=popen_timeout, cwd=str(copy_testdir_to_tmp),
+                       env=pypath_extended_env) as executor:
+        for out, err in executor:
+            sys.stdout.write(out)
+            sys.stderr.write(err)
+    assert 0 == executor.returncode
     captured = capfd.readouterr()
     assert 'Hello from SConsider' in captured.out
 
@@ -141,11 +161,13 @@ def test_SConsiderStaticProgRunWithPackageAsTarget(copy_testdir_to_tmp, pypath_e
 @pytest.mark.invocation
 def test_SConsiderStaticProgRunWithExplicitPackageTarget(copy_testdir_to_tmp, pypath_extended_env,
                                                          popen_timeout, scons_platform_options, capfd):
-    sub_p = PopenHelper(r'scons --3rdparty= --run hello.runner' + scons_platform_options,
-                        cwd=str(copy_testdir_to_tmp),
-                        env=pypath_extended_env)
-    sub_p.communicate(timeout=popen_timeout)
-    assert 0 == sub_p.returncode
+    cmd = r'scons --3rdparty= --run hello.runner' + scons_platform_options
+    with ProcessRunner(cmd, timeout=popen_timeout, cwd=str(copy_testdir_to_tmp),
+                       env=pypath_extended_env) as executor:
+        for out, err in executor:
+            sys.stdout.write(out)
+            sys.stderr.write(err)
+    assert 0 == executor.returncode
     captured = capfd.readouterr()
     assert 'Hello from SConsider' in captured.out
 
@@ -162,11 +184,13 @@ def assert_outputfiles_exist(baseoutdir, predicate=lambda l: l >= 1):
 @pytest.mark.invocation
 def test_SConsiderStaticProgBuildOutputFilesBelowStartdir(copy_testdir_to_tmp, pypath_extended_env,
                                                           popen_timeout, scons_platform_options):
-    sub_p = PopenHelper(r'scons --3rdparty= --run hello.runner' + scons_platform_options,
-                        cwd=str(copy_testdir_to_tmp),
-                        env=pypath_extended_env)
-    sub_p.communicate(timeout=popen_timeout)
-    assert 0 == sub_p.returncode
+    cmd = r'scons --3rdparty= --run hello.runner' + scons_platform_options
+    with ProcessRunner(cmd, timeout=popen_timeout, cwd=str(copy_testdir_to_tmp),
+                       env=pypath_extended_env) as executor:
+        for out, err in executor:
+            sys.stdout.write(out)
+            sys.stderr.write(err)
+    assert 0 == executor.returncode
     assert copy_testdir_to_tmp.join('apps').isdir()
     assert copy_testdir_to_tmp.join('progdir').join('.build').isdir()
     assert_outputfiles_exist(str(copy_testdir_to_tmp))
@@ -177,12 +201,13 @@ def test_SConsiderStaticProgBuildOutputFilesInBaseoutdir(copy_testdir_to_tmp, py
                                                          popen_timeout, scons_platform_options,
                                                          tmpdir_factory):
     baseoutdir = str(tmpdir_factory.mktemp('baseoutdir', numbered=True))
-    sub_p = PopenHelper(r'scons --3rdparty= --baseoutdir=' + baseoutdir + ' --run hello.runner' +
-                        scons_platform_options,
-                        cwd=str(copy_testdir_to_tmp),
-                        env=pypath_extended_env)
-    sub_p.communicate(timeout=popen_timeout)
-    assert 0 == sub_p.returncode
+    cmd = r'scons --3rdparty= --baseoutdir=' + baseoutdir + ' --run hello.runner' + scons_platform_options
+    with ProcessRunner(cmd, timeout=popen_timeout, cwd=str(copy_testdir_to_tmp),
+                       env=pypath_extended_env) as executor:
+        for out, err in executor:
+            sys.stdout.write(out)
+            sys.stderr.write(err)
+    assert 0 == executor.returncode
     assert not copy_testdir_to_tmp.join('apps').isdir()
     assert not copy_testdir_to_tmp.join('progdir').join('.build').isdir()
     assert_outputfiles_exist(str(copy_testdir_to_tmp), lambda l: l == 0)
@@ -198,17 +223,23 @@ def test_SConsiderThirdPartyBuildOnceOnly(copy_testdir_to_tmp, pypath_extended_e
                                           cpp_in_second_build, capfd):
     """Show that using the source directory name as prefix of the 3rdparty
     build output always builds the sources over and over again."""
-    cmdline = r'scons --3rdparty=my3pscons --with-src-3plib=my3psrc' + scons_platform_options
+    cmd = r'scons --3rdparty=my3pscons --with-src-3plib=my3psrc' + scons_platform_options
     if buildprefix:
-        cmdline += ' --3rdparty-build-prefix=' + buildprefix
-    sub_p = PopenHelper(cmdline, cwd=str(copy_testdir_to_tmp), env=pypath_extended_env)
-    sub_p.communicate(timeout=popen_timeout)
-    assert 0 == sub_p.returncode
+        cmd += ' --3rdparty-build-prefix=' + buildprefix
+    with ProcessRunner(cmd, timeout=popen_timeout, cwd=str(copy_testdir_to_tmp),
+                       env=pypath_extended_env) as executor:
+        for out, err in executor:
+            sys.stdout.write(out)
+            sys.stderr.write(err)
+    assert 0 == executor.returncode
     captured = capfd.readouterr()
     assert os.sep + '3plib.cpp' in captured.out
-    sub_p = PopenHelper(cmdline, cwd=str(copy_testdir_to_tmp), env=pypath_extended_env)
-    sub_p.communicate(timeout=popen_timeout)
-    assert 0 == sub_p.returncode
+    with ProcessRunner(cmd, timeout=popen_timeout, cwd=str(copy_testdir_to_tmp),
+                       env=pypath_extended_env) as executor:
+        for out, err in executor:
+            sys.stdout.write(out)
+            sys.stderr.write(err)
+    assert 0 == executor.returncode
     captured = capfd.readouterr()
     assert cpp_in_second_build(os.sep + '3plib.cpp' in captured.out)
 
@@ -217,11 +248,13 @@ def test_SConsiderThirdPartyBuildOnceOnly(copy_testdir_to_tmp, pypath_extended_e
 @pytest.mark.parametrize('current_testdir', ['samedirtest'])
 def test_SConstructAndSConsiderInSameDirBuild(copy_testdir_to_tmp, pypath_extended_env, popen_timeout,
                                               scons_platform_options, capfd):
-    sub_p = PopenHelper(r'scons --3rdparty=' + scons_platform_options,
-                        cwd=str(copy_testdir_to_tmp),
-                        env=pypath_extended_env)
-    sub_p.communicate(timeout=popen_timeout)
-    assert 0 == sub_p.returncode
+    cmd = r'scons --3rdparty=' + scons_platform_options
+    with ProcessRunner(cmd, timeout=popen_timeout, cwd=str(copy_testdir_to_tmp),
+                       env=pypath_extended_env) as executor:
+        for out, err in executor:
+            sys.stdout.write(out)
+            sys.stderr.write(err)
+    assert 0 == executor.returncode
     captured = capfd.readouterr()
     assert 'done building targets.' in captured.out
 
@@ -231,10 +264,12 @@ def test_SConstructAndSConsiderInSameDirBuild(copy_testdir_to_tmp, pypath_extend
 def test_SConstructAndSConsiderInSameDirRunWithoutCommandLineTarget(copy_testdir_to_tmp, pypath_extended_env,
                                                                     popen_timeout, scons_platform_options,
                                                                     capfd):
-    sub_p = PopenHelper(r'scons --3rdparty= --run' + scons_platform_options,
-                        cwd=str(copy_testdir_to_tmp),
-                        env=pypath_extended_env)
-    sub_p.communicate(timeout=popen_timeout)
-    assert 0 == sub_p.returncode
+    cmd = r'scons --3rdparty= --run' + scons_platform_options
+    with ProcessRunner(cmd, timeout=popen_timeout, cwd=str(copy_testdir_to_tmp),
+                       env=pypath_extended_env) as executor:
+        for out, err in executor:
+            sys.stdout.write(out)
+            sys.stderr.write(err)
+    assert 0 == executor.returncode
     captured = capfd.readouterr()
     assert 'Hello from SConsider' in captured.out

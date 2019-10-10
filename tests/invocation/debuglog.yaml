@@ -21,6 +21,10 @@ filters:
         '()': SConsider.Logging.RegexFilter
         pattern: "^executing \\["
         flags: 0
+    filterProcessHelperWaitOnStream:
+        '()': SConsider.Logging.RegexFilter
+        pattern: ".*has nothing to read from, sleeping for.*"
+        flags: 0
 
 handlers:
     console:
@@ -54,6 +58,23 @@ loggers:
         propagate: no
         filters: []
 
+    g++:
+        level: INFO
+        handlers: [console]
+        propagate: no
+        filters: []
+
+    gcc:
+        level: INFO
+        handlers: [console]
+        propagate: no
+        filters: []
+
+    py.warnings:
+        level: WARNING
+        handlers: [console]
+        propagate: no
+
     TargetMaker:
         level: DEBUG
         handlers: [console]
@@ -71,6 +92,12 @@ loggers:
         handlers: [console]
         propagate: no
         filters: [filterLookup]
+
+    SConsider.PopenHelper:
+        level: DEBUG
+        handlers: [console]
+        propagate: no
+        filters: [filterProcessHelperWaitOnStream]
 
     setupBuildTools:
         level: DEBUG
