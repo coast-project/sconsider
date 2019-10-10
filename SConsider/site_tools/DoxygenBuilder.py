@@ -18,7 +18,7 @@ from __future__ import with_statement
 import os
 import re
 from logging import getLogger
-from SConsider.PopenHelper import PopenHelper, PIPE
+from SConsider.PopenHelper import ProcessRunner
 logger = getLogger(__name__)
 
 
@@ -78,12 +78,13 @@ def getPackageInputDirs(registry, packagename, relativeTo=None):
         else:
             return abspath
 
+    import SCons
     for _, settings in buildSettings.items():
-        import SCons
         # directories of own cpp files
         for sourcefile in settings.get('sourceFiles', []):
-            if isinstance(sourcefile, SCons.Node.FS.File):
-                sourceDirs.add(resolvePath(sourcefile.srcnode().dir.get_abspath(), relativeTo))
+            if not isinstance(sourcefile, SCons.Node.FS.File):
+                sourcefile = includeBasedir.File(sourcefile)
+            sourceDirs.add(resolvePath(sourcefile.srcnode().dir.get_abspath(), relativeTo))
 
         # include directory of own private headers
         includeSubdirPrivate = settings.get('includeSubdir', '')
@@ -95,8 +96,9 @@ def getPackageInputDirs(registry, packagename, relativeTo=None):
 
         # directories of own public headers which are going to be copied
         for sourcefile in settings.get('public', {}).get('includes', []):
-            if isinstance(sourcefile, SCons.Node.FS.File):
-                sourceDirs.add(resolvePath(sourcefile.srcnode().dir.get_abspath(), relativeTo))
+            if not isinstance(sourcefile, SCons.Node.FS.File):
+                sourcefile = includeBasedir.File(sourcefile)
+            sourceDirs.add(resolvePath(sourcefile.srcnode().dir.get_abspath(), relativeTo))
 
     return sourceDirs
 
@@ -143,9 +145,12 @@ def setDoxyfileData(doxyfile, doxyDict):
 
 
 def getDoxyfileTemplate():
-    proc = PopenHelper(['doxygen', '-s', '-g', '-'], stdout=PIPE, stderr=PIPE)
-    stdout, _ = proc.communicate()
-    return parseDoxyfileContent(stdout, {})
+    _cmd = ['doxygen', '-s', '-g', '-']
+    _out = ''
+    with ProcessRunner(_cmd, timeout=30) as executor:
+        for out, _ in executor:
+            _out += out
+    return parseDoxyfileContent(_out, {})
 
 
 def parseDoxyfile(file_node, env):
@@ -326,10 +331,13 @@ def buildDoxyfile(target, env, **kw):
                 doxyfile.write('%s \\\n' % define)
         doxyfile.write('\n')
 
-    log_out, log_err = openLogFiles(env)
     try:
-        proc = PopenHelper(['doxygen', '-s', '-u', target[0].get_abspath()], stdout=log_out, stderr=log_err)
-        proc.wait()
+        log_out, log_err = openLogFiles(env)
+        _cmd = ['doxygen', '-s', '-u', target[0].get_abspath()]
+        with ProcessRunner(_cmd, timeout=60) as executor:
+            for out, err in executor:
+                log_out.write(out)
+                log_err.write(err)
     finally:
         closeLogFiles(log_out, log_err)
 
@@ -373,10 +381,12 @@ def callDoxygen(source, env, **kw):
 
     cmd = 'cd %s && %s %s' % (source[0].get_dir().get_abspath(), 'doxygen', os.path.basename(str(source[0])))
 
-    log_out, log_err = openLogFiles(env)
     try:
-        proc = PopenHelper(cmd, shell=True, stdout=log_out, stderr=log_err)
-        proc.wait()
+        log_out, log_err = openLogFiles(env)
+        with ProcessRunner(cmd, timeout=300, shell=True) as executor:
+            for out, err in executor:
+                log_out.write(out)
+                log_err.write(err)
     finally:
         closeLogFiles(log_out, log_err)
 
@@ -654,13 +664,6 @@ class DoxygenToolException(Exception):
 
 
 def determineCompilerDefines(env):
-    cmd = 'PATH=' + env.get('ENV', []).get('PATH', '')
-    cmd += ' ' + os.path.join(os.path.dirname(__file__), 'defines.sh')
-    cmd += ' ' + env['CXX']
-
-    proc = PopenHelper(cmd, shell=True, stdout=PIPE, stderr=PIPE)
-    stdoutdata, _ = proc.communicate()
-
     defines = {}
     ignores = [
         'cc',
@@ -672,10 +675,17 @@ def determineCompilerDefines(env):
         '__TIMESTAMP__',
     ]
     pattern = re.compile(r'^([^\s]+)\s*=\s*(.*)\s*')
-    for line in stdoutdata.splitlines():
-        match = re.match(pattern, line)
-        if match and match.group(1) not in ignores:
-            defines[match.group(1)] = match.group(2)
+
+    cmd = 'PATH=' + env.get('ENV', []).get('PATH', '')
+    cmd += ' ' + os.path.join(os.path.dirname(__file__), 'defines.sh')
+    cmd += ' ' + env['CXX']
+
+    with ProcessRunner(cmd, timeout=60, shell=True) as executor:
+        for out, _ in executor:
+            for line in out.splitlines():
+                match = re.match(pattern, line)
+                if match and match.group(1) not in ignores:
+                    defines[match.group(1)] = match.group(2)
 
     return defines
 

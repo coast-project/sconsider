@@ -67,3 +67,19 @@ def copy_testdir_to_tmp(tmpdir_factory, invocation_path, current_testdir):
     sources_path = invocation_path(current_testdir)
     shutil.copytree(str(sources_path), str(fn), ignore=ignorefiles)
     return fn
+
+
+# https://stackoverflow.com/a/51495108/542082
+@pytest.fixture(scope='function', autouse=True)
+def testcase_result(request):
+    def fin():
+        print(" (DURATION={})".format(request.node.rep_call.duration))
+
+    request.addfinalizer(fin)
+
+
+@pytest.mark.tryfirst
+def pytest_runtest_makereport(item, call, __multicall__):
+    rep = __multicall__.execute()
+    setattr(item, "rep_" + rep.when, rep)
+    return rep
