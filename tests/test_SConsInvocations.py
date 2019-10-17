@@ -348,3 +348,20 @@ def test_WrapperScriptDebugRunStacktrace(copy_testdir_to_tmp, pypath_extended_en
     assert 'GDB backtrace' in captured.out
     assert 'Inferior' in captured.out
     assert 'will be killed' in captured.out
+
+
+@pytest.mark.invocation
+def test_WrapperScriptCommandOverride(copy_testdir_to_tmp, pypath_extended_env, popen_timeout,
+                                      scons_platform_options, capfd):
+    cmd = r'scons --3rdparty= --run --runparams="-x echo -x \"args to command:\""' + scons_platform_options
+    with ProcessRunner(cmd,
+                       timeout=popen_timeout,
+                       stderr=STDOUT,
+                       cwd=str(copy_testdir_to_tmp),
+                       env=pypath_extended_env) as executor:
+        for out, err in executor:
+            sys.stdout.write(out)
+            sys.stderr.write(err)
+    assert 0 == executor.returncode
+    captured = capfd.readouterr()
+    assert re.search('args to command:.*hellorunner', captured.out, re.M)
