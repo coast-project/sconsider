@@ -1,1900 +1,1931 @@
 = Changelog
+:ci_commit_link: link:/../commit/
+
+== tag: 0.3.18
+* Bumped version to 0.3.18 ({ci_commit_link}f43cfce[f43cfce])
+
+
+* make it explicit that we expect the re.search to succeed ({ci_commit_link}834f72c[834f72c])
+
+
+* applied relevant fixes to generateScript and added more tests ({ci_commit_link}843ddb2[843ddb2])
+
+
+* override command test added ({ci_commit_link}97298a3[97298a3])
+
+
+* wrapper script tests added ({ci_commit_link}481de26[481de26])
+
+
+* extended hello application to force crash on purpose ({ci_commit_link}6f9fe6f[6f9fe6f])
+
+
+* applied fix to run eval within bash subshell ({ci_commit_link}9e47fef[9e47fef])
+
+
+* Merge tag '0.3.17' into develop ({ci_commit_link}7406e33[7406e33])
 
 == tag: 0.3.17
-* Bumped version to 0.3.17 (91de657)
+* Reworked relevant code for subprocess execution ({ci_commit_link}11f00c7[11f00c7])
 
 
-* Worked heavily on how to run and control backend processes (bfac068)
+* updated changelog ({ci_commit_link}5166c6e[5166c6e])
 
 
-* expand search directories for source files (90512af)
+* Bumped version to 0.3.17 ({ci_commit_link}91de657[91de657])
 
 
-* make it clear that timeout is a float value (2377aff)
+* Worked heavily on how to run and control backend processes ({ci_commit_link}bfac068[bfac068])
 
 
-* fixed runTimeout setting from command line (6d0faf4)
+* expand search directories for source files ({ci_commit_link}90512af[90512af])
 
 
-* fixed spurious temp file close errors (ae5461d)
+* make it clear that timeout is a float value ({ci_commit_link}2377aff[2377aff])
 
 
-* handover signals to started process using exec (9876a1b)
+* fixed runTimeout setting from command line ({ci_commit_link}6d0faf4[6d0faf4])
 
 
-* extended RunBuilder to use a timeout for the started subprocess (fdef451)
+* fixed spurious temp file close errors ({ci_commit_link}ae5461d[ae5461d])
 
 
-* collecting stderr along with stdout messages in RunBuilder (4019dbb)
+* handover signals to started process using exec ({ci_commit_link}9876a1b[9876a1b])
 
 
-* terminating subprocess before setting internal termination flag (1fd70ab)
+* extended RunBuilder to use a timeout for the started subprocess ({ci_commit_link}fdef451[fdef451])
 
 
-* using explicit seconds_to_wait for ProcessRunner (958d436)
+* collecting stderr along with stdout messages in RunBuilder ({ci_commit_link}4019dbb[4019dbb])
 
 
-* replaced all PopenHelper classes with PreocessRunner (6a14556)
+* terminating subprocess before setting internal termination flag ({ci_commit_link}1fd70ab[1fd70ab])
 
 
-* exchanged PopenHelper with ProcessRunner (7c0a463)
+* using explicit seconds_to_wait for ProcessRunner ({ci_commit_link}958d436[958d436])
 
 
-* logging test duration (fbfd0b6)
+* replaced all PopenHelper classes with PreocessRunner ({ci_commit_link}6a14556[6a14556])
 
 
-* separated stderr from stdout in ProcessRunner (17e9721)
+* exchanged PopenHelper with ProcessRunner ({ci_commit_link}7c0a463[7c0a463])
 
 
-* tests added to test basic functionality of ProcessRunner (eba0229)
+* logging test duration ({ci_commit_link}fbfd0b6[fbfd0b6])
 
 
-* renamed property to allow easier PopenHelper replacement (9d92db1)
+* separated stderr from stdout in ProcessRunner ({ci_commit_link}17e9721[17e9721])
 
 
-* remove writer to close from witers list prior to closing (1276655)
+* tests added to test basic functionality of ProcessRunner ({ci_commit_link}eba0229[eba0229])
 
 
-* replaced PopenHelper in RunBuilder with ProcessRunner (9284dc2)
+* renamed property to allow easier PopenHelper replacement ({ci_commit_link}9d92db1[9d92db1])
 
 
-* new ProcessRunner to replace PopenHelper class (8567d46)
+* remove writer to close from witers list prior to closing ({ci_commit_link}1276655[1276655])
 
 
-* removed unused code sections (b3c6148)
+* replaced PopenHelper in RunBuilder with ProcessRunner ({ci_commit_link}9284dc2[9284dc2])
 
 
-* moved Tee to PopenHelper (3a2e58f)
+* new ProcessRunner to replace PopenHelper class ({ci_commit_link}8567d46[8567d46])
 
 
-* reworked Tee class to be more flexible (2085fdc)
+* removed unused code sections ({ci_commit_link}b3c6148[b3c6148])
 
 
-* fixed incorrect return code (fb3e09e)
+* moved Tee to PopenHelper ({ci_commit_link}3a2e58f[3a2e58f])
 
 
-* extended Popen logging to show return code (a9640c7)
+* reworked Tee class to be more flexible ({ci_commit_link}2085fdc[2085fdc])
 
 
-* added xml file header (1f1e4fe)
+* fixed incorrect return code ({ci_commit_link}fb3e09e[fb3e09e])
 
 
-* removed gitreview file (e225f08)
+* extended Popen logging to show return code ({ci_commit_link}a9640c7[a9640c7])
 
 
-* Merge tag '0.3.16' into develop (38805d0)
+* added xml file header ({ci_commit_link}1f1e4fe[1f1e4fe])
+
+
+* removed gitreview file ({ci_commit_link}e225f08[e225f08])
+
+
+* Merge tag '0.3.16' into develop ({ci_commit_link}38805d0[38805d0])
 
 == tag: 0.3.16
-* fixed DoxygenBuilder by using correct array by reference modification (44b2d9f)
+* fixed DoxygenBuilder by using correct array by reference modification ({ci_commit_link}44b2d9f[44b2d9f])
 
 
-* updated changelog (cec2fc5)
+* updated changelog ({ci_commit_link}cec2fc5[cec2fc5])
 
 
-* Bumped version to 0.3.16 (718be28)
+* Bumped version to 0.3.16 ({ci_commit_link}718be28[718be28])
 
 
-* fixed buildTarget list modification (c3411c9)
+* fixed buildTarget list modification ({ci_commit_link}c3411c9[c3411c9])
 
 
-* Merge tag '0.3.15' into develop (b671291)
+* Merge tag '0.3.15' into develop ({ci_commit_link}b671291[b671291])
 
 == tag: 0.3.15
-* updated DoxygenBuilder to work with new Callback structure (d43a3bc)
+* updated DoxygenBuilder to work with new Callback structure ({ci_commit_link}d43a3bc[d43a3bc])
 
 
-* updated changelog (dfdab9a)
+* updated changelog ({ci_commit_link}dfdab9a[dfdab9a])
 
 
-* Bumped version to 0.3.15 (5bdabde)
+* Bumped version to 0.3.15 ({ci_commit_link}5bdabde[5bdabde])
 
 
-* updated DoxygenBuilder to work with new Callback structure (913c1a6)
+* updated DoxygenBuilder to work with new Callback structure ({ci_commit_link}913c1a6[913c1a6])
 
 
-* changelog updated (d12c6ee)
+* changelog updated ({ci_commit_link}d12c6ee[d12c6ee])
 
 
-* reformatted code (74d1cb3)
+* reformatted code ({ci_commit_link}74d1cb3[74d1cb3])
 
 
-* use buildTargets from function parameters (2ae63a7)
+* use buildTargets from function parameters ({ci_commit_link}2ae63a7[2ae63a7])
 
 
-* use buildTargets from function parameters (d126e3b)
+* use buildTargets from function parameters ({ci_commit_link}d126e3b[d126e3b])
 
 
-* Merge tag '0.3.14' into develop (ec327f7)
+* Merge tag '0.3.14' into develop ({ci_commit_link}ec327f7[ec327f7])
 
 == tag: 0.3.14
-* only upload once to testpypi (822679b)
+* only upload once to testpypi ({ci_commit_link}822679b[822679b])
 
 
-* update of changelog (81d5e9c)
+* update of changelog ({ci_commit_link}81d5e9c[81d5e9c])
 
 
-* split test and deploy job to testpypi (e5f2eb8)
+* split test and deploy job to testpypi ({ci_commit_link}e5f2eb8[e5f2eb8])
 
 
-* Merge tag '0.3.13' into develop (619bc91)
+* Merge tag '0.3.13' into develop ({ci_commit_link}619bc91[619bc91])
 
 == tag: 0.3.13
-* python code cleaned, gitlab based building/testing added (c4ea326)
+* python code cleaned, gitlab based building/testing added ({ci_commit_link}c4ea326[c4ea326])
 
 
-* more changelog updates (14a41b6)
+* more changelog updates ({ci_commit_link}14a41b6[14a41b6])
 
 
-* changelog updated (189838a)
+* changelog updated ({ci_commit_link}189838a[189838a])
 
 
-* reformatting changes (b766877)
+* reformatting changes ({ci_commit_link}b766877[b766877])
 
 
-* changed mime type of readme back to text/plain (c53b8a2)
+* changed mime type of readme back to text/plain ({ci_commit_link}c53b8a2[c53b8a2])
 
 
-* update of changelog and change of mime type (3f200ff)
+* update of changelog and change of mime type ({ci_commit_link}3f200ff[3f200ff])
 
 
-* Build fixing and changing README to asciidoc (6bb7133)
+* Build fixing and changing README to asciidoc ({ci_commit_link}6bb7133[6bb7133])
 
 
-* updated changelog (fab2271)
+* updated changelog ({ci_commit_link}fab2271[fab2271])
 
 
-* persisting test results (c2b4b9c)
+* persisting test results ({ci_commit_link}c2b4b9c[c2b4b9c])
 
 
-* increased log level of Callback in case we are debugging (41fd254)
+* increased log level of Callback in case we are debugging ({ci_commit_link}41fd254[41fd254])
 
 
-* use local variable for packagename (ce75cd6)
+* use local variable for packagename ({ci_commit_link}ce75cd6[ce75cd6])
 
 
-* fixed duplicate node case when linkname==targetname (e9013c5)
+* fixed duplicate node case when linkname==targetname ({ci_commit_link}e9013c5[e9013c5])
 
 
-* time logging format adjusted (1180fa8)
+* time logging format adjusted ({ci_commit_link}1180fa8[1180fa8])
 
 
-* tox log file name changed to json (1de24ad)
+* tox log file name changed to json ({ci_commit_link}1de24ad[1de24ad])
 
 
-* corrected jobname environment variable (67c366f)
+* corrected jobname environment variable ({ci_commit_link}67c366f[67c366f])
 
 
-* explicitly set log format (f0b855f)
+* explicitly set log format ({ci_commit_link}f0b855f[f0b855f])
 
 
-* store build logs as artifacts to simplify exploration (76b715f)
+* store build logs as artifacts to simplify exploration ({ci_commit_link}76b715f[76b715f])
 
 
-* logging command to execute in Popen (2bc0ea8)
+* logging command to execute in Popen ({ci_commit_link}2bc0ea8[2bc0ea8])
 
 
-* added missing pytest.ini (b68158f)
+* added missing pytest.ini ({ci_commit_link}b68158f[b68158f])
 
 
-* moved pytest config into separate file (6c3207c)
+* moved pytest config into separate file ({ci_commit_link}6c3207c[6c3207c])
 
 
-* formatting corrections (a384710)
+* formatting corrections ({ci_commit_link}a384710[a384710])
 
 
-* changed to using capfd for testing stdout/stderr values (095ef9e)
+* changed to using capfd for testing stdout/stderr values ({ci_commit_link}095ef9e[095ef9e])
 
 
-* prepared simple pytest.ini with logging settings (3c87cd9)
+* prepared simple pytest.ini with logging settings ({ci_commit_link}3c87cd9[3c87cd9])
 
 
-* extended tox commands to log to file in case of errors (23b538b)
+* extended tox commands to log to file in case of errors ({ci_commit_link}23b538b[23b538b])
 
 
-* added missing *.adoc filter to MANIFEST (cc86bf1)
+* added missing *.adoc filter to MANIFEST ({ci_commit_link}cc86bf1[cc86bf1])
 
 
-* corrected description filename in setup.cfg (8834b72)
+* corrected description filename in setup.cfg ({ci_commit_link}8834b72[8834b72])
 
 
-* added missing path component of README.adoc (6a30afa)
+* added missing path component of README.adoc ({ci_commit_link}6a30afa[6a30afa])
 
 
-* install tox if not provided by docker image (bc92d79)
+* install tox if not provided by docker image ({ci_commit_link}bc92d79[bc92d79])
 
 
-* adjusted pypi package url (8a77758)
+* adjusted pypi package url ({ci_commit_link}8a77758[8a77758])
 
 
-* changed docker image used to build (db6bbac)
+* changed docker image used to build ({ci_commit_link}db6bbac[db6bbac])
 
 
-* read description from adoc file (6b0a060)
+* read description from adoc file ({ci_commit_link}6b0a060[6b0a060])
 
 
-* converted changelog and readme to asciidoc (86416de)
+* converted changelog and readme to asciidoc ({ci_commit_link}86416de[86416de])
 
 
-* reformatted according to new yapf configuration (4b829fc)
+* reformatted according to new yapf configuration ({ci_commit_link}4b829fc[4b829fc])
 
 
-* updated yapf styles config (99518f3)
+* updated yapf styles config ({ci_commit_link}99518f3[99518f3])
 
 
-* increased popen timeout (67faaa3)
+* increased popen timeout ({ci_commit_link}67faaa3[67faaa3])
 
 
-* updated to latest versioneer (bd7909a)
+* updated to latest versioneer ({ci_commit_link}bd7909a[bd7909a])
 
 
-* Merge branch 'feature/GetRidOfParseRequirements' into develop (929494e)
+* Merge branch 'feature/GetRidOfParseRequirements' into develop ({ci_commit_link}929494e[929494e])
 
 
-* added description content type (d40f5b3)
+* added description content type ({ci_commit_link}d40f5b3[d40f5b3])
 
 
-* increased upper bound of scons version (f4a9c5c)
+* increased upper bound of scons version ({ci_commit_link}f4a9c5c[f4a9c5c])
 
 
-* fixed invalid variable name (076e973)
+* fixed invalid variable name ({ci_commit_link}076e973[076e973])
 
 
-* fixed deprecation warning of yaml.load (f5aab64)
+* fixed deprecation warning of yaml.load ({ci_commit_link}f5aab64[f5aab64])
 
 
-* code reformatted (6ddd867)
+* code reformatted ({ci_commit_link}6ddd867[6ddd867])
 
 
-* search pypi index first when installing (e9028f4)
+* search pypi index first when installing ({ci_commit_link}e9028f4[e9028f4])
 
 
-* parse_requirements replaced with simple function (afe665e)
+* parse_requirements replaced with simple function ({ci_commit_link}afe665e[afe665e])
 
 
-* Merge branch 'MinimizeNewSconsiderDiffs' into 'master' (f030179)
+* Merge branch 'MinimizeNewSconsiderDiffs' into 'master' ({ci_commit_link}f030179[f030179])
 
 
-* reduced diff to new sconsider (58c875a)
+* reduced diff to new sconsider ({ci_commit_link}58c875a[58c875a])
 
 
-* use True instead of 1 (089769d)
+* use True instead of 1 ({ci_commit_link}089769d[089769d])
 
 
-* added 3rdparty target definitions for sconsider >=0.5 (5f85847)
+* added 3rdparty target definitions for sconsider >=0.5 ({ci_commit_link}5f85847[5f85847])
 
 
-* Merge branch 'FixPipRequirements' into 'master' (d27bacc)
+* Merge branch 'FixPipRequirements' into 'master' ({ci_commit_link}d27bacc[d27bacc])
 
 
-* fix parse_requirements for newer pip versions (7516ac2)
+* fix parse_requirements for newer pip versions ({ci_commit_link}7516ac2[7516ac2])
 
 
-* Merge branch 'ReformattedWithYapf' into 'master' (9297b09)
+* Merge branch 'ReformattedWithYapf' into 'master' ({ci_commit_link}9297b09[9297b09])
 
 
-* yapf styling rules made explicit and adjusted where needed (0781ced)
+* yapf styling rules made explicit and adjusted where needed ({ci_commit_link}0781ced[0781ced])
 
 
-* Merge branch 'PostponeLibpathSetting' into 'master' (af33332)
+* Merge branch 'PostponeLibpathSetting' into 'master' ({ci_commit_link}af33332[af33332])
 
 
-* postpone LIBPATH setting as other tools might modify environment (09f075b)
+* postpone LIBPATH setting as other tools might modify environment ({ci_commit_link}09f075b[09f075b])
 
 
-* Merge branch 'FixSconsInvocationTests' into 'master' (655133b)
+* Merge branch 'FixSconsInvocationTests' into 'master' ({ci_commit_link}655133b[655133b])
 
 
-* less test verbosity (5d9ec34)
+* less test verbosity ({ci_commit_link}5d9ec34[5d9ec34])
 
 
-* removed twine register step as not required anymore (d4a09f8)
+* removed twine register step as not required anymore ({ci_commit_link}d4a09f8[d4a09f8])
 
 
-* adjusted pypi upload related section (eff56fa)
+* adjusted pypi upload related section ({ci_commit_link}eff56fa[eff56fa])
 
 
-* pypirc modifications according to https://mail.python.org/pipermail/distutils-sig/2017-June/030766.html and https://packaging.python.org/guides/using-testpypi/#using-test-pypi (2451acc)
+* pypirc modifications according to https://mail.python.org/pipermail/distutils-sig/2017-June/030766.html and https://packaging.python.org/guides/using-testpypi/#using-test-pypi ({ci_commit_link}2451acc[2451acc])
 
 
-* use PopenHelper instead of Action._subproc (837fa0a)
+* use PopenHelper instead of Action._subproc ({ci_commit_link}837fa0a[837fa0a])
 
 
-* Merge branch '8-wheel-posargs' into 'master' (adc63c9)
+* Merge branch '8-wheel-posargs' into 'master' ({ci_commit_link}adc63c9[adc63c9])
 
 
-* adds positional args to wheel environment (0397d8b)
+* adds positional args to wheel environment ({ci_commit_link}0397d8b[0397d8b])
 
 
-* Merge branch '3-readme-tox' into 'master' (671c72b)
+* Merge branch '3-readme-tox' into 'master' ({ci_commit_link}671c72b[671c72b])
 
 
-* shows tox commands to test-/upload package (4d2bc20)
+* shows tox commands to test-/upload package ({ci_commit_link}4d2bc20[4d2bc20])
 
 
-* show tox commands used to build, test and deploy the package (0bb919f)
+* show tox commands used to build, test and deploy the package ({ci_commit_link}0bb919f[0bb919f])
 
 
-* Merge branch '6-toplevel-sconsider-scan' into 'master' (57f22c0)
+* Merge branch '6-toplevel-sconsider-scan' into 'master' ({ci_commit_link}57f22c0[57f22c0])
 
 
-* also scan SConstruct directory for .sconsider files (bea1d55)
+* also scan SConstruct directory for .sconsider files ({ci_commit_link}bea1d55[bea1d55])
 
 
-* Merge branch '5-allow-loglevel-through-env' into 'master' (46b4377)
+* Merge branch '5-allow-loglevel-through-env' into 'master' ({ci_commit_link}46b4377[46b4377])
 
 
-* use value of LOG_LEVEL env variable as default log level (c5f2297)
+* use value of LOG_LEVEL env variable as default log level ({ci_commit_link}c5f2297[c5f2297])
 
 
-* Merge branch '4-sconsider-should-still-depend-on-scons' into 'master' (3376a8a)
+* Merge branch '4-sconsider-should-still-depend-on-scons' into 'master' ({ci_commit_link}3376a8a[3376a8a])
 
 
-* scons is a requirement again (737a14d)
+* scons is a requirement again ({ci_commit_link}737a14d[737a14d])
 
 
-* Merge branch '2-setup-gitlab-build' into 'master' (f1bc37e)
+* Merge branch '2-setup-gitlab-build' into 'master' ({ci_commit_link}f1bc37e[f1bc37e])
 
 
-* store artifacts either from test or deploy stage (7388183)
+* store artifacts either from test or deploy stage ({ci_commit_link}7388183[7388183])
 
 
-* pypirc location corrected (85f1c43)
+* pypirc location corrected ({ci_commit_link}85f1c43[85f1c43])
 
 
-* scons requirement added (c4fdc9a)
+* scons requirement added ({ci_commit_link}c4fdc9a[c4fdc9a])
 
 
-* style changed to pep440-old (d0192eb)
+* style changed to pep440-old ({ci_commit_link}d0192eb[d0192eb])
 
 
-* creating ~/.pypirc on the fly with contents of env variables (068406a)
+* creating ~/.pypirc on the fly with contents of env variables ({ci_commit_link}068406a[068406a])
 
 
-* upload to pypi section added (3b46f22)
+* upload to pypi section added ({ci_commit_link}3b46f22[3b46f22])
 
 
-* creating .pypirc on the fly from within .gitlab-ci.yml (07e3032)
+* creating .pypirc on the fly from within .gitlab-ci.yml ({ci_commit_link}07e3032[07e3032])
 
 
-* .pypirc template file added (22c1190)
+* .pypirc template file added ({ci_commit_link}22c1190[22c1190])
 
 
-* build and test stages added (0badb98)
+* build and test stages added ({ci_commit_link}0badb98[0badb98])
 
 
-* scons requirement is now specified in tox.ini (ec72611)
+* scons requirement is now specified in tox.ini ({ci_commit_link}ec72611[ec72611])
 
 
-* tests more scons versions (5d484dd)
+* tests more scons versions ({ci_commit_link}5d484dd[5d484dd])
 
 
-* Merge branch 'files-as-markdown-correction' into 'master' (216b5a9)
+* Merge branch 'files-as-markdown-correction' into 'master' ({ci_commit_link}216b5a9[216b5a9])
 
 
-* changed to include CHANGES.md (1f88c72)
+* changed to include CHANGES.md ({ci_commit_link}1f88c72[1f88c72])
 
 
-* do also copy .md files as README and CHANGES end in it now (89dade7)
+* do also copy .md files as README and CHANGES end in it now ({ci_commit_link}89dade7[89dade7])
 
 
-* Merge branch 'changelog-as-markdown' into 'master' (b992f9e)
+* Merge branch 'changelog-as-markdown' into 'master' ({ci_commit_link}b992f9e[b992f9e])
 
 
-* extension changed to .md to see if it is rendered as markdown (5aee481)
+* extension changed to .md to see if it is rendered as markdown ({ci_commit_link}5aee481[5aee481])
 
 
-* Merge branch '1-rename-readme-to-be-rendered-as-markdown' into 'master' (dfbac6a)
+* Merge branch '1-rename-readme-to-be-rendered-as-markdown' into 'master' ({ci_commit_link}dfbac6a[dfbac6a])
 
 
-* point to renamed [README](README.md) file (acea75c)
+* point to renamed [README](README.md) file ({ci_commit_link}acea75c[acea75c])
 
 
-* Renamed the file (7765e6a)
+* Renamed the file ({ci_commit_link}7765e6a[7765e6a])
 
 
-* consistently install systemlibs for targets (2e52572)
+* consistently install systemlibs for targets ({ci_commit_link}2e52572[2e52572])
 
 
-* resolve up-to-date check failure for 3rdparty libs (bb85536)
+* resolve up-to-date check failure for 3rdparty libs ({ci_commit_link}bb85536[bb85536])
 
 
-* not put build output into the sconsider directory anymore (fc5eac4)
+* not put build output into the sconsider directory anymore ({ci_commit_link}fc5eac4[fc5eac4])
 
 
-* use abspath in call to readlink function (288368e)
+* use abspath in call to readlink function ({ci_commit_link}288368e[288368e])
 
 
-* have backwards compatibility (deprecated) functions re-added (fa67d88)
+* have backwards compatibility (deprecated) functions re-added ({ci_commit_link}fa67d88[fa67d88])
 
 
-* fix build without baseoutdir (af3352d)
+* fix build without baseoutdir ({ci_commit_link}af3352d[af3352d])
 
 
-* import SCons related stuff from SConsider.Main (ccee295)
+* import SCons related stuff from SConsider.Main ({ci_commit_link}ccee295[ccee295])
 
 
-* correctly register atexit function (882de7c)
+* correctly register atexit function ({ci_commit_link}882de7c[882de7c])
 
 
-* use cloned base environment in invocation tests (6d52844)
+* use cloned base environment in invocation tests ({ci_commit_link}6d52844[6d52844])
 
 
-* provide get_launch_dir to get directory we were launched from (9de511e)
+* provide get_launch_dir to get directory we were launched from ({ci_commit_link}9de511e[9de511e])
 
 
-* execute basic scons invocation tests and use pytest as default (e605c01)
+* execute basic scons invocation tests and use pytest as default ({ci_commit_link}e605c01[e605c01])
 
 
-* have SConsider prepared for extraction of parts into separate main module (08c20e3)
+* have SConsider prepared for extraction of parts into separate main module ({ci_commit_link}08c20e3[08c20e3])
 
 
-* use more explicit imports (88f211f)
+* use more explicit imports ({ci_commit_link}88f211f[88f211f])
 
 
-* guard import of GetBuildFailures without SCons (24a7bec)
+* guard import of GetBuildFailures without SCons ({ci_commit_link}24a7bec[24a7bec])
 
 
-* make use of baseoutdir a bit safer (9d49184)
+* make use of baseoutdir a bit safer ({ci_commit_link}9d49184[9d49184])
 
 
-* not register same target more than once (a8cbc54)
+* not register same target more than once ({ci_commit_link}a8cbc54[a8cbc54])
 
 
-* run runner targets even if no command line target was specified (20ac2b8)
+* run runner targets even if no command line target was specified ({ci_commit_link}20ac2b8[20ac2b8])
 
 
-* ensure PackageRegistry is initialized for tests (830eecc)
+* ensure PackageRegistry is initialized for tests ({ci_commit_link}830eecc[830eecc])
 
 
-* use PopenHelper instead of subprocess (4bccfe7)
+* use PopenHelper instead of subprocess ({ci_commit_link}4bccfe7[4bccfe7])
 
 
-* not already collect package files from within PackageRegistry ctor (3e85ab3)
+* not already collect package files from within PackageRegistry ctor ({ci_commit_link}3e85ab3[3e85ab3])
 
 
-* make use of pytest fixtures for Anything tests (a36b199)
+* make use of pytest fixtures for Anything tests ({ci_commit_link}a36b199[a36b199])
 
 
-* use pytest for test execution (c15a7cf)
+* use pytest for test execution ({ci_commit_link}c15a7cf[c15a7cf])
 
 
-* prepared test files for future pytest use (e602085)
+* prepared test files for future pytest use ({ci_commit_link}e602085[e602085])
 
 
-* use editorconfig to define formatting styles (9c8a722)
+* use editorconfig to define formatting styles ({ci_commit_link}9c8a722[9c8a722])
 
 
-* allow shell style globbing for exlude dirs (3030fea)
+* allow shell style globbing for exlude dirs ({ci_commit_link}3030fea[3030fea])
 
 
-* have less diffs to new sconsider for PackageRegistry (2dcc20f)
+* have less diffs to new sconsider for PackageRegistry ({ci_commit_link}2dcc20f[2dcc20f])
 
 
-* use new lib_ prefixed names for package libraries (ffedcf6)
+* use new lib_ prefixed names for package libraries ({ci_commit_link}ffedcf6[ffedcf6])
 
 
-* be more tolerant to testfw target name (223cc53)
+* be more tolerant to testfw target name ({ci_commit_link}223cc53[223cc53])
 
 
-* corrected/improved --showtree printing (dc34d66)
+* corrected/improved --showtree printing ({ci_commit_link}dc34d66[dc34d66])
 
 
-* renamed  shared object name of boost libs (cbe81e5)
+* renamed  shared object name of boost libs ({ci_commit_link}cbe81e5[cbe81e5])
 
 
-* minimized diffs to new sconsider (0b9da4a)
+* minimized diffs to new sconsider ({ci_commit_link}0b9da4a[0b9da4a])
 
 
-* plaintarget not used anymore in registry and accessing methods (97593bd)
+* plaintarget not used anymore in registry and accessing methods ({ci_commit_link}97593bd[97593bd])
 
 
-* reformatted (yapf) some code parts (2b55b62)
+* reformatted (yapf) some code parts ({ci_commit_link}2b55b62[2b55b62])
 
 
-* have getPackageDependencies similar to the new one (a181e95)
+* have getPackageDependencies similar to the new one ({ci_commit_link}a181e95[a181e95])
 
 
-* improve loading alias or explicit package target (a26be77)
+* improve loading alias or explicit package target ({ci_commit_link}a26be77[a26be77])
 
 
-* remove registry parameters from methods (7b1a520)
+* remove registry parameters from methods ({ci_commit_link}7b1a520[7b1a520])
 
 
-* Simplify using PackageRegistry as it is a singleton now (718ecd1)
+* Simplify using PackageRegistry as it is a singleton now ({ci_commit_link}718ecd1[718ecd1])
 
 
-* implicitly import from modules (88c7447)
+* implicitly import from modules ({ci_commit_link}88c7447[88c7447])
 
 
-* implicitly import names from modules (348df9c)
+* implicitly import names from modules ({ci_commit_link}348df9c[348df9c])
 
 
-* use Callback singleton to register and run callbacks (54c6896)
+* use Callback singleton to register and run callbacks ({ci_commit_link}54c6896[54c6896])
 
 
-* added deprecation notice to methods which will disappear (d8418c5)
+* added deprecation notice to methods which will disappear ({ci_commit_link}d8418c5[d8418c5])
 
 
-* fixed permissions typo (cec1a4f)
+* fixed permissions typo ({ci_commit_link}cec1a4f[cec1a4f])
 
 
-* moved SomeUtils import (7992d82)
+* moved SomeUtils import ({ci_commit_link}7992d82[7992d82])
 
 
-* explicit import of methods from modules (1d8850b)
+* explicit import of methods from modules ({ci_commit_link}1d8850b[1d8850b])
 
 
-* changed first arguments of env.Install* calls to strings (1714aba)
+* changed first arguments of env.Install* calls to strings ({ci_commit_link}1714aba[1714aba])
 
 
-* fixed system lib and package lib symlinks (b769caf)
+* fixed system lib and package lib symlinks ({ci_commit_link}b769caf[b769caf])
 
 
-* get_executor fix for newer scons versions (48a333b)
+* get_executor fix for newer scons versions ({ci_commit_link}48a333b[48a333b])
 
 
-* simplified and extended getRealTarget (fc4c64d)
+* simplified and extended getRealTarget ({ci_commit_link}fc4c64d[fc4c64d])
 
 
-* changed to explicit import and use of getFlatENV (12cce73)
+* changed to explicit import and use of getFlatENV ({ci_commit_link}12cce73[12cce73])
 
 
-* applied fix to also work with scons<2.5 (0c1e6c2)
+* applied fix to also work with scons<2.5 ({ci_commit_link}0c1e6c2[0c1e6c2])
 
 
-* reformatted by yapf (4772c05)
+* reformatted by yapf ({ci_commit_link}4772c05[4772c05])
 
 
-* more pylint cleanup (1348c1a)
+* more pylint cleanup ({ci_commit_link}1348c1a[1348c1a])
 
 
-* corrected functions with sticky [] and {} defaults (79d383b)
+* corrected functions with sticky [] and {} defaults ({ci_commit_link}79d383b[79d383b])
 
 
-* use logger lazy formatting using value arguments (6b7a393)
+* use logger lazy formatting using value arguments ({ci_commit_link}6b7a393[6b7a393])
 
 
-* tox testing added (82eedcc)
+* tox testing added ({ci_commit_link}82eedcc[82eedcc])
 
 
-* --package regression fix (16361f2)
+* --package regression fix ({ci_commit_link}16361f2[16361f2])
 
 
-* pkg_resources version string corrected (01f8282)
+* pkg_resources version string corrected ({ci_commit_link}01f8282[01f8282])
 
 == tag: 0.3.12
-* updated changes (78994c7)
+* updated changes ({ci_commit_link}78994c7[78994c7])
 
 
-* explicit command line target fails on missing dependencies (43f1dfb)
+* explicit command line target fails on missing dependencies ({ci_commit_link}43f1dfb[43f1dfb])
 
 
-* using versioneer to provide __version__ field (e5fb883)
+* using versioneer to provide __version__ field ({ci_commit_link}e5fb883[e5fb883])
 
 
-* corrected setting OS_* defines for sunos (6b0fc46)
+* corrected setting OS_* defines for sunos ({ci_commit_link}6b0fc46[6b0fc46])
 
 
-* explicitly setting language default to gnu++98 (eb4d8fc)
+* explicitly setting language default to gnu++98 ({ci_commit_link}eb4d8fc[eb4d8fc])
 
 
-* buildcfg corrections for profile/coverage option (287fbab)
+* buildcfg corrections for profile/coverage option ({ci_commit_link}287fbab[287fbab])
 
 == tag: 0.3.11
-* SConsider 0.3.11: improvements and fixes (17ddc62)
+* SConsider 0.3.11: improvements and fixes ({ci_commit_link}17ddc62[17ddc62])
 
 
-* extending temporary filenames with pid to prevent name clashes (dcd64eb)
+* extending temporary filenames with pid to prevent name clashes ({ci_commit_link}dcd64eb[dcd64eb])
 
 
-* fix overwriting CXXFLAGS from g++.py tool (2d20e04)
+* fix overwriting CXXFLAGS from g++.py tool ({ci_commit_link}2d20e04[2d20e04])
 
 
-* use -std only in CXXFLAGS (ca834cb)
+* use -std only in CXXFLAGS ({ci_commit_link}ca834cb[ca834cb])
 
 
-* here document fixed: must use tabs instead of spaces (14ca887)
+* here document fixed: must use tabs instead of spaces ({ci_commit_link}14ca887[14ca887])
 
 
-* gdb batch extension: allow background execution of gdb in batch mode (7b77148)
+* gdb batch extension: allow background execution of gdb in batch mode ({ci_commit_link}7b77148[7b77148])
 
 
-* langfeatures: allow empty argument and print info (bd2f00d)
+* langfeatures: allow empty argument and print info ({ci_commit_link}bd2f00d[bd2f00d])
 
 
-* language features extended (72b557e)
+* language features extended ({ci_commit_link}72b557e[72b557e])
 
 
-* buildmode: extended for 'coverage' options (35ed4f5)
+* buildmode: extended for 'coverage' options ({ci_commit_link}35ed4f5[35ed4f5])
 
 
-* WD2Coast: corrected copydoc reference for IFAObject::Clone (d460ac8)
+* WD2Coast: corrected copydoc reference for IFAObject::Clone ({ci_commit_link}d460ac8[d460ac8])
 
 
-* scons --showtree: corrected fulltargetname access with Alias (fa03f20)
+* scons --showtree: corrected fulltargetname access with Alias ({ci_commit_link}fa03f20[fa03f20])
 
 
-* generated script: suppress error message without gdbserver (be12a47)
+* generated script: suppress error message without gdbserver ({ci_commit_link}be12a47[be12a47])
 
 
-* scripts target: should conform to script_<targetname> naming scheme (7cceeff)
+* scripts target: should conform to script_<targetname> naming scheme ({ci_commit_link}7cceeff[7cceeff])
 
 
-* ThirdParty: extending CPPPATH with include dir for sys libraries (7d92f16)
+* ThirdParty: extending CPPPATH with include dir for sys libraries ({ci_commit_link}7d92f16[7d92f16])
 
 == tag: 0.3.10
-* SConsider 0.3.10: improvements and bugfixes (da7d96f)
+* SConsider 0.3.10: improvements and bugfixes ({ci_commit_link}da7d96f[da7d96f])
 
 
-* PackageRegistry: getRealTarget moved in from TargetMaker (bc8d105)
+* PackageRegistry: getRealTarget moved in from TargetMaker ({ci_commit_link}bc8d105[bc8d105])
 
 
-* scons tools: better hinting in case a tool fails to load (c6c649a)
+* scons tools: better hinting in case a tool fails to load ({ci_commit_link}c6c649a[c6c649a])
 
 
-* PackageRegistry: Exception handling fixed, moved static functions (aaeb6a0)
+* PackageRegistry: Exception handling fixed, moved static functions ({ci_commit_link}aaeb6a0[aaeb6a0])
 
 
-* update of WD2Coast search/replace expressions (0ac1606)
+* update of WD2Coast search/replace expressions ({ci_commit_link}0ac1606[0ac1606])
 
 
-* extended/corrected search/replace expressions (3290d91)
+* extended/corrected search/replace expressions ({ci_commit_link}3290d91[3290d91])
 
 
-* aborting with user error in case setupBuildTools is not loaded (6f38c78)
+* aborting with user error in case setupBuildTools is not loaded ({ci_commit_link}6f38c78[6f38c78])
 
 
-* added -x option to execute the real binary from within any other tool (038a07f)
+* added -x option to execute the real binary from within any other tool ({ci_commit_link}038a07f[038a07f])
 
 
-* allowing callables from within public.execEnv (251a0a3)
+* allowing callables from within public.execEnv ({ci_commit_link}251a0a3[251a0a3])
 
 
-* improved message in case a Target can not be found (3e03d7c)
+* improved message in case a Target can not be found ({ci_commit_link}3e03d7c[3e03d7c])
 
 
-* consequently using getTargetBaseInstallDir and getLogInstallDir (dca56db)
+* consequently using getTargetBaseInstallDir and getLogInstallDir ({ci_commit_link}dca56db[dca56db])
 
 == tag: 0.3.9
-* namefilter was not defined when not using -u/-U option (37c7c9f)
+* namefilter was not defined when not using -u/-U option ({ci_commit_link}37c7c9f[37c7c9f])
 
 == tag: 0.3.8
-* getOsVersionTuple fixed for solaris (bb0f30a)
+* getOsVersionTuple fixed for solaris ({ci_commit_link}bb0f30a[bb0f30a])
 
 
-* fixed env.getOsVersionTuple which caused solaris builds to fail (602e647)
+* fixed env.getOsVersionTuple which caused solaris builds to fail ({ci_commit_link}602e647[602e647])
 
 == tag: 0.3.7
-* backward compatibility (py2.6.x) for OrderedDict (f724b00)
+* backward compatibility (py2.6.x) for OrderedDict ({ci_commit_link}f724b00[f724b00])
 
 
-* prepared for 0.3.7 version (96fd2b9)
+* prepared for 0.3.7 version ({ci_commit_link}96fd2b9[96fd2b9])
 
 == tag: 0.3.6
-* version bump to 0.3.6 (6f053c0)
+* version bump to 0.3.6 ({ci_commit_link}6f053c0[6f053c0])
 
 
-* ignoring lepl INFO messages using increased logging severity (c414a48)
+* ignoring lepl INFO messages using increased logging severity ({ci_commit_link}c414a48[c414a48])
 
 
-* removed coast_options which was specific to the COAST build (92d8498)
+* removed coast_options which was specific to the COAST build ({ci_commit_link}92d8498[92d8498])
 
 
-* renamed local variable for sconsider dist version (604f0a0)
+* renamed local variable for sconsider dist version ({ci_commit_link}604f0a0[604f0a0])
 
 
-* alias target build corrected (11f8937)
+* alias target build corrected ({ci_commit_link}11f8937[11f8937])
 
 
-* renamed TargetNotFound exception (e7abdeb)
+* renamed TargetNotFound exception ({ci_commit_link}e7abdeb[e7abdeb])
 
 
-* corrected initial copyright year or added copyright message (0319741)
+* corrected initial copyright year or added copyright message ({ci_commit_link}0319741[0319741])
 
 
-* corrected handling of versioned shared libraries and cleanup (fee02ab)
+* corrected handling of versioned shared libraries and cleanup ({ci_commit_link}fee02ab[fee02ab])
 
 
-* restructured PackageRegistry for less diffs against branch (675b99b)
+* restructured PackageRegistry for less diffs against branch ({ci_commit_link}675b99b[675b99b])
 
 
-* refactor: only one copy of current_os_version extraction method (11cf0e7)
+* refactor: only one copy of current_os_version extraction method ({ci_commit_link}11cf0e7[11cf0e7])
 
 
-* ARCHBITS: removed from env, use env.getBitwidth() instead (9e1e70d)
+* ARCHBITS: removed from env, use env.getBitwidth() instead ({ci_commit_link}9e1e70d[9e1e70d])
 
 
-* tools: Keep order of tools in list but remove duplicates (3661468)
+* tools: Keep order of tools in list but remove duplicates ({ci_commit_link}3661468[3661468])
 
 
-* scons tools extensible from SConstruct setting _SCONSIDER_TOOLS_ (d61575e)
+* scons tools extensible from SConstruct setting _SCONSIDER_TOOLS_ ({ci_commit_link}d61575e[d61575e])
 
 
-* prepared for 0.3.6 version (8d12a4a)
+* prepared for 0.3.6 version ({ci_commit_link}8d12a4a[8d12a4a])
 
 == tag: 0.3.5
-* sconsider: version specific target creation (954b371)
+* sconsider: version specific target creation ({ci_commit_link}954b371[954b371])
 
 
-* file split: SConsider main module split into parts (2f34a6f)
+* file split: SConsider main module split into parts ({ci_commit_link}2f34a6f[2f34a6f])
 
 
-* runbuilder: added skipped target in skiptest message (837a9a2)
+* runbuilder: added skipped target in skiptest message ({ci_commit_link}837a9a2[837a9a2])
 
 
-* skiptest: gaining more attention using critical message (3c1e07e)
+* skiptest: gaining more attention using critical message ({ci_commit_link}3c1e07e[3c1e07e])
 
 == tag: 0.3.4
-* package: do not copy include files when using baseoutdir (6e06f79)
+* package: do not copy include files when using baseoutdir ({ci_commit_link}6e06f79[6e06f79])
 
 == tag: 0.3.3
-* incremented version for new bugfix release (0c47ec9)
+* incremented version for new bugfix release ({ci_commit_link}0c47ec9[0c47ec9])
 
 
-* package: fixed package behavior without baseoutdir (c6bc07c)
+* package: fixed package behavior without baseoutdir ({ci_commit_link}c6bc07c[c6bc07c])
 
 
-* build: documented how to uninstall a development version (adcb3bd)
+* build: documented how to uninstall a development version ({ci_commit_link}adcb3bd[adcb3bd])
 
-== tag: coast_20141003, tag: 0.3.2
-* generatescript: corrected generated gdb batch file (62dc78c)
+== tag: coast_20141003
+* generatescript: corrected generated gdb batch file ({ci_commit_link}62dc78c[62dc78c])
 
 
-* packagebuild: correct return types to not create path segments like 'None' (6adc1c1)
+* packagebuild: correct return types to not create path segments like 'None' ({ci_commit_link}6adc1c1[6adc1c1])
 
 
-* packagebuilding: do not raise an exception with an empty path (9a66dff)
+* packagebuilding: do not raise an exception with an empty path ({ci_commit_link}9a66dff[9a66dff])
 
 
-* helptext: improved help text for sconsider options (fc8c836)
+* helptext: improved help text for sconsider options ({ci_commit_link}fc8c836[fc8c836])
 
 
-* version: integrated SConsider module version into __init__.py (1d981f4)
+* version: integrated SConsider module version into __init__.py ({ci_commit_link}1d981f4[1d981f4])
 
 
-* version: changed to 0.3.0, added author, style updates (7ff8f74)
+* version: changed to 0.3.0, added author, style updates ({ci_commit_link}7ff8f74[7ff8f74])
 
 
-* package-handling: exclude dir handling improved (ab88499)
+* package-handling: exclude dir handling improved ({ci_commit_link}ab88499[ab88499])
 
 
-* pep8: corrections applied as reported by pyflakes (8481d45)
+* pep8: corrections applied as reported by pyflakes ({ci_commit_link}8481d45[8481d45])
 
 
-* setup: adapted setup.py to layout seen in wheel (0edc21e)
+* setup: adapted setup.py to layout seen in wheel ({ci_commit_link}0edc21e[0edc21e])
 
 
-* package-handling: raising specific exception during package collection (6dbf712)
+* package-handling: raising specific exception during package collection ({ci_commit_link}6dbf712[6dbf712])
 
 
-* logging: use specific loggers (d470d92)
+* logging: use specific loggers ({ci_commit_link}d470d92[d470d92])
 
 
-* printing sconsider version when being executed (39a4288)
+* printing sconsider version when being executed ({ci_commit_link}39a4288[39a4288])
 
 
-* pep8: reformatted methods (b8c88f1)
+* pep8: reformatted methods ({ci_commit_link}b8c88f1[b8c88f1])
 
 
-* structure: moved files and added setup.py (8d5e7f1)
+* structure: moved files and added setup.py ({ci_commit_link}8d5e7f1[8d5e7f1])
 
 
-* logging: added regex filter and compatibility for python <2.7 (6cf2315)
+* logging: added regex filter and compatibility for python <2.7 ({ci_commit_link}6cf2315[6cf2315])
 
 
-* tests: better path detection for test server certificate (cb70577)
+* tests: better path detection for test server certificate ({ci_commit_link}cb70577[cb70577])
 
 
-* replaced print with logging commands (c41c35b)
+* replaced print with logging commands ({ci_commit_link}c41c35b[c41c35b])
 
 
-* allow specifying 'targetName' in buildsettings if he default is not sufficient (58348ef)
+* allow specifying 'targetName' in buildsettings if he default is not sufficient ({ci_commit_link}58348ef[58348ef])
 
 
-* corrected version detection of OpenSSL using tuples now (a29e7a0)
+* corrected version detection of OpenSSL using tuples now ({ci_commit_link}a29e7a0[a29e7a0])
 
 
-* moved -Wundef flag to full warnings section (acc8c08)
+* moved -Wundef flag to full warnings section ({ci_commit_link}acc8c08[acc8c08])
 
 
-* added boost.system target (5a30f35)
+* added boost.system target ({ci_commit_link}5a30f35[5a30f35])
 
 
-* corrected doxygen file creation and added Test (83c4f7e)
+* corrected doxygen file creation and added Test ({ci_commit_link}83c4f7e[83c4f7e])
 
 
-* pip requirements specification (e7e5e67)
+* pip requirements specification ({ci_commit_link}e7e5e67[e7e5e67])
 
 
-* lowercasing fqdn and hostname entries to be consistent with own resolver (99f085b)
+* lowercasing fqdn and hostname entries to be consistent with own resolver ({ci_commit_link}99f085b[99f085b])
 
 
-* removed obsoleted check for gzio.h (28f97d6)
+* removed obsoleted check for gzio.h ({ci_commit_link}28f97d6[28f97d6])
 
 
-* file list changed for zlib 1.2.7 (010e906)
+* file list changed for zlib 1.2.7 ({ci_commit_link}010e906[010e906])
 
 
-* simplified getfqdn (a51b90f)
+* simplified getfqdn ({ci_commit_link}a51b90f[a51b90f])
 
 
-* removed unused decider function (90039b4)
+* removed unused decider function ({ci_commit_link}90039b4[90039b4])
 
 
-* always changing fqdn and its components to lowercase (19483a8)
+* always changing fqdn and its components to lowercase ({ci_commit_link}19483a8[19483a8])
 
 
-* extended SecureHTTPServer for specifying ciphers to use (462d029)
+* extended SecureHTTPServer for specifying ciphers to use ({ci_commit_link}462d029[462d029])
 
 
-* extended cleanup tokens as some code contained references to customer related projects (60910d1)
+* extended cleanup tokens as some code contained references to customer related projects ({ci_commit_link}60910d1[60910d1])
 
 
-* testing if baseoutdir is writable before continueing (840eef3)
+* testing if baseoutdir is writable before continueing ({ci_commit_link}840eef3[840eef3])
 
 
-* added test to prove that our SecureHTTPServer implementation works (909c983)
+* added test to prove that our SecureHTTPServer implementation works ({ci_commit_link}909c983[909c983])
 
 
-* improved searching for files in relative paths when using findFiles (f6f0e25)
+* improved searching for files in relative paths when using findFiles ({ci_commit_link}f6f0e25[f6f0e25])
 
 
-* added scons build files for IBM WebSphereMQ, XMS and RSa (710477d)
+* added scons build files for IBM WebSphereMQ, XMS and RSa ({ci_commit_link}710477d[710477d])
 
 
-* extended to replace names in sniff shared files also (661eea3)
+* extended to replace names in sniff shared files also ({ci_commit_link}661eea3[661eea3])
 
 
-* --3rdparty option is a list of directories now (13b17f1)
+* --3rdparty option is a list of directories now ({ci_commit_link}13b17f1[13b17f1])
 
 
-* added rt library for non windows systems to support posix clock_get* functions (1b39905)
+* added rt library for non windows systems to support posix clock_get* functions ({ci_commit_link}1b39905[1b39905])
 
 
-* Eclipse debug functionality with gdbserver (9865f44)
+* Eclipse debug functionality with gdbserver ({ci_commit_link}9865f44[9865f44])
 
 
-* simple comment added (e63cff8)
+* simple comment added ({ci_commit_link}e63cff8[e63cff8])
 
 
-* eliminated --no-undefined linker flag as it seems to be duplicate of -z defs (93778b3)
+* eliminated --no-undefined linker flag as it seems to be duplicate of -z defs ({ci_commit_link}93778b3[93778b3])
 
 
-* added filter function matching BASEOUTDIR path prefixes (e8dcf9b)
+* added filter function matching BASEOUTDIR path prefixes ({ci_commit_link}e8dcf9b[e8dcf9b])
 
 
-* corrections according to PEP8 (8e17471)
+* corrections according to PEP8 ({ci_commit_link}8e17471[8e17471])
 
 
-* adjusted name of precompiled mysql client library as it was in the binary distribution downloaded (8fe4171)
+* adjusted name of precompiled mysql client library as it was in the binary distribution downloaded ({ci_commit_link}8fe4171[8fe4171])
 
 
-* 64bit: added new precompiler macro ARCHBITS carrying either the value of 32 or 64 (cda79ba)
+* 64bit: added new precompiler macro ARCHBITS carrying either the value of 32 or 64 ({ci_commit_link}cda79ba[cda79ba])
 
 
-* changed trace description reference from Dbg.h to Tracer.h (79cc47d)
+* changed trace description reference from Dbg.h to Tracer.h ({ci_commit_link}79cc47d[79cc47d])
 
 
-* corrected version comparison error (acaecfc)
+* corrected version comparison error ({ci_commit_link}acaecfc[acaecfc])
 
 
-* added more information to help the user using python2.7 why the secure server might not work (eeee962)
+* added more information to help the user using python2.7 why the secure server might not work ({ci_commit_link}eeee962[eeee962])
 
 
-* conditionally adding shutdown_request method when incompatible python and pyopenssl version is detected (d23dca8)
+* conditionally adding shutdown_request method when incompatible python and pyopenssl version is detected ({ci_commit_link}d23dca8[d23dca8])
 
 
-* corrected variant strings for MACs (aa3c74b)
+* corrected variant strings for MACs ({ci_commit_link}aa3c74b[aa3c74b])
 
 
-* added mac support with DYLD_LIBRARY_PATH (9181cbf)
+* added mac support with DYLD_LIBRARY_PATH ({ci_commit_link}9181cbf[9181cbf])
 
 
-* implemented lazy linking for mac - do not abort when unresolved symbols are found (e4ea201)
+* implemented lazy linking for mac - do not abort when unresolved symbols are found ({ci_commit_link}e4ea201[e4ea201])
 
 
-* added MacFinder to resolve own and system libraries (e707bff)
+* added MacFinder to resolve own and system libraries ({ci_commit_link}e707bff[e707bff])
 
 
-* license header added (2151aba)
+* license header added ({ci_commit_link}2151aba[2151aba])
 
 
-* apple specific linker extensions (e2fb9a3)
+* apple specific linker extensions ({ci_commit_link}e2fb9a3[e2fb9a3])
 
 
-* fixes for mac 32/64 bit compilation (5b87481)
+* fixes for mac 32/64 bit compilation ({ci_commit_link}5b87481[5b87481])
 
 
-* appending buildcfg name to compilation variant string (892eb47)
+* appending buildcfg name to compilation variant string ({ci_commit_link}892eb47[892eb47])
 
 
-* fixed bug in libc location detection mechanism (c706db6)
+* fixed bug in libc location detection mechanism ({ci_commit_link}c706db6[c706db6])
 
 
-* factored out and enhanced code to retrieve (e)glibc version number on posix/linux compliant systems (42be306)
+* factored out and enhanced code to retrieve (e)glibc version number on posix/linux compliant systems ({ci_commit_link}42be306[42be306])
 
 
-* temporary fix to get rid of doxygen problems with 3rdparty packages (#286) (bc94e9a)
+* temporary fix to get rid of doxygen problems with 3rdparty packages (#286) ({ci_commit_link}bc94e9a[bc94e9a])
 
 
-* got rid of loki features (#24) (476490f)
+* got rid of loki features (#24) ({ci_commit_link}476490f[476490f])
 
 
-* fixed a small bug in LibFinder and SystemLibsInstallBuilder (6a08176)
+* fixed a small bug in LibFinder and SystemLibsInstallBuilder ({ci_commit_link}6a08176[6a08176])
 
 
-* using more random file name for compiling as multiple builds might run in parallel... (9824138)
+* using more random file name for compiling as multiple builds might run in parallel... ({ci_commit_link}9824138[9824138])
 
 
-* adjusted use of shlex when composing execution arguments by not shlex'ing the command itself as it might contain spaces (b3653bf)
+* adjusted use of shlex when composing execution arguments by not shlex'ing the command itself as it might contain spaces ({ci_commit_link}b3653bf[b3653bf])
 
 
-* need to extend libdirlist by LibFinder.GetSystemLibDirs() to find/use compiler specific libs (880b655)
+* need to extend libdirlist by LibFinder.GetSystemLibDirs() to find/use compiler specific libs ({ci_commit_link}880b655[880b655])
 
 
-* replaced superfluous registerCallback/runCallback calls (80b2819)
+* replaced superfluous registerCallback/runCallback calls ({ci_commit_link}80b2819[80b2819])
 
 
-* fixed a dependency bug with --ignore-missing (#189) (784813c)
+* fixed a dependency bug with --ignore-missing (#189) ({ci_commit_link}784813c[784813c])
 
 
-* implemented new binary distribution form (#189) (9c293f6)
+* implemented new binary distribution form (#189) ({ci_commit_link}9c293f6[9c293f6])
 
 
-* replaced PseudoFile with InstallBinary (d87da4e)
+* replaced PseudoFile with InstallBinary ({ci_commit_link}d87da4e[d87da4e])
 
 
-* modified CompilerLibsInstallBuilder to copy all system libs the build depends on (14b1ac3)
+* modified CompilerLibsInstallBuilder to copy all system libs the build depends on ({ci_commit_link}14b1ac3[14b1ac3])
 
 
-* extracted LibFinder (69d1ab4)
+* extracted LibFinder ({ci_commit_link}69d1ab4[69d1ab4])
 
 
-* refactored third party system sconsider files (#189) (7ad66e0)
+* refactored third party system sconsider files (#189) ({ci_commit_link}7ad66e0[7ad66e0])
 
 
-* split of third party sconsiders into separate files (#189) (e1c6a08)
+* split of third party sconsiders into separate files (#189) ({ci_commit_link}e1c6a08[e1c6a08])
 
 
-* fixed bugs in sconsider for mysql, openss, oracle and sybase (#189) (ffe12f4)
+* fixed bugs in sconsider for mysql, openss, oracle and sybase (#189) ({ci_commit_link}ffe12f4[ffe12f4])
 
 
-* enabled option '3rdparty' which allows to configure the directory which contains the 3rdparty sconsider definitions (#189) (3e8acc2)
+* enabled option '3rdparty' which allows to configure the directory which contains the 3rdparty sconsider definitions (#189) ({ci_commit_link}3e8acc2[3e8acc2])
 
 
-* ignore non existing targets and targets which depend on them (#189) (632173d)
+* ignore non existing targets and targets which depend on them (#189) ({ci_commit_link}632173d[632173d])
 
 
-* blub, blub, ... (#189) (ca7ee16)
+* blub, blub, ... (#189) ({ci_commit_link}ca7ee16[ca7ee16])
 
 
-* ignore env['BUILDDIR'] instead of hardcoded '.build' (#189) (e624bc1)
+* ignore env['BUILDDIR'] instead of hardcoded '.build' (#189) ({ci_commit_link}e624bc1[e624bc1])
 
 
-* experimental improvement for third party handling (41e1ace)
+* experimental improvement for third party handling ({ci_commit_link}41e1ace[41e1ace])
 
 
-* outputting stdout/stderr in case of compiler detection errors (93839e7)
+* outputting stdout/stderr in case of compiler detection errors ({ci_commit_link}93839e7[93839e7])
 
 
-* factored out packagename/targetname separator (01d5f8c)
+* factored out packagename/targetname separator ({ci_commit_link}01d5f8c[01d5f8c])
 
 
-* refactored runCommandWithFile to work for both cases and renamed back to runCommand (92543ad)
+* refactored runCommandWithFile to work for both cases and renamed back to runCommand ({ci_commit_link}92543ad[92543ad])
 
 
-* factored in runCommandWith[File|Input] (0d5e96c)
+* factored in runCommandWith[File|Input] ({ci_commit_link}0d5e96c[0d5e96c])
 
 
-* factored out HTTPS/SMTP specific servers into this module (107e447)
+* factored out HTTPS/SMTP specific servers into this module ({ci_commit_link}107e447[107e447])
 
 
-* added wrapper around socket.getfqdn to hopefully provide a stable method of retrieving the fqdn of the current host (11f1406)
+* added wrapper around socket.getfqdn to hopefully provide a stable method of retrieving the fqdn of the current host ({ci_commit_link}11f1406[11f1406])
 
 
-* include original headers and not the copies (be60702)
+* include original headers and not the copies ({ci_commit_link}be60702[be60702])
 
 
-* baseoutdir as default target is no longer needed (94bc32f)
+* baseoutdir as default target is no longer needed ({ci_commit_link}94bc32f[94bc32f])
 
 == tag: coast_2010_1.2
-* only adding baseoutdir when no BUILD_TARGETS collected so far (9d29c33)
+* only adding baseoutdir when no BUILD_TARGETS collected so far ({ci_commit_link}9d29c33[9d29c33])
 
 
-* fixed the behaviour of -u, -U and -D (c59f82d)
+* fixed the behaviour of -u, -U and -D ({ci_commit_link}c59f82d[c59f82d])
 
 
-* used SCons.Utils.print_tree() instead of render_tree() (977b38c)
+* used SCons.Utils.print_tree() instead of render_tree() ({ci_commit_link}977b38c[977b38c])
 
 
-* set baseoutdir as default target (4fa2f1a)
+* set baseoutdir as default target ({ci_commit_link}4fa2f1a[4fa2f1a])
 
 
-* fixed TestfwTransformer to support latest changes (e31eae0)
+* fixed TestfwTransformer to support latest changes ({ci_commit_link}e31eae0[e31eae0])
 
 
-* fixed a ugly dependency cycle (d1af665)
+* fixed a ugly dependency cycle ({ci_commit_link}d1af665[d1af665])
 
 
-* removed ONLY_STD_IOSTREAM leftovers (5709b07)
+* removed ONLY_STD_IOSTREAM leftovers ({ci_commit_link}5709b07[5709b07])
 
 
-* updated TargetPrinter to use SCons.Util.render_tree() (c41288e)
+* updated TargetPrinter to use SCons.Util.render_tree() ({ci_commit_link}c41288e[c41288e])
 
 
-* always convert replacement to str in SubstInFileBuilder (58fe400)
+* always convert replacement to str in SubstInFileBuilder ({ci_commit_link}58fe400[58fe400])
 
 
-* fixes for win32 build (5a4f8d1)
+* fixes for win32 build ({ci_commit_link}5a4f8d1[5a4f8d1])
 
 
-* fixed Windows CRLF (b28ef9c)
+* fixed Windows CRLF ({ci_commit_link}b28ef9c[b28ef9c])
 
 
-* fixed python anything to support escaped points and colons (#244) (c91df7c)
+* fixed python anything to support escaped points and colons (#244) ({ci_commit_link}c91df7c[c91df7c])
 
 
-* fixed wrong help message for the language support commandline option (9f4e3c8)
+* fixed wrong help message for the language support commandline option ({ci_commit_link}9f4e3c8[9f4e3c8])
 
 
-* fixed a bug in RunBuilder which was caused because of SCons issue 2460 (064c3a2)
+* fixed a bug in RunBuilder which was caused because of SCons issue 2460 ({ci_commit_link}064c3a2[064c3a2])
 
 
-* implemented more tests for SomeUtils and WorkingSetWriter (d3518ca)
+* implemented more tests for SomeUtils and WorkingSetWriter ({ci_commit_link}d3518ca[d3518ca])
 
 
-* corrected relations to be projectname from .project and not packagename (#206) (2c82fe5)
+* corrected relations to be projectname from .project and not packagename (#206) ({ci_commit_link}2c82fe5[2c82fe5])
 
 
-* implemented partial update of working sets (#206) (5cdf744)
+* implemented partial update of working sets (#206) ({ci_commit_link}5cdf744[5cdf744])
 
 
-* implemented tool to write Eclipse working sets (#206) (0376059)
+* implemented tool to write Eclipse working sets (#206) ({ci_commit_link}0376059[0376059])
 
 
-* fixed a RunBuilder bug, introduced ComposedRunner instead (#241) (c58fb52)
+* fixed a RunBuilder bug, introduced ComposedRunner instead (#241) ({ci_commit_link}c58fb52[c58fb52])
 
 
-* slightly modified RunBuilder behaviour (f2d1681)
+* slightly modified RunBuilder behaviour ({ci_commit_link}f2d1681[f2d1681])
 
 
-* replaces WD_ with COAST_ (4395f3b)
+* replaces WD_ with COAST_ ({ci_commit_link}4395f3b[4395f3b])
 
 
-* Added command line options for scons to define language features (C++0x, TR+, Boost) (6960ab6)
+* Added command line options for scons to define language features (C++0x, TR+, Boost) ({ci_commit_link}6960ab6[6960ab6])
 
 
-* fixed tests (c7d2132)
+* fixed tests ({ci_commit_link}c7d2132[c7d2132])
 
 
-* replace WD_ prefix with COAST_ (fe5352c)
+* replace WD_ prefix with COAST_ ({ci_commit_link}fe5352c[fe5352c])
 
 
-* changed name of resulting lib/executable to PackagenameTargetname (bdd1e6f)
+* changed name of resulting lib/executable to PackagenameTargetname ({ci_commit_link}bdd1e6f[bdd1e6f])
 
 
-* fixed includeSubdir bug (2e8700d)
+* fixed includeSubdir bug ({ci_commit_link}2e8700d[2e8700d])
 
 
-* fixed RunBuilder dependencies (fixes #225) (571893b)
+* fixed RunBuilder dependencies (fixes #225) ({ci_commit_link}571893b[571893b])
 
 
-* pass env to value function (b1cf14e)
+* pass env to value function ({ci_commit_link}b1cf14e[b1cf14e])
 
 
-* putting sconsign file to same location as basoutdir this allows using the same source tree at different locations without the need to recompile every time you switch environment given that you specified --baseoutdir=/location/dependent/dir (b5da31b)
+* putting sconsign file to same location as basoutdir this allows using the same source tree at different locations without the need to recompile every time you switch environment given that you specified --baseoutdir=/location/dependent/dir ({ci_commit_link}b5da31b[b5da31b])
 
 
-* Allow doxygen to generate include dependency graphs (38c826c)
+* Allow doxygen to generate include dependency graphs ({ci_commit_link}38c826c[38c826c])
 
 
-* removed threading option as python is not able to support concurrency quite well yet (2e6e978)
+* removed threading option as python is not able to support concurrency quite well yet ({ci_commit_link}2e6e978[2e6e978])
 
 
-* added awk extension to files with shell comment syntax corrected regular expression of shell style copyright message (2e3bb03)
+* added awk extension to files with shell comment syntax corrected regular expression of shell style copyright message ({ci_commit_link}2e3bb03[2e3bb03])
 
 
-* skip packages containing a test target for global doxygen target (e5d0e21)
+* skip packages containing a test target for global doxygen target ({ci_commit_link}e5d0e21[e5d0e21])
 
 
-* Merge branch 'master' of ssh://sifs-coast1.hsr.ch/var/repositories/git/sconsider (eef717b)
+* Merge branch 'master' of ssh://sifs-coast1.hsr.ch/var/repositories/git/sconsider ({ci_commit_link}eef717b[eef717b])
 
 
-* Allow doxygen to process multiple dot files in one run and use two threads per default (f1c2417)
+* Allow doxygen to process multiple dot files in one run and use two threads per default ({ci_commit_link}f1c2417[f1c2417])
 
 
-* added SubstInFileBuilder, use the third tuple value in copyFiles slot as replacement dict (fixes #217) (1bb22d5)
+* added SubstInFileBuilder, use the third tuple value in copyFiles slot as replacement dict (fixes #217) ({ci_commit_link}1bb22d5[1bb22d5])
 
 
-* improved Anything parsing performance (0ae6217)
+* improved Anything parsing performance ({ci_commit_link}0ae6217[0ae6217])
 
 
-* added --doxygen-only which skips building of all targets except doxygen (960c1c9)
+* added --doxygen-only which skips building of all targets except doxygen ({ci_commit_link}960c1c9[960c1c9])
 
 
-* setting for preventing doxygen deleting the generated dot files (b9f4da3)
+* setting for preventing doxygen deleting the generated dot files ({ci_commit_link}b9f4da3[b9f4da3])
 
 
-* refactored doxygen creation (3rdparty packages linked using tagfiles), fixed small Anything glitch (3e23411)
+* refactored doxygen creation (3rdparty packages linked using tagfiles), fixed small Anything glitch ({ci_commit_link}3e23411[3e23411])
 
 == tag: coast_2010_1.1
-* replaced readlink -f with cd && pwd (36ec09b)
+* replaced readlink -f with cd && pwd ({ci_commit_link}36ec09b[36ec09b])
 
 
-* added possibility to reset env of Anything added IOError exception test when loading Anything from file fails (608465b)
+* added possibility to reset env of Anything added IOError exception test when loading Anything from file fails ({ci_commit_link}608465b[608465b])
 
 
-* should fix the failing tests in mockito 0.5.1 in TestfwTransformer_Test, but seems actually to be caused due to a bug in mockito (9388f6f)
+* should fix the failing tests in mockito 0.5.1 in TestfwTransformer_Test, but seems actually to be caused due to a bug in mockito ({ci_commit_link}9388f6f[9388f6f])
 
 
-* only registering doxygen callbacks when corresponding command line option was specified (b492cc5)
+* only registering doxygen callbacks when corresponding command line option was specified ({ci_commit_link}b492cc5[b492cc5])
 
 
-* fixed doxygen target dependencies bug and got rid of latex doxygen impl (58e22d3)
+* fixed doxygen target dependencies bug and got rid of latex doxygen impl ({ci_commit_link}58e22d3[58e22d3])
 
 
-* initialized dirs3rdParty variable added missing BUILD_TARGETS path segment in assigment (7c76ee5)
+* initialized dirs3rdParty variable added missing BUILD_TARGETS path segment in assigment ({ci_commit_link}7c76ee5[7c76ee5])
 
 
-* doxygen support for overall documentation (20d2211)
+* doxygen support for overall documentation ({ci_commit_link}20d2211[20d2211])
 
 
-* replaced build_dir by variant_dir according to deprecation warning of scons 2.0 (6b2e2a4)
+* replaced build_dir by variant_dir according to deprecation warning of scons 2.0 ({ci_commit_link}6b2e2a4[6b2e2a4])
 
 
-* added code to read away stdout from popened-proc object when interrupt signal is sent (94a3cdc)
+* added code to read away stdout from popened-proc object when interrupt signal is sent ({ci_commit_link}94a3cdc[94a3cdc])
 
 
-* added try block around Dir() creation because in case a directory segment also evaluates to a target, the call will fail (935de5a)
+* added try block around Dir() creation because in case a directory segment also evaluates to a target, the call will fail ({ci_commit_link}935de5a[935de5a])
 
 
-* fixed TLS initialization (64d08d4)
+* fixed TLS initialization ({ci_commit_link}64d08d4[64d08d4])
 
 
-* chdir before rmtree... (0dafde3)
+* chdir before rmtree... ({ci_commit_link}0dafde3[0dafde3])
 
 
-* replaced os.mknod which doesn't exist on solaris (http://bugs.python.org/issue3928) (54584e5)
+* replaced os.mknod which doesn't exist on solaris (http://bugs.python.org/issue3928) ({ci_commit_link}54584e5[54584e5])
 
 
-* changed loadFromFile to resolve filename and return first Anything (c6300ba)
+* changed loadFromFile to resolve filename and return first Anything ({ci_commit_link}c6300ba[c6300ba])
 
 
-* path adjustments (725aeb5)
+* path adjustments ({ci_commit_link}725aeb5[725aeb5])
 
 
-* removed debugging code... blub blub ;) (d8e5235)
+* removed debugging code... blub blub ;) ({ci_commit_link}d8e5235[d8e5235])
 
 
-* optimized some tests (b159c4e)
+* optimized some tests ({ci_commit_link}b159c4e[b159c4e])
 
 
-* moved local env cleanup (2f8cf06)
+* moved local env cleanup ({ci_commit_link}2f8cf06[2f8cf06])
 
 
-* enhanced tls.env (7a629d5)
+* enhanced tls.env ({ci_commit_link}7a629d5[7a629d5])
 
 
-* store root/path in tls (c6ee1d1)
+* store root/path in tls ({ci_commit_link}c6ee1d1[c6ee1d1])
 
 
-* implemented references, refined parsing (d9e948f)
+* implemented references, refined parsing ({ci_commit_link}d9e948f[d9e948f])
 
 
-* changed internal storage, implemented sort (db40784)
+* changed internal storage, implemented sort ({ci_commit_link}db40784[db40784])
 
 
-* fixed += (b01928c)
+* fixed += ({ci_commit_link}b01928c[b01928c])
 
 
-* implemented parsing (a2ae4bc)
+* implemented parsing ({ci_commit_link}a2ae4bc[a2ae4bc])
 
 
-* added tests for index, count (3dd96bb)
+* added tests for index, count ({ci_commit_link}3dd96bb[3dd96bb])
 
 
-* implemented __add__, reverse, fixed str (91fa5a6)
+* implemented __add__, reverse, fixed str ({ci_commit_link}91fa5a6[91fa5a6])
 
 
-* converted tabs to spaces (db7fa6e)
+* converted tabs to spaces ({ci_commit_link}db7fa6e[db7fa6e])
 
 
-* implemented extend, sliceing (2952f15)
+* implemented extend, sliceing ({ci_commit_link}2952f15[2952f15])
 
 
-* modified output of __str__ (8729801)
+* modified output of __str__ ({ci_commit_link}8729801[8729801])
 
 
-* implemented copy, __eq__ (c4b2ca8)
+* implemented copy, __eq__ ({ci_commit_link}c4b2ca8[c4b2ca8])
 
 
-* implemented pop, popitem, values, __repr__, keyword initialization (a0f59bf)
+* implemented pop, popitem, values, __repr__, keyword initialization ({ci_commit_link}a0f59bf[a0f59bf])
 
 
-* implemented itervalues (a67431d)
+* implemented itervalues ({ci_commit_link}a67431d[a67431d])
 
 
-* implemented initialization with merge (45d056e)
+* implemented initialization with merge ({ci_commit_link}45d056e[45d056e])
 
 
-* simplified __str__ (8ab90dc)
+* simplified __str__ ({ci_commit_link}8ab90dc[8ab90dc])
 
 
-* implemented update, merge (9fda598)
+* implemented update, merge ({ci_commit_link}9fda598[9fda598])
 
 
-* fixed insert/delete (314d5d0)
+* fixed insert/delete ({ci_commit_link}314d5d0[314d5d0])
 
 
-* initial commit (bc2e960)
+* initial commit ({ci_commit_link}bc2e960[bc2e960])
 
 
-* passing back returncode of subprocess was not safe (5785060)
+* passing back returncode of subprocess was not safe ({ci_commit_link}5785060[5785060])
 
 
-* fixed getPackageTarget (14fa68d)
+* fixed getPackageTarget ({ci_commit_link}14fa68d[14fa68d])
 
 
-* corrected findFiles method (d66479e)
+* corrected findFiles method ({ci_commit_link}d66479e[d66479e])
 
 
-* using shlex to correctly split runparams (1c6b709)
+* using shlex to correctly split runparams ({ci_commit_link}1c6b709[1c6b709])
 
 
-* outputting runParams when executing target (e07bcf7)
+* outputting runParams when executing target ({ci_commit_link}e07bcf7[e07bcf7])
 
 
-* moved some more compiler warning flags to the mdeium section (3a94b72)
+* moved some more compiler warning flags to the mdeium section ({ci_commit_link}3a94b72[3a94b72])
 
 
-* added -Wold-style-cast to print out potential cast problem locations, use with --warnlevel=full (0816cc3)
+* added -Wold-style-cast to print out potential cast problem locations, use with --warnlevel=full ({ci_commit_link}0816cc3[0816cc3])
 
 
-* test and app runners can use setUp/tearDown hooks now (5a3d5f6)
+* test and app runners can use setUp/tearDown hooks now ({ci_commit_link}5a3d5f6[5a3d5f6])
 
 
-* refactored common parts of appTest and programTest into separate methods (21d2ef0)
+* refactored common parts of appTest and programTest into separate methods ({ci_commit_link}21d2ef0[21d2ef0])
 
 
-* removed deprecated gdb option (00a5a47)
+* removed deprecated gdb option ({ci_commit_link}00a5a47[00a5a47])
 
 
-* added more specific default settings for doxygen (5ec163c)
+* added more specific default settings for doxygen ({ci_commit_link}5ec163c[5ec163c])
 
 
-* added Package as default tool (a7b8225)
+* added Package as default tool ({ci_commit_link}a7b8225[a7b8225])
 
 
-* removed targetType requirement (fc6fc7a)
+* removed targetType requirement ({ci_commit_link}fc6fc7a[fc6fc7a])
 
 
-* fixed tests (c4d2581)
+* fixed tests ({ci_commit_link}c4d2581[c4d2581])
 
 
-* use archbits to evaluate sysincludes (b8c8fb5)
+* use archbits to evaluate sysincludes ({ci_commit_link}b8c8fb5[b8c8fb5])
 
 
-* fixed callable check (e1b9c1b)
+* fixed callable check ({ci_commit_link}e1b9c1b[e1b9c1b])
 
 
-* skipping tests (fixes #210), always touch test result file (19b01fe)
+* skipping tests (fixes #210), always touch test result file ({ci_commit_link}19b01fe[19b01fe])
 
 
-* suppress helper aliases, fixed bug in RunBuilder (fixes #213) (1caae9f)
+* suppress helper aliases, fixed bug in RunBuilder (fixes #213) ({ci_commit_link}1caae9f[1caae9f])
 
 
-* flatten env['ENV'] (1a2a8dd)
+* flatten env['ENV'] ({ci_commit_link}1a2a8dd[1a2a8dd])
 
 
-* small Package tool cleanups (05ef5da)
+* small Package tool cleanups ({ci_commit_link}05ef5da[05ef5da])
 
 
-* corrected RE used to find correct version numbers, fixes #212 (9e0de24)
+* corrected RE used to find correct version numbers, fixes #212 ({ci_commit_link}9e0de24[9e0de24])
 
 
-* fixed subcommand environment to get compiler libs (234809d)
+* fixed subcommand environment to get compiler libs ({ci_commit_link}234809d[234809d])
 
 
-* added -- separator to default params for tests (c479e6a)
+* added -- separator to default params for tests ({ci_commit_link}c479e6a[c479e6a])
 
 
-* added missing global default tool CompilerLibsInstallBuilder (5aaf7e8)
+* added missing global default tool CompilerLibsInstallBuilder ({ci_commit_link}5aaf7e8[5aaf7e8])
 
 
-* fixed Package tool to collect targets added in the build phase (da61da6)
+* fixed Package tool to collect targets added in the build phase ({ci_commit_link}da61da6[da61da6])
 
 
-* copy compiler libs (154b3d1)
+* copy compiler libs ({ci_commit_link}154b3d1[154b3d1])
 
 
-* add libstdc++ only if needed (a65f0f8)
+* add libstdc++ only if needed ({ci_commit_link}a65f0f8[a65f0f8])
 
 
-* changed to using nodefaultlibs and specifying needed libs (6384e15)
+* changed to using nodefaultlibs and specifying needed libs ({ci_commit_link}6384e15[6384e15])
 
 
-* fully sh'ified generated script (536a4d8)
+* fully sh'ified generated script ({ci_commit_link}536a4d8[536a4d8])
 
 
-* added options to not change directory before executing target (e09091c)
+* added options to not change directory before executing target ({ci_commit_link}e09091c[e09091c])
 
 
-* inject variables into execution environment using ['public']['execEnv'], added RELTARGETDIR to PrecompiledBinary/LibraryInstallBuilder (732573c)
+* inject variables into execution environment using ['public']['execEnv'], added RELTARGETDIR to PrecompiledBinary/LibraryInstallBuilder ({ci_commit_link}732573c[732573c])
 
 
-* fixed RunBuilder bug (c840ad1)
+* fixed RunBuilder bug ({ci_commit_link}c840ad1[c840ad1])
 
 
-* corrected binary/library emitter where we are looking for a corresponding source-node (e11396f)
+* corrected binary/library emitter where we are looking for a corresponding source-node ({ci_commit_link}e11396f[e11396f])
 
 
-* passing env['ENV'] instead of the env of the current process (41af167)
+* passing env['ENV'] instead of the env of the current process ({ci_commit_link}41af167[41af167])
 
 
-* add include path to .scb of the enclosing project (f277723)
+* add include path to .scb of the enclosing project ({ci_commit_link}f277723[f277723])
 
 
-* added initial settings for compilation on mac (a861c49)
+* added initial settings for compilation on mac ({ci_commit_link}a861c49[a861c49])
 
 
-* fixed bug: Alias defined with same name as filenode before Program (5d24f58)
+* fixed bug: Alias defined with same name as filenode before Program ({ci_commit_link}5d24f58[5d24f58])
 
 
-* fixed missing import (84db440)
+* fixed missing import ({ci_commit_link}84db440[84db440])
 
 
-* some cleanups (5bfaa52)
+* some cleanups ({ci_commit_link}5bfaa52[5bfaa52])
 
 
-* use executor to get targets (55c7e3e)
+* use executor to get targets ({ci_commit_link}55c7e3e[55c7e3e])
 
 
-* strip variant dir in package (1297d80)
+* strip variant dir in package ({ci_commit_link}1297d80[1297d80])
 
 
-* moved maintenance scripts (f6b0ca2)
+* moved maintenance scripts ({ci_commit_link}f6b0ca2[f6b0ca2])
 
 
-* fix to handle install targets (b46f1f7)
+* fix to handle install targets ({ci_commit_link}b46f1f7[b46f1f7])
 
 
-* implemented package tool (87fa52c)
+* implemented package tool ({ci_commit_link}87fa52c[87fa52c])
 
 
-* implemented dependency output (9164f7b)
+* implemented dependency output ({ci_commit_link}9164f7b[9164f7b])
 
 
-* introduced stripSubdir flag (d326e2b)
+* introduced stripSubdir flag ({ci_commit_link}d326e2b[d326e2b])
 
 
-* removed types import (500eec9)
+* removed types import ({ci_commit_link}500eec9[500eec9])
 
 
-* fixed no given build target and not found package cases (fff5050)
+* fixed no given build target and not found package cases ({ci_commit_link}fff5050[fff5050])
 
 
-* more cleanups and deprecation of SConscripts (#48) (294dd43)
+* more cleanups and deprecation of SConscripts (#48) ({ci_commit_link}294dd43[294dd43])
 
 
-* some refactorings, removed EnvVarDict (3d573a8)
+* some refactorings, removed EnvVarDict ({ci_commit_link}3d573a8[3d573a8])
 
 
-* name of dummyfile is now target dependent (a67db0c)
+* name of dummyfile is now target dependent ({ci_commit_link}a67db0c[a67db0c])
 
 
-* allow simple str type files, but sconsify them before continueing (803cba6)
+* allow simple str type files, but sconsify them before continueing ({ci_commit_link}803cba6[803cba6])
 
 
-* changed eclipse project name (e9ac1b7)
+* changed eclipse project name ({ci_commit_link}e9ac1b7[e9ac1b7])
 
 
-* added re-replacefunc map (32be336)
+* added re-replacefunc map ({ci_commit_link}32be336[32be336])
 
 
-* added regex to correct QUOTE macro uses (599f734)
+* added regex to correct QUOTE macro uses ({ci_commit_link}599f734[599f734])
 
 
-* added tests for ChangeImportLines (3fff3c5)
+* added tests for ChangeImportLines ({ci_commit_link}3fff3c5[3fff3c5])
 
 
-* corrected regex to remove ident strings (3ca286b)
+* corrected regex to remove ident strings ({ci_commit_link}3ca286b[3ca286b])
 
 
-* renamed StanfordUtils to SConsider (e051d8c)
+* renamed StanfordUtils to SConsider ({ci_commit_link}e051d8c[e051d8c])
 
 
-* fixed a bug in Callback (5830e8b)
+* fixed a bug in Callback ({ci_commit_link}5830e8b[5830e8b])
 
 
-* initial test setup (83a05ff)
+* initial test setup ({ci_commit_link}83a05ff[83a05ff])
 
 
-* added multiple_replace() (a5f0d43)
+* added multiple_replace() ({ci_commit_link}a5f0d43[a5f0d43])
 
 
-* changed timing information from msecs to secs (finally fixes #114) (c2c0faf)
+* changed timing information from msecs to secs (finally fixes #114) ({ci_commit_link}c2c0faf[c2c0faf])
 
 
-* parses timing information of a single testcase (fixes #114) (17da0d1)
+* parses timing information of a single testcase (fixes #114) ({ci_commit_link}17da0d1[17da0d1])
 
 
-* fixed xml test reports to support package information (fixes #113) (dfb7c31)
+* fixed xml test reports to support package information (fixes #113) ({ci_commit_link}dfb7c31[dfb7c31])
 
 
-* added missing nsl library (e9cb2d0)
+* added missing nsl library ({ci_commit_link}e9cb2d0[e9cb2d0])
 
 
-* factored out regex replacing in files into SomeUtils.py (d277ee8)
+* factored out regex replacing in files into SomeUtils.py ({ci_commit_link}d277ee8[d277ee8])
 
 
-* refactored - generalized - regex replacement in fgi (2fee747)
+* refactored - generalized - regex replacement in fgi ({ci_commit_link}2fee747[2fee747])
 
 
-* removed -fast option because it breaks static initialization (closes #100) (1ca70d7)
+* removed -fast option because it breaks static initialization (closes #100) ({ci_commit_link}1ca70d7[1ca70d7])
 
 
-* added test for sun specific g++ to adjust optimize options accordingly (46f6b63)
+* added test for sun specific g++ to adjust optimize options accordingly ({ci_commit_link}46f6b63[46f6b63])
 
 
-* changed to using default python interpreter (6525ffe)
+* changed to using default python interpreter ({ci_commit_link}6525ffe[6525ffe])
 
 
-* lowered gcc optimize flag on sun to O1, higher values break static initializers (83e0897)
+* lowered gcc optimize flag on sun to O1, higher values break static initializers ({ci_commit_link}83e0897[83e0897])
 
 
-* added python code to regex-remove #ident sections from source files (d326349)
+* added python code to regex-remove #ident sections from source files ({ci_commit_link}d326349[d326349])
 
 
-* corrected file copying (af7cb1c)
+* corrected file copying ({ci_commit_link}af7cb1c[af7cb1c])
 
 
-* Merge branch 'master' of ssh://sifs-coast1.hsr.ch/var/repositories/git/sconsider (0386313)
+* Merge branch 'master' of ssh://sifs-coast1.hsr.ch/var/repositories/git/sconsider ({ci_commit_link}0386313[0386313])
 
 
-* factor out unrelated part of copyFileNodes (d53e92c)
+* factor out unrelated part of copyFileNodes ({ci_commit_link}d53e92c[d53e92c])
 
 
-* doxygen builder considers defines (#71) (ad77d3e)
+* doxygen builder considers defines (#71) ({ci_commit_link}ad77d3e[ad77d3e])
 
 
-* added --env-cfg switch to specify site specific configuration directory (#85) (64c7e8f)
+* added --env-cfg switch to specify site specific configuration directory (#85) ({ci_commit_link}64c7e8f[64c7e8f])
 
 
-* moved generated scripts to RELTARGETDIR (#81) (1490860)
+* moved generated scripts to RELTARGETDIR (#81) ({ci_commit_link}1490860[1490860])
 
 
-* moved monkey patching of os.path.relpath to SomeUtils (47d329d)
+* moved monkey patching of os.path.relpath to SomeUtils ({ci_commit_link}47d329d[47d329d])
 
 
-* deleted already replaced doxygen (31459df)
+* deleted already replaced doxygen ({ci_commit_link}31459df[31459df])
 
 
-* targets with linkDependencies to a target in an unavailable package are ignored (#89) (b6309b2)
+* targets with linkDependencies to a target in an unavailable package are ignored (#89) ({ci_commit_link}b6309b2[b6309b2])
 
 
-* added replaceRegexInFile method to search and replace regular expression in a file (5fffe52)
+* added replaceRegexInFile method to search and replace regular expression in a file ({ci_commit_link}5fffe52[5fffe52])
 
 
-* removed deprecated warning option from C compilation flags (39f1415)
+* removed deprecated warning option from C compilation flags ({ci_commit_link}39f1415[39f1415])
 
 
-* added still missing build flags, closes #32 (ebb6928)
+* added still missing build flags, closes #32 ({ci_commit_link}ebb6928[ebb6928])
 
 
-* corrected iostream callback (5dddfea)
+* corrected iostream callback ({ci_commit_link}5dddfea[5dddfea])
 
 
-* ensure setState gets the correct type$ (9006cd4)
+* ensure setState gets the correct type$ ({ci_commit_link}9006cd4[9006cd4])
 
 
-* adapted to new testfw output (2e437f9)
+* adapted to new testfw output ({ci_commit_link}2e437f9[2e437f9])
 
 
-* refactored some parts of TestfwTransformer for easier tests (2568ec2)
+* refactored some parts of TestfwTransformer for easier tests ({ci_commit_link}2568ec2[2568ec2])
 
 
-* changed to using threading.Thread because ctypes is not fully available on solaris (2b6915f)
+* changed to using threading.Thread because ctypes is not fully available on solaris ({ci_commit_link}2b6915f[2b6915f])
 
 
-* socket helpers for location independent socket tests (#85) (33bcd56)
+* socket helpers for location independent socket tests (#85) ({ci_commit_link}33bcd56[33bcd56])
 
 
-* switched from PostAction to Callback (dfc7f07)
+* switched from PostAction to Callback ({ci_commit_link}dfc7f07[dfc7f07])
 
 
-* fixes a bug with multiple failures of one testcase (448664c)
+* fixes a bug with multiple failures of one testcase ({ci_commit_link}448664c[448664c])
 
 
-* added support for different compiler versions in same directory (resolved #78) (a88c205)
+* added support for different compiler versions in same directory (resolved #78) ({ci_commit_link}a88c205[a88c205])
 
 
-* TestfwTransformer transforms Testfw logs to JUnit XML (support to allow #21) (00a8cdf)
+* TestfwTransformer transforms Testfw logs to JUnit XML (support to allow #21) ({ci_commit_link}00a8cdf[00a8cdf])
 
 
-* added xmlbuilder 0.9 (90aab50)
+* added xmlbuilder 0.9 ({ci_commit_link}90aab50[90aab50])
 
 
-* added callback hooks, changed to new-style classes (02e0e33)
+* added callback hooks, changed to new-style classes ({ci_commit_link}02e0e33[02e0e33])
 
 
-* refactored log file writing (b65a7da)
+* refactored log file writing ({ci_commit_link}b65a7da[b65a7da])
 
 
-* logfile creation for tests (8841446)
+* logfile creation for tests ({ci_commit_link}8841446[8841446])
 
 
-* refactored callback feature (e237871)
+* refactored callback feature ({ci_commit_link}e237871[e237871])
 
 
-* extracted callback class (c9a371d)
+* extracted callback class ({ci_commit_link}c9a371d[c9a371d])
 
 
-* removed unused files (3242ba0)
+* removed unused files ({ci_commit_link}3242ba0[3242ba0])
 
 
-* changed config file copying slotname to copyFiles (687e668)
+* changed config file copying slotname to copyFiles ({ci_commit_link}687e668[687e668])
 
 
-* removed unused files (394a101)
+* removed unused files ({ci_commit_link}394a101[394a101])
 
 
-* prefer p.e. libtargetname.so over libtargetname64.so (0218a33)
+* prefer p.e. libtargetname.so over libtargetname64.so ({ci_commit_link}0218a33[0218a33])
 
 
-* fixed SCBWriter not finding env['SYSINCLUDES'] (3b64012)
+* fixed SCBWriter not finding env['SYSINCLUDES'] ({ci_commit_link}3b64012[3b64012])
 
 
-* corrected alias targets 'tests' and 'all' (9f39ba8)
+* corrected alias targets 'tests' and 'all' ({ci_commit_link}9f39ba8[9f39ba8])
 
 
-* added tool to print target (#72) (e048197)
+* added tool to print target (#72) ({ci_commit_link}e048197[e048197])
 
 
-* removed risky Clean in copyFileNodes (afcdadc)
+* removed risky Clean in copyFileNodes ({ci_commit_link}afcdadc[afcdadc])
 
 
-* extracted test/run target creation to tool using a callback (395c1a6)
+* extracted test/run target creation to tool using a callback ({ci_commit_link}395c1a6[395c1a6])
 
 
-* refactored using callback hooks (41b83f7)
+* refactored using callback hooks ({ci_commit_link}41b83f7[41b83f7])
 
 
-* source dirs are written to .scb (1acd021)
+* source dirs are written to .scb ({ci_commit_link}1acd021[1acd021])
 
 
-* minor renames in RunBuilder and generateScript (9cce340)
+* minor renames in RunBuilder and generateScript ({ci_commit_link}9cce340[9cce340])
 
 
-* simplified header copying (b17ec55)
+* simplified header copying ({ci_commit_link}b17ec55[b17ec55])
 
 
-* minimal gdb script fix (e394f5f)
+* minimal gdb script fix ({ci_commit_link}e394f5f[e394f5f])
 
 
-* fixed a bug causing unnecessary rebuilds with doxygen (d5fe74d)
+* fixed a bug causing unnecessary rebuilds with doxygen ({ci_commit_link}d5fe74d[d5fe74d])
 
 
-* /bin/sh'ified some sections (c78961d)
+* /bin/sh'ified some sections ({ci_commit_link}c78961d[c78961d])
 
 
-* Merge branch 'SconsSetup' of ssh://m1huber@sifs-coast1/var/repositories/git/coast into SconsSetup (16a59b2)
+* Merge branch 'SconsSetup' of ssh://m1huber@sifs-coast1/var/repositories/git/coast into SconsSetup ({ci_commit_link}16a59b2[16a59b2])
 
 
-* experimentally fixed a bug wiht empty Aliases in includeOnly-targets (1369874)
+* experimentally fixed a bug wiht empty Aliases in includeOnly-targets ({ci_commit_link}1369874[1369874])
 
 
-* added windows relpath for python 2.5 (bfacc28)
+* added windows relpath for python 2.5 ({ci_commit_link}bfacc28[bfacc28])
 
 
-* minimal refactoring of determining doxygen dependencies using lambda (467c100)
+* minimal refactoring of determining doxygen dependencies using lambda ({ci_commit_link}467c100[467c100])
 
 
-* Merge branch 'MemLeak' into SconsSetup (b151fe9)
+* Merge branch 'MemLeak' into SconsSetup ({ci_commit_link}b151fe9[b151fe9])
 
 
-* Merge branch 'SconsSetup' of ssh://m1huber@sifs-coast1/var/repositories/git/coast into SconsSetup (d2c4264)
+* Merge branch 'SconsSetup' of ssh://m1huber@sifs-coast1/var/repositories/git/coast into SconsSetup ({ci_commit_link}d2c4264[d2c4264])
 
 
-* prepared for changes to script where options are possible (97f684d)
+* prepared for changes to script where options are possible ({ci_commit_link}97f684d[97f684d])
 
 
-* Merge branch 'SconsSetup' of ssh://m1huber@sifs-coast1/var/repositories/git/coast into MemLeak (c3addc4)
+* Merge branch 'SconsSetup' of ssh://m1huber@sifs-coast1/var/repositories/git/coast into MemLeak ({ci_commit_link}c3addc4[c3addc4])
 
 
-* supplied os.path.relpath for python 2.5 compatibility (7a7e613)
+* supplied os.path.relpath for python 2.5 compatibility ({ci_commit_link}7a7e613[7a7e613])
 
 
-* added clean for doxygen targets (a5de67e)
+* added clean for doxygen targets ({ci_commit_link}a5de67e[a5de67e])
 
 
-* now doxygen and doxyfile targets dependend on tool file (48520ca)
+* now doxygen and doxyfile targets dependend on tool file ({ci_commit_link}48520ca[48520ca])
 
 
-* reorganised doxygen dependencies (15b0158)
+* reorganised doxygen dependencies ({ci_commit_link}15b0158[15b0158])
 
 
-* added resursive tagfile dependencies (030a277)
+* added resursive tagfile dependencies ({ci_commit_link}030a277[030a277])
 
 
-* refactored doxygen builder and added tagfile support (f90a1f6)
+* refactored doxygen builder and added tagfile support ({ci_commit_link}f90a1f6[f90a1f6])
 
 
-* initial DoxygenBuilder version without tag file support (a4f09c1)
+* initial DoxygenBuilder version without tag file support ({ci_commit_link}a4f09c1[a4f09c1])
 
 
-* refactored .scb creation (aff226b)
+* refactored .scb creation ({ci_commit_link}aff226b[aff226b])
 
 
-* Merge branch 'SconsSetup' of ssh://m1huber@sifs-coast1/var/repositories/git/coast into MemLeak (c8d7d3d)
+* Merge branch 'SconsSetup' of ssh://m1huber@sifs-coast1/var/repositories/git/coast into MemLeak ({ci_commit_link}c8d7d3d[c8d7d3d])
 
 
-* corrected includeSubdir handling (e36ccda)
+* corrected includeSubdir handling ({ci_commit_link}e36ccda[e36ccda])
 
 
-* use AddMethod to add custom builder wrappers to env (19e6db7)
+* use AddMethod to add custom builder wrappers to env ({ci_commit_link}19e6db7[19e6db7])
 
 
-* Merge branch 'SconsSetup' of ssh://dwild@sifs-coast1.hsr.ch/var/repositories/git/coast into SconsSetup (a63945d)
+* Merge branch 'SconsSetup' of ssh://dwild@sifs-coast1.hsr.ch/var/repositories/git/coast into SconsSetup ({ci_commit_link}a63945d[a63945d])
 
 
-* refactored linkDependencies, requires, copyConfigFiles, etc (23deb9f)
+* refactored linkDependencies, requires, copyConfigFiles, etc ({ci_commit_link}23deb9f[23deb9f])
 
 
-* generate separate script if gdb-option is active (5c6ed25)
+* generate separate script if gdb-option is active ({ci_commit_link}5c6ed25[5c6ed25])
 
 
-* added run-force option to RunBuilder (004327a)
+* added run-force option to RunBuilder ({ci_commit_link}004327a[004327a])
 
 
-* changed back to using OCI API (8e8137b)
+* changed back to using OCI API ({ci_commit_link}8e8137b[8e8137b])
 
 
-* added --gdb option to let the target run within gdb (674460b)
+* added --gdb option to let the target run within gdb ({ci_commit_link}674460b[674460b])
 
 
-* Squashed commit of the following: (4b399db)
+* Squashed commit of the following: ({ci_commit_link}4b399db[4b399db])
 
 
-* refactoring of include file copying (5cc66cb)
+* refactoring of include file copying ({ci_commit_link}5cc66cb[5cc66cb])
 
 
-* replaced copyConfigFiles with copyConfigFilesTarget (d981c52)
+* replaced copyConfigFiles with copyConfigFilesTarget ({ci_commit_link}d981c52[d981c52])
 
 
-* dir variable cleanup (cc69ce1)
+* dir variable cleanup ({ci_commit_link}cc69ce1[cc69ce1])
 
 
-* added with feature from future (according to python 2.5.x) (b3ce7ea)
+* added with feature from future (according to python 2.5.x) ({ci_commit_link}b3ce7ea[b3ce7ea])
 
 
-* fixed a bug causing setUp und tearDown to be run every time (a0e7bd8)
+* fixed a bug causing setUp und tearDown to be run every time ({ci_commit_link}a0e7bd8[a0e7bd8])
 
 
-* added setUp and tearDown (6cddb06)
+* added setUp and tearDown ({ci_commit_link}6cddb06[6cddb06])
 
 
-* Refactored RunBuilder to get rid of duplicated code (85f2efd)
+* Refactored RunBuilder to get rid of duplicated code ({ci_commit_link}85f2efd[85f2efd])
 
 
-* Added Builder for Run and Test targets (4846b17)
+* Added Builder for Run and Test targets ({ci_commit_link}4846b17[4846b17])
 
 
-* added g++ include search path into scons plugin build settings file (70847a0)
+* added g++ include search path into scons plugin build settings file ({ci_commit_link}70847a0[70847a0])
 
 
-* set platform to win32 depending if mingw was specified in usetool (681b31f)
+* set platform to win32 depending if mingw was specified in usetool ({ci_commit_link}681b31f[681b31f])
 
 
-* added initial settings for win32 compilation (35fdb9c)
+* added initial settings for win32 compilation ({ci_commit_link}35fdb9c[35fdb9c])
 
 
-* added tool to generate doxygen documentation (3d136e2)
+* added tool to generate doxygen documentation ({ci_commit_link}3d136e2[3d136e2])
 
 
-* added feature to create .scb (scons plugin build settings) file to enable include file resolving in eclipse (1866109)
+* added feature to create .scb (scons plugin build settings) file to enable include file resolving in eclipse ({ci_commit_link}1866109[1866109])
 
 
-* Merge branch 'SconsSetup' of ssh://m1huber@sifs-coast1/var/repositories/git/coast into SconsSetup (0da05cd)
+* Merge branch 'SconsSetup' of ssh://m1huber@sifs-coast1/var/repositories/git/coast into SconsSetup ({ci_commit_link}0da05cd[0da05cd])
 
 
-* fixed usedTarget bug (ebda0af)
+* fixed usedTarget bug ({ci_commit_link}ebda0af[ebda0af])
 
 
-* added requires feature for library target (c076ee9)
+* added requires feature for library target ({ci_commit_link}c076ee9[c076ee9])
 
 
-* corrected bitwidth print format flag (f3661df)
+* corrected bitwidth print format flag ({ci_commit_link}f3661df[f3661df])
 
 
-* added --enable-Trace compilation setting/variant for using WebDisplay Traces (a1e62fa)
+* added --enable-Trace compilation setting/variant for using WebDisplay Traces ({ci_commit_link}a1e62fa[a1e62fa])
 
 
-* whitespace cleanup (38597d0)
+* whitespace cleanup ({ci_commit_link}38597d0[38597d0])
 
 
-* removed code lines used for testing (5404ea1)
+* removed code lines used for testing ({ci_commit_link}5404ea1[5404ea1])
 
 
-* implemented version and libstring settings for sunOS (38aa9b8)
+* implemented version and libstring settings for sunOS ({ci_commit_link}38aa9b8[38aa9b8])
 
 
-* added precompiled library support (f1e2afb)
+* added precompiled library support ({ci_commit_link}f1e2afb[f1e2afb])
 
 
-* eliminated registerObjects and replaced with appropriate functions (58b59cb)
+* eliminated registerObjects and replaced with appropriate functions ({ci_commit_link}58b59cb[58b59cb])
 
 
-* added useTargetNames flag to create script for every target specified and not only for wrapping package (901e9f2)
+* added useTargetNames flag to create script for every target specified and not only for wrapping package ({ci_commit_link}901e9f2[901e9f2])
 
 
-* changed testfwFoundation to use new build mode (51d0934)
+* changed testfwFoundation to use new build mode ({ci_commit_link}51d0934[51d0934])
 
 
-* nested target specific build settings using the targetname as key (2113b04)
+* nested target specific build settings using the targetname as key ({ci_commit_link}2113b04[2113b04])
 
 
-* applied some changes to enable g++ link work on cygwin (9080868)
+* applied some changes to enable g++ link work on cygwin ({ci_commit_link}9080868[9080868])
 
 
-* generalized includePath handling by adding basedir param (23c87dd)
+* generalized includePath handling by adding basedir param ({ci_commit_link}23c87dd[23c87dd])
 
 
-* factored out generate mechanism into StanfordUtils (30f5575)
+* factored out generate mechanism into StanfordUtils ({ci_commit_link}30f5575[30f5575])
 
 
-* Squashed commit of the following: (03bd74e)
+* Squashed commit of the following: ({ci_commit_link}03bd74e[03bd74e])
 
 
-* removal of unnecessary stuff (d5de22f)
+* removal of unnecessary stuff ({ci_commit_link}d5de22f[d5de22f])
 
 
-* replaced the scons tool mechanism (42bac3f)
+* replaced the scons tool mechanism ({ci_commit_link}42bac3f[42bac3f])
 
 
-* Squashed commit of the following: (e222047)
+* Squashed commit of the following: ({ci_commit_link}e222047[e222047])
 
 
-* changed the way of using libraries as other targets dependencies (1d24890)
+* changed the way of using libraries as other targets dependencies ({ci_commit_link}1d24890[1d24890])
 
 
-* corrected re.match to re.search (df3044c)
+* corrected re.match to re.search ({ci_commit_link}df3044c[df3044c])
 
 
-* python script to change old to new library names in Anythings (a5fee5d)
+* python script to change old to new library names in Anythings ({ci_commit_link}a5fee5d[a5fee5d])
 
 
-* removed src directory from inclusion list (9dbe6e7)
+* removed src directory from inclusion list ({ci_commit_link}9dbe6e7[9dbe6e7])
 
 
-* corrected file copying when no path segment exists (b420adc)
+* corrected file copying when no path segment exists ({ci_commit_link}b420adc[b420adc])
 
 
-* adjusted scons build settings and libnames (0708ed9)
+* adjusted scons build settings and libnames ({ci_commit_link}0708ed9[0708ed9])
 
 
-* Merge branch 'SconsSetup' of ssh://m1huber@sifs-coast1/var/repositories/git/coast into SconsSetup (68a217a)
+* Merge branch 'SconsSetup' of ssh://m1huber@sifs-coast1/var/repositories/git/coast into SconsSetup ({ci_commit_link}68a217a[68a217a])
 
 
-* optimized handling of files to install (a2d51c2)
+* optimized handling of files to install ({ci_commit_link}a2d51c2[a2d51c2])
 
 
-* removed externals.sons inclusion (096870a)
+* removed externals.sons inclusion ({ci_commit_link}096870a[096870a])
 
 
-* added openssl scons support (b5b2d25)
+* added openssl scons support ({ci_commit_link}b5b2d25[b5b2d25])
 
 
-* removed stanford package retrieval function (6043d2a)
+* removed stanford package retrieval function ({ci_commit_link}6043d2a[6043d2a])
 
 
-* intermediary commit to have both package retrieval functions handy (c2e5bc4)
+* intermediary commit to have both package retrieval functions handy ({ci_commit_link}c2e5bc4[c2e5bc4])
 
 
-* customized sun-link tool (d4287b7)
+* customized sun-link tool ({ci_commit_link}d4287b7[d4287b7])
 
 
-* removed explicit setting of SHCCFLAGS; values copied from CCFLAGS (51cd901)
+* removed explicit setting of SHCCFLAGS; values copied from CCFLAGS ({ci_commit_link}51cd901[51cd901])
 
 
-* Revert "few lines rewritten to be more python-like" -> because older python version (< 2.6) are not able to interpret new format This reverts commit 5533d990ed249990c83802f938d26e576523837a. (0314aa6)
+* Revert "few lines rewritten to be more python-like" -> because older python version (< 2.6) are not able to interpret new format This reverts commit 5533d990ed249990c83802f938d26e576523837a. ({ci_commit_link}0314aa6[0314aa6])
 
 
-* Merge branch 'SconsSetup' of ssh://m1huber@sifs-coast1/var/repositories/git/coast into SconsSetup (999bd2f)
+* Merge branch 'SconsSetup' of ssh://m1huber@sifs-coast1/var/repositories/git/coast into SconsSetup ({ci_commit_link}999bd2f[999bd2f])
 
 
-* added -z linker flags again because I found a workaround ;) (ea5a398)
+* added -z linker flags again because I found a workaround ;) ({ci_commit_link}ea5a398[ea5a398])
 
 
-* few lines rewritten to be more python-like (215a11b)
+* few lines rewritten to be more python-like ({ci_commit_link}215a11b[215a11b])
 
 
-* updated zlib version (e4cdfe7)
+* updated zlib version ({ci_commit_link}e4cdfe7[e4cdfe7])
 
 
-* added more libraries to link with (9e057c9)
+* added more libraries to link with ({ci_commit_link}9e057c9[9e057c9])
 
 
-* building end executing tests improved (9064685)
+* building end executing tests improved ({ci_commit_link}9064685[9064685])
 
 
-* disable use of rpath when using sunCC (4781436)
+* disable use of rpath when using sunCC ({ci_commit_link}4781436[4781436])
 
 
-* moved some POSIX relevant compilation flags to setupBuildTools (1af5137)
+* moved some POSIX relevant compilation flags to setupBuildTools ({ci_commit_link}1af5137[1af5137])
 
 
-* moved iostream option to setupBuildTools (50f46e8)
+* moved iostream option to setupBuildTools ({ci_commit_link}50f46e8[50f46e8])
 
 
-* added sun-CC specific options to use stl features and non-classic iostreams (8cbd580)
+* added sun-CC specific options to use stl features and non-classic iostreams ({ci_commit_link}8cbd580[8cbd580])
 
 
-* added option to select target architecture bit width (a653cbb)
+* added option to select target architecture bit width ({ci_commit_link}a653cbb[a653cbb])
 
 
-* library files (yyyLib.py) refactoring (7004538)
+* library files (yyyLib.py) refactoring ({ci_commit_link}7004538[7004538])
 
 
-* added tool to specify g++ compiler to use (4e6003d)
+* added tool to specify g++ compiler to use ({ci_commit_link}4e6003d[4e6003d])
 
 
-* added missing libraries for sun-gcc compilation (00cd4d4)
+* added missing libraries for sun-gcc compilation ({ci_commit_link}00cd4d4[00cd4d4])
 
 
-* corrected shell variable exports (d836dc2)
+* corrected shell variable exports ({ci_commit_link}d836dc2[d836dc2])
 
 
-* adjusted platform variant string (a5ed6bf)
+* adjusted platform variant string ({ci_commit_link}a5ed6bf[a5ed6bf])
 
 
-* prepared for baseoutdir when it is not inside the source tree (306cce1)
+* prepared for baseoutdir when it is not inside the source tree ({ci_commit_link}306cce1[306cce1])
 
 
-* added AddOption guard (8b574bf)
+* added AddOption guard ({ci_commit_link}8b574bf[8b574bf])
 
 
-* moved optional things out of StanfordUtils.py (12df102)
+* moved optional things out of StanfordUtils.py ({ci_commit_link}12df102[12df102])
 
 
-* build working up to mtoundation tests (c12fccb)
+* build working up to mtoundation tests ({ci_commit_link}c12fccb[c12fccb])
 
 
-* corrected small things (2e47de6)
+* corrected small things ({ci_commit_link}2e47de6[2e47de6])
 
 
-* file cleanup (ed7d831)
+* file cleanup ({ci_commit_link}ed7d831[ed7d831])
 
 
-* scons build working with limitations using stanford utilities (edd1d7f)
+* scons build working with limitations using stanford utilities ({ci_commit_link}edd1d7f[edd1d7f])
 
 
-* re-added missing stanford utility parts (342de17)
+* re-added missing stanford utility parts ({ci_commit_link}342de17[342de17])
 
 
-* initially working stanford scons build (9df108b)
+* initially working stanford scons build ({ci_commit_link}9df108b[9df108b])
 
 
-* moved stanford specific files into site_scons directory (d895dae)
+* moved stanford specific files into site_scons directory ({ci_commit_link}d895dae[d895dae])
 
 
-* stanford scons support added (b558445)
+* stanford scons support added ({ci_commit_link}b558445[b558445])
