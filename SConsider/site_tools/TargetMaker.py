@@ -217,7 +217,7 @@ class TargetMaker(object):
         except (PackageNotFound, TargetNotFound) as ex:
             # even when ignore-missing is set, we should not continue if a missing package target
             # is required by an explicit command line target
-            raise_again = not bool(GetOption('ignore-missing')) or self.registry.createFulltargetname(
+            raise_again = not bool(int(GetOption('ignore-missing'))) or self.registry.createFulltargetname(
                 packagename, targetname) in BUILD_TARGETS
             logger.warning('%s (referenced by [%s])%s',
                            ex,
