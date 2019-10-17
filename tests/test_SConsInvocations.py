@@ -364,4 +364,4 @@ def test_WrapperScriptCommandOverride(copy_testdir_to_tmp, pypath_extended_env, 
             sys.stderr.write(err)
     assert 0 == executor.returncode
     captured = capfd.readouterr()
-    assert re.search('args to command:.*hellorunner', captured.out, re.M)
+    assert re.search('args to command:.*hellorunner', captured.out, re.M) is not None
