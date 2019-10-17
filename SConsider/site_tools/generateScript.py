@@ -266,12 +266,12 @@ if [ ${doDebug:-0} -ge 1 ]; then
     test ${doTrace} -eq 1 && cat ${cfg_gdbcommands}
     cfg_gdbcommands="--command $cfg_gdbcommands";
     test $doDebug -gt 1 && cfg_gdbcommands="--batch $cfg_gdbcommands";
-    exec eval gdb ${cfg_gdbcommands}
+    exec bash -c "eval gdb ${cfg_gdbcommands}"
 elif [ ${doDebugServer:-0} -eq 1 -a -x "$(type -fP gdbserver 2>/dev/null)" ]; then
     exec gdbserver :${GDBSERVERPORT} "${CMD}" "$@"
 elif [ ${doCommandWithArgs:-0} -eq 1 ]; then
     test ${doTrace} -eq 1 && echo "executing command [${cmdArr[*]} ${CMD} $@]"
-    exec eval "${cmdArr[*]} ${CMD} $@"
+    exec bash -c "eval ${cmdArr[*]} ${CMD} $@"
 else
     exec "$CMD" "$@"
 fi
