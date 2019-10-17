@@ -13,7 +13,7 @@ import os
 import re
 import sys
 from glob import glob
-from SConsider.PopenHelper import ProcessRunner
+from SConsider.PopenHelper import ProcessRunner, CalledProcessError, STDOUT
 
 
 @pytest.mark.invocation
@@ -273,3 +273,78 @@ def test_SConstructAndSConsiderInSameDirRunWithoutCommandLineTarget(copy_testdir
     assert 0 == executor.returncode
     captured = capfd.readouterr()
     assert 'Hello from SConsider' in captured.out
+
+
+@pytest.mark.invocation
+def test_WrapperScriptHelpList(copy_testdir_to_tmp, pypath_extended_env, popen_timeout,
+                               scons_platform_options, capfd):
+    with pytest.raises(CalledProcessError) as excinfo:
+        cmd = r'scons --3rdparty= --run --runparams="-h"' + scons_platform_options
+        with ProcessRunner(cmd,
+                           timeout=popen_timeout,
+                           stderr=STDOUT,
+                           cwd=str(copy_testdir_to_tmp),
+                           env=pypath_extended_env) as executor:
+            for out, err in executor:
+                sys.stdout.write(out)
+                sys.stderr.write(err)
+    assert 2 == excinfo.value.returncode
+    captured = capfd.readouterr()
+    assert 'usage: hellorunner.sh [options]' in captured.out
+    assert 'where options are:' in captured.out
+
+
+@pytest.mark.invocation
+def test_WrapperScriptRun(copy_testdir_to_tmp, pypath_extended_env, popen_timeout, scons_platform_options,
+                          capfd):
+    cmd = r'scons --3rdparty= --run --runparams="-v"' + scons_platform_options
+    with ProcessRunner(cmd,
+                       timeout=popen_timeout,
+                       stderr=STDOUT,
+                       cwd=str(copy_testdir_to_tmp),
+                       env=pypath_extended_env) as executor:
+        for out, err in executor:
+            sys.stdout.write(out)
+            sys.stderr.write(err)
+    assert 0 == executor.returncode
+    captured = capfd.readouterr()
+    assert 'Hello from SConsider' in captured.out
+
+
+@pytest.mark.invocation
+def test_WrapperScriptDebugRunSuccess(copy_testdir_to_tmp, pypath_extended_env, popen_timeout,
+                                      scons_platform_options, capfd):
+    cmd = r'scons --3rdparty= --run --runparams="-d -d"' + scons_platform_options
+    with ProcessRunner(cmd,
+                       timeout=popen_timeout,
+                       stderr=STDOUT,
+                       cwd=str(copy_testdir_to_tmp),
+                       env=pypath_extended_env) as executor:
+        for out, err in executor:
+            sys.stdout.write(out)
+            sys.stderr.write(err)
+    assert 0 == executor.returncode
+    captured = capfd.readouterr()
+    assert 'Hello from SConsider' in captured.out
+    assert 'Inferior' in captured.out
+    assert 'exited normally' in captured.out
+
+
+@pytest.mark.invocation
+def test_WrapperScriptDebugRunStacktrace(copy_testdir_to_tmp, pypath_extended_env, popen_timeout,
+                                         scons_platform_options, capfd):
+    with pytest.raises(CalledProcessError) as excinfo:
+        cmd = r'scons --3rdparty= --build-cfg=debug --run --runparams="-d -d -- crash"' + scons_platform_options
+        with ProcessRunner(cmd,
+                           timeout=popen_timeout,
+                           stderr=STDOUT,
+                           cwd=str(copy_testdir_to_tmp),
+                           env=pypath_extended_env) as executor:
+            for out, err in executor:
+                sys.stdout.write(out)
+                sys.stderr.write(err)
+    assert 2 == excinfo.value.returncode
+    captured = capfd.readouterr()
+    assert 'GDB backtrace' in captured.out
+    assert 'Inferior' in captured.out
+    assert 'will be killed' in captured.out
