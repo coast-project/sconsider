@@ -69,7 +69,6 @@ def run(cmd, logfile=None, **kw):
             tee.attach_file(open(logfile.get_abspath(), 'w'))
         process_runner = None
         try:
-            #FIXME: add timeout parameter
             with ProcessRunner(cmd, stderr=STDOUT, seconds_to_wait=0.2, **kw) as process_runner:
                 for out, _ in process_runner:
                     tee.write(out)
