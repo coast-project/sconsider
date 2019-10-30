@@ -305,7 +305,7 @@ Original exception message:
     def getPackageTargetDependencies(self, packagename, targetname, callerdeps=None):
         def get_dependent_targets(pname, tname):
             if hasattr(self, 'getBuildSettings'):
-                targetBuildSettings = self.getBuildSettings(packagename).get(targetname, {})
+                targetBuildSettings = self.getBuildSettings(packagename, targetname)
                 targetlist = targetBuildSettings.get('requires', [])
                 targetlist.extend(targetBuildSettings.get('linkDependencies', []))
                 targetlist.extend([targetBuildSettings.get('usedTarget', None)])
