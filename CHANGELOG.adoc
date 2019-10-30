@@ -1,7 +1,28 @@
 = Changelog
 :ci_commit_link: link:/../commit/
 
+== tag: 0.3.19
+* Bumped version to 0.3.19 ({ci_commit_link}1ad5e2c[1ad5e2c])
+
+
+* split ProcessRunner timeouts into run and test timeout ({ci_commit_link}ba116b8[ba116b8])
+
+
+* removed forgotten FIXME comment ({ci_commit_link}b84e400[b84e400])
+
+
+* improved ignore-missing option value conversion ({ci_commit_link}867a927[867a927])
+
+
+* Merge tag '0.3.18' into develop ({ci_commit_link}c353228[c353228])
+
 == tag: 0.3.18
+* This release fixes generated run scripts ({ci_commit_link}0d85235[0d85235])
+
+
+* updated changelog ({ci_commit_link}5a5ca09[5a5ca09])
+
+
 * Bumped version to 0.3.18 ({ci_commit_link}f43cfce[f43cfce])
 
 
