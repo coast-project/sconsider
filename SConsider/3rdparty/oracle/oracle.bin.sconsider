@@ -33,7 +33,6 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
         },
         'lib_occi': {
             'sourceFiles': [getBinaryDistDir(packagename).File('occi')],
-            'libVersion': '.11.1',
             'targetType': 'PrecompiledLibrary',
         },
         'lib_clntsh': {
@@ -41,8 +40,20 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             'libVersion': '.11.1',
             'targetType': 'PrecompiledLibrary',
         },
+        'lib_clntsh': {
+            'sourceFiles': [getBinaryDistDir(packagename).File('clntsh')],
+            'libVersion': '.19.1',
+            'targetType': 'PrecompiledLibrary',
+            'linkDependencies': [
+                packagename + '.lib_clntshcore',
+            ],
+        },
+        'lib_clntshcore': {
+            'sourceFiles': [getBinaryDistDir(packagename).File('clntshcore')],
+            'targetType': 'PrecompiledLibrary',
+        },
         'lib_nnz': {
-            'sourceFiles': [getBinaryDistDir(packagename).File('nnz11')],
+            'sourceFiles': [getBinaryDistDir(packagename).File('nnz')],
             'targetType': 'PrecompiledLibrary',
         },
         'lib_ociicus': {  # us language support library
@@ -97,7 +108,7 @@ elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
     includeTarget = EnvBuilder(export=[EnvBuilder().include(Dir('include'))]).build().RegisterPackageTarget(
         packagename=packagename, targetname='include')
 
-    libnames = [('occi', 'lib_occi'), ('clntsh', 'lib_clntsh'), ('nnz11', 'lib_nnz'),
+    libnames = [('occi', 'lib_occi'), ('clntsh', 'lib_clntsh'), ('clntshcore', 'lib_clntshcore'), ('nnz', 'lib_nnz'),
                 ('ociicus', 'lib_ociicus'), ('ociei', 'lib_ociei'), ('sqlplus', 'lib_sqlplus'),
                 ('sqlplusic', 'lib_sqlplusic')]
     libs_installed = installPrecompiledLibraries(packagename, libnames)
@@ -106,7 +117,7 @@ elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
 
     binnames = [('sqlplus', 'bin_sqlplus', {
         'require': [
-            'oracle.lib_sqlplus', 'oracle.lib_sqlplusic', 'oracle.lib_clntsh', 'oracle.lib_nnz',
+            'oracle.lib_sqlplus', 'oracle.lib_sqlplusic', 'oracle.lib_clntsh', 'oracle.lib_clntshcore',  'oracle.lib_nnz',
             'oracle.lib_ociicus'
         ]
     })]
