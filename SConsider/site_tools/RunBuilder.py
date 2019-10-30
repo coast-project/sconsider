@@ -34,7 +34,8 @@ from SConsider.PopenHelper import ProcessRunner, Tee, CalledProcessError, Timeou
 logger = getLogger(__name__)
 
 runtargets = {}
-_DEFAULT_TIMEOUT = 120.0
+_DEFAULT_TIMEOUT_RUN = 0.0
+_DEFAULT_TIMEOUT_TEST = 120.0
 
 
 def setTarget(packagename, targetname, target):
@@ -69,7 +70,6 @@ def run(cmd, logfile=None, **kw):
             tee.attach_file(open(logfile.get_abspath(), 'w'))
         process_runner = None
         try:
-            #FIXME: add timeout parameter
             with ProcessRunner(cmd, stderr=STDOUT, seconds_to_wait=0.2, **kw) as process_runner:
                 for out, _ in process_runner:
                     tee.write(out)
@@ -110,7 +110,7 @@ def execute(command, env):
     return run(args,
                env=getFlatENV(env),
                logfile=env.get('logfile', None),
-               timeout=env.get('timeout', _DEFAULT_TIMEOUT))
+               timeout=env.get('timeout', _DEFAULT_TIMEOUT_RUN))
 
 
 def doTest(target, source, env):
@@ -211,7 +211,7 @@ def createTestTarget(env, source, packagename, targetname, settings, defaultRunP
                              source,
                              runParams=getRunParams(settings, defaultRunParams),
                              logfile=logfile,
-                             timeout=getRunTimeout(settings, default=_DEFAULT_TIMEOUT))
+                             timeout=getRunTimeout(settings, default=_DEFAULT_TIMEOUT_TEST))
     if GetOption('run-force'):
         env.AlwaysBuild(runner)
 
@@ -259,7 +259,7 @@ def createRunTarget(env, source, packagename, targetname, settings, defaultRunPa
                             source,
                             runParams=getRunParams(settings, defaultRunParams),
                             logfile=logfile,
-                            timeout=getRunTimeout(settings, default=_DEFAULT_TIMEOUT))
+                            timeout=getRunTimeout(settings, default=_DEFAULT_TIMEOUT_RUN))
 
     addRunConfigHooks(env, source, runner, settings)
 
