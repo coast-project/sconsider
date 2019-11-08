@@ -84,29 +84,29 @@ date
 # search the path for uname and strings (apparently "which" is broken in some
 # versions of Ultrix, and "test" does not accept the -x option)
 
-path="`echo $PATH | sed -e 's/:/ /g'`"
-unpath=`for dir in $path ; do
-    if [ -r $dir/uname ]; then
-        echo $dir/uname
+path="$(echo "$PATH" | sed -e 's/:/ /g')"
+unpath=$(for dir in $path ; do
+    if [ -r "$dir/uname" ]; then
+        echo "$dir/uname"
         exit
     fi
-done`
+done)
 if [ "$unpath" != "" ]; then
     $unpath -a
 else
     echo "[no uname command]"
 fi
-strpath=`for dir in $path ; do
-    if [ -r $dir/strings ]; then
-        echo $dir/strings
+strpath=$(for dir in $path ; do
+    if [ -r "$dir/strings" ]; then
+        echo "$dir/strings"
         exit
     fi
-done`
+done)
 
 if [ "$1" != "" ]; then
-    if [ "`basename $1`" != "$1" ]; then
-        cc=`basename $1`
-        ccpath=`dirname $1`
+    if [ "$(basename "$1")" != "$1" ]; then
+        cc=$(basename "$1")
+        ccpath=$(dirname "$1")
         path="$path $ccpath"
     else
         cc=$1
@@ -131,12 +131,12 @@ else
 # search the path for the compiler
 
 if [ "$ccpath" = "" ]; then
-    ccpath=`for dir in $path ; do
-        if [ -r $dir/$cc ]; then
-            echo $dir
+    ccpath=$(for dir in $path ; do
+        if [ -r "$dir/$cc" ]; then
+            echo "$dir"
             exit
         fi
-    done`
+    done)
 fi
 eval 'echo "debug:  ccpath = [$ccpath]"'"$DEBUG"
 if [ "$ccpath" = "" ]; then
@@ -152,26 +152,27 @@ fi
 #   /usr/lpp/xlc/bin :  AIX C Set++; not caught by "cc -v" (apparently)
 #   $dir/cpp.ansi    :  HP-UX
 #   /usr/lib/cmplrs/<compiler>/{decc,driver,cfe} : DEC Ultrix and OSF/1;
-  
+
+# shellcheck disable=SC2164
 cd /tmp
-cpp=`for file in /etc/*.cfg ; do
-    if [ -r $file ]; then
-        echo $file
+cpp=$(for file in /etc/*.cfg ; do
+    if [ -r "$file" ]; then
+        echo "$file"
     fi
 done
-for dir in $path /lib /usr/lib /usr/local/lib /usr/lib/cmplrs/$cc /usr/lpp/$cc/bin ; do
-    for file in $dir/*cpp* $dir/*cc $dir/*comp $dir/$cc/*cpp ; do
-        if [ -r $file ]; then
-            echo $file
+for dir in $path /lib /usr/lib /usr/local/lib "/usr/lib/cmplrs/$cc" "/usr/lpp/$cc/bin" ; do
+    for file in "$dir"/*cpp* "$dir"/*cc "$dir"/*comp "$dir"/"$cc"/*cpp ; do
+        if [ -r "$file" ]; then
+            echo "$file"
         fi
     done
     # these are Ultrix- and AIX-specific, sigh:
-    for file in $dir/driver $dir/cfe $dir/xlc* ; do
-        if [ -r $file ]; then
-            echo $file
+    for file in "$dir"/driver "$dir"/cfe "$dir"/xlc* ; do
+        if [ -r "$file" ]; then
+            echo "$file"
         fi
     done
-done`
+done)
 eval 'echo "debug:  cpp = [$cpp]"'"$DEBUG"
 if [ "$cpp" = "" ]; then
     echo "$0:  warning: preprocessor(s) unreadable (can't search for strings)"
@@ -185,25 +186,25 @@ fi
 # (generic BSD/SysV problem?)
 
 echo "int i;" > /tmp/def$$.c
-ccv=`2>&1 $ccpath/$cc -v -c /tmp/def$$.c |
+ccv=$("$ccpath/$cc" -v -c /tmp/def$$.c 2>&1 |
   tr ' \009()<>,;:&|' '\012\012\012\012\012\012\012\012\012\012\012' |
   grep '^/' |
   grep -v '/tmp/' |
   grep -v '\.o$' |
-  sort -u`
+  sort -u)
 eval 'echo "debug:  ccv = [$ccv]"'"$DEBUG"
-ccv2=`2>&1 $ccpath/$cc -# -c /tmp/def$$.c |
+ccv2=$("$ccpath/$cc" -# -c /tmp/def$$.c 2>&1 |
   tr ' \009()<>,;:&|' '\012\012\012\012\012\012\012\012\012\012\012' |
   grep '^/' |
   grep -v '/tmp/' |
   grep -v '\.o$' |
-  sort -u`
+  sort -u)
 eval 'echo "debug:  ccv2 = [$ccv2]"'"$DEBUG"
-cleanccv=`for file in $ccv $ccv2 ; do
-    if [ -r $file -a ! -d $file ]; then
-        echo $file
+cleanccv=$(for file in $ccv $ccv2 ; do
+    if [ -r "$file" ] && [ ! -d "$file" ]; then
+        echo "$file"
     fi
-done`
+done)
 eval 'echo "debug:  cleanccv = [$cleanccv]"'"$DEBUG"
 # temp files used again for stropts, below
 
@@ -214,13 +215,13 @@ eval 'echo "debug:  cleanccv = [$cleanccv]"'"$DEBUG"
 # of strings tested by more than an order of magnitude]
 
 if [ $doincl = true ]; then
-    incl=`for dir in /usr/*include/ /usr/*include/*/ ; do
-        for file in $dir/*.h ; do
-            if [ -r $file ]; then
-                echo $file
+    incl=$(for dir in /usr/*include/ /usr/*include/*/ ; do
+        for file in "$dir"/*.h ; do
+            if [ -r "$file" ]; then
+                echo "$file"
             fi
         done
-    done | sed 's#//#/#g'`
+    done | sed 's#//#/#g')
 else
     incl=
 fi
@@ -231,7 +232,7 @@ eval 'echo "debug:  incl = [$incl]"'"$DEBUG"
 # is the start of another big if-block; look for "END IF-BLOCK 2" about 50
 # lines down)
 
-all=`echo $ccpath/$cc $cpp $cleanccv $incl | tr ' ' '\012' | sort -u`
+all=$(echo "$ccpath/$cc" "$cpp" "$cleanccv" "$incl" | tr ' ' '\012' | sort -u)
 eval 'echo "debug:  all = [$all]"'"$DEBUG"
 if [ "$all" = "" ]; then
     echo "$0:  error: all compiler components unreadable...giving up."
@@ -242,12 +243,13 @@ else
 # minimum string-length 2
 
 stropt1="-a"
-2>&1 $strpath $stropt1 /tmp/def$$.c > /dev/null
+"$strpath" $stropt1 /tmp/def$$.c > /dev/null 2>&1
+# shellcheck disable=SC2181
 if [ $? -ne 0 ]; then
     stropt1="-"
-    2>&1 $strpath $stropt1 /tmp/def$$.c > /dev/null
+    "$strpath" $stropt1 /tmp/def$$.c > /dev/null 2>&1
     if [ $? -ne 0 ]; then
-        # Coherent (`uname -v` = "COHERENT") doesn't have *either* option
+        # Coherent ($(uname -v) = "COHERENT") doesn't have *either* option
         stropt1=""
     fi
 fi
@@ -257,7 +259,9 @@ eval 'echo "debug:  stropt1 = [$stropt1]"'"$DEBUG"
 # interpreted as "-50" or something; therefore try "-n 2" version first
 
 stropt2="-n 2"
-2>&1 $strpath $stropt2 /tmp/def$$.c > /dev/null
+# shellcheck disable=SC2086
+"$strpath" $stropt2 /tmp/def$$.c > /dev/null 2>&1
+# shellcheck disable=SC2181
 if [ $? -ne 0 ]; then
     stropt2="-2"
     # GRR:  I trust there's no version so pathetic it doesn't have a min-length
@@ -278,7 +282,8 @@ rm -f /tmp/def$$.c /tmp/def$$.o
 # [GRR:  could also write "cc -v" output to tmp file and add that to
 # strings list...]
 
-$strpath $stropts $all |
+# shellcheck disable=SC2086,SC1004
+"$strpath" $stropts $all 2>/dev/null |
 tr -s " =:;,{}" '\012\012\012\012\012\012\012' |
 sed -e 's/^-D//' |
 sed -n '/^[a-zA-Z_][a-zA-Z0-9_]*$/p' |
@@ -290,7 +295,8 @@ char foo[] = "%&"	= &;\
 
 # preprocess the "program" to figure out which of the possible macros are real
 
-$ccpath/$cc $1 $2 $3 $4 -E /tmp/def$$.c |
+# shellcheck disable=SC2086
+"$ccpath/$cc" $1 $2 $3 $4 -E /tmp/def$$.c 2>/dev/null |
   sed -n '/^char.*"%/s///p' |
   sed -e 's/"//' -e 's/;//'
 rm -f /tmp/def$$.c
@@ -358,7 +364,8 @@ main()
 }
 END_O_DE_LINE
 
-$ccpath/$cc $1 $2 $3 $4 -o /tmp/def$$ /tmp/def$$.c
+# shellcheck disable=SC2086
+"$ccpath/$cc" $1 $2 $3 $4 -o /tmp/def$$ /tmp/def$$.c 2>/dev/null
 /tmp/def$$
 rm -f /tmp/def$$.c /tmp/def$$
 
