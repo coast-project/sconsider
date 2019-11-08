@@ -52,6 +52,10 @@
 #   4.1.1  20031130  Greg Roelofs
 #     * Added some GCC-specific "long long" macros (note:  uses defined(),
 #       not ifdef--break into four-level nested block to support K&R compilers)
+#
+#   4.1.2  20100821  Uffe Jakobsen
+#     * Added LC_ALL export to handle a problem with illegal byte sequences in
+#       tr on Darwin.
 
 # parse options, if any (change "if" to "while" if add more options)
 
@@ -67,11 +71,15 @@ while [ $# -ne 0 ]; do
     esac
 done
 
+LC_ALL=C
+export LC_ALL
+
 # print some helpful identifying info for those who collect these things
 
 echo \
   'This is output from `defines'"' version $v, from your buddies at Newtware!"
 date
+
 
 # search the path for uname and strings (apparently "which" is broken in some
 # versions of Ultrix, and "test" does not accept the -x option)
@@ -111,12 +119,14 @@ else
 fi
 echo ""
 
+
 # this is the start of a *really big* if-block; look for "END IF-BLOCK 1"
 # about 135 lines down...
 
 if [ "$strpath" = "" ]; then
     echo "$0:  error: no "'`'"strings' command...giving up."
 else
+
 
 # search the path for the compiler
 
@@ -133,6 +143,7 @@ if [ "$ccpath" = "" ]; then
     echo "$0:  warning: $cc unreadable (can't search for strings)"
 fi
 
+
 # create a list of possible preprocessors; cd into /tmp now to avoid
 # problems with "." in path during "cc -v" compilation
 #   $dir/$cc/*cpp    :  Convex cc; *not* caught by "cc -v":  no -v option
@@ -141,7 +152,7 @@ fi
 #   /usr/lpp/xlc/bin :  AIX C Set++; not caught by "cc -v" (apparently)
 #   $dir/cpp.ansi    :  HP-UX
 #   /usr/lib/cmplrs/<compiler>/{decc,driver,cfe} : DEC Ultrix and OSF/1;
-
+  
 cd /tmp
 cpp=`for file in /etc/*.cfg ; do
     if [ -r $file ]; then
@@ -165,6 +176,7 @@ eval 'echo "debug:  cpp = [$cpp]"'"$DEBUG"
 if [ "$cpp" = "" ]; then
     echo "$0:  warning: preprocessor(s) unreadable (can't search for strings)"
 fi
+
 
 # grab all possible compiler components out of "cc -v" output (catches GNU
 # cpp and Sun acomp, in particular) and "cc -#" output (catches DNIX cc and
@@ -195,6 +207,7 @@ done`
 eval 'echo "debug:  cleanccv = [$cleanccv]"'"$DEBUG"
 # temp files used again for stropts, below
 
+
 # if requested, grab header files, too:  even if all compiler components
 # unreadable, system header files should reference at least some of the
 # predefined macros [drawback:  potentially very slow; may increase number
@@ -213,6 +226,7 @@ else
 fi
 eval 'echo "debug:  incl = [$incl]"'"$DEBUG"
 
+
 # if nothing is readable, no point in continuing:  strings would hang (this
 # is the start of another big if-block; look for "END IF-BLOCK 2" about 50
 # lines down)
@@ -222,6 +236,7 @@ eval 'echo "debug:  all = [$all]"'"$DEBUG"
 if [ "$all" = "" ]; then
     echo "$0:  error: all compiler components unreadable...giving up."
 else
+
 
 # figure out proper "strings" options for searching entire executable with
 # minimum string-length 2
@@ -253,6 +268,7 @@ stropts="$stropt1 $stropt2"
 eval 'echo "debug:  stropts = [$stropts]"'"$DEBUG"
 rm -f /tmp/def$$.c /tmp/def$$.o
 
+
 # create a pseudo-C "program" with every possible #ifdef included; quote
 # each macro once to avoid expansion, then print it again to get its value.
 # (the "char foo" shenanigans are necessary to work around a bug in the
@@ -271,6 +287,7 @@ sed 's/^.*$/#ifdef &\
 char foo[] = "%&"	= &;\
 #endif/' > /tmp/def$$.c
 
+
 # preprocess the "program" to figure out which of the possible macros are real
 
 $ccpath/$cc $1 $2 $3 $4 -E /tmp/def$$.c |
@@ -278,11 +295,13 @@ $ccpath/$cc $1 $2 $3 $4 -E /tmp/def$$.c |
   sed -e 's/"//' -e 's/;//'
 rm -f /tmp/def$$.c
 
+
 fi   # END IF-BLOCK 2
 fi   # END IF-BLOCK 1
 #-----------------------------------------------------------------------------
 
 echo ""
+
 
 # compile another program to check for oversights and get sizes of basic types
 # (the \\" combos around the %s fields and the sed-backslash command are re-
