@@ -187,7 +187,7 @@ test -d "${ABS_BINDIR}/${VARIANTDIR}" && ABS_BINDIR="${ABS_BINDIR}/$VARIANTDIR"
 #
 # param 1: is the name of the generated batch file
 # param 2: binary to execute
-generateGdbCommandFilePre()
+generateGdbCommandFile()
 {
 	ggcfBatchFile="${1}";
 	ggcfBinaryToExecute="${2}";
@@ -208,11 +208,12 @@ cat > "${ggcfBatchFile}" <<-EOF
                if "mingw" in env["TOOLS"] else "${ggcfBinaryToExecute}") + r'''"
 EOF
 }
+
 # generate gnu debugger command file which may be used for batch
 # invocations of the debugger.
 #
 # param 1: is the name of the generated batch file
-generateGdbCommandFilePost()
+extendGdbCommandFileBatch()
 {
 	ggcfBatchFile="${1}";
 cat >> "$ggcfBatchFile" <<-EOF
@@ -271,7 +272,7 @@ if [ "${doDebugServer:-0}" -ge 1 ]; then
 fi
 if [ "${doDebug:-0}" -ge 1 ]; then
   if [ -x "$(type -fP gdb 2>/dev/null)" ]; then
-    generateGdbCommandFilePre "$fn_gdb" "$CMD"
+    generateGdbCommandFile "$fn_gdb" "$CMD"
     _fn_org="$fn"
     fn="$fn_gdb"
     CMD="set args"
@@ -293,7 +294,7 @@ if [ "${doDebug:-0}" -ge 1 ]; then
     cfg_gdbcommands="--command $fn_gdb";
     if [ "$doDebug" -gt 1 ]; then
       cfg_gdbcommands="--batch $cfg_gdbcommands";
-      generateGdbCommandFilePost "$fn_gdb"
+      extendGdbCommandFileBatch "$fn_gdb"
     fi
     test "${doTrace}" -ge 1 && {
         echo "Generated gdb commands file for command [$cfg_gdbcommands]:";
