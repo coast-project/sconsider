@@ -31,7 +31,7 @@ def generateShellScript(scriptFile, env, binpath):
         ('SCRIPTDIR', lambda env: env['SCRIPTDIR']),
         ('VARIANTDIR', lambda env: env.getRelativeVariantDirectory()),
         ('BINARYNAME', os.path.basename(binpath)),
-        ('BASEDIR', '`searchBaseDirUp \\"${SCRIPTPATH}\\" \\"${SCRIPTDIR}\\"`'),
+        ('BASEDIR', '$(searchBaseDirUp "${SCRIPTPATH}" "${SCRIPTDIR}")'),
     ]
 
     specificExtensions = []
@@ -74,32 +74,33 @@ def generateShellScript(scriptFile, env, binpath):
 
 GDBSERVERPORT=2345
 
-MYNAME="`basename \\"$0\\"`"
-SCRIPTPATH="`dirname \\"$0\\"`"
-SCRIPTPATH="`cd \\"$SCRIPTPATH\\" 2>/dev/null && """ + pwdCommand + """`"
-STARTPATH="`""" + pwdCommand + r"""`"
+MYNAME="$(basename "$0")"
+SCRIPTPATH="$(dirname "$0")"
+SCRIPTPATH="$(cd "$SCRIPTPATH" 2>/dev/null && """ + pwdCommand + """)"
+# shellcheck disable=SC2034
+STARTPATH="$(""" + pwdCommand + r""")"
 
 doChangeDir=1
 doDebug=0
 doDebugServer=0
 doTrace=0
 declare -a cmdArr
-doCommandWithArgs=0
 
 showhelp()
 {
-    echo ''
-    echo 'usage: '$MYNAME' [options]'
-    echo 'where options are:'
-    echo ' -d             : run under debugger control (gdb) in foreground'
-    echo '                  second -d runs executable in background mode'
-    echo '                  and logs stacktrace on failure'
-    echo ' -e             : run under debugger control in your IDE (gdbserver)'
-    echo ' -S             : do not change directory before executing target'
-    echo '                  eg. stay in current directory for executino'
-    echo ' -x <tool|opts> : run <tool tool-opts server-command server-options>'
-    echo '                  to specify tool options, use multiple -x <opts> options'
-    echo ' -v             : verbose mode'
+    [ -n "${1}" ] && echo "${1}";
+    echo ""
+    echo "usage: $MYNAME [options]"
+    echo "where options are:"
+    echo " -d             : run under debugger control (gdb) in foreground"
+    echo "                  second -d runs executable in background mode"
+    echo "                  and logs stacktrace on failure"
+    echo " -e             : run under debugger control in your IDE (gdbserver)"
+    echo " -S             : do not change directory before executing target"
+    echo "                  eg. stay in current directory for execution"
+    echo " -x <tool|opts> : run <tool tool-opts server-command server-options>"
+    echo "                  to specify tool options, use multiple -x <opts> options"
+    echo " -v             : verbose mode, second -v keeps generated batch files"
     echo .
     exit 3;
 }
@@ -109,11 +110,10 @@ while getopts ":deSvx:-" opt
 do
     case $opt in
         :)
-            echo "ERROR: -$OPTARG parameter missing, exiting!";
-            showhelp;
+            showhelp "ERROR: -$OPTARG parameter missing, exiting!";
         ;;
         d)
-            doDebug=`expr $doDebug + 1`;
+            doDebug=$((doDebug + 1));
         ;;
         e)
             doDebugServer=1;
@@ -122,10 +122,10 @@ do
             doChangeDir=0;
         ;;
         v)
-            doTrace=1;
+            doTrace=$((doTrace + 1));
         ;;
         x)
-            cmdArr=(${cmdArr[@]} $OPTARG);
+            cmdArr=("${cmdArr[@]}" "$OPTARG");
         ;;
         -)
             break;
@@ -136,7 +136,7 @@ do
     esac
 done
 
-shift `expr $OPTIND - 1`
+shift $((OPTIND - 1))
 
 # find base directory for a given path
 # param 1: path to start from
@@ -147,24 +147,24 @@ searchBaseDirUp()
     start_dir="${1}";
     searchSegment="${2}";
     dirDefault="${3}";
-    basePath="`cd \"$start_dir\" &&
-        while [ ! -d \"${searchSegment}\" ] && [ \"\`pwd\`\" != / ]; do
+    basePath="$(cd "$start_dir" 2>/dev/null &&
+        while [ ! -d "${searchSegment}" ] && [ "$(pwd)" != / ]; do
             cd .. 2>/dev/null;
         done;
         """ + pwdCommand + """
-    `";
+    )";
     test -d "${basePath}/${searchSegment}" || basePath="${dirDefault}";
     echo "$basePath";
 }
 
 die() {
-    printf "%s\n" "$@";
+    printf "%s\\n" "$@";
     exit 1;
 }
 
 """ + expandvars(env, defaultExpansions) + """
 # find the base directory
-LIBDIR_BASE="`searchBaseDirUp \\"${SCRIPTPATH}\\" \\"${LIBDIR}\\"`"
+LIBDIR_BASE="$(searchBaseDirUp "${SCRIPTPATH}" "${LIBDIR}")"
 
 test -n "${LIBDIR_BASE}" || die "No base directory found containing library directory [$LIBDIR], exiting."
 
@@ -174,7 +174,7 @@ test -d "${ABS_LIBDIR}/${VARIANTDIR}" && ABS_LIBDIR="${ABS_LIBDIR}/$VARIANTDIR"
 """ + libpathvariable + """="${ABS_LIBDIR}":$""" + libpathvariable + """
 export """ + libpathvariable + """
 
-BINDIR_BASE="`searchBaseDirUp \\"${SCRIPTPATH}\\" \\"${BINDIR}\\"`"
+BINDIR_BASE="$(searchBaseDirUp "${SCRIPTPATH}" "${BINDIR}")"
 
 test -n "${BINDIR_BASE}" || die "No base directory found containing binary directory [$BINDIR], exiting."
 
@@ -187,19 +187,13 @@ test -d "${ABS_BINDIR}/${VARIANTDIR}" && ABS_BINDIR="${ABS_BINDIR}/$VARIANTDIR"
 #
 # param 1: is the name of the generated batch file
 # param 2: binary to execute
-# param 3: run executable in background, default 1, set to 0 to run gdb in foreground
-# param 4.. arguments passed to the debugged program
-#
 generateGdbCommandFile()
 {
 	ggcfBatchFile="${1}";
 	ggcfBinaryToExecute="${2}";
-	ggcfRunInBackground=${3};
-	test $# -ge 3 || return 1;
-	shift 3
-	ggcfServerOptions="$@";
+	test $# -eq 2 || return 1;
 	# <<-EOF ignore tabs, nice for formatting heredocs
-cat > ${ggcfBatchFile} <<-EOF
+cat > "${ggcfBatchFile}" <<-EOF
 	handle SIGSTOP nostop nopass
 	handle SIGLWP  nostop pass
 	handle SIGTERM nostop pass
@@ -210,22 +204,28 @@ cat > ${ggcfBatchFile} <<-EOF
 	set environment """ + libpathvariable + """=${""" + libpathvariable + """}
 	set auto-solib-add 1
 	# convert to Windows path on mingw (msys supplies it automatically to non-msys tools)
-	file \"""" + ("`cmd //c echo ${ggcfBinaryToExecute}`"
+	file \"""" + ("$(cmd //c echo ${ggcfBinaryToExecute})"
                if "mingw" in env["TOOLS"] else "${ggcfBinaryToExecute}") + r'''"
-	set args ${ggcfServerOptions}
 EOF
-	if [ $ggcfRunInBackground -eq 2 ]; then
-cat >> ${ggcfBatchFile} <<-EOF
+}
+
+# generate gnu debugger command file which may be used for batch
+# invocations of the debugger.
+#
+# param 1: is the name of the generated batch file
+extendGdbCommandFileBatch()
+{
+	ggcfBatchFile="${1}";
+cat >> "$ggcfBatchFile" <<-EOF
 	set pagination 0
 	run
 	if \$_isvoid(\$_siginfo)
-			shell rm ${ggcfBatchFile}
 			if \$_isvoid(\$_exitcode)
 					set \$_exitcode=0
 			end
 			quit \$_exitcode
 	else
-			! echo "\`date +'%Y%m%d%H%M%S'\`: ========== GDB backtrace =========="
+			! echo "\$(date +'%Y%m%d%H%M%S'): ========== GDB backtrace =========="
 			backtrace full
 			info registers
 			x/16i \$pc
@@ -236,46 +236,81 @@ cat >> ${ggcfBatchFile} <<-EOF
 			if \$_isvoid(\$_exitcode)
 					set \$_exitcode=55
 			end
-			shell rm ${ggcfBatchFile}
 			quit \$_exitcode
 	end
 EOF
-	fi;
 }
 
 CMD="${ABS_BINDIR}/${BINARYNAME}"
 test -x "${CMD}" || die "binary [${CMD}] is not executable, aborting!"
 
-test ${doChangeDir} -eq 1 -a -d "${BINDIR_BASE}" && cd "${BINDIR_BASE}"
+if [ "${doChangeDir}" -eq 1 ] && [ -d "${BINDIR_BASE}" ]; then
+    #shellcheck disable=SC2164
+    cd "${BINDIR_BASE}" 2>/dev/null
+fi;
 
-test ${doTrace} -eq 1 && ( cat <<EOF
+test "${doTrace}" -eq 1 && ( cat <<EOF
 Executing command [${CMD}]
  with arguments   [$@]
- in directory     [`pwd`]
+ in directory     [$(pwd)]
 EOF
 )
 
-toolPath=$(type -fP ${cmdArr[0]} 2>/dev/null)
-if [ -n "$toolPath" ]; then
-    doCommandWithArgs=1
+toolPath=$(type -fP "${cmdArr[0]}" 2>/dev/null)
+if [ -z "$toolPath" ] && [ "${cmdArr[0]}" != "exec" ]; then
+  cmdArr=()
 fi
-if [ ${doDebug:-0} -ge 1 ]; then
-    cfg_gdbcommands="''' + (tempfile.gettempdir() + os.sep).replace('\\', '/') + """`basename \\"$0\\"`_$$";
-    generateGdbCommandFile "${cfg_gdbcommands}" "$CMD" $doDebug "$@"
-    test ${doTrace} -eq 1 && echo "Generated gdb command file:"
-    test ${doTrace} -eq 1 && cat ${cfg_gdbcommands}
-    cfg_gdbcommands="--command $cfg_gdbcommands";
-    test $doDebug -gt 1 && cfg_gdbcommands="--batch $cfg_gdbcommands";
-    exec bash -c "eval gdb ${cfg_gdbcommands}"
-elif [ ${doDebugServer:-0} -eq 1 -a -x "$(type -fP gdbserver 2>/dev/null)" ]; then
-    exec gdbserver :${GDBSERVERPORT} "${CMD}" "$@"
-elif [ ${doCommandWithArgs:-0} -eq 1 ]; then
-    test ${doTrace} -eq 1 && echo "executing command [${cmdArr[*]} ${CMD} $@]"
-    exec bash -c "eval ${cmdArr[*]} ${CMD} $@"
-else
-    exec "$CMD" "$@"
+
+fn="$(mktemp)"
+fn_gdb="$(mktemp)"
+if [ "${doDebugServer:-0}" -ge 1 ]; then
+  if [ -x "$(type -fP gdbserver 2>/dev/null)" ]; then
+    CMD="gdbserver :${GDBSERVERPORT} ${CMD}"
+  else
+    echo "gdbserver executable not found, executing cmd only"
+  fi
 fi
-"""
+if [ "${doDebug:-0}" -ge 1 ]; then
+  if [ -x "$(type -fP gdb 2>/dev/null)" ]; then
+    generateGdbCommandFile "$fn_gdb" "$CMD"
+    _fn_org="$fn"
+    fn="$fn_gdb"
+    CMD="set args"
+  else
+    echo "gdb executable not found, executing cmd only"
+    doDebug=0
+  fi
+fi
+
+_cmd="${cmdArr[*]} ${CMD}"
+for i in "$@"; do
+  _cmd="$_cmd \"$i\""
+done
+cat <<-EOF >>"$fn"
+$_cmd
+EOF
+
+if [ "${doDebug:-0}" -ge 1 ]; then
+    cfg_gdbcommands="--command $fn_gdb";
+    if [ "$doDebug" -gt 1 ]; then
+      cfg_gdbcommands="--batch $cfg_gdbcommands";
+      extendGdbCommandFileBatch "$fn_gdb"
+    fi
+    test "${doTrace}" -ge 1 && {
+        echo "Generated gdb commands file for command [$cfg_gdbcommands]:";
+        cat "$fn_gdb";
+    }
+    fn="$_fn_org"
+	cat <<-EOF >>"$fn"
+		gdb $cfg_gdbcommands
+EOF
+fi
+if [ "${doTrace}" -ge 1 ]; then
+	[ "${doTrace}" -lt 2 ] && echo rm -f "$fn" "$fn_gdb" >>"$fn"
+	echo "executing [$(cat "$fn")]";
+fi
+bash "$fn"
+'''
     scriptFile.write(scriptText)
 
 

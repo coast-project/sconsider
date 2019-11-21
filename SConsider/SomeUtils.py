@@ -344,7 +344,14 @@ def runCommand(args, logpath='', filename=None, stdincontent=None, timeout=120.0
 
     if not os.path.isdir(logpath):
         os.makedirs(logpath)
-    logfilebasename = os.path.basename(args[0])
+    logfilebasename = ''
+    if kw.get('shell', False):
+        logfilebasename = 'shell.'
+    if isinstance(args, str):
+        # split args as it might contain newlines if it is a shell command
+        logfilebasename += os.path.basename(args.split()[0])
+    else:
+        logfilebasename += os.path.basename(args[0])
     if filename:
         logfilebasename = logfilebasename + '.' + os.path.basename(filename)
     errfilename = os.path.join(logpath, logfilebasename + '.stderr')
