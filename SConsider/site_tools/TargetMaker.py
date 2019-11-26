@@ -31,6 +31,7 @@ class TargetMaker(object):
         self.targetlist = tlist.copy()
         self.registry = registry
         self.lookupStack = []
+        self.version_re_str = '(\\.[0-9]+\\.[0-9]+\\.[0-9a-zA-Z]+)?'
 
     def pushItem(self, current_target):
         self.lookupStack.append(current_target)
@@ -147,8 +148,8 @@ class TargetMaker(object):
             requiredTargets = [requiredTargets]
         for targ in requiredTargets:
             env.Depends(
-                target,
-                self.registry.loadPackageTarget(*self.registry.splitFulltargetname(targ, default=True)))
+                target, self.registry.loadPackageTarget(*self.registry.splitFulltargetname(targ,
+                                                                                           default=True)))
 
     def doCreateTarget(self, packagename, targetname, targetBuildSettings):
         plaintarget = None
@@ -306,7 +307,8 @@ class TargetMaker(object):
                         ('^' + re.escape(env.subst("$LIBPREFIX")), ''),
                         (re.escape(env.subst("$LIBSUFFIX")) + '$', ''),
                         ('^' + re.escape(env.subst("$SHLIBPREFIX")), ''),
-                        (re.escape(env.subst("$SHLIBSUFFIX")) + '$', ''),
+                        (self.version_re_str + re.escape(env.subst("$SHLIBSUFFIX")) + self.version_re_str +
+                         '$', ''),
                     ], target.name)
                     env.AppendUnique(LIBS=[libname])
             except:

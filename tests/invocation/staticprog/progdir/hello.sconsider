@@ -11,8 +11,16 @@
 
 import pkg_resources
 pkg_resources.require(["SConsider"])
+import os
+import tempfile
+from stat import *
 from SomeUtils import listFiles
+
 Import('*')
+
+searchReplace = {
+    'TMPDIR': lambda env: tempfile.gettempdir() if str(env['PLATFORM']) in ['cygwin', 'win32'] else '/tmp',
+}
 
 
 def setUp(target, source, env):
@@ -23,9 +31,15 @@ def tearDown(target, source, env):
     pass
 
 
+programDepends = []
 sourceFiles = ['hello.cpp']
+copyFiles = [
+    (listFiles(['config/*.any']), S_IRUSR | S_IRGRP | S_IROTH, searchReplace),
+]
 bin_name = 'hello'
 runConfigRunner = {
+    'setUp': setUp,
+    'tearDown': tearDown,
     'runParams': '',
 }
 
@@ -34,6 +48,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     from SConsider import createTargets
     buildSettings = {
         packagename: {
+            'linkDependencies': programDepends,
             'sourceFiles': sourceFiles,
             'targetType': 'Program',
             'targetName': bin_name,
@@ -42,22 +57,33 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             'targetType': 'ProgramApp',
             'targetName': bin_name + 'runner',
             'usedTarget': packagename + '.' + packagename,
+            'copyFiles': copyFiles,
             'runConfig': runConfigRunner,
         },
     }
 
     createTargets(packagename, buildSettings)
+
 elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
-    import os
     from TargetMaker import EnvBuilder
-    from TargetHelpers import createPackageTestTarget, createPackageRunTarget, createPackageProgramScript, createPackageProgram, createAlias
+    from TargetHelpers import createCopyFilesTarget, createPackageTestTarget, createPackageRunTarget, createPackageProgramScript, createPackageProgram, createAlias
 
     def setRelTargetDir(env, prefix='apps'):
         env.setRelativeTargetDirectory(os.path.join(prefix, packagename))
 
     bin_target = createPackageProgram(packagename, bin_name, sourceFiles, pkg_local=[setRelTargetDir])
 
-    script_target = createPackageProgramScript(packagename, bin_name, bin_target, pkg_local=[setRelTargetDir])
+    copyTarget = createCopyFilesTarget(packagename,
+                                       'configfiles',
+                                       lambda env: env.getTargetBaseInstallDir(),
+                                       copyFiles,
+                                       pkg_local=[setRelTargetDir])
+
+    script_target = createPackageProgramScript(packagename,
+                                               bin_name,
+                                               bin_target,
+                                               depend=copyTarget,
+                                               pkg_local=[setRelTargetDir])
 
     runner_target = createPackageRunTarget(packagename, 'runner', script_target, settings=runConfigRunner)
 

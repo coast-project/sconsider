@@ -172,11 +172,13 @@ def test_SConsiderStaticProgRunWithExplicitPackageTarget(copy_testdir_to_tmp, py
     assert 'Hello from SConsider' in captured.out
 
 
-def assert_outputfiles_exist(baseoutdir, predicate=lambda l: l >= 1):
+def assert_outputfiles_exist(baseoutdir, expected_files_param=None, predicate=lambda l: l >= 1):
     expected_files = [
         'apps/hello/log/*/runner.run.log', 'apps/hello/scripts/*/hello*.sh', 'apps/hello/bin/*/*hello*',
         'lib/*/*.so*'
     ]
+    if expected_files_param:
+        expected_files = expected_files_param
     for glob_path in expected_files:
         assert predicate(len(glob(os.path.join(baseoutdir, glob_path))))
 
@@ -210,8 +212,29 @@ def test_SConsiderStaticProgBuildOutputFilesInBaseoutdir(copy_testdir_to_tmp, py
     assert 0 == executor.returncode
     assert not copy_testdir_to_tmp.join('apps').isdir()
     assert not copy_testdir_to_tmp.join('progdir').join('.build').isdir()
-    assert_outputfiles_exist(str(copy_testdir_to_tmp), lambda l: l == 0)
+    assert_outputfiles_exist(str(copy_testdir_to_tmp), predicate=lambda l: l == 0)
     assert_outputfiles_exist(baseoutdir)
+
+
+@pytest.mark.invocation
+def test_SConsiderStaticProgBuildPackage(copy_testdir_to_tmp, pypath_extended_env, popen_timeout,
+                                         scons_platform_options, capfd, tmpdir_factory):
+    packagedir = str(tmpdir_factory.mktemp('packagedir', numbered=True))
+    cmd = r'scons --3rdparty= --usetool=Package --package=' + packagedir + ' hello' + scons_platform_options
+    with ProcessRunner(cmd, timeout=popen_timeout, cwd=str(copy_testdir_to_tmp),
+                       env=pypath_extended_env) as executor:
+        for out, err in executor:
+            sys.stdout.write(out)
+            sys.stderr.write(err)
+    assert 0 == executor.returncode
+    assert copy_testdir_to_tmp.join('apps').isdir()
+    assert copy_testdir_to_tmp.join('apps').join('hello').isdir()
+    assert copy_testdir_to_tmp.join('apps').join('hello').join('config').isdir()
+    assert_outputfiles_exist(packagedir,
+                             expected_files_param=[
+                                 'hello/scripts/hellorunner.sh', 'hello/bin/hellorunner', 'hello/lib/lib*.so',
+                                 'hello/config/Defaults.any'
+                             ])
 
 
 @pytest.mark.invocation
