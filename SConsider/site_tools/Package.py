@@ -48,6 +48,46 @@ def addPackageTarget(registry, buildTargets, env, destdir, **kw):
     buildTargets.append(packageAliasName)
 
 
+def getTargetDependencies(target, filters=None):
+    """Determines the recursive dependencies of a target (including itself).
+
+    Specify additional target filters using 'filters'.
+    """
+    if filters is None:
+        filters = []
+    if not isinstance(filters, list):
+        filters = [filters]
+    filters = [isFileNode] + filters
+
+    deps = set()
+    if allFuncs(filters, target):
+        executor = target.get_executor()
+        if executor is not None:
+            deps.update(executor.get_all_targets())
+    deps.update(getNodeDependencies(target, filters))
+
+    return deps
+
+
+def reduceToPackageFiles(install_nodes, filters=None):
+    """Reduce the list of targets to only those required for the package.
+
+    Specify additional target filters using 'filters'.
+    """
+    if filters is None:
+        filters = []
+    if not isinstance(filters, list):
+        filters = [filters]
+    filters = [isFileNode] + filters
+
+    deps = set()
+    for t in install_nodes:
+        if allFuncs(filters, t):
+            deps.add(t)
+
+    return deps
+
+
 def makePackage(registry, buildTargets, env, destdir, **kw):
     def isNotInBuilddir(node):
         return not hasPathPart(node, pathpart=env.getRelativeBuildDirectory())
@@ -76,6 +116,16 @@ def makePackage(registry, buildTargets, env, destdir, **kw):
 def copyPackage(name, deps, env, destdir, filters=None):
     for target in deps:
         copyTarget(env, determineDirInPackage(name, env, destdir, target, filters), target)
+
+
+def copyTarget(env, destdir, node):
+    old = env.Alias(destdir.File(node.name))
+    if old and old[0].sources:
+        if isInstalledNode(node, old[0].sources[0]) or isInstalledNode(old[0].sources[0], node):
+            return None
+    target = install_or_link_node(env, destdir, node)
+    env.Alias(packageAliasName, target)
+    return target
 
 
 def install_or_link_node(env, destdir, node):
@@ -109,19 +159,8 @@ def install_or_link_node(env, destdir, node):
             target = install_node_to_destdir(packageTargets, install_node, destdir)
             if is_link:
                 target = env.Symlink(target[0].get_dir().File(node_name), target)
-
                 packageTargets[node_name] = target
 
-    return target
-
-
-def copyTarget(env, destdir, node):
-    old = env.Alias(destdir.File(node.name))
-    if old and old[0].sources:
-        if isInstalledNode(node, old[0].sources[0]) or isInstalledNode(old[0].sources[0], node):
-            return None
-    target = install_or_link_node(env, destdir, node)
-    env.Alias(packageAliasName, target)
     return target
 
 
@@ -208,24 +247,3 @@ def generate(env):
 
 def exists(env):
     return 1
-
-
-def getTargetDependencies(target, filters=None):
-    """Determines the recursive dependencies of a target (including itself).
-
-    Specify additional target filters using 'filters'.
-    """
-    if filters is None:
-        filters = []
-    if not isinstance(filters, list):
-        filters = [filters]
-    filters = [isFileNode] + filters
-
-    deps = set()
-    if allFuncs(filters, target):
-        executor = target.get_executor()
-        if executor is not None:
-            deps.update(executor.get_all_targets())
-    deps.update(getNodeDependencies(target, filters))
-
-    return deps
