@@ -148,8 +148,8 @@ class TargetMaker(object):
             requiredTargets = [requiredTargets]
         for targ in requiredTargets:
             env.Depends(
-                target, self.registry.loadPackageTarget(*self.registry.splitFulltargetname(targ,
-                                                                                           default=True)))
+                target,
+                self.registry.loadPackageTarget(*self.registry.splitFulltargetname(targ, default=True)))
 
     def doCreateTarget(self, packagename, targetname, targetBuildSettings):
         plaintarget = None

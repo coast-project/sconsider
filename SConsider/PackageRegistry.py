@@ -191,7 +191,10 @@ class PackageRegistry(object):
         return packagename + targetname if packagename != targetname else targetname
 
     @staticmethod
-    def collectPackageFiles(directory, match_func, file_ext='sconsider', excludes_rel=None,
+    def collectPackageFiles(directory,
+                            match_func,
+                            file_ext='sconsider',
+                            excludes_rel=None,
                             excludes_abs=None):
         """Recursively collects SConsider packages.
 
@@ -332,8 +335,8 @@ Original exception message:
             dep_targets = deps.get(fulltargetname, callerdeps.get(fulltargetname, None))
             if dep_targets is None and ext is not None:
                 callerdeps.get('pending', []).extend([fulltargetname])
-                dep_targets = self.getPackageTargetDependencies(*self.splitFulltargetname(fulltargetname),
-                                                                callerdeps=callerdeps)
+                dep_targets = self.getPackageTargetDependencies(
+                    *self.splitFulltargetname(fulltargetname), callerdeps=callerdeps)
                 callerdeps.get('pending', []).remove(fulltargetname)
             if dep_targets is not None:
                 callerdeps.setdefault(fulltargetname, dep_targets)
