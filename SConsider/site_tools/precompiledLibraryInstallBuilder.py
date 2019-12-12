@@ -169,7 +169,7 @@ def findBinary(env, basedir, binaryname):
 
 
 def precompBinNamesEmitter(target, source, env):
-    target = []
+    del target[:]
     newsource = []
     binaryVariantDir = env.getBinaryInstallDir()
     for src in source:
@@ -193,7 +193,7 @@ def precompBinNamesEmitter(target, source, env):
 
 
 def precompLibNamesEmitter(target, source, env):
-    target = []
+    del target[:]
     newsource = []
     libraryVariantDir = env.getLibraryInstallDir(withRelTarget=True)
     for src in source:
@@ -251,8 +251,7 @@ def createSymLink(target, source, env):
 
 
 def installFunc(target, source, env):
-    """Install a source file into a target using the function specified as the
-    INSTALL construction variable."""
+    """Install a source file into a target using."""
     for t, s in zip(target, source):
         if copyFunc(t.get_path(), s.get_path(), env):
             return 1
