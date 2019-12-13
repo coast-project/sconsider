@@ -240,10 +240,10 @@ def installFunc(target, source, env):
 
 
 def prePackageCollection(env, **_):
-    # ensure we have getBitwidth() available
-    if 'setupBuildTools' not in env['TOOLS']:
-        raise SCons.Errors.UserError('setupBuildTools is required for\
- precompiledLibraryInstallBuilder')
+    # ensure we have getBitwidth() and other functions available
+    for required_tool in ['setupBuildTools']:
+        if required_tool not in env['TOOLS']:
+            env.Tool(required_tool)
 
 
 def generate(env):

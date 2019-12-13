@@ -16,6 +16,7 @@ added to the environment supplied in the generate call.
 
 import os
 from logging import getLogger
+from SConsider.deprecation import deprecated
 logger = getLogger(__name__)
 
 
@@ -123,20 +124,37 @@ def installBinary(env, name, sources, packagename, targetname, buildSettings, **
 
 def prePackageCollection(env, **_):
     # we require ThirdParty
-    if 'ThirdParty' not in env['TOOLS']:
-        env.Tool('ThirdParty')
+    for required_tool in ['ThirdParty']:
+        if required_tool not in env['TOOLS']:
+            env.Tool(required_tool)
 
 
 def generate(env):
-    env.AddMethod(programApp, "ProgramApp")
-    # @!FIXME: should use ProgramTest instead
-    env.AddMethod(programTest, "AppTest")
-    env.AddMethod(programTest, "ProgramTest")
-    env.AddMethod(sharedLibrary, "LibraryShared")
-    env.AddMethod(staticLibrary, "LibraryStatic")
-    env.AddMethod(installPrecompiledBinary, "PrecompiledBinary")
-    env.AddMethod(installPrecompiledLibrary, "PrecompiledLibrary")
-    env.AddMethod(installBinary, "InstallBinary")
+    def ProgramApp(env, *args,**kw):
+        return programApp(env, *args, **kw)
+    @deprecated("Use the method ProgramTest instead.")
+    def AppTest(env, *args,**kw):
+        return programTest(env, *args, **kw)
+    def ProgramTest(env, *args,**kw):
+        return programTest(env, *args, **kw)
+    def LibraryShared(env, *args,**kw):
+        return sharedLibrary(env, *args, **kw)
+    def LibraryStatic(env, *args,**kw):
+        return staticLibrary(env, *args, **kw)
+    def PrecompiledBinary(env, *args,**kw):
+        return installPrecompiledBinary(env, *args, **kw)
+    def PrecompiledLibrary(env, *args,**kw):
+        return installPrecompiledLibrary(env, *args, **kw)
+    def InstallBinary(env, *args,**kw):
+        return installBinary(env, *args, **kw)
+    env.AddMethod(ProgramApp)
+    env.AddMethod(AppTest)
+    env.AddMethod(ProgramTest)
+    env.AddMethod(LibraryShared)
+    env.AddMethod(LibraryStatic)
+    env.AddMethod(PrecompiledBinary)
+    env.AddMethod(PrecompiledLibrary)
+    env.AddMethod(InstallBinary)
     from SConsider.Callback import Callback
     Callback().register('PrePackageCollection', prePackageCollection)
 
