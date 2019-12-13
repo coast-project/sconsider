@@ -24,7 +24,7 @@ import stat
 from logging import getLogger
 import SCons.Action
 import SCons.Builder
-from SCons.Tool.install import installVerLib_action, copyFunc, add_versioned_targets_to_INSTALLED_FILES, add_targets_to_INSTALLED_FILES
+from SCons.Tool import install
 logger = getLogger(__name__)
 
 
@@ -203,7 +203,7 @@ def precompLibNamesEmitter(target, source, env):
         if not hasattr(src, 'srcnode'):
             src = env.File(str(src))
         path, libname = os.path.split(src.srcnode().get_abspath())
-        srcpath, srcfile, linkfile, isStaticLib = findLibrary(env, path, libname)
+        srcpath, srcfile, _, isStaticLib = findLibrary(env, path, libname)
         if srcfile:
             sourcenode = env.File(os.path.join(srcpath, srcfile))
             """replace default environment with the current one to propagate settings"""
@@ -214,9 +214,6 @@ def precompLibNamesEmitter(target, source, env):
             else:
                 installedTarget = libraryVariantDir.File(srcfile)
                 target.append(installedTarget)
-                if srcfile != linkfile:
-                    linkTarget = libraryVariantDir.File(linkfile)
-                    target.append(linkTarget)
     return (target, newsource)
 
 
@@ -227,16 +224,6 @@ def createSymLink(target, source, env):
     src, dest = source.get_abspath(), target.get_abspath()
     relSrc = os.path.relpath(src, os.path.dirname(dest))
     os.symlink(relSrc, dest)
-
-
-def installFunc(target, source, env):
-    """Install a source file into a target."""
-    for t, s in zip(target, source):
-        if copyFunc(t.get_path(), s.get_path(), env):
-            return 1
-    if len(target) > len(source):
-        createSymLink(target[1], target[0], env)
-    return 0
 
 
 def prePackageCollection(env, **_):
@@ -253,22 +240,22 @@ def generate(env):
     SymbolicLinkBuilder = SCons.Builder.Builder(action=[SymbolicLinkAction])
     env.Append(BUILDERS={"Symlink": SymbolicLinkBuilder})
 
-    PrecompLibAction = SCons.Action.Action(installVerLib_action,
+    PrecompLibAction = SCons.Action.Action(install.installVerLib_action,
                                            "Installing precompiled library '$SOURCE' as '$TARGET'")
     PrecompLibBuilder = SCons.Builder.Builder(
         action=[PrecompLibAction],
-        emitter=[precompLibNamesEmitter, add_versioned_targets_to_INSTALLED_FILES],
+        emitter=[precompLibNamesEmitter, install.add_versioned_targets_to_INSTALLED_FILES],
         multi=0,
         source_factory=env.fs.Entry,
         single_source=True)
 
     env.Append(BUILDERS={'PrecompiledLibraryInstallBuilder': PrecompLibBuilder})
 
-    PrecompBinAction = SCons.Action.Action(installFunc,
+    PrecompBinAction = SCons.Action.Action(install.installFunc,
                                            "Installing precompiled binary '$SOURCE' as '$TARGET'")
     PrecompBinBuilder = SCons.Builder.Builder(
         action=[PrecompBinAction],
-        emitter=[precompBinNamesEmitter, add_targets_to_INSTALLED_FILES],
+        emitter=[precompBinNamesEmitter, install.add_targets_to_INSTALLED_FILES],
         single_source=False)
 
     env.Append(BUILDERS={'PrecompiledBinaryInstallBuilder': PrecompBinBuilder})
