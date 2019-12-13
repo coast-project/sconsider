@@ -130,23 +130,31 @@ def prePackageCollection(env, **_):
 
 
 def generate(env):
-    def ProgramApp(env, *args,**kw):
+    def ProgramApp(env, *args, **kw):
         return programApp(env, *args, **kw)
+
     @deprecated("Use the method ProgramTest instead.")
-    def AppTest(env, *args,**kw):
+    def AppTest(env, *args, **kw):
         return programTest(env, *args, **kw)
-    def ProgramTest(env, *args,**kw):
+
+    def ProgramTest(env, *args, **kw):
         return programTest(env, *args, **kw)
-    def LibraryShared(env, *args,**kw):
+
+    def LibraryShared(env, *args, **kw):
         return sharedLibrary(env, *args, **kw)
-    def LibraryStatic(env, *args,**kw):
+
+    def LibraryStatic(env, *args, **kw):
         return staticLibrary(env, *args, **kw)
-    def PrecompiledBinary(env, *args,**kw):
+
+    def PrecompiledBinary(env, *args, **kw):
         return installPrecompiledBinary(env, *args, **kw)
-    def PrecompiledLibrary(env, *args,**kw):
+
+    def PrecompiledLibrary(env, *args, **kw):
         return installPrecompiledLibrary(env, *args, **kw)
-    def InstallBinary(env, *args,**kw):
+
+    def InstallBinary(env, *args, **kw):
         return installBinary(env, *args, **kw)
+
     env.AddMethod(ProgramApp)
     env.AddMethod(AppTest)
     env.AddMethod(ProgramTest)

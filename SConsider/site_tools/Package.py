@@ -113,34 +113,38 @@ def makePackage(registry, buildTargets, env, destdir, **kw):
             copyPackage(tn, tdeps, env, destdir, copyfilters)
 
 
-def copyPackage(name, deps, env, destdir, filters=None):
+def copyPackage(name, deps, env, package_destdir, filters=None):
     for target in deps:
-        copyTarget(env, determineDirInPackage(name, env, destdir, target, filters), target)
+        packagetarget_destdir = determineDirInPackage(name, env, package_destdir, target, filters)
+        copyTarget(env, packagetarget_destdir, target, package_destdir)
 
 
-def copyTarget(env, destdir, node):
-    old = env.Alias(destdir.File(node.name))
+def copyTarget(env, packagetarget_destdir, node, package_destdir):
+    old = env.Alias(packagetarget_destdir.File(node.name))
     if old and old[0].sources:
         if isInstalledNode(node, old[0].sources[0]) or isInstalledNode(old[0].sources[0], node):
             return None
-    target = install_or_link_node(env, destdir, node)
+    target = install_or_link_node(env, packagetarget_destdir, node, package_destdir)
     env.Alias(packageAliasName, target)
     return target
 
 
-def install_or_link_node(env, destdir, node):
-    def install_node_to_destdir(targets_list, node, destdir):
+def install_or_link_node(env, packagetarget_destdir, node, package_destdir):
+    def rel_installed_path(packagetarget_destdir, package_destdir, node):
+        return package_destdir.rel_path(packagetarget_destdir) + os.sep + node.name
+
+    def install_node_to_destdir(targets_list, node, packagetarget_destdir, package_destdir):
         from stat import S_IRUSR, S_IRGRP, S_IROTH, S_IXUSR
         from SCons.Defaults import Chmod
         # ensure executable flag on installed shared libs
         mode = S_IRUSR | S_IRGRP | S_IROTH | S_IXUSR
-        node_name = node.name
-        if node_name in targets_list:
-            return targets_list[node_name]
-        install_path = env.makeInstallablePathFromDir(destdir)
+        rel_node_path = rel_installed_path(packagetarget_destdir, package_destdir, node)
+        if rel_node_path in targets_list:
+            return targets_list[rel_node_path]
+        install_path = env.makeInstallablePathFromDir(packagetarget_destdir)
         target = env.Install(dir=install_path, source=node)
         env.AddPostAction(target, Chmod(str(target[0]), mode))
-        targets_list[node_name] = target
+        targets_list[rel_node_path] = target
         return target
 
     # build phase could be multi-threaded
@@ -148,18 +152,14 @@ def install_or_link_node(env, destdir, node):
         # take care of already created targets otherwise we would have
         # multiple ways to build the same target
         global packageTargets
-        node_name = node.name
-        if node_name in packageTargets:
-            target = packageTargets[node_name]
-        else:
-            install_node = node
-            is_link = node.islink()
-            if is_link:
-                install_node = node.sources[0]
-            target = install_node_to_destdir(packageTargets, install_node, destdir)
-            if is_link:
-                target = env.Symlink(target[0].get_dir().File(node_name), target)
-                packageTargets[node_name] = target
+        target = install_node_to_destdir(packageTargets, node, packagetarget_destdir, package_destdir)
+        for side_effect in node.side_effects:
+            rel_node_path = rel_installed_path(packagetarget_destdir, package_destdir, side_effect)
+            if rel_node_path not in packageTargets:
+                node_name = side_effect.name
+                ln_target = env.Symlink(packagetarget_destdir.File(node_name), target[0])
+                packageTargets[rel_node_path] = ln_target
+                target.append(ln_target)
 
     return target
 
