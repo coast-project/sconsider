@@ -24,7 +24,6 @@ import stat
 from logging import getLogger
 import SCons.Action
 import SCons.Builder
-from SCons.Tool import install
 logger = getLogger(__name__)
 
 
@@ -235,6 +234,7 @@ def prePackageCollection(env, **_):
 
 def generate(env):
     from SConsider.Callback import Callback
+    from SCons.Tool import install
     SymbolicLinkAction = SCons.Action.Action(createSymLink,
                                              "Generating symbolic link for '$SOURCE' as '$TARGET'")
     SymbolicLinkBuilder = SCons.Builder.Builder(action=[SymbolicLinkAction])
