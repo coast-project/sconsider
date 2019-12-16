@@ -147,11 +147,12 @@ def install_or_link_node(env, packagetarget_destdir, node, package_destdir):
         targets_list[rel_node_path] = target
         return target
 
+    global packageTargets, packageTargetsRLock
+
     # build phase could be multi-threaded
     with packageTargetsRLock:
         # take care of already created targets otherwise we would have
         # multiple ways to build the same target
-        global packageTargets
         target = install_node_to_destdir(packageTargets, node, packagetarget_destdir, package_destdir)
         for side_effect in node.side_effects:
             rel_node_path = rel_installed_path(packagetarget_destdir, package_destdir, side_effect)

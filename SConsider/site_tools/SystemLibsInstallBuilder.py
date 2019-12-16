@@ -70,8 +70,6 @@ def installSystemLibs(source):
     deplibs = [env.File(j) for j in deplibs if notInDir(env, ownlibDir, j)]
     source_syslibs = []
 
-    global systemLibTargets, systemLibTargetsRLock
-
     def install_node_to_destdir(targets_list, node, destdir):
         from stat import S_IRUSR, S_IRGRP, S_IROTH, S_IXUSR
         from SCons.Defaults import Chmod
@@ -88,6 +86,8 @@ def installSystemLibs(source):
         env.AddPostAction(target, Chmod(str(target[0]), mode))
         targets_list[node_name] = target
         return target
+
+    global systemLibTargets, systemLibTargetsRLock
 
     # build phase could be multi-threaded
     with systemLibTargetsRLock:
