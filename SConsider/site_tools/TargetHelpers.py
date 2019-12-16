@@ -49,8 +49,9 @@ def setupTargetDirAndWrapperScripts(env, name, packagename, install_target, base
     installed_target = installed_targets[0]
     sysLibs = env.InstallSystemLibs(install_target)
     env.Requires(installed_target, sysLibs)
-    if 'generateScript' not in env['TOOLS']:
-        env.Tool('generateScript')
+    for required_tool in ['generateScript']:
+        if required_tool not in env['TOOLS']:
+            env.Tool(required_tool)
     wrappers = env.GenerateWrapperScript(installed_targets)
     return (installed_target, wrappers)
 
