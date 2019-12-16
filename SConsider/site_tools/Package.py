@@ -18,7 +18,7 @@ import re
 import os
 import threading
 from logging import getLogger
-from SConsider.SomeUtils import hasPathPart, isDerivedNode, multiple_replace, isFileNode, allFuncs, getNodeDependencies
+from SConsider.SomeUtils import hasPathPart, isDerivedNode, multiple_replace, isFileNode, allFuncs
 logger = getLogger(__name__)
 
 # needs locking because it is manipulated during multi-threaded build phase
@@ -46,27 +46,6 @@ def addPackageTarget(registry, buildTargets, env, destdir, **kw):
     # build phase
     env.Alias(packageAliasName, maker)
     buildTargets.append(packageAliasName)
-
-
-def getTargetDependencies(target, filters=None):
-    """Determines the recursive dependencies of a target (including itself).
-
-    Specify additional target filters using 'filters'.
-    """
-    if filters is None:
-        filters = []
-    if not isinstance(filters, list):
-        filters = [filters]
-    filters = [isFileNode] + filters
-
-    deps = set()
-    if allFuncs(filters, target):
-        executor = target.get_executor()
-        if executor is not None:
-            deps.update(executor.get_all_targets())
-    deps.update(getNodeDependencies(target, filters))
-
-    return deps
 
 
 def reduceToPackageFiles(install_nodes, filters=None):
@@ -108,9 +87,10 @@ def makePackage(registry, buildTargets, env, destdir, **kw):
     copyfilters = [filterBaseOutDir, filterTestsAppsGlobalsPath, filterVariantPath]
     for tn in buildTargets:
         if registry.isValidFulltargetname(tn):
-            tdeps = getTargetDependencies(
-                env.Alias(tn)[0], [isDerivedNode, isNotInBuilddir, isNotIncludeFile])
-            copyPackage(tn, tdeps, env, destdir, copyfilters)
+            installed_files = env.FindInstalledFiles()
+            reduced_targets = reduceToPackageFiles(installed_files,
+                                                   [isDerivedNode, isNotInBuilddir, isNotIncludeFile])
+            copyPackage(tn, reduced_targets, env, destdir, copyfilters)
 
 
 def copyPackage(name, deps, env, package_destdir, filters=None):
