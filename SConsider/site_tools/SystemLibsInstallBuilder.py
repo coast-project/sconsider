@@ -106,11 +106,6 @@ def installSystemLibs(source):
                         install_node = env.File(os.path.realpath(node.get_abspath()))
                 if not install_node.is_under(ownlibDir):
                     target = install_node_to_destdir(systemLibTargets, install_node, ownlibDir)
-                    # do not create another node with the same name in this case
-                    # /usr/lib/gcc/x86_64-linux-gnu/9/32/libgcc_s.so.1 -> ../../../../../lib32/libgcc_s.so.1
-                    if target and is_link and not node_name == install_node.name:
-                        target = env.Symlink(target[0].get_dir().File(node_name), target)
-                        systemLibTargets[node_name] = target
             if target and not target[0] in source_syslibs:
                 source_syslibs.extend(target)
 
