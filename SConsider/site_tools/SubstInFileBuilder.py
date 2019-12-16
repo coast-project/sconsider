@@ -67,7 +67,7 @@ def getData(keys, env):
     return data
 
 
-def emit(target, source, env):
+def substituted_filename_emitter(target, source, env):
     newTarget = []
     for (t, s) in zip(target, source):
         if isinstance(t, SCons.Node.FS.Dir):
@@ -77,7 +77,7 @@ def emit(target, source, env):
         keys = getKeysFromFile(str(s), getSearchRE(env))
         data = getData(keys, env)
         Depends(t, SCons.Node.Python.Value(data))
-    return newTarget, source
+    return (newTarget, source)
 
 
 def getMarker(env):
@@ -121,8 +121,11 @@ def substInFiles(target, source, env):
 
 
 def generate(env):
+    from SCons.Tool import install
     substInFileAction = SCons.Action.Action(substInFiles, getLogMessage)
-    substInFileBuilder = Builder(action=substInFileAction, emitter=emit)
+    substInFileBuilder = Builder(
+        action=substInFileAction,
+        emitter=[substituted_filename_emitter, install.add_targets_to_INSTALLED_FILES])
     env.Append(BUILDERS={'SubstInFileBuilder': substInFileBuilder})
 
 
