@@ -82,7 +82,7 @@ def installSystemLibs(source):
         # make sure we do not install over an own node
         if env.Dir(install_path).File(node.name).has_builder():
             return None
-        target = env.Install(dir=install_path, source=node)
+        target = env.InstallVersionedLib(dir=install_path, source=node)
         env.AddPostAction(target, Chmod(str(target[0]), mode))
         targets_list[node_name] = target
         return target
