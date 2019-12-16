@@ -341,10 +341,12 @@ def generateWrapperScript(env, target):
 
 
 def generate(env):
+    from SCons.Tool import install
     GenerateScriptAction = SCons.Action.Action(generatePosixScript,
                                                "Creating wrapper script '$TARGET' for '$SOURCE'")
     GenerateScriptBuilder = SCons.Builder.Builder(
-        action=[GenerateScriptAction, SCons.Defaults.Chmod('$TARGET', 0755)], emitter=generateScriptEmitter)
+        action=[GenerateScriptAction, SCons.Defaults.Chmod('$TARGET', 0755)],
+        emitter=[generateScriptEmitter, install.add_targets_to_INSTALLED_FILES])
 
     env.Append(BUILDERS={'GenerateScriptBuilder': GenerateScriptBuilder})
     env.AddMethod(generateWrapperScript, "GenerateWrapperScript")
