@@ -237,7 +237,10 @@ def generate(env):
     from SCons.Tool import install
     SymbolicLinkAction = SCons.Action.Action(createSymLink,
                                              "Generating symbolic link for '$SOURCE' as '$TARGET'")
-    SymbolicLinkBuilder = SCons.Builder.Builder(action=[SymbolicLinkAction])
+    SymbolicLinkBuilder = SCons.Builder.Builder(
+        action=[SymbolicLinkAction],
+        emitter=[install.add_targets_to_INSTALLED_FILES],
+    )
     env.Append(BUILDERS={"Symlink": SymbolicLinkBuilder})
 
     PrecompLibAction = SCons.Action.Action(install.installVerLib_action,
