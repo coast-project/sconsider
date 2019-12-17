@@ -45,10 +45,9 @@ def get_libdirs(env, ownlibDir, finder):
     return libdirs
 
 
-def get_dependent_libs(env, sourcenode, libdirs_func=get_libdirs):
-    ownlibDir = get_library_install_dir(env, sourcenode)
+def get_dependent_libs(env, sourcenode, library_install_dir, libdirs_func=get_libdirs):
     finder = FinderFactory.getForPlatform(env["PLATFORM"])
-    libdirs = libdirs_func(env, ownlibDir, finder)
+    libdirs = libdirs_func(env, library_install_dir, finder)
     return finder.getLibs(env, [sourcenode], libdirs=libdirs)
 
 
@@ -63,7 +62,7 @@ def installSystemLibs(source):
 
     env = sourcenode.get_env()
     ownlibDir = get_library_install_dir(env, sourcenode)
-    deplibs = get_dependent_libs(env, sourcenode)
+    deplibs = get_dependent_libs(env, sourcenode, ownlibDir)
 
     # don't create cycles by copying our own libs
     # but don't mask system libs
@@ -138,7 +137,7 @@ def generate(env, *args, **kw):
                     return []
                 env = sourcenode.get_env()
                 ownlibDir = get_library_install_dir(env, sourcenode)
-                deplibs = get_dependent_libs(env, sourcenode, lambda e, l, f: [ownlibDir])
+                deplibs = get_dependent_libs(env, sourcenode, ownlibDir, lambda e, l, f: [ownlibDir])
                 global systemLibTargets, systemLibTargetsRLock
                 # build phase could be multi-threaded
                 with systemLibTargetsRLock:
