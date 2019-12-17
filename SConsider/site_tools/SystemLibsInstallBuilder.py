@@ -19,12 +19,21 @@ from logging import getLogger
 from SCons.Errors import UserError
 from SCons.Node.Alias import default_ans
 from SConsider.LibFinder import FinderFactory
+from SCons.Tool import install as inst_tool, VersionShLibLinkNames
 logger = getLogger(__name__)
 
 # needs locking because it is manipulated during multi-threaded build phase
 systemLibTargets = {}
 systemLibTargetsRLock = threading.RLock()
 aliasPrefix = '__SystemLibs_'
+
+
+def versionedLibVersion(dest, source, env):
+    # handle interface change for scons >=2.3.6
+    try:
+        return inst_tool.versionedLibVersion(dest, source, env)
+    except TypeError:
+        return inst_tool.versionedLibVersion(dest.path, env)
 
 
 def notInDir(env, directory, path):
@@ -49,6 +58,16 @@ def get_dependent_libs(env, sourcenode, library_install_dir, libdirs_func=get_li
     finder = FinderFactory.getForPlatform(env["PLATFORM"])
     libdirs = libdirs_func(env, library_install_dir, finder)
     return finder.getLibs(env, [sourcenode], libdirs=libdirs)
+
+
+def real_lib_path(env, target):
+    node = target
+    while node.islink():
+        if node.sources:
+            node = node.sources[0]
+        else:
+            node = env.File(os.path.realpath(node.get_abspath()))
+    return node
 
 
 def installSystemLibs(source):
@@ -83,21 +102,32 @@ def installSystemLibs(source):
 
     # build phase could be multi-threaded
     with systemLibTargetsRLock:
-        for node in deplibs:
+        install_dir = env.makeInstallablePathFromDir(ownlibDir)
+        for libnode in deplibs:
+            real_libnode = real_lib_path(env, libnode)
+            node_name = real_libnode.name
             target = []
-            node_name = node.name
             if node_name in systemLibTargets:
                 target = systemLibTargets[node_name]
             else:
-                install_node = node
-                is_link = node.islink()
-                if is_link:
-                    if node.sources:
-                        install_node = node.sources[0]
-                    else:
-                        install_node = env.File(os.path.realpath(node.get_abspath()))
-                if not install_node.is_under(ownlibDir):
-                    target = install_node_to_destdir(systemLibTargets, install_node, ownlibDir)
+                # figure out if we deal with a versioned shared library
+                # otherwise we need to fall back to Install builder and Symlink
+                version, libname, _ = versionedLibVersion(real_libnode, source, env)
+                linknames = []
+                if version:
+                    target = install_node_to_destdir(systemLibTargets,
+                                                     real_libnode,
+                                                     install_dir,
+                                                     fn=env.InstallVersionedLib)
+                    linknames = VersionShLibLinkNames(version, libname, env)
+                else:
+                    target = install_node_to_destdir(systemLibTargets, real_libnode, install_dir)
+                    if not node_name == libnode.name:
+                        fulllinkname = os.path.join(install_dir, libnode.name)
+                        ln_target = env.Symlink(fulllinkname, target[0])
+                        target.extend(ln_target)
+                for linkname in linknames:
+                    systemLibTargets[linkname] = target
             if target and not target[0] in source_syslibs:
                 source_syslibs.extend(target)
 
@@ -128,29 +158,37 @@ def generate(env, *args, **kw):
                 doesn't exist..."""
                 if not sourcenode.exists():
                     return []
+
                 env = sourcenode.get_env()
                 ownlibDir = get_library_install_dir(env, sourcenode)
                 deplibs = get_dependent_libs(env, sourcenode, ownlibDir, lambda e, l, f: [ownlibDir])
                 global systemLibTargets, systemLibTargetsRLock
                 # build phase could be multi-threaded
                 with systemLibTargetsRLock:
-                    # dummy env to resolv installed lib locations
-                    for node_name in deplibs:
-                        node_name_short = os.path.basename(node_name)
-                        libfile = env.arg2nodes(node_name)[0]
-                        if node_name_short not in systemLibTargets and libfile.is_under(
-                                ownlibDir) and not libfile.has_builder():
-                            systemLibTargets[node_name_short] = libfile
-                            if libfile.isfile() or libfile.islink():
-                                env.Clean(sourcenode, libfile)
-                                if libfile.islink():
-                                    path_to_real_lib = os.readlink(libfile.abspath)
-                                    real_lib_name = os.path.basename(path_to_real_lib)
-                                    if real_lib_name not in systemLibTargets:
-                                        real_lib_node = libfile.get_dir().File(real_lib_name)
-                                        if real_lib_node.exists():
-                                            systemLibTargets[real_lib_name] = real_lib_node
-                                            env.Clean(sourcenode, real_lib_node)
+                    for libpath in deplibs:
+                        libfile = env.arg2nodes(libpath)[0]
+                        real_libnode = real_lib_path(env, libfile)
+                        node_name_short = real_libnode.name
+                        if node_name_short not in systemLibTargets:
+                            if real_libnode.is_under(ownlibDir):
+                                version, libname, _ = versionedLibVersion(real_libnode, source, env)
+                                linknames = []
+                                if version:
+                                    linknames = VersionShLibLinkNames(version, libname, env)
+                                else:
+                                    libname = os.path.basename(libpath)
+                                    if not libname == real_libnode.name:
+                                        linknames.append(libname)
+                                systemLibTargets[node_name_short] = real_libnode
+                                if real_libnode.isfile() or real_libnode.islink():
+                                    env.Clean(sourcenode, real_libnode)
+                                for linkname in linknames:
+                                    fulllinkname = ownlibDir.File(linkname)
+                                    systemLibTargets[fulllinkname.name] = fulllinkname
+                                    env.Clean(sourcenode, fulllinkname)
+                            else:
+                                logger.debug('library [%s] is not in ownlibdir', str(real_libnode))
+
             # create intermediate target to which we add dependency in the
             # build phase
             return env.Alias(aliasPrefix + sourcenode.name, target)
