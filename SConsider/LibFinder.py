@@ -19,7 +19,7 @@ import functools
 import itertools
 import operator
 from SConsider.SomeUtils import getFlatENV
-from SConsider.PopenHelper import PopenHelper, ProcessRunner
+from SConsider.PopenHelper import ProcessRunner
 
 
 def uniquelist(iterable):
@@ -79,9 +79,10 @@ class UnixFinder(LibFinder):
                            cwd=os.path.dirname(source[0].get_abspath()),
                            env=getFlatENV(env)) as executor:
             for out, _ in executor:
-                for j in re.findall(r'^.*=>\s*(not found|[^\s^\(]+)', out, re.MULTILINE):
-                    if functools.partial(operator.ne, 'not found')(j):
-                        libs.append(j)
+                for (ln_lib, libpath) in re.findall(r'^\s*(.*)\s+=>\s*(not found|[^\s^\(]+)', out,
+                                                    re.MULTILINE):
+                    if functools.partial(operator.ne, 'not found')(libpath) and not ln_lib.startswith(os.sep):
+                        libs.append(libpath)
         if libnames:
             libs = [j for j in libs if functools.partial(self.__filterLibs, env, libnames=libnames)(j)]
         return libs
@@ -131,9 +132,10 @@ class MacFinder(LibFinder):
                            cwd=os.path.dirname(source[0].get_abspath()),
                            env=getFlatENV(env)) as executor:
             for out, _ in executor:
-                for j in re.findall(r'^.*=>\s*(not found|[^\s^\(]+)', out, re.MULTILINE):
-                    if functools.partial(operator.ne, 'not found')(j):
-                        libs.append(j)
+                for (ln_lib, libpath) in re.findall(r'^\s*(.*)\s+=>\s*(not found|[^\s^\(]+)', out,
+                                                    re.MULTILINE):
+                    if functools.partial(operator.ne, 'not found')(libpath) and not ln_lib.startswith(os.sep):
+                        libs.append(libpath)
 
         if libnames:
             libs = [j for j in libs if functools.partial(self.__filterLibs, env, libnames=libnames)(j)]
