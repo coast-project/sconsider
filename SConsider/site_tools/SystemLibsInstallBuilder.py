@@ -69,21 +69,14 @@ def installSystemLibs(source):
     deplibs = [env.File(j) for j in deplibs if notInDir(env, ownlibDir, j)]
     source_syslibs = []
 
-    def install_node_to_destdir(targets_list, node, destdir):
+    def install_node_to_destdir(targets_list, node, install_path, fn=env.Install):
         from stat import S_IRUSR, S_IRGRP, S_IROTH, S_IXUSR
         from SCons.Defaults import Chmod
         # ensure executable flag on installed shared libs
         mode = S_IRUSR | S_IRGRP | S_IROTH | S_IXUSR
-        node_name = node.name
-        if node_name in targets_list:
-            return targets_list[node_name]
-        install_path = env.makeInstallablePathFromDir(destdir)
-        # make sure we do not install over an own node
-        if env.Dir(install_path).File(node.name).has_builder():
-            return None
-        target = env.InstallVersionedLib(dir=install_path, source=node)
+        target = fn(dir=install_path, source=node)
         env.AddPostAction(target, Chmod(str(target[0]), mode))
-        targets_list[node_name] = target
+        targets_list[node.name] = target
         return target
 
     global systemLibTargets, systemLibTargetsRLock
