@@ -199,13 +199,13 @@ class Win32Finder(LibFinder):
 try:
     from SCons.Tool import EmitLibSymlinks
 except:
-    import SCons.Util
+    from SCons.Util import is_List
     # copied over from scons 2.4.1
     def EmitLibSymlinks(env, symlinks, libnode, **kw):
         """Used by emitters to handle (shared/versioned) library symlinks"""
         nodes = list(set([ x for x,_ in symlinks ] + [libnode]))
         clean_targets = kw.get('clean_targets', [])
-        if not SCons.Util.is_List(clean_targets):
+        if not is_List(clean_targets):
             clean_targets = [ clean_targets ]
 
         for link, linktgt in symlinks:
