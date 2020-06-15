@@ -19,11 +19,10 @@ downgrade.
 import os
 import re
 import platform
-import shutil
-import stat
 from logging import getLogger
 import SCons.Action
 import SCons.Builder
+from SConsider.LibFinder import EmitLibSymlinks, versionedLibVersion
 logger = getLogger(__name__)
 
 
@@ -139,7 +138,7 @@ def findLibrary(env, basedir, libname, dir_has_to_match=True, strict_lib_name_ma
     libVersion = env.get('buildSettings', {}).get('libVersion', '')
     # FIXME: libVersion on win
     if libVersion:
-        sharedLibs = [entry for entry in sharedLibs if entry['libVersion'] == libVersion]
+        sharedLibs = [entry for entry in sharedLibs if entry['libVersion'].startswith(libVersion)]
 
     if preferStaticLib:
         allLibs = staticLibs + sharedLibs
@@ -212,6 +211,12 @@ def precompLibNamesEmitter(target, source, env):
                 target.append(SCons.Script.Dir('.').File(srcfile))
             else:
                 installedTarget = libraryVariantDir.File(srcfile)
+                version, linknames = versionedLibVersion(sourcenode, source, env)
+                if version:
+                    symlinks = map(lambda n: (env.fs.File(n, libraryVariantDir), installedTarget), linknames)
+                    EmitLibSymlinks(env, symlinks, installedTarget)
+                    sourcenode.attributes.shliblinks = symlinks
+
                 target.append(installedTarget)
     return (target, newsource)
 
@@ -235,6 +240,8 @@ def prePackageCollection(env, **_):
 def generate(env):
     from SConsider.Callback import Callback
     from SCons.Tool import install
+    import SCons.Defaults
+
     SymbolicLinkAction = SCons.Action.Action(createSymLink,
                                              "Generating symbolic link for '$SOURCE' as '$TARGET'")
     SymbolicLinkBuilder = SCons.Builder.Builder(
@@ -243,11 +250,14 @@ def generate(env):
     )
     env.Append(BUILDERS={"Symlink": SymbolicLinkBuilder})
 
-    PrecompLibAction = SCons.Action.Action(install.installVerLib_action,
+    def wrapPrecompLibAction(target, source, env):
+        return install.installVerLib_action(target, source, env)
+
+    PrecompLibAction = SCons.Action.Action(wrapPrecompLibAction,
                                            "Installing precompiled library '$SOURCE' as '$TARGET'")
     PrecompLibBuilder = SCons.Builder.Builder(
         action=[PrecompLibAction],
-        emitter=[precompLibNamesEmitter, install.add_versioned_targets_to_INSTALLED_FILES],
+        emitter=[precompLibNamesEmitter, SCons.Defaults.SharedObjectEmitter, install.add_versioned_targets_to_INSTALLED_FILES],
         multi=0,
         source_factory=env.fs.Entry,
         single_source=True)

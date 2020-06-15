@@ -14,26 +14,19 @@ Tool to collect system libraries needed by an executable/shared library
 # -------------------------------------------------------------------------
 
 import os
+import re
 import threading
 from logging import getLogger
 from SCons.Errors import UserError
 from SCons.Node.Alias import default_ans
-from SConsider.LibFinder import FinderFactory
-from SCons.Tool import install as inst_tool, VersionShLibLinkNames
+from SConsider.LibFinder import FinderFactory, EmitLibSymlinks, versionedLibVersion
+from SCons.Tool import install as inst_tool
 logger = getLogger(__name__)
 
 # needs locking because it is manipulated during multi-threaded build phase
 systemLibTargets = {}
 systemLibTargetsRLock = threading.RLock()
 aliasPrefix = '__SystemLibs_'
-
-
-def versionedLibVersion(dest, source, env):
-    # handle interface change for scons >=2.3.6
-    try:
-        return inst_tool.versionedLibVersion(dest, source, env)
-    except TypeError:
-        return inst_tool.versionedLibVersion(dest.path, env)
 
 
 def notInDir(env, directory, path):
@@ -69,11 +62,11 @@ def real_lib_path(env, target):
             node = env.File(os.path.realpath(node.get_abspath()))
     return node
 
-
 def installSystemLibs(source):
     """This function is called during the build phase and adds targets
     dynamically to the dependency tree."""
     from SConsider.PackageRegistry import PackageRegistry
+    from SCons.Defaults import SharedObjectEmitter
     sourcenode = PackageRegistry().getRealTarget(source)
     if not sourcenode:
         return None
@@ -89,12 +82,7 @@ def installSystemLibs(source):
     source_syslibs = []
 
     def install_node_to_destdir(targets_list, node, install_path, fn=env.Install):
-        from stat import S_IRUSR, S_IRGRP, S_IROTH, S_IXUSR
-        from SCons.Defaults import Chmod
-        # ensure executable flag on installed shared libs
-        mode = S_IRUSR | S_IRGRP | S_IROTH | S_IXUSR
         target = fn(dir=install_path, source=node)
-        env.AddPostAction(target, Chmod(str(target[0]), mode))
         targets_list[node.name] = target
         return target
 
@@ -105,6 +93,9 @@ def installSystemLibs(source):
         install_dir = env.makeInstallablePathFromDir(ownlibDir)
         for libnode in deplibs:
             real_libnode = real_lib_path(env, libnode)
+            # tag file node as shared library
+            real_libnode, _ = SharedObjectEmitter([real_libnode],None,None)
+            real_libnode = real_libnode[0]
             node_name = real_libnode.name
             target = []
             if node_name in systemLibTargets:
@@ -112,14 +103,15 @@ def installSystemLibs(source):
             else:
                 # figure out if we deal with a versioned shared library
                 # otherwise we need to fall back to Install builder and Symlink
-                version, libname, _ = versionedLibVersion(real_libnode, source, env)
-                linknames = []
+                version, linknames = versionedLibVersion(real_libnode, source, env)
                 if version:
+                    symlinks = map(lambda n: (env.fs.File(n, install_dir), real_libnode), linknames)
+                    EmitLibSymlinks(env, symlinks, real_libnode)
+                    real_libnode.attributes.shliblinks = symlinks
                     target = install_node_to_destdir(systemLibTargets,
                                                      real_libnode,
                                                      install_dir,
                                                      fn=env.InstallVersionedLib)
-                    linknames = VersionShLibLinkNames(version, libname, env)
                 else:
                     target = install_node_to_destdir(systemLibTargets, real_libnode, install_dir)
                     if not node_name == libnode.name:
@@ -171,11 +163,8 @@ def generate(env, *args, **kw):
                         node_name_short = real_libnode.name
                         if node_name_short not in systemLibTargets:
                             if real_libnode.is_under(ownlibDir):
-                                version, libname, _ = versionedLibVersion(real_libnode, source, env)
-                                linknames = []
-                                if version:
-                                    linknames = VersionShLibLinkNames(version, libname, env)
-                                else:
+                                version, linknames = versionedLibVersion(real_libnode, source, env)
+                                if not version:
                                     libname = os.path.basename(libpath)
                                     if not libname == real_libnode.name:
                                         linknames.append(libname)

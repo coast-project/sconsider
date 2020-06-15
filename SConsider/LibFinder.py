@@ -194,3 +194,51 @@ class Win32Finder(LibFinder):
 
     def getSystemLibDirs(self, env):
         return os.environ['PATH'].split(os.pathsep)
+
+
+try:
+    from SCons.Tool import EmitLibSymlinks
+except:
+    import SCons.Util
+    # copied over from scons 2.4.1
+    def EmitLibSymlinks(env, symlinks, libnode, **kw):
+        """Used by emitters to handle (shared/versioned) library symlinks"""
+        nodes = list(set([ x for x,_ in symlinks ] + [libnode]))
+        clean_targets = kw.get('clean_targets', [])
+        if not SCons.Util.is_List(clean_targets):
+            clean_targets = [ clean_targets ]
+
+        for link, linktgt in symlinks:
+            env.SideEffect(link, linktgt)
+            clean_list = filter(lambda x : x != linktgt, nodes)
+            env.Clean(list(set([linktgt] + clean_targets)), clean_list)
+
+
+# consolidated copy of SCons.Tool.VersionShLibLinkNames
+# and SCons.Tool.install.versionedLibVersion as of scons 2.3.6
+# adapted to accept non-patch versions too
+def versionedLibVersion(dest, source, env):
+    if (hasattr(source[0], 'attributes') and
+        hasattr(source[0].attributes, 'shlibname')):
+        libname = source[0].attributes.shlibname
+    else:
+        libname = os.path.basename(str(dest))
+    shlib_suffix = env.subst('$SHLIBSUFFIX')
+    version_pattern = r'(?P<version>(?P<major>[0-9]+)\.(?P<minor>[0-9]+)(\.?(?P<patch>[0-9a-zA-Z]+))?)'
+    version = None
+    versioned_re = re.compile(r'(?P<libname>.*)(?P<suffix>' + re.escape(shlib_suffix) + r')\.' + version_pattern)
+    result = versioned_re.search(libname)
+    linknames = []
+    if result:
+        version = result.group('version')
+        if version and version.count(".") >= 1:
+            # For libfoo.so.x.y.z, linknames libfoo.so libfoo.so.x.y libfoo.so.x
+            # First linkname has no version number
+            linkname = result.group('libname')+result.group('suffix')
+            linknames.append(linkname)
+            major_name = linkname + "." + result.group('major')
+            for linkname in [major_name, ]:
+                linknames.append(linkname)
+
+    return (version, linknames)
+
