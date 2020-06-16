@@ -62,6 +62,7 @@ def real_lib_path(env, target):
             node = env.File(os.path.realpath(node.get_abspath()))
     return node
 
+
 def installSystemLibs(source):
     """This function is called during the build phase and adds targets
     dynamically to the dependency tree."""
@@ -94,7 +95,7 @@ def installSystemLibs(source):
         for libnode in deplibs:
             real_libnode = real_lib_path(env, libnode)
             # tag file node as shared library
-            real_libnode, _ = SharedObjectEmitter([real_libnode],None,None)
+            real_libnode, _ = SharedObjectEmitter([real_libnode], None, None)
             real_libnode = real_libnode[0]
             node_name = real_libnode.name
             target = []

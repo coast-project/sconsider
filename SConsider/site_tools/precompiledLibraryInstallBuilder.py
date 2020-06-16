@@ -255,12 +255,14 @@ def generate(env):
 
     PrecompLibAction = SCons.Action.Action(wrapPrecompLibAction,
                                            "Installing precompiled library '$SOURCE' as '$TARGET'")
-    PrecompLibBuilder = SCons.Builder.Builder(
-        action=[PrecompLibAction],
-        emitter=[precompLibNamesEmitter, SCons.Defaults.SharedObjectEmitter, install.add_versioned_targets_to_INSTALLED_FILES],
-        multi=0,
-        source_factory=env.fs.Entry,
-        single_source=True)
+    PrecompLibBuilder = SCons.Builder.Builder(action=[PrecompLibAction],
+                                              emitter=[
+                                                  precompLibNamesEmitter, SCons.Defaults.SharedObjectEmitter,
+                                                  install.add_versioned_targets_to_INSTALLED_FILES
+                                              ],
+                                              multi=0,
+                                              source_factory=env.fs.Entry,
+                                              single_source=True)
 
     env.Append(BUILDERS={'PrecompiledLibraryInstallBuilder': PrecompLibBuilder})
 
