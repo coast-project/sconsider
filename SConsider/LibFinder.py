@@ -224,7 +224,7 @@ def versionedLibVersion(dest, source, env):
     else:
         libname = os.path.basename(str(dest))
     shlib_suffix = env.subst('$SHLIBSUFFIX')
-    version_pattern = r'(?P<version>(?P<major>[0-9]+)\.(?P<minor>[0-9]+)(\.?(?P<patch>[0-9a-zA-Z]+))?)'
+    version_pattern = r'(?P<version>(?P<major>[0-9]+)(\.(?P<minor>[0-9]+)(\.(?P<patch>[0-9a-zA-Z]+))?)?)'
     version = None
     versioned_re = re.compile(r'(?P<libname>.*)(?P<suffix>' + re.escape(shlib_suffix) + r')\.' +
                               version_pattern)
@@ -232,15 +232,13 @@ def versionedLibVersion(dest, source, env):
     linknames = []
     if result:
         version = result.group('version')
-        if version and version.count(".") >= 1:
+        if version is not None:
             # For libfoo.so.x.y.z, linknames libfoo.so libfoo.so.x.y libfoo.so.x
             # First linkname has no version number
             linkname = result.group('libname') + result.group('suffix')
-            linknames.append(linkname)
-            major_name = linkname + "." + result.group('major')
-            for linkname in [
-                    major_name,
-            ]:
-                linknames.append(linkname)
+            for topdownversion in [result.group('major'), result.group('minor')]:
+                if topdownversion is not None:
+                    linknames.append(linkname)
+                    linkname = linkname + "." + topdownversion
 
     return (version, linknames)

@@ -31,7 +31,7 @@ class TargetMaker(object):
         self.targetlist = tlist.copy()
         self.registry = registry
         self.lookupStack = []
-        self.version_re_str = r'(\.[0-9]+\.[0-9]+(\.[0-9a-zA-Z]+)?)?'
+        self.version_re_str = r'(\.[0-9]+(\.[0-9]+(\.[0-9a-zA-Z]+)?)?)?'
 
     def pushItem(self, current_target):
         self.lookupStack.append(current_target)
