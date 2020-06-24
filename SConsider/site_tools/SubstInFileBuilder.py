@@ -77,6 +77,8 @@ def substituted_filename_emitter(target, source, env):
         keys = getKeysFromFile(str(s), getSearchRE(env))
         data = getData(keys, env)
         Depends(t, SCons.Node.Python.Value(data))
+        env.AlwaysBuild(newTarget)
+
     return (newTarget, source)
 
 
