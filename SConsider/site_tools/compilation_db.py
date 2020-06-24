@@ -53,6 +53,8 @@ if SCons.Util.case_sensitive_suffixes(".c", ".C"):
 
 _configure_tmpfile_re = re.compile(r'conftest_\d+\.c')
 
+_third_party_prefix = None
+
 
 # We make no effort to avoid rebuilding the entries. Someday, perhaps we could and even
 # integrate with the cache, but there doesn't seem to be much call for it.
@@ -89,6 +91,8 @@ def makeEmitCompilationDbEntry(comstr):
         """
 
         if _configure_tmpfile_re.match(source[0].name):
+            return target, source
+        if _third_party_prefix and source[0].path.find(_third_party_prefix) >= 0:
             return target, source
 
         dbtarget = __CompilationDbNode(source)
@@ -158,6 +162,8 @@ def ScanCompilationDb(node, env, path):
 
 def generate(env, **kwargs):
 
+    from SCons.Script import GetOption
+
     static_obj, shared_obj = SCons.Tool.createObjBuilders(env)
 
     env["COMPILATIONDB_COMSTR"] = kwargs.get("COMPILATIONDB_COMSTR", "Building compilation database $TARGET")
@@ -197,6 +203,12 @@ def generate(env, **kwargs):
         action=SCons.Action.Action(WriteCompilationDb, "$COMPILATIONDB_COMSTR"),
         target_scanner=SCons.Scanner.Scanner(function=ScanCompilationDb, node_class=None),
     )
+
+    try:
+        global _third_party_prefix
+        _third_party_prefix = str(GetOption('3rdparty-build-prefix'))
+    except AttributeError:
+        pass
 
     def CompilationDatabase(env, target):
         result = env.__COMPILATIONDB_Database(target=target, source=[])
