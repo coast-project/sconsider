@@ -315,7 +315,8 @@ Original exception message:
                 return [j for j in targetlist if j is not None]
             else:
                 target = self.getPackageTarget(pname, tname)
-                return target.depends + target.prerequisites
+                prereq = target.prerequisites if target.prerequisites else []
+                return target.depends + prereq
 
         def get_fulltargetname(target=None):
             if isinstance(target, str):
