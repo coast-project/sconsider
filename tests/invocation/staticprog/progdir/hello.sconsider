@@ -12,14 +12,22 @@
 import pkg_resources
 pkg_resources.require(["SConsider"])
 import os
-import tempfile
+from socket import gethostbyname
+from tempfile import gettempdir
 from stat import *
-from SomeUtils import listFiles
+from SomeUtils import findFiles, listFiles, getfqdn
 
 Import('*')
 
-searchReplace = {
-    'TMPDIR': lambda env: tempfile.gettempdir() if str(env['PLATFORM']) in ['cygwin', 'win32'] else '/tmp',
+configdir = 'config'
+hostname, domain, fqdn = getfqdn()
+
+searchReplaceDict = {
+    'FQDN': fqdn,
+    'HOSTNAME': hostname,
+    'HOSTNAMEIP': gethostbyname(hostname),
+    'DOMAINONLY': domain,
+    'TMPDIR': lambda env: gettempdir() if str(env['PLATFORM']) in ['cygwin', 'win32'] else '/tmp',
 }
 
 
@@ -33,8 +41,10 @@ def tearDown(target, source, env):
 
 programDepends = []
 sourceFiles = ['hello.cpp']
+includeSubdir = '.'
+exportIncludes = listFiles([os.path.join(includeSubdir, '*.h')])
 copyFiles = [
-    (listFiles(['config/*.any']), S_IRUSR | S_IRGRP | S_IROTH, searchReplace),
+    (listFiles([os.path.join(configdir, '*.any')]), S_IRUSR | S_IRGRP | S_IROTH, searchReplaceDict),
 ]
 bin_name = 'hello'
 runConfigRunner = {
@@ -52,6 +62,11 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             'sourceFiles': sourceFiles,
             'targetType': 'Program',
             'targetName': bin_name,
+            'includeSubdir': includeSubdir,
+            'public': {
+                'includeSubdir': includeSubdir,
+                'includes': exportIncludes,
+            }
         },
         'runner': {
             'targetType': 'ProgramApp',
@@ -71,7 +86,16 @@ elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
     def setRelTargetDir(env, prefix='apps'):
         env.setRelativeTargetDirectory(os.path.join(prefix, packagename))
 
-    bin_target = createPackageProgram(packagename, bin_name, sourceFiles, pkg_local=[setRelTargetDir])
+    # create own library
+    includeTarget = EnvBuilder(
+        export=[EnvBuilder().include(Dir(includeSubdir))]).build().RegisterPackageTarget(
+            packagename=packagename, targetname='include')
+
+    bin_target = createPackageProgram(packagename,
+                                      bin_name,
+                                      sourceFiles,
+                                      depend=[includeTarget],
+                                      pkg_local=[setRelTargetDir])
 
     copyTarget = createCopyFilesTarget(packagename,
                                        'configfiles',
@@ -93,5 +117,6 @@ elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
 
     createAlias('binaries', runner_target)
 
-    EnvBuilder().depend(bin_target, script_target).build().RegisterPackageTarget(packagename=packagename,
-                                                                                 targetname=packagename)
+    EnvBuilder().depend(includeTarget, bin_target,
+                        script_target).build().RegisterPackageTarget(packagename=packagename,
+                                                                     targetname=packagename)
