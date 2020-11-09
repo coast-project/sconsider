@@ -168,8 +168,8 @@ def generate(env):
               help='Specify directory prefix for third party build output, default=["' + prefix_default +
               '"]')
 
-    Callback().register('PostPackageCollection', postPackageCollection)
     Callback().register('PrePackageCollection', prePackageCollection)
+    Callback().register('PostPackageCollection', postPackageCollection)
 
 
 def exists(env):

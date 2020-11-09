@@ -15,9 +15,9 @@ syntax
 # -------------------------------------------------------------------------
 
 import re
-import SCons.Node
-import SCons.Action
-from SCons.Script import Depends, Builder
+from SCons.Action import Action
+from SCons.Builder import Builder
+from SCons.Script import Depends
 
 
 def substInFile(target, source, searchre, subfn):
@@ -68,15 +68,16 @@ def getData(keys, env):
 
 
 def substituted_filename_emitter(target, source, env):
+    from SCons.Node import FS, Python
     newTarget = []
     for (t, s) in zip(target, source):
-        if isinstance(t, SCons.Node.FS.Dir):
+        if isinstance(t, FS.Dir):
             newTarget.append(t.File(s.name))
         else:
             newTarget.append(t)
         keys = getKeysFromFile(str(s), getSearchRE(env))
         data = getData(keys, env)
-        Depends(t, SCons.Node.Python.Value(data))
+        Depends(t, Python.Value(data))
         env.AlwaysBuild(newTarget)
 
     return (newTarget, source)
@@ -124,7 +125,7 @@ def substInFiles(target, source, env):
 
 def generate(env):
     from SCons.Tool import install
-    substInFileAction = SCons.Action.Action(substInFiles, getLogMessage)
+    substInFileAction = Action(substInFiles, getLogMessage)
     substInFileBuilder = Builder(
         action=substInFileAction,
         emitter=[substituted_filename_emitter, install.add_targets_to_INSTALLED_FILES])
