@@ -232,7 +232,7 @@ def test_SConsiderStaticProgBuildPackage(copy_testdir_to_tmp, pypath_extended_en
     assert copy_testdir_to_tmp.join('apps').join('hello').join('config').isdir()
     assert_outputfiles_exist(packagedir,
                              expected_files_param=[
-                                 'hello/scripts/hellorunner.sh', 'hello/bin/hellorunner', 'hello/lib/lib*.so',
+                                 'hello/scripts/hello*.sh', 'hello/bin/*hello*', 'hello/lib/lib*.so',
                                  'hello/config/Defaults.any'
                              ])
 
@@ -313,7 +313,7 @@ def test_WrapperScriptHelpList(copy_testdir_to_tmp, pypath_extended_env, popen_t
                 sys.stderr.write(err)
     assert 2 == excinfo.value.returncode
     captured = capfd.readouterr()
-    assert 'usage: hellorunner.sh [options]' in captured.out
+    assert re.search(r'usage: hello(runner)?\.sh \[options\]', captured.out, re.M) is not None
     assert 'where options are:' in captured.out
 
 
@@ -387,4 +387,4 @@ def test_WrapperScriptCommandOverride(copy_testdir_to_tmp, pypath_extended_env, 
             sys.stderr.write(err)
     assert 0 == executor.returncode
     captured = capfd.readouterr()
-    assert re.search('args to command:.*hellorunner', captured.out, re.M) is not None
+    assert re.search('args to command:.*(bin_hello|hellorunner)', captured.out, re.M) is not None
