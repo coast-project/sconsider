@@ -191,7 +191,10 @@ class PackageRegistry(object):
         return packagename + targetname if packagename != targetname else targetname
 
     @staticmethod
-    def collectPackageFiles(directory, match_func, file_ext='sconsider', excludes_rel=None,
+    def collectPackageFiles(directory,
+                            match_func,
+                            file_ext='sconsider',
+                            excludes_rel=None,
                             excludes_abs=None):
         """Recursively collects SConsider packages.
 
@@ -305,14 +308,15 @@ Original exception message:
     def getPackageTargetDependencies(self, packagename, targetname, callerdeps=None):
         def get_dependent_targets(pname, tname):
             if hasattr(self, 'getBuildSettings'):
-                targetBuildSettings = self.getBuildSettings(packagename).get(targetname, {})
+                targetBuildSettings = self.getBuildSettings(packagename, targetname)
                 targetlist = targetBuildSettings.get('requires', [])
                 targetlist.extend(targetBuildSettings.get('linkDependencies', []))
                 targetlist.extend([targetBuildSettings.get('usedTarget', None)])
                 return [j for j in targetlist if j is not None]
             else:
                 target = self.getPackageTarget(pname, tname)
-                return target.depends + target.prerequisites
+                prereq = target.prerequisites if target.prerequisites else []
+                return target.depends + prereq
 
         def get_fulltargetname(target=None):
             if isinstance(target, str):

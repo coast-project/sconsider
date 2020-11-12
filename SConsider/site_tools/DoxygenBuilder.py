@@ -22,10 +22,18 @@ from SConsider.PopenHelper import ProcessRunner
 logger = getLogger(__name__)
 
 
+def __get_buildsettings(registry, packagename):
+    if hasattr(registry, 'getBuildSettings'):
+        buildSettings = registry.getBuildSettings(packagename)
+    else:
+        buildSettings = {}
+    return buildSettings
+
+
 def __get_dependencies(registry, packagename, fnobj, recursive=False):
     dependencies = set()
 
-    buildSettings = registry.getBuildSettings(packagename)
+    buildSettings = __get_buildsettings(registry, packagename)
     for _, settings in buildSettings.items():
         deps = settings.get('requires', []) + settings.get('linkDependencies', [])
         usedTarget = settings.get('usedTarget', '')
@@ -68,7 +76,6 @@ def getPackageInputDirs(registry, packagename, relativeTo=None):
     if not relativeTo:
         relativeTo = registry.getPackageDir(packagename).get_abspath()
 
-    buildSettings = registry.getBuildSettings(packagename)
     sourceDirs = set()
     includeBasedir = registry.getPackageDir(packagename)
 
@@ -78,11 +85,12 @@ def getPackageInputDirs(registry, packagename, relativeTo=None):
         else:
             return abspath
 
-    import SCons
+    buildSettings = __get_buildsettings(registry, packagename)
+    from SCons.Node import FS
     for _, settings in buildSettings.items():
         # directories of own cpp files
         for sourcefile in settings.get('sourceFiles', []):
-            if not isinstance(sourcefile, SCons.Node.FS.File):
+            if not isinstance(sourcefile, FS.File):
                 sourcefile = includeBasedir.File(sourcefile)
             sourceDirs.add(resolvePath(sourcefile.srcnode().dir.get_abspath(), relativeTo))
 
@@ -96,7 +104,7 @@ def getPackageInputDirs(registry, packagename, relativeTo=None):
 
         # directories of own public headers which are going to be copied
         for sourcefile in settings.get('public', {}).get('includes', []):
-            if not isinstance(sourcefile, SCons.Node.FS.File):
+            if not isinstance(sourcefile, FS.File):
                 sourcefile = includeBasedir.File(sourcefile)
             sourceDirs.add(resolvePath(sourcefile.srcnode().dir.get_abspath(), relativeTo))
 
@@ -106,7 +114,7 @@ def getPackageInputDirs(registry, packagename, relativeTo=None):
 def getHeaderFiles(registry, packagename):
     """Gets the header files using this package's build settings."""
     headers = []
-    buildSettings = registry.getBuildSettings(packagename)
+    buildSettings = __get_buildsettings(registry, packagename)
     for _, settings in buildSettings.items():
         for headerFile in settings.get("public", {}).get("includes", []):
             import SCons
@@ -119,7 +127,7 @@ def getHeaderFiles(registry, packagename):
 def getSourceFiles(registry, packagename):
     """Gets the source files using this package's build settings."""
     sources = []
-    buildSettings = registry.getBuildSettings(packagename)
+    buildSettings = __get_buildsettings(registry, packagename)
     for _, settings in buildSettings.items():
         for sourcefile in settings.get('sourceFiles', []):
             import SCons
@@ -610,7 +618,8 @@ def createDoxygenAllTarget(registry):
     def isExcludedPackage(packagename):
         if packagename in thirdparty:
             return True
-        for _, settings in registry.getBuildSettings(packagename).iteritems():
+        buildSettings = __get_buildsettings(registry, packagename)
+        for _, settings in buildSettings.iteritems():
             if settings.get('runConfig', {}).get('type', '') == 'test':
                 return True
         return False

@@ -9,7 +9,6 @@
 # -------------------------------------------------------------------------
 
 import Package
-import SomeUtils
 
 
 class UpdateableObject(object):
@@ -54,39 +53,6 @@ class TargetStub(UpdateableObject):
         target.
         """
         return hasattr(self, 'builder') and self.builder is not None
-
-
-class TestPackageTool(object):
-    def setup_method(self, method):
-        self.source1 = TargetStub(path="source1")
-        self.source2 = TargetStub(path="source2")
-        self.source3 = TargetStub(path="source3")
-
-        self.blub = TargetStub(path="blub", sources=[self.source1])
-        self.bla = TargetStub(path="bla", sources=[self.source1, self.source2])
-        self.bloek = TargetStub(path="bloek", sources=[self.source2, self.source3])
-
-        self.alias = TargetStub(sources=[self.blub], depends=[self.bla], prerequisites=[self.bloek])
-
-    def test_TargetDependenciesAlias(self):
-        deps = Package.getTargetDependencies(self.alias)
-        assert len(deps) == 6
-
-    def test_DerivedTargetDependenciesZero(self):
-        deps = Package.getTargetDependencies(self.alias, SomeUtils.isDerivedNode)
-        assert len(deps) == 0
-
-    def test_DerivedTargetDependencies(self):
-        self.blub.builder = object()
-        self.bla.builder = object()
-        deps = Package.getTargetDependencies(self.alias, SomeUtils.isDerivedNode)
-        assert len(deps) == 2
-
-    def test_TargetDependenciesTarget(self):
-        self.alias.path = "target1"
-        self.alias.builder = object()
-        deps = Package.getTargetDependencies(self.alias, SomeUtils.isDerivedNode)
-        assert len(deps) == 1
 
 
 class TestInstalledNode(object):

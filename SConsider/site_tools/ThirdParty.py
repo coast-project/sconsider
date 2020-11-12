@@ -142,8 +142,9 @@ def postPackageCollection(env, registry, **kw):
 
 def prePackageCollection(env, **_):
     # we require ConfigureHelper
-    if 'ConfigureHelper' not in env['TOOLS']:
-        env.Tool('ConfigureHelper')
+    for required_tool in ['ConfigureHelper']:
+        if required_tool not in env['TOOLS']:
+            env.Tool(required_tool)
 
 
 def get_third_party_default():
@@ -167,8 +168,8 @@ def generate(env):
               help='Specify directory prefix for third party build output, default=["' + prefix_default +
               '"]')
 
-    Callback().register('PostPackageCollection', postPackageCollection)
     Callback().register('PrePackageCollection', prePackageCollection)
+    Callback().register('PostPackageCollection', postPackageCollection)
 
 
 def exists(env):

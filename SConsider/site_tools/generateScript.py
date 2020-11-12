@@ -17,8 +17,8 @@ SConsider-specific stand alone script to execute programs
 import os
 import datetime
 import tempfile
-import SCons.Action
-import SCons.Builder
+from SCons.Action import Action
+from SCons.Builder import Builder
 from SConsider.SomeUtils import getPyFilename
 
 
@@ -341,10 +341,12 @@ def generateWrapperScript(env, target):
 
 
 def generate(env):
-    GenerateScriptAction = SCons.Action.Action(generatePosixScript,
-                                               "Creating wrapper script '$TARGET' for '$SOURCE'")
-    GenerateScriptBuilder = SCons.Builder.Builder(
-        action=[GenerateScriptAction, SCons.Defaults.Chmod('$TARGET', 0755)], emitter=generateScriptEmitter)
+    from SCons.Tool import install
+    from SCons.Defaults import Chmod
+    GenerateScriptAction = Action(generatePosixScript, "Creating wrapper script '$TARGET' for '$SOURCE'")
+    GenerateScriptBuilder = Builder(action=[GenerateScriptAction,
+                                            Chmod('$TARGET', 0755)],
+                                    emitter=[generateScriptEmitter, install.add_targets_to_INSTALLED_FILES])
 
     env.Append(BUILDERS={'GenerateScriptBuilder': GenerateScriptBuilder})
     env.AddMethod(generateWrapperScript, "GenerateWrapperScript")

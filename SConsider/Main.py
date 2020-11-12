@@ -73,7 +73,7 @@ def setup_main_logging(default_level=DEFAULT_LEVEL):
 
 
 def ensure_prerequisites():
-    EnsureSConsVersion(2, 3, 0)
+    EnsureSConsVersion(2, 5, 0)
     EnsurePythonVersion(2, 6)
 
 

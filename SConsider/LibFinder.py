@@ -19,7 +19,7 @@ import functools
 import itertools
 import operator
 from SConsider.SomeUtils import getFlatENV
-from SConsider.PopenHelper import PopenHelper, ProcessRunner
+from SConsider.PopenHelper import ProcessRunner
 
 
 def uniquelist(iterable):
@@ -79,9 +79,10 @@ class UnixFinder(LibFinder):
                            cwd=os.path.dirname(source[0].get_abspath()),
                            env=getFlatENV(env)) as executor:
             for out, _ in executor:
-                for j in re.findall(r'^.*=>\s*(not found|[^\s^\(]+)', out, re.MULTILINE):
-                    if functools.partial(operator.ne, 'not found')(j):
-                        libs.append(j)
+                for (ln_lib, libpath) in re.findall(r'^\s*(.*)\s+=>\s*(not found|[^\s^\(]+)', out,
+                                                    re.MULTILINE):
+                    if functools.partial(operator.ne, 'not found')(libpath) and not ln_lib.startswith(os.sep):
+                        libs.append(libpath)
         if libnames:
             libs = [j for j in libs if functools.partial(self.__filterLibs, env, libnames=libnames)(j)]
         return libs
@@ -131,9 +132,10 @@ class MacFinder(LibFinder):
                            cwd=os.path.dirname(source[0].get_abspath()),
                            env=getFlatENV(env)) as executor:
             for out, _ in executor:
-                for j in re.findall(r'^.*=>\s*(not found|[^\s^\(]+)', out, re.MULTILINE):
-                    if functools.partial(operator.ne, 'not found')(j):
-                        libs.append(j)
+                for (ln_lib, libpath) in re.findall(r'^\s*(.*)\s+=>\s*(not found|[^\s^\(]+)', out,
+                                                    re.MULTILINE):
+                    if functools.partial(operator.ne, 'not found')(libpath) and not ln_lib.startswith(os.sep):
+                        libs.append(libpath)
 
         if libnames:
             libs = [j for j in libs if functools.partial(self.__filterLibs, env, libnames=libnames)(j)]
@@ -192,3 +194,51 @@ class Win32Finder(LibFinder):
 
     def getSystemLibDirs(self, env):
         return os.environ['PATH'].split(os.pathsep)
+
+
+try:
+    from SCons.Tool import EmitLibSymlinks
+except:
+    from SCons.Util import is_List
+
+    # copied over from scons 2.4.1
+    def EmitLibSymlinks(env, symlinks, libnode, **kw):
+        """Used by emitters to handle (shared/versioned) library symlinks."""
+        nodes = list(set([x for x, _ in symlinks] + [libnode]))
+        clean_targets = kw.get('clean_targets', [])
+        if not is_List(clean_targets):
+            clean_targets = [clean_targets]
+
+        for link, linktgt in symlinks:
+            env.SideEffect(link, linktgt)
+            clean_list = filter(lambda x: x != linktgt, nodes)
+            env.Clean(list(set([linktgt] + clean_targets)), clean_list)
+
+
+# consolidated copy of SCons.Tool.VersionShLibLinkNames
+# and SCons.Tool.install.versionedLibVersion as of scons 2.3.6
+# adapted to accept non-patch versions too
+def versionedLibVersion(dest, source, env):
+    if (hasattr(source[0], 'attributes') and hasattr(source[0].attributes, 'shlibname')):
+        libname = source[0].attributes.shlibname
+    else:
+        libname = os.path.basename(str(dest))
+    shlib_suffix = env.subst('$SHLIBSUFFIX')
+    version_pattern = r'(?P<version>(?P<major>[0-9]+)(\.(?P<minor>[0-9]+)(\.(?P<patch>[0-9a-zA-Z]+))?)?)'
+    version = None
+    versioned_re = re.compile(r'(?P<libname>.*)(?P<suffix>' + re.escape(shlib_suffix) + r')\.' +
+                              version_pattern)
+    result = versioned_re.search(libname)
+    linknames = []
+    if result:
+        version = result.group('version')
+        if version is not None:
+            # For libfoo.so.x.y.z, linknames libfoo.so libfoo.so.x.y libfoo.so.x
+            # First linkname has no version number
+            linkname = result.group('libname') + result.group('suffix')
+            for topdownversion in [result.group('major'), result.group('minor')]:
+                if topdownversion is not None:
+                    linknames.append(linkname)
+                    linkname = linkname + "." + topdownversion
+
+    return (version, linknames)

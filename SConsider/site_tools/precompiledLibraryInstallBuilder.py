@@ -19,11 +19,10 @@ downgrade.
 import os
 import re
 import platform
-import shutil
-import stat
 from logging import getLogger
-import SCons.Action
-import SCons.Builder
+from SCons.Action import Action
+from SCons.Builder import Builder
+from SConsider.LibFinder import EmitLibSymlinks, versionedLibVersion
 logger = getLogger(__name__)
 
 
@@ -139,7 +138,7 @@ def findLibrary(env, basedir, libname, dir_has_to_match=True, strict_lib_name_ma
     libVersion = env.get('buildSettings', {}).get('libVersion', '')
     # FIXME: libVersion on win
     if libVersion:
-        sharedLibs = [entry for entry in sharedLibs if entry['libVersion'] == libVersion]
+        sharedLibs = [entry for entry in sharedLibs if entry['libVersion'].startswith(libVersion)]
 
     if preferStaticLib:
         allLibs = staticLibs + sharedLibs
@@ -169,7 +168,7 @@ def findBinary(env, basedir, binaryname):
 
 
 def precompBinNamesEmitter(target, source, env):
-    target = []
+    del target[:]
     newsource = []
     binaryVariantDir = env.getBinaryInstallDir()
     for src in source:
@@ -193,7 +192,7 @@ def precompBinNamesEmitter(target, source, env):
 
 
 def precompLibNamesEmitter(target, source, env):
-    target = []
+    del target[:]
     newsource = []
     libraryVariantDir = env.getLibraryInstallDir(withRelTarget=True)
     for src in source:
@@ -202,7 +201,7 @@ def precompLibNamesEmitter(target, source, env):
         if not hasattr(src, 'srcnode'):
             src = env.File(str(src))
         path, libname = os.path.split(src.srcnode().get_abspath())
-        srcpath, srcfile, linkfile, isStaticLib = findLibrary(env, path, libname)
+        srcpath, srcfile, _, isStaticLib = findLibrary(env, path, libname)
         if srcfile:
             sourcenode = env.File(os.path.join(srcpath, srcfile))
             """replace default environment with the current one to propagate settings"""
@@ -212,33 +211,14 @@ def precompLibNamesEmitter(target, source, env):
                 target.append(SCons.Script.Dir('.').File(srcfile))
             else:
                 installedTarget = libraryVariantDir.File(srcfile)
+                version, linknames = versionedLibVersion(sourcenode, source, env)
+                if version:
+                    symlinks = map(lambda n: (env.fs.File(n, libraryVariantDir), installedTarget), linknames)
+                    EmitLibSymlinks(env, symlinks, installedTarget)
+                    sourcenode.attributes.shliblinks = symlinks
+
                 target.append(installedTarget)
-                if srcfile != linkfile:
-                    linkTarget = libraryVariantDir.File(linkfile)
-                    target.append(linkTarget)
     return (target, newsource)
-
-
-def copyFunc(dest, source, env):
-    """Install a source file or directory into a destination by copying,
-    (including copying permission/mode bits)."""
-    if os.path.isdir(source):
-        if os.path.exists(dest):
-            if not os.path.isdir(dest):
-                raise SCons.Errors.UserError(
-                    'cannot overwrite non-directory [{0}] with a directory [{1}]'.format(
-                        str(dest), str(source)))
-        else:
-            parent = os.path.split(dest)[0]
-            if not os.path.exists(parent):
-                os.makedirs(parent)
-        shutil.copytree(source, dest)
-    else:
-        shutil.copy2(source, dest)
-        st = os.stat(source)
-        os.chmod(dest, stat.S_IMODE(st[stat.ST_MODE]) | stat.S_IWRITE)
-
-    return 0
 
 
 def createSymLink(target, source, env):
@@ -250,44 +230,44 @@ def createSymLink(target, source, env):
     os.symlink(relSrc, dest)
 
 
-def installFunc(target, source, env):
-    """Install a source file into a target using the function specified as the
-    INSTALL construction variable."""
-    for t, s in zip(target, source):
-        if copyFunc(t.get_path(), s.get_path(), env):
-            return 1
-    if len(target) > len(source):
-        createSymLink(target[1], target[0], env)
-    return 0
-
-
 def prePackageCollection(env, **_):
-    # ensure we have getBitwidth() available
-    if 'setupBuildTools' not in env['TOOLS']:
-        raise SCons.Errors.UserError('setupBuildTools is required for\
- precompiledLibraryInstallBuilder')
+    # ensure we have getBitwidth() and other functions available
+    for required_tool in ['setupBuildTools']:
+        if required_tool not in env['TOOLS']:
+            env.Tool(required_tool)
 
 
 def generate(env):
     from SConsider.Callback import Callback
-    SymbolicLinkAction = SCons.Action.Action(createSymLink,
-                                             "Generating symbolic link for '$SOURCE' as '$TARGET'")
-    SymbolicLinkBuilder = SCons.Builder.Builder(action=[SymbolicLinkAction])
+    from SCons.Tool import install
+    import SCons.Defaults
+
+    SymbolicLinkAction = Action(createSymLink, "Generating symbolic link for '$SOURCE' as '$TARGET'")
+    SymbolicLinkBuilder = Builder(
+        action=[SymbolicLinkAction],
+        emitter=[install.add_targets_to_INSTALLED_FILES],
+    )
     env.Append(BUILDERS={"Symlink": SymbolicLinkBuilder})
 
-    PrecompLibAction = SCons.Action.Action(installFunc,
-                                           "Installing precompiled library '$SOURCE' as '$TARGET'")
-    PrecompLibBuilder = SCons.Builder.Builder(action=[PrecompLibAction],
-                                              emitter=precompLibNamesEmitter,
-                                              single_source=True)
+    def wrapPrecompLibAction(target, source, env):
+        return install.installVerLib_action(target, source, env)
+
+    PrecompLibAction = Action(wrapPrecompLibAction, "Installing precompiled library '$SOURCE' as '$TARGET'")
+    PrecompLibBuilder = Builder(action=[PrecompLibAction],
+                                emitter=[
+                                    precompLibNamesEmitter, SCons.Defaults.SharedObjectEmitter,
+                                    install.add_versioned_targets_to_INSTALLED_FILES
+                                ],
+                                multi=0,
+                                source_factory=env.fs.Entry,
+                                single_source=True)
 
     env.Append(BUILDERS={'PrecompiledLibraryInstallBuilder': PrecompLibBuilder})
 
-    PrecompBinAction = SCons.Action.Action(installFunc,
-                                           "Installing precompiled binary '$SOURCE' as '$TARGET'")
-    PrecompBinBuilder = SCons.Builder.Builder(action=[PrecompBinAction],
-                                              emitter=precompBinNamesEmitter,
-                                              single_source=False)
+    PrecompBinAction = Action(install.installFunc, "Installing precompiled binary '$SOURCE' as '$TARGET'")
+    PrecompBinBuilder = Builder(action=[PrecompBinAction],
+                                emitter=[precompBinNamesEmitter, install.add_targets_to_INSTALLED_FILES],
+                                single_source=False)
 
     env.Append(BUILDERS={'PrecompiledBinaryInstallBuilder': PrecompBinBuilder})
     Callback().register('PrePackageCollection', prePackageCollection)
