@@ -15,9 +15,14 @@ from SomeUtils import listFiles
 Import('*')
 
 _sconsider_dist = pkg_resources.get_distribution("SConsider").parsed_version
+if _sconsider_dist < pkg_resources.parse_version("0.3.10"):
+    from SConsider.PackageRegistry import createFulltargetname
+else:
+    from SConsider.PackageRegistry import PackageRegistry
+    createFulltargetname = PackageRegistry.createFulltargetname
+
 if _sconsider_dist < pkg_resources.parse_version("0.5"):
     from SConsider import createTargets
-    from SConsider.PackageRegistry import PackageRegistry
     buildSettings = {
         'include': {
             'public': {
