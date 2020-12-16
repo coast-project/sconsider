@@ -10,13 +10,21 @@
 # -------------------------------------------------------------------------
 
 import pkg_resources
+
 pkg_resources.require(["SConsider"])
 Import('*')
 
 _sconsider_dist = pkg_resources.get_distribution("SConsider").parsed_version
+if _sconsider_dist < pkg_resources.parse_version("0.3.10"):
+    from SConsider.PackageRegistry import createFulltargetname
+else:
+    from SConsider.PackageRegistry import PackageRegistry
+    createFulltargetname = PackageRegistry.createFulltargetname
+
 if _sconsider_dist < pkg_resources.parse_version("0.5"):
     from ConfigureHelper import Configure
-    from SConsider import createTargets, cloneBaseEnv
+
+    from SConsider import cloneBaseEnv, createTargets
     env = cloneBaseEnv()
     conf = Configure(env)
     if conf.CheckLibWithHeader('mysqlclient', 'mysql/mysql.h', 'C'):
@@ -28,7 +36,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     if 'HAS_MYSQL' in env['CPPDEFINES']:
         buildSettings[packagename] = {
             'linkDependencies': [
-                packagename + '.mysqlclient',
+                createFulltargetname(packagename, 'mysqlclient'),
             ],
         }
         buildSettings['mysqlclient'] = {
@@ -47,16 +55,20 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
                 'targetType': 'ProgramApp',
                 'runConfig': {},
                 'requires': [
-                    packagename + '.mysqlclient',
+                    createFulltargetname(packagename, 'mysqlclient'),
                 ],
-                'usedTarget': packagename + '.mysqlbin',
+                'usedTarget': createFulltargetname(packagename, 'mysqlbin'),
             },
 
     createTargets(packagename, buildSettings)
 elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
-    from TargetMaker import EnvBuilder
-    from ThirdParty import add_3rdparty_system_lib_target, add_3rdparty_system_header_target, add_3rdparty_system_binary_target
     from TargetHelpers import createPackageProgramScript, createPackageRunTarget
+    from TargetMaker import EnvBuilder
+    from ThirdParty import (
+        add_3rdparty_system_binary_target,
+        add_3rdparty_system_header_target,
+        add_3rdparty_system_lib_target,
+    )
     includeTarget = add_3rdparty_system_header_target(EnvBuilder().build(), packagename,
                                                       lambda conf: conf.CheckCHeader('mysql/mysql.h'))
 

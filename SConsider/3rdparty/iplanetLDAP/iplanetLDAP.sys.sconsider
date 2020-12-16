@@ -10,24 +10,25 @@
 # -------------------------------------------------------------------------
 
 import pkg_resources
+
 pkg_resources.require(["SConsider"])
 Import('*')
 
 _sconsider_dist = pkg_resources.get_distribution("SConsider").parsed_version
+if _sconsider_dist < pkg_resources.parse_version("0.3.10"):
+    from SConsider.PackageRegistry import createFulltargetname
+else:
+    from SConsider.PackageRegistry import PackageRegistry
+    createFulltargetname = PackageRegistry.createFulltargetname
+
 if _sconsider_dist < pkg_resources.parse_version("0.5"):
     from ConfigureHelper import Configure
-    from SConsider import createTargets, cloneBaseEnv
+
+    from SConsider import cloneBaseEnv, createTargets
+    buildSettings = {}
     env = cloneBaseEnv()
     conf = Configure(env)
     if conf.CheckLibWithHeader('ldap50', 'ldap.h', 'C'):
-        conf.env.Append(CPPDEFINES='HAS_IPLANETLDAP')
-    env = conf.Finish()
-
-    buildSettings = {}
-    if 'HAS_IPLANETLDAP' in env['CPPDEFINES']:
-        buildSettings[packagename] = {
-            'linkDependencies': [packagename + '.ldap50'],
-        }
         buildSettings['ldap50'] = {
             'public': {
                 'appendUnique': {
@@ -35,11 +36,15 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
                 },
             },
         }
-
+        buildSettings[packagename] = {
+            'linkDependencies': [createFulltargetname(packagename, 'ldap50')],
+        }
+    env = conf.Finish()
     createTargets(packagename, buildSettings)
+
 elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
     from TargetMaker import EnvBuilder
-    from ThirdParty import add_3rdparty_system_lib_target, add_3rdparty_system_header_target
+    from ThirdParty import add_3rdparty_system_header_target, add_3rdparty_system_lib_target
     includeTarget = add_3rdparty_system_header_target(EnvBuilder().build(), packagename,
                                                       lambda conf: conf.CheckCHeader('ldap.h'))
 

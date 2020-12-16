@@ -158,6 +158,9 @@ class TargetMaker(object):
             envVars = targetBuildSettings.get('appendUnique', {})
             targetEnv = self.createTargetEnv(targetname, targetBuildSettings, envVars)
             target_type = targetBuildSettings.get('targetType', '__UNDEFINED_TARGETTYPE__')
+            logger.debug('doCreateTarget of type [%s] for [%s]',
+                         'Alias' if target_type == '__UNDEFINED_TARGETTYPE__' else target_type,
+                         self.registry.createFulltargetname(packagename, targetname))
             func = getattr(targetEnv, target_type, None)
             if func:
                 kwargs = {}
@@ -194,8 +197,9 @@ class TargetMaker(object):
             self.requireTargets(targetEnv, target, targetBuildSettings.get('requires', []))
 
             includeTargets = self.copyIncludeFiles(targetEnv, packagename, targetBuildSettings)
-            targetEnv.Depends(target, includeTargets)
-            targetEnv.Alias('includes', includeTargets)
+            if includeTargets:
+                targetEnv.Depends(target, includeTargets)
+                targetEnv.Alias('includes', includeTargets)
 
             if 'copyFiles' in targetBuildSettings:
                 copyTargets = self.copyFiles(targetEnv, targetEnv.getTargetBaseInstallDir(), packagename,

@@ -10,31 +10,41 @@
 # -------------------------------------------------------------------------
 
 import pkg_resources
+
 pkg_resources.require(["SConsider"])
 Import('*')
 
 _sconsider_dist = pkg_resources.get_distribution("SConsider").parsed_version
+if _sconsider_dist < pkg_resources.parse_version("0.3.10"):
+    from SConsider.PackageRegistry import createFulltargetname
+else:
+    from SConsider.PackageRegistry import PackageRegistry
+    createFulltargetname = PackageRegistry.createFulltargetname
+
 if _sconsider_dist < pkg_resources.parse_version("0.5"):
-    from SConsider import createTargets
     from ThirdParty import getBinaryDistDir
+
+    from SConsider import createTargets
     buildSettings = {
         packagename: {
             'linkDependencies': [
-                packagename + '.gxi',
-                packagename + '.gxibasicmatch',
-                packagename + '.gxical',
-                packagename + '.gxiosa',
-                packagename + '.gxiplugin',
-                packagename + '.gxiwmqmsg',
-                packagename + '.gxiwmqprot',
-                packagename + '.gxixil',
-                packagename + '.icudata',
-                packagename + '.icuuc',
+                createFulltargetname(packagename, 'include'),
+                createFulltargetname(packagename, 'gxi'),
+                createFulltargetname(packagename, 'gxibasicmatch'),
+                createFulltargetname(packagename, 'gxical'),
+                createFulltargetname(packagename, 'gxiosa'),
+                createFulltargetname(packagename, 'gxiplugin'),
+                createFulltargetname(packagename, 'gxiwmqmsg'),
+                createFulltargetname(packagename, 'gxiwmqprot'),
+                createFulltargetname(packagename, 'gxixil'),
+                createFulltargetname(packagename, 'icudata'),
+                createFulltargetname(packagename, 'icuuc'),
             ],
-            'targetType': 'IncludeOnly',
+        },
+        'include': {
             'public': {
-                'includeSubdir': 'inc',
-            }
+                'includeSubdir': 'include',
+            },
         },
         'gxi': {
             'sourceFiles': [getBinaryDistDir(packagename).File('gxi')],
@@ -80,8 +90,8 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
 
     createTargets(packagename, buildSettings)
 elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
-    from TargetMaker import EnvBuilder
     from TargetHelpers import installPrecompiledLibraries
+    from TargetMaker import EnvBuilder
 
     includeTarget = EnvBuilder(export=[EnvBuilder().include(Dir('inc'))]).build().RegisterPackageTarget(
         packagename=packagename, targetname='include')
