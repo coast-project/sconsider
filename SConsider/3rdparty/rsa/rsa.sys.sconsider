@@ -35,7 +35,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     if 'HAS_RSA' in env['CPPDEFINES']:
         buildSettings[packagename] = {
             'linkDependencies': [
-                packagename + '.aceclnt',
+                createFulltargetname(packagename, 'aceclnt'),
             ],
         }
         buildSettings['aceclnt'] = {

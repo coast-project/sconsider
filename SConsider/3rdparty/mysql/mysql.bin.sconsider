@@ -28,7 +28,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     buildSettings = {
         packagename: {
             'linkDependencies': [
-                packagename + '.mysqlclient',
+                createFulltargetname(packagename, 'mysqlclient'),
             ],
             'targetType': 'IncludeOnly',
             'public': {
@@ -47,9 +47,9 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             'targetType': 'ProgramApp',
             'runConfig': {},
             'requires': [
-                packagename + '.mysqlclient',
+                createFulltargetname(packagename, 'mysqlclient'),
             ],
-            'usedTarget': packagename + '.mysqlbin',
+            'usedTarget': createFulltargetname(packagename, 'mysqlbin'),
         },
     }
 

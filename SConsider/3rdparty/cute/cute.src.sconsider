@@ -34,8 +34,8 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
         'tests': {
             'targetType': 'ProgramTest',
             'linkDependencies': [
-                PackageRegistry.createFulltargetname(packagename, 'include'),
-                PackageRegistry.createFulltargetname('boost', 'include'),
+                createFulltargetname(packagename, 'include'),
+                createFulltargetname('boost', 'include'),
             ],
             'includeSubdir': 'cute_tests',
             'sourceFiles': listFiles(['cute_tests/*.cpp']),

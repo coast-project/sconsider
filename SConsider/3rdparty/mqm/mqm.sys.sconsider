@@ -35,9 +35,9 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     if 'HAS_MQM' in env['CPPDEFINES']:
         buildSettings[packagename] = {
             'linkDependencies': [
-                packagename + '.mqic',
-                packagename + '.mqiz',
-                packagename + '.mqmcs',
+                createFulltargetname(packagename, 'mqic'),
+                createFulltargetname(packagename, 'mqiz'),
+                createFulltargetname(packagename, 'mqmcs'),
             ],
         }
         buildSettings['mqic'] = {

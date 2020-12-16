@@ -27,8 +27,9 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     from SConsider import createTargets
     buildSettings = {
         packagename: {
-            'linkDependencies': [packagename + '.ldap50'],
-            'targetType': 'IncludeOnly',
+            'linkDependencies': [
+                createFulltargetname(packagename, 'ldap50')
+            ],
             'public': {
                 'includeSubdir': 'include',
             },

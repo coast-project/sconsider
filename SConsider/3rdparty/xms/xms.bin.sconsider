@@ -28,21 +28,20 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     buildSettings = {
         packagename: {
             'linkDependencies': [
-                packagename + '.gxi',
-                packagename + '.gxibasicmatch',
-                packagename + '.gxical',
-                packagename + '.gxiosa',
-                packagename + '.gxiplugin',
-                packagename + '.gxiwmqmsg',
-                packagename + '.gxiwmqprot',
-                packagename + '.gxixil',
-                packagename + '.icudata',
-                packagename + '.icuuc',
+                createFulltargetname(packagename, 'gxi'),
+                createFulltargetname(packagename, 'gxibasicmatch'),
+                createFulltargetname(packagename, 'gxical'),
+                createFulltargetname(packagename, 'gxiosa'),
+                createFulltargetname(packagename, 'gxiplugin'),
+                createFulltargetname(packagename, 'gxiwmqmsg'),
+                createFulltargetname(packagename, 'gxiwmqprot'),
+                createFulltargetname(packagename, 'gxixil'),
+                createFulltargetname(packagename, 'icudata'),
+                createFulltargetname(packagename, 'icuuc'),
             ],
-            'targetType': 'IncludeOnly',
             'public': {
-                'includeSubdir': 'inc',
-            }
+                'includeSubdir': 'include',
+            },
         },
         'gxi': {
             'sourceFiles': [getBinaryDistDir(packagename).File('gxi')],

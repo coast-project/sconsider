@@ -43,14 +43,14 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     if 'HAS_SYBASE' in env['CPPDEFINES']:
         buildSettings[packagename] = {
             'linkDependencies': [
-                packagename + '.sybunic',
-                packagename + '.sybcs',
-                packagename + '.sybct',
-                packagename + '.sybintl',
-                packagename + '.sybtcl',
-                packagename + '.sybcomn',
+                createFulltargetname(packagename, 'sybunic'),
+                createFulltargetname(packagename, 'sybcs'),
+                createFulltargetname(packagename, 'sybct'),
+                createFulltargetname(packagename, 'sybintl'),
+                createFulltargetname(packagename, 'sybtcl'),
+                createFulltargetname(packagename, 'sybcomn'),
             ],
-            'requires': [packagename + '.config'],
+            'requires': [createFulltargetname(packagename, 'config')],
             'targetType': 'IncludeOnly',
         }
         buildSettings['config'] = {
@@ -122,7 +122,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             buildSettings['script_isql'] = {
                 'targetType': 'ProgramApp',
                 'runConfig': {},
-                'usedTarget': packagename + '.isql',
+                'usedTarget': createFulltargetname(packagename, 'isql'),
             }
 
     createTargets(packagename, buildSettings)

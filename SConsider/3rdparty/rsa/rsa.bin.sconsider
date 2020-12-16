@@ -28,7 +28,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     buildSettings = {
         packagename: {
             'linkDependencies': [
-                packagename + '.aceclnt',
+                createFulltargetname(packagename, 'aceclnt'),
             ],
             'targetType': 'IncludeOnly',
             'public': {
