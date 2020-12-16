@@ -1,7 +1,199 @@
 = Changelog
 :ci_commit_link: link:/../commit/
 
+== feature_LibVersioning
+* isort reformattings ({ci_commit_link}0eea3c8[0eea3c8])
+
+
+* don't emitt versioned targets if there is no source target ({ci_commit_link}8897faa[8897faa])
+
+
+* adding include target as dependency only when it is a real target ({ci_commit_link}3c731de[3c731de])
+
+
+* made target specs more specific ({ci_commit_link}e0d2a91[e0d2a91])
+
+
+* combine package and targetname using helper function ({ci_commit_link}03da6bf[03da6bf])
+
+
+* isort reformattings ({ci_commit_link}6484c1e[6484c1e])
+
+
+* adjusted python configs to be black compatible ({ci_commit_link}24ccf2c[24ccf2c])
+
+
+* enhanced binary dist target setup ({ci_commit_link}4c58be5[4c58be5])
+
+
+* import and use backward compatible createFulltargetname ({ci_commit_link}1682d98[1682d98])
+
+
+* 3rdparty-bin section improved ({ci_commit_link}15a4cd8[15a4cd8])
+
+
+* WIP: prepared for multiple library versions ({ci_commit_link}6d3beb7[6d3beb7])
+
+
+* Merge branch 'feature_9-Verify---package-behavior-when-target-is-already-built' into 'develop' ({ci_commit_link}dc3195b[dc3195b])
+
+
+* setuptools needs to be <45 for python2.7 ({ci_commit_link}b93a5ca[b93a5ca])
+
+
+* adapted test assertions ({ci_commit_link}98e2a80[98e2a80])
+
+
+* using more explicit imports ({ci_commit_link}4c1a6ef[4c1a6ef])
+
+
+* refactored getting buildsettings ({ci_commit_link}7854244[7854244])
+
+
+* handling case for empty prerequisites list ({ci_commit_link}10baeee[10baeee])
+
+
+* updated versioneer settings ({ci_commit_link}2555347[2555347])
+
+
+* more files/dirs to ignore ({ci_commit_link}0e93a0b[0e93a0b])
+
+
+* extended hello test with included header file ({ci_commit_link}5ee4936[5ee4936])
+
+
+* SubstInFileBuilder: always build the targets ({ci_commit_link}38253be[38253be])
+
+
+* ignoring 3rdparty files from being put into the compilation database ({ci_commit_link}0bee055[0bee055])
+
+
+* version re adapted to allow for major version lib only too ({ci_commit_link}df64c0b[df64c0b])
+
+
+* added compilation_db to support clang tools ({ci_commit_link}746f21e[746f21e])
+
+
+* reformatted code ({ci_commit_link}735e956[735e956])
+
+
+* re-added required test tools ({ci_commit_link}9f4ac24[9f4ac24])
+
+
+* removed old scons versions from tests ({ci_commit_link}6d81619[6d81619])
+
+
+* fixed package creation in regards to installing dependant libs to packagedir ({ci_commit_link}ce51dc1[ce51dc1])
+
+
+* required scons version changed to 2.5.x ({ci_commit_link}838f209[838f209])
+
+
+* adjusted version re to also match for non patch version libs ({ci_commit_link}c3b1118[c3b1118])
+
+
+* improved systemlib installer for versioned libs ({ci_commit_link}e2783e5[e2783e5])
+
+
+* simplified install node function ({ci_commit_link}a35e1ea[a35e1ea])
+
+
+* extended parameter list with library install directory ({ci_commit_link}985bd06[985bd06])
+
+
+* added installed files emitter for symlinks ({ci_commit_link}f058418[f058418])
+
+
+* adjusted syslibs regex to not include absolute lib links ({ci_commit_link}6f8a732[6f8a732])
+
+
+* added testfile with replacement markers ({ci_commit_link}fdb2923[fdb2923])
+
+
+* removed obsoleted function and tests ({ci_commit_link}b2e74aa[b2e74aa])
+
+
+* adding generated file to list of installed files ({ci_commit_link}209d387[209d387])
+
+
+* moved import block ({ci_commit_link}050fc11[050fc11])
+
+
+* adding substituted file to list of installed files ({ci_commit_link}d36c86e[d36c86e])
+
+
+* using same code to load tools as in other locations ({ci_commit_link}27d4e6e[27d4e6e])
+
+
+* rely on InstallVerionedLib to create symlinks ({ci_commit_link}9176caa[9176caa])
+
+
+* disable pip version check in tox environment ({ci_commit_link}a09a661[a09a661])
+
+
+* using versioned lib installer for systemlibs ({ci_commit_link}ca07085[ca07085])
+
+
+* use of global lock variable corrected ({ci_commit_link}f1e7dfb[f1e7dfb])
+
+
+* refactored copyTarget related code ({ci_commit_link}52db351[52db351])
+
+
+* install tool import and references adjusted ({ci_commit_link}3aae780[3aae780])
+
+
+* adjusted method on how to load required tools ({ci_commit_link}3a090a7[3a090a7])
+
+
+* reformatting changes ({ci_commit_link}664dc61[664dc61])
+
+
+* use copyFunc from install tool ({ci_commit_link}4d1e73d[4d1e73d])
+
+
+* rearranged methods ({ci_commit_link}1a8b85e[1a8b85e])
+
+
+* deleted target list preserving reference semantics ({ci_commit_link}2befb8f[2befb8f])
+
+
+* extended tests for package creation ({ci_commit_link}fd8441e[fd8441e])
+
+
+* changed to using two arguments getBuildSettings function ({ci_commit_link}438b8a8[438b8a8])
+
+
+* Merge branch '11-update-compiler-defines-to-latest-version' into 'master' ({ci_commit_link}8df1a0f[8df1a0f])
+
+
+* changed to better local function names ({ci_commit_link}f3acaad[f3acaad])
+
+
+* shellchecked generated script ({ci_commit_link}224e06e[224e06e])
+
+
+* removed exec and eval which might be unnecessary ({ci_commit_link}0bce33a[0bce33a])
+
+
+* improved logfilename setting in shell execution cases ({ci_commit_link}5ce4495[5ce4495])
+
+
+* fixed problems reported by shellcheck ({ci_commit_link}fac5c8a[fac5c8a])
+
+
+* updated script with latest changes from remote ({ci_commit_link}471ca2e[471ca2e])
+
+
+* Merge tag '0.3.19' into develop ({ci_commit_link}a9676dd[a9676dd])
+
 == tag: 0.3.19
+* Different run target default timeouts for run/test targets ({ci_commit_link}1323159[1323159])
+
+
+* changelog updated ({ci_commit_link}83ede0f[83ede0f])
+
+
 * Bumped version to 0.3.19 ({ci_commit_link}1ad5e2c[1ad5e2c])
 
 
