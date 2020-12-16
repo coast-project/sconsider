@@ -1,7 +1,25 @@
 = Changelog
 :ci_commit_link: link:/../commit/
 
+== tag: 0.3.21
+* keep dist wheels for download ({ci_commit_link}a26a8fb[a26a8fb])
+
+
+* add install tool if not available ({ci_commit_link}0dd877c[0dd877c])
+
+
+* fixed boost include dir ({ci_commit_link}13bd2bb[13bd2bb])
+
+
+* Bumped version to 0.3.21 ({ci_commit_link}f8e5751[f8e5751])
+
 == tag: 0.3.20
+* Merge branch 'tag: 0.3.20' ({ci_commit_link}aa0e3ab[aa0e3ab])
+
+
+* updated changelog ({ci_commit_link}14ff6be[14ff6be])
+
+
 * Bumped version to 0.3.20 ({ci_commit_link}1349192[1349192])
 
 
