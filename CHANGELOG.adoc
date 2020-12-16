@@ -1,7 +1,19 @@
 = Changelog
 :ci_commit_link: link:/../commit/
 
-== feature_LibVersioning
+== tag: 0.3.20
+* Bumped version to 0.3.20 ({ci_commit_link}1349192[1349192])
+
+
+* Merge branch 'feature_LibVersioning' into develop ({ci_commit_link}a12f8cf[a12f8cf])
+
+
+* fixed oracle sqlplpus target error ({ci_commit_link}964a901[964a901])
+
+
+* changelog updated ({ci_commit_link}c0d8ba7[c0d8ba7])
+
+
 * isort reformattings ({ci_commit_link}0eea3c8[0eea3c8])
 
 
