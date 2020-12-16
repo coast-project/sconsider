@@ -128,6 +128,13 @@ def installSystemLibs(source):
     env.Depends(aliasPrefix + sourcenode.name, source_syslibs)
 
 
+def prePackageCollection(env, **_):
+    # ensure we have getBitwidth() and other functions available
+    for required_tool in ['install']:
+        if required_tool not in env['TOOLS']:
+            env.Tool(required_tool)
+
+
 def generate(env, *args, **kw):
     from SCons.Action import ActionFactory
     """Add the options, builders and wrappers to the current Environment."""
