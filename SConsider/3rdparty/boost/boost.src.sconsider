@@ -27,9 +27,11 @@ TARGET_LIBS_AND_HEADERS = [(INCLUDE_TARGET_NAME, 'include', 'boost/version.hpp',
                            ('system', 'boost_system', 'boost/system/error_code.hpp', 'CXX')]
 
 if _sconsider_dist < pkg_resources.parse_version("0.5"):
-    from SConsider import cloneBaseEnv, createTargets
-    from SomeUtils import listFiles
     from os import path
+
+    from SomeUtils import listFiles
+
+    from SConsider import cloneBaseEnv, createTargets
 
     buildSettings = {packagename: {'linkDependencies': [], 'requires': []}}
     _package_link_dependencies = buildSettings.get(packagename, {}).get('linkDependencies', [])
@@ -77,8 +79,9 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     createTargets(packagename, buildSettings)
 
 elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
-    from SomeUtils import listFiles
     from os import path
+
+    from SomeUtils import listFiles
     from TargetHelpers import createPackageSharedLibrary
     from TargetMaker import EnvBuilder
     includeTarget = EnvBuilder(export=[EnvBuilder().include(Dir('.'))]).build().RegisterPackageTarget(

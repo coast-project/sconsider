@@ -10,6 +10,7 @@
 # -------------------------------------------------------------------------
 
 import pkg_resources
+
 pkg_resources.require(["SConsider"])
 Import('*')
 
@@ -22,7 +23,8 @@ else:
 
 if _sconsider_dist < pkg_resources.parse_version("0.5"):
     from ConfigureHelper import Configure
-    from SConsider import createTargets, cloneBaseEnv
+
+    from SConsider import cloneBaseEnv, createTargets
     env = cloneBaseEnv()
     conf = Configure(env)
     if conf.CheckCHeader('cute.h'):
@@ -34,6 +36,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
         buildSettings['include'] = {}
 
     createTargets(packagename, buildSettings)
+
 elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
     from TargetMaker import EnvBuilder
     from ThirdParty import add_3rdparty_system_header_target

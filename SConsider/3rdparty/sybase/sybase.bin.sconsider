@@ -10,10 +10,12 @@
 # -------------------------------------------------------------------------
 
 import pkg_resources
+
 pkg_resources.require(["SConsider"])
 import os
-from SomeUtils import listFiles
 from stat import *
+
+from SomeUtils import listFiles
 
 Import('*')
 
@@ -25,9 +27,10 @@ else:
     createFulltargetname = PackageRegistry.createFulltargetname
 
 if _sconsider_dist < pkg_resources.parse_version("0.5"):
+    from ThirdParty import getBinaryDistDir
+
     from SConsider import createTargets
     from SConsider.PackageRegistry import PackageRegistry
-    from ThirdParty import getBinaryDistDir
     buildSettings = {
         packagename: {
             'linkDependencies': [
@@ -101,8 +104,15 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     createTargets(packagename, buildSettings)
 elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
     import os
+
+    from TargetHelpers import (
+        createCopyFilesTarget,
+        createPackageProgramScripts,
+        createPackageRunTarget,
+        installPrecompiledBinaries,
+        installPrecompiledLibraries,
+    )
     from TargetMaker import EnvBuilder
-    from TargetHelpers import createPackageProgramScripts, installPrecompiledBinaries, installPrecompiledLibraries, createPackageRunTarget, createCopyFilesTarget
 
     includeTarget = EnvBuilder(export=[EnvBuilder().include(Dir('include'))]).build().RegisterPackageTarget(
         packagename=packagename, targetname='include')

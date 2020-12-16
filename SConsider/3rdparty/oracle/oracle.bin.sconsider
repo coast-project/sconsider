@@ -35,11 +35,8 @@ TARGET_LIBS_AND_HEADERS = [
 ]
 
 if _sconsider_dist < pkg_resources.parse_version("0.5"):
-    from ThirdParty import (
-        getBinaryDistDir,
-        determine_3rdparty_bin_node,
-        determine_3rdparty_lib_node,
-    )
+    from ThirdParty import determine_3rdparty_bin_node, determine_3rdparty_lib_node, getBinaryDistDir
+
     from SConsider import cloneBaseEnv, createTargets
 
     buildSettings = {packagename: {'linkDependencies': [], 'requires': []}}
