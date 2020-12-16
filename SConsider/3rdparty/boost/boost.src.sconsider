@@ -22,7 +22,7 @@ else:
     createFulltargetname = PackageRegistry.createFulltargetname
 
 INCLUDE_TARGET_NAME = 'include'
-TARGET_LIBS_AND_HEADERS = [(INCLUDE_TARGET_NAME, 'include', 'boost/version.hpp', 'CXX'),
+TARGET_LIBS_AND_HEADERS = [(INCLUDE_TARGET_NAME, '', 'boost/version.hpp', 'CXX'),
                            ('regex', 'boost_regex', 'boost/regex.h', 'CXX'),
                            ('system', 'boost_system', 'boost/system/error_code.hpp', 'CXX')]
 
