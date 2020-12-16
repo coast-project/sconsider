@@ -94,7 +94,6 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             'requires': [
                 createFulltargetname(packagename, default=True),
                 createFulltargetname(packagename, 'lib_sqlplus'),
-                createFulltargetname(packagename, 'lib_sqlplusic'),
             ],
             'usedTarget': createFulltargetname(packagename, _bin_targetname),
             'runConfig': {},
@@ -104,12 +103,6 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
         buildSettings[_bin_target_aliasname] = {
             'linkDependencies': [
                 createFulltargetname(packagename, _bin_targetname),
-            ],
-        }
-        _script_target_aliasname = 'sqlplus'
-        buildSettings[_script_target_aliasname] = {
-            'linkDependencies': [
-                createFulltargetname(packagename, _script_targetname),
             ],
         }
 
