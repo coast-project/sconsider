@@ -26,11 +26,7 @@ TARGET_LIBS_AND_HEADERS = [(INCLUDE_TARGET_NAME, 'include', 'openssl/ssl.h', 'C'
                            ('ssl', 'ssl', 'openssl/ssl.h', 'C'), ('crypto', 'crypto', 'openssl/ssl.h', 'C')]
 
 if _sconsider_dist < pkg_resources.parse_version("0.5"):
-    from ThirdParty import (
-        determine_3rdparty_bin_node,
-        determine_3rdparty_lib_node,
-        getBinaryDistDir,
-    )
+    from ThirdParty import determine_3rdparty_bin_node, determine_3rdparty_lib_node, getBinaryDistDir
 
     from SConsider import cloneBaseEnv, createTargets
 
