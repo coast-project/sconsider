@@ -44,6 +44,28 @@ def assure_dir_exists(path):
         raise UserError("[%s] is not a valid directory, aborting!" % (path))
 
 
+def determine_3rdparty_lib_node(env, lib_name, lib_path):
+    from precompiledLibraryInstallBuilder import findLibrary
+    from SCons.Script import Dir
+    _srcpath, _srcfile, _, _ = findLibrary(env,
+                                           str(lib_path),
+                                           lib_name,
+                                           dir_has_to_match=True,
+                                           strict_lib_name_matching=False)
+    if _srcpath and _srcfile:
+        return Dir(_srcpath).File(_srcfile)
+    return None
+
+
+def determine_3rdparty_bin_node(env, bin_name, bin_path):
+    from precompiledLibraryInstallBuilder import findBinary
+    from SCons.Script import Dir
+    _srcpath, _srcfile, _ = findBinary(env, str(bin_path), bin_name)
+    if _srcpath and _srcfile:
+        return Dir(_srcpath).File(_srcfile)
+    return None
+
+
 def collectPackages(directory, direxcludesrel=None):
     packages = {}
 

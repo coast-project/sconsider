@@ -10,8 +10,8 @@
 # -------------------------------------------------------------------------
 
 import pkg_resources
+
 pkg_resources.require(["SConsider"])
-from SomeUtils import listFiles
 Import('*')
 
 _sconsider_dist = pkg_resources.get_distribution("SConsider").parsed_version
@@ -21,55 +21,78 @@ else:
     from SConsider.PackageRegistry import PackageRegistry
     createFulltargetname = PackageRegistry.createFulltargetname
 
+INCLUDE_TARGET_NAME = 'include'
+TARGET_LIBS_AND_HEADERS = [(INCLUDE_TARGET_NAME, 'include', 'boost/version.hpp', 'CXX'),
+                           ('regex', 'boost_regex', 'boost/regex.h', 'CXX'),
+                           ('system', 'boost_system', 'boost/system/error_code.hpp', 'CXX')]
+
 if _sconsider_dist < pkg_resources.parse_version("0.5"):
-    from SConsider import createTargets
-    from SConsider.PackageRegistry import PackageRegistry
-    buildSettings = {
-        'include': {
-            'public': {
-                'includeSubdir': '',
-            },
-        },
-        'regex': {
-            'targetType': 'LibraryShared',
-            'targetName': packagename + '_regex',
-            'linkDependencies': [
-                # used to pass public include dirs of boost
-                PackageRegistry.createFulltargetname(packagename, 'include'),
-            ],
-            'sourceFiles': listFiles(['libs/regex/src/*.cpp']),
-            # 'appendUnique'     : {
-            #     'CPPDEFINES'   : ['BOOST_HAS_ICU=1'],
-            #     'LIBS'         : ['icui18n','icuuc'],
-            # },
-        },
-        'system': {
-            'targetType': 'LibraryShared',
-            'targetName': packagename + '_system',
-            'linkDependencies': [
-                # used to pass public include dirs of boost
-                PackageRegistry.createFulltargetname(packagename, 'include'),
-            ],
-            'sourceFiles': listFiles(['libs/system/src/*.cpp']),
-        },
-    }
+    from SConsider import cloneBaseEnv, createTargets
+    from SomeUtils import listFiles
+    from os import path
+
+    buildSettings = {packagename: {'linkDependencies': [], 'requires': []}}
+    _package_link_dependencies = buildSettings.get(packagename, {}).get('linkDependencies', [])
+    _package_requires = buildSettings.get(packagename, {}).get('requires', [])
+
+    env = cloneBaseEnv()
+
+    for _target_name, _real_libname_or_subdir, _headerfile, _lang in TARGET_LIBS_AND_HEADERS:
+        _lib_targetname = '_'.join(['lib', _target_name])
+        if _target_name == INCLUDE_TARGET_NAME:
+            buildSettings[_target_name] = {
+                'public': {
+                    'includeSubdir': _real_libname_or_subdir,
+                },
+            }
+            _package_link_dependencies.append(createFulltargetname(packagename, _target_name))
+        else:
+            buildSettings[_lib_targetname] = {
+                'targetType': 'LibraryShared',
+                'targetName': _real_libname_or_subdir,
+                'sourceFiles': listFiles([path.join('libs', _target_name, 'src', '*.cpp')]),
+                'appendUnique': {},
+                'linkDependencies': [
+                    createFulltargetname(packagename, INCLUDE_TARGET_NAME),  # pass public include dirs
+                ],
+                'public': {
+                    'appendUnique': {},
+                },
+            }
+            # alias to prefixed target
+            buildSettings[_target_name] = {
+                'linkDependencies': [
+                    createFulltargetname(packagename, _lib_targetname),
+                ],
+            }
+            # add default link dependency to package target if needed
+            if False:
+                _package_link_dependencies.append(createFulltargetname(packagename, _lib_targetname))
+                _package_link_dependencies.append(createFulltargetname(packagename, _target_name))
+            # additional flag settings if required
+            if _target_name == 'regex' and False:
+                buildSettings[_lib_targetname]['appendUnique']['CPPDEFINES'] = ['BOOST_HAS_ICU=1']
+                buildSettings[_lib_targetname]['appendUnique']['LIBS'] = ['icui18n', 'icuuc']
 
     createTargets(packagename, buildSettings)
+
 elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
-    from TargetMaker import EnvBuilder
+    from SomeUtils import listFiles
+    from os import path
     from TargetHelpers import createPackageSharedLibrary
+    from TargetMaker import EnvBuilder
     includeTarget = EnvBuilder(export=[EnvBuilder().include(Dir('.'))]).build().RegisterPackageTarget(
         packagename=packagename, targetname='include')
 
     all_libs = []
-    for libname in ['regex', 'system']:
+    for _target_name in ['regex', 'system']:
         shared_lib = createPackageSharedLibrary(packagename,
-                                                'boost_' + libname,
-                                                listFiles(['libs/' + libname + '/src/*.cpp']),
+                                                'boost_' + _target_name,
+                                                listFiles([path.join('libs', _target_name, 'src', '*.cpp')]),
                                                 depend=[includeTarget])
         # register lib with backward compatibility name
         EnvBuilder().depend(shared_lib).build().RegisterPackageTarget(packagename=packagename,
-                                                                      targetname=libname)
+                                                                      targetname=_target_name)
         all_libs.append(shared_lib)
 
     libs = EnvBuilder().depend(all_libs).build().RegisterPackageTarget(packagename=packagename,

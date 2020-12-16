@@ -10,6 +10,7 @@
 # -------------------------------------------------------------------------
 
 import pkg_resources
+
 pkg_resources.require(["SConsider"])
 Import('*')
 
@@ -20,56 +21,91 @@ else:
     from SConsider.PackageRegistry import PackageRegistry
     createFulltargetname = PackageRegistry.createFulltargetname
 
+INCLUDE_TARGET_NAME = 'include'
+TARGET_LIBS_AND_HEADERS = [(INCLUDE_TARGET_NAME, 'include', 'openssl/ssl.h', 'C'),
+                           ('ssl', 'ssl', 'openssl/ssl.h', 'C'), ('crypto', 'crypto', 'openssl/ssl.h', 'C')]
+
 if _sconsider_dist < pkg_resources.parse_version("0.5"):
-    from SConsider import createTargets
-    from ThirdParty import getBinaryDistDir
-    buildSettings = {
-        packagename: {
-            'linkDependencies': [
-                packagename + '.lib_ssl',
-                packagename + '.lib_crypto',
-            ],
-            'targetType': 'IncludeOnly',
-            'public': {
-                'includeSubdir': 'include',
-            },
-        },
-        'lib_ssl': {
-            'sourceFiles': [getBinaryDistDir(packagename).File('ssl')],
-            'targetType': 'PrecompiledLibrary',
-        },
-        'lib_crypto': {
-            'sourceFiles': [getBinaryDistDir(packagename).File('crypto')],
-            'targetType': 'PrecompiledLibrary',
-        },
-        'opensslbin': {
-            'sourceFiles': [getBinaryDistDir(packagename).File('openssl')],
+    from ThirdParty import (
+        getBinaryDistDir,
+        determine_3rdparty_bin_node,
+        determine_3rdparty_lib_node,
+    )
+    from SConsider import cloneBaseEnv, createTargets
+
+    buildSettings = {packagename: {'linkDependencies': [], 'requires': []}}
+    _package_link_dependencies = buildSettings.get(packagename, {}).get('linkDependencies', [])
+    _package_requires = buildSettings.get(packagename, {}).get('requires', [])
+
+    env = cloneBaseEnv()
+
+    for _target_name, _real_libname_or_subdir, _headerfile, _lang in TARGET_LIBS_AND_HEADERS:
+        _lib_targetname = '_'.join(['lib', _target_name])
+        if _target_name == INCLUDE_TARGET_NAME:
+            buildSettings[_target_name] = {
+                'public': {
+                    'includeSubdir': _real_libname_or_subdir,
+                },
+            }
+            _package_link_dependencies.append(createFulltargetname(packagename, _target_name))
+        else:
+            _checked_library = determine_3rdparty_lib_node(env, _real_libname_or_subdir,
+                                                           getBinaryDistDir(packagename))
+            if _checked_library:
+                buildSettings[_lib_targetname] = {
+                    'targetType': 'PrecompiledLibrary',
+                    'sourceFiles': [getBinaryDistDir(packagename).File(_real_libname_or_subdir)],
+                    'appendUnique': {},
+                    'linkDependencies': [
+                        createFulltargetname(packagename, INCLUDE_TARGET_NAME),  # pass public include dirs
+                    ],
+                    'public': {},
+                }
+                # alias to prefixed target
+                buildSettings[_target_name] = {
+                    'linkDependencies': [
+                        createFulltargetname(packagename, _lib_targetname),
+                    ],
+                }
+                _package_link_dependencies.append(createFulltargetname(packagename, _lib_targetname))
+                _package_link_dependencies.append(createFulltargetname(packagename, _target_name))
+
+    _executable_name = 'openssl'
+    _checked_executable = determine_3rdparty_bin_node(env, _executable_name, getBinaryDistDir(packagename))
+    if _checked_executable:
+        _bin_targetname = '_'.join(['bin', _executable_name])
+        buildSettings[_bin_targetname] = {
             'targetType': 'PrecompiledBinary',
-        },
-        'openSSL': {
+            'sourceFiles': [getBinaryDistDir(packagename).File(_executable_name)],
+        }
+        _script_targetname = '_'.join(['script', _executable_name])
+        buildSettings[_script_targetname] = {
             'targetType': 'ProgramApp',
-            'runConfig': {},
             'requires': [
-                packagename + '.lib_ssl',
-                packagename + '.lib_crypto',
+                createFulltargetname(packagename, 'lib_ssl'),
+                createFulltargetname(packagename, 'lib_crypto'),
             ],
-            'usedTarget': packagename + '.opensslbin',
-        },
-        'script_openssl': {
-            'targetType': 'ProgramApp',
+            'usedTarget': createFulltargetname(packagename, _bin_targetname),
             'runConfig': {},
-            'requires': [
-                packagename + '.lib_ssl',
-                packagename + '.lib_crypto',
+        }
+        # alias to prefixed targets
+        _script_target_aliasname = 'openSSL'
+        buildSettings[_script_target_aliasname] = {
+            'linkDependencies': [
+                createFulltargetname(packagename, _script_targetname),
             ],
-            'usedTarget': packagename + '.opensslbin',
-        },
-    }
+        }
 
     createTargets(packagename, buildSettings)
+
 elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
+    from TargetHelpers import (
+        createPackageProgramScripts,
+        createPackageRunTarget,
+        installPrecompiledBinaries,
+        installPrecompiledLibraries,
+    )
     from TargetMaker import EnvBuilder
-    from TargetHelpers import createPackageRunTarget, createPackageProgramScripts, installPrecompiledBinaries, installPrecompiledLibraries
 
     includeTarget = EnvBuilder(export=[EnvBuilder().include(Dir('include'))]).build().RegisterPackageTarget(
         packagename=packagename, targetname='include')
