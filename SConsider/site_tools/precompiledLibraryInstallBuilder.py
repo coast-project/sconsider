@@ -242,6 +242,11 @@ def generate(env):
     from SCons.Tool import install
     import SCons.Defaults
 
+    def _local_add_versioned_targets_to_INSTALLED_FILES(target, source, env):
+        if source:
+            return install.add_versioned_targets_to_INSTALLED_FILES(target, source, env)
+        return (None, None)
+
     SymbolicLinkAction = Action(createSymLink, "Generating symbolic link for '$SOURCE' as '$TARGET'")
     SymbolicLinkBuilder = Builder(
         action=[SymbolicLinkAction],
@@ -256,7 +261,7 @@ def generate(env):
     PrecompLibBuilder = Builder(action=[PrecompLibAction],
                                 emitter=[
                                     precompLibNamesEmitter, SCons.Defaults.SharedObjectEmitter,
-                                    install.add_versioned_targets_to_INSTALLED_FILES
+                                    _local_add_versioned_targets_to_INSTALLED_FILES
                                 ],
                                 multi=0,
                                 source_factory=env.fs.Entry,
