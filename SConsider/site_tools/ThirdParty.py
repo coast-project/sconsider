@@ -17,6 +17,7 @@ import os
 import re
 from logging import getLogger
 from SCons.Script import Dir, GetOption, AddOption, Exit
+from SCons.Errors import UserError
 logger = getLogger(__name__)
 
 thirdPartyPackages = {}
@@ -36,6 +37,33 @@ def hasBinaryDist(packagename):
 
 def getBinaryDistDir(packagename):
     return thirdPartyPackages.get(packagename, {}).get('bin', '')
+
+
+def assure_dir_exists(path):
+    if path and not os.path.isdir(path):
+        raise UserError("[%s] is not a valid directory, aborting!" % (path))
+
+
+def determine_3rdparty_lib_node(env, lib_name, lib_path):
+    from precompiledLibraryInstallBuilder import findLibrary
+    from SCons.Script import Dir
+    _srcpath, _srcfile, _, _ = findLibrary(env,
+                                           str(lib_path),
+                                           lib_name,
+                                           dir_has_to_match=True,
+                                           strict_lib_name_matching=False)
+    if _srcpath and _srcfile:
+        return Dir(_srcpath).File(_srcfile)
+    return None
+
+
+def determine_3rdparty_bin_node(env, bin_name, bin_path):
+    from precompiledLibraryInstallBuilder import findBinary
+    from SCons.Script import Dir
+    _srcpath, _srcfile, _ = findBinary(env, str(bin_path), bin_name)
+    if _srcpath and _srcfile:
+        return Dir(_srcpath).File(_srcfile)
+    return None
 
 
 def collectPackages(directory, direxcludesrel=None):
@@ -121,29 +149,47 @@ def postPackageCollection(env, registry, **kw):
                 if 'sys' not in package:
                     logger.error('Third party system definition for %s not found, aborting!', packagename)
                     Exit(1)
-                path = GetOption('with-' + packagename)
+                _getopt_option_name = 'with-' + packagename
+                path = GetOption(_getopt_option_name)
                 if path:
-                    baseDir = env.Dir(path)
-                    env.AppendUnique(LIBPATH=baseDir.Dir('lib'))
-                    # add first available include dir
-                    includeDirList = os.getenv('INCLUDEDIRLIST', 'include:inc:.').split(':')
-                    for incdir in includeDirList:
+
+                    def _call_func_if_directory(base_dir, sub_dir, call_func=None):
                         try:
-                            includeDir = baseDir.Dir(incdir)
-                            if includeDir.isdir():
-                                env.AppendUnique(CPPPATH=[includeDir])
-                                break
+                            _dir_to_check = os.path.join(base_dir.get_abspath(), sub_dir)
+                            if _dir_to_check and os.path.isdir(_dir_to_check):
+                                _dir_node = Dir(_dir_to_check)
+                                if callable(call_func):
+                                    call_func(_dir_node)
+                                    return True
                         except TypeError:
                             pass
-                    env.PrependENVPath('PATH', baseDir.Dir('bin').get_abspath())
+                        return False
+
+                    assure_dir_exists(path)
+                    baseDir = Dir(path)
+
+                    # add first available lib dir
+                    _default_libdir_list = ':'.join(['lib' + env.getBitwidth(), 'lib', '.'])
+                    for sub_dir in os.getenv('LIBDIRLIST', _default_libdir_list).split(':'):
+                        if _call_func_if_directory(baseDir, sub_dir,
+                                                   lambda _dir: env.AppendUnique(LIBPATH=[_dir])):
+                            break
+                    # add first available include dir
+                    for sub_dir in os.getenv('INCLUDEDIRLIST', 'include:inc:.').split(':'):
+                        if _call_func_if_directory(baseDir, sub_dir,
+                                                   lambda _dir: env.AppendUnique(CPPPATH=[_dir])):
+                            break
+                    _call_func_if_directory(baseDir, 'bin',
+                                            lambda _dir: env.PrependENVPath('PATH', _dir.get_abspath()))
                 logger.debug('using package [%s](%s) in [%s]', packagename, 'sys', package['sys'].get_dir())
                 registry.setPackage(packagename, package['sys'], package['sys'].get_dir(), False)
 
 
 def prePackageCollection(env, **_):
     # we require ConfigureHelper
-    if 'ConfigureHelper' not in env['TOOLS']:
-        env.Tool('ConfigureHelper')
+    for required_tool in ['ConfigureHelper']:
+        if required_tool not in env['TOOLS']:
+            env.Tool(required_tool)
 
 
 def get_third_party_default():
@@ -167,8 +213,8 @@ def generate(env):
               help='Specify directory prefix for third party build output, default=["' + prefix_default +
               '"]')
 
-    Callback().register('PostPackageCollection', postPackageCollection)
     Callback().register('PrePackageCollection', prePackageCollection)
+    Callback().register('PostPackageCollection', postPackageCollection)
 
 
 def exists(env):

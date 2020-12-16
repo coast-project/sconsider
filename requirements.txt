@@ -1,2 +1,2 @@
 -r requirements.no_scons.txt
-scons>1.3,<2.6
+scons~=2.5.0

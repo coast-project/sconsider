@@ -10,14 +10,21 @@
 # -------------------------------------------------------------------------
 
 import pkg_resources
+
 pkg_resources.require(["SConsider"])
 from SomeUtils import listFiles
+
 Import('*')
 
 _sconsider_dist = pkg_resources.get_distribution("SConsider").parsed_version
+if _sconsider_dist < pkg_resources.parse_version("0.3.10"):
+    from SConsider.PackageRegistry import createFulltargetname
+else:
+    from SConsider.PackageRegistry import PackageRegistry
+    createFulltargetname = PackageRegistry.createFulltargetname
+
 if _sconsider_dist < pkg_resources.parse_version("0.5"):
     from SConsider import createTargets
-    from SConsider.PackageRegistry import PackageRegistry
     buildSettings = {
         'include': {
             'public': {
@@ -27,16 +34,16 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
         'objects': {
             'targetType': 'LibraryShared',
             'linkDependencies': [
-                PackageRegistry.createFulltargetname(packagename, 'include'),
+                createFulltargetname(packagename, 'include'),
             ],
             'sourceFiles': listFiles(['src/*.cpp']),
         },
     }
-
     createTargets(packagename, buildSettings)
+
 elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
-    from TargetMaker import EnvBuilder
     from TargetHelpers import createPackageSharedLibrary
+    from TargetMaker import EnvBuilder
     includeTarget = EnvBuilder(export=[EnvBuilder().include(Dir('include'))]).build().RegisterPackageTarget(
         packagename=packagename, targetname='include')
 

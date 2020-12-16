@@ -10,104 +10,113 @@
 # -------------------------------------------------------------------------
 
 import pkg_resources
+
 pkg_resources.require(["SConsider"])
 Import('*')
 
 _sconsider_dist = pkg_resources.get_distribution("SConsider").parsed_version
+if _sconsider_dist < pkg_resources.parse_version("0.3.10"):
+    from SConsider.PackageRegistry import createFulltargetname
+else:
+    from SConsider.PackageRegistry import PackageRegistry
+    createFulltargetname = PackageRegistry.createFulltargetname
+
+INCLUDE_TARGET_NAME = 'include'
+TARGET_LIBS_AND_HEADERS = [
+    (INCLUDE_TARGET_NAME, 'include', 'oci.h', 'C'),
+    ('occi', 'occi', 'oci.h', 'C'),
+    ('clntshcore', 'clntshcore', 'oci.h', 'C'),
+    ('clntsh', 'clntsh', 'oci.h', 'C'),
+    ('nnz', 'nnz', 'oci.h', 'C'),
+    ('ociicus', 'ociicus', 'oci.h', 'C'),  # oci library supporting us character sets
+    ('ociei', 'ociei', 'oci.h', 'C'),  # oci library supporting all character sets
+    ('sqlplus', 'sqlplus', 'oci.h', 'C'),
+    ('sqlplusic', 'sqlplusic', 'oci.h', 'C'),
+]
+
 if _sconsider_dist < pkg_resources.parse_version("0.5"):
     from ConfigureHelper import Configure
-    from SConsider import createTargets, cloneBaseEnv
+
+    from SConsider import cloneBaseEnv, createTargets
+
+    buildSettings = {packagename: {'linkDependencies': [], 'requires': []}}
+    _package_link_dependencies = buildSettings.get(packagename, {}).get('linkDependencies', [])
+    _package_requires = buildSettings.get(packagename, {}).get('requires', [])
+
     env = cloneBaseEnv()
     conf = Configure(env)
-    if conf.CheckCHeader('oci.h') and conf.CheckMultipleLibs(
-        ['occi', 'clntsh', 'nnz11', 'ociicus', 'ociei', 'sqlplus', 'sqlplusic']):
-        conf.env.Append(CPPDEFINES='HAS_ORACLE')
-    sqlplusbin = conf.CheckExecutable('sqlplus')
-    env = conf.Finish()
 
-    buildSettings = {}
-    if 'HAS_ORACLE' in env['CPPDEFINES']:
-        buildSettings[packagename] = {
-            'linkDependencies': [
-                packagename + '.lib_nnz',
-                packagename + '.lib_clntsh',
-            ],
-            'requires': [
-                packagename + '.lib_ociicus',
-            ],
-        }
-        buildSettings['lib_occi'] = {
-            'public': {
-                'appendUnique': {
-                    'LIBS': ['occi'],
-                },
-            },
-        }
-        buildSettings['lib_clntsh'] = {
-            'public': {
-                'appendUnique': {
-                    'LIBS': ['clntsh'],
-                },
-            },
-        }
-        buildSettings['lib_nnz'] = {
-            'public': {
-                'appendUnique': {
-                    'LIBS': ['nnz11'],
-                },
-            },
-        }
-        buildSettings['lib_ociicus'] = {  # us language support library
-            'public': {
-                'appendUnique': {
-                    'LIBS': ['ociicus'],
-                },
-            },
-        }
-        buildSettings[
-            'lib_ociei'] = {  # oci library supporting all character sets
-                'public': {
-                    'appendUnique': {
-                        'LIBS': ['ociei'],
+    for _target_name, _real_libname_or_subdir, _headerfile, _lang in TARGET_LIBS_AND_HEADERS:
+        _lib_targetname = '_'.join(['lib', _target_name])
+        if _target_name == INCLUDE_TARGET_NAME:
+            if conf.CheckHeader(_headerfile, include_quotes='""', language=_lang):
+                buildSettings[_target_name] = {
+                    'public': {},
+                }
+                _package_link_dependencies.append(createFulltargetname(packagename, _target_name))
+        else:
+            if conf.CheckLibWithHeader(_real_libname_or_subdir, _headerfile, _lang):
+                buildSettings[_lib_targetname] = {
+                    'appendUnique': {},
+                    'linkDependencies': [
+                        createFulltargetname(packagename, INCLUDE_TARGET_NAME),  # pass public include dirs
+                    ],
+                    'public': {
+                        'appendUnique': {
+                            'LIBS': [_real_libname_or_subdir],
+                        },
                     },
-                },
-            }
-        buildSettings['lib_sqlplus'] = {
-            'public': {
-                'appendUnique': {
-                    'LIBS': ['sqlplus'],
-                },
-            },
-        }
-        buildSettings['lib_sqlplusic'] = {
-            'public': {
-                'appendUnique': {
-                    'LIBS': ['sqlplusic'],
-                },
-            },
-        }
-        if sqlplusbin:
-            buildSettings['sqlplusbin'] = {
-                'sourceFiles': [sqlplusbin],
-                'targetType': 'InstallBinary',
-            }
-            buildSettings['sqlplus'] = {
-                'targetType': 'ProgramApp',
-                'runConfig': {},
-                'requires': [
-                    packagename + '.' + packagename,
-                    packagename + '.lib_sqlplus',
-                    packagename + '.lib_sqlplusic',
-                ],
-                'usedTarget': packagename + '.sqlplusbin',
-            }
-            buildSettings['script_sqlplus'] = buildSettings['sqlplus']
+                }
+                # add link dependencies to own targets
+                if _target_name in ['clntsh', 'nnz']:
+                    _core_lib_targetname = '_'.join(['lib', 'clntshcore'])
+                    if buildSettings.get(_core_lib_targetname):
+                        buildSettings[_lib_targetname]['linkDependencies'].append(
+                            createFulltargetname(packagename, _core_lib_targetname))
+                # add default link dependency to package target if needed
+                if _target_name in ['clntsh', 'nnz']:
+                    _package_link_dependencies.append(createFulltargetname(packagename, _lib_targetname))
+                # add default requires if needed
+                if _target_name in ['ociicus']:
+                    _package_requires.append(createFulltargetname(packagename, _lib_targetname))
 
+    _executable_name = 'sqlplus'
+    _checked_executable = conf.CheckExecutable(_executable_name)
+    if _checked_executable:
+        _bin_targetname = '_'.join(['bin', _executable_name])
+        buildSettings[_bin_targetname] = {
+            'targetType': 'InstallBinary',
+            'sourceFiles': [_checked_executable],
+        }
+        _script_targetname = '_'.join(['script', _executable_name])
+        buildSettings[_script_targetname] = {
+            'targetType': 'ProgramApp',
+            'requires': [
+                createFulltargetname(packagename, default=True),
+                createFulltargetname(packagename, 'lib_sqlplus'),
+            ],
+            'usedTarget': createFulltargetname(packagename, _bin_targetname),
+            'runConfig': {},
+        }
+        # alias to prefixed targets
+        _bin_target_aliasname = 'sqlplusbin'
+        buildSettings[_bin_target_aliasname] = {
+            'linkDependencies': [
+                createFulltargetname(packagename, _bin_targetname),
+            ],
+        }
+
+    env = conf.Finish()
     createTargets(packagename, buildSettings)
+
 elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
-    from TargetMaker import EnvBuilder
-    from ThirdParty import add_3rdparty_system_lib_target, add_3rdparty_system_header_target, add_3rdparty_system_binary_target
     from TargetHelpers import createPackageProgramScript, createPackageRunTarget
+    from TargetMaker import EnvBuilder
+    from ThirdParty import (
+        add_3rdparty_system_binary_target,
+        add_3rdparty_system_header_target,
+        add_3rdparty_system_lib_target,
+    )
     includeTarget = add_3rdparty_system_header_target(EnvBuilder().build(), packagename,
                                                       lambda conf: conf.CheckCHeader('oci.h'))
 

@@ -10,3 +10,7 @@ dist/
 .tox/
 /coverage/
 /.eggs/
+/.wheels/
+*.orig
+.sconf_temp/
+.sconsign*

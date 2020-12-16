@@ -10,33 +10,73 @@
 # -------------------------------------------------------------------------
 
 import pkg_resources
+
 pkg_resources.require(["SConsider"])
 Import('*')
 
 _sconsider_dist = pkg_resources.get_distribution("SConsider").parsed_version
+if _sconsider_dist < pkg_resources.parse_version("0.3.10"):
+    from SConsider.PackageRegistry import createFulltargetname
+else:
+    from SConsider.PackageRegistry import PackageRegistry
+    createFulltargetname = PackageRegistry.createFulltargetname
+
+INCLUDE_TARGET_NAME = 'include'
+TARGET_LIBS_AND_HEADERS = [(INCLUDE_TARGET_NAME, '', 'zlib.h', 'C'), ('z', 'z', 'zlib.h', 'C')]
+
 if _sconsider_dist < pkg_resources.parse_version("0.5"):
     from ConfigureHelper import Configure
-    from SConsider import createTargets, cloneBaseEnv
+
+    from SConsider import cloneBaseEnv, createTargets
+
+    buildSettings = {packagename: {'linkDependencies': [], 'requires': []}}
+    _package_link_dependencies = buildSettings.get(packagename, {}).get('linkDependencies', [])
+    _package_requires = buildSettings.get(packagename, {}).get('requires', [])
+
     env = cloneBaseEnv()
     conf = Configure(env)
-    if conf.CheckLibWithHeader('z', 'zlib.h', 'C'):
-        conf.env.Append(CPPDEFINES='HAS_ZLIB')
+
+    for _target_name, _real_libname_or_subdir, _headerfile, _lang in TARGET_LIBS_AND_HEADERS:
+        _lib_targetname = '_'.join(['lib', _target_name])
+        if _target_name == INCLUDE_TARGET_NAME:
+            if conf.CheckHeader(_headerfile, include_quotes='""', language=_lang):
+                buildSettings[_target_name] = {
+                    'public': {},
+                }
+                _package_link_dependencies.append(createFulltargetname(packagename, _target_name))
+        else:
+            if conf.CheckLibWithHeader(_real_libname_or_subdir, _headerfile, _lang):
+                buildSettings[_lib_targetname] = {
+                    'appendUnique': {},
+                    'linkDependencies': [
+                        createFulltargetname(packagename, INCLUDE_TARGET_NAME),  # pass public include dirs
+                    ],
+                    'public': {
+                        'appendUnique': {
+                            'LIBS': [_real_libname_or_subdir],
+                        },
+                    },
+                }
+                # alias to prefixed target
+                buildSettings[_target_name] = {
+                    'linkDependencies': [
+                        createFulltargetname(packagename, _lib_targetname),
+                    ],
+                }
+                # add default link dependency to package target if needed
+                if True:
+                    _package_link_dependencies.append(createFulltargetname(packagename, _lib_targetname))
+                    _package_link_dependencies.append(createFulltargetname(packagename, _target_name))
+                # add default requires if needed
+                if False:
+                    _package_requires.append(createFulltargetname(packagename, _lib_targetname))
+
     env = conf.Finish()
-
-    buildSettings = {}
-    if 'HAS_ZLIB' in env['CPPDEFINES']:
-        buildSettings[packagename] = {
-            'public': {
-                'appendUnique': {
-                    'LIBS': ['z'],
-                },
-            },
-        }
-
     createTargets(packagename, buildSettings)
+
 elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
     from TargetMaker import EnvBuilder
-    from ThirdParty import add_3rdparty_system_lib_target, add_3rdparty_system_header_target
+    from ThirdParty import add_3rdparty_system_header_target, add_3rdparty_system_lib_target
     includeTarget = add_3rdparty_system_header_target(EnvBuilder().build(), packagename,
                                                       lambda conf: conf.CheckCHeader('zlib.h'))
 

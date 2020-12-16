@@ -11,8 +11,24 @@
 
 import pkg_resources
 pkg_resources.require(["SConsider"])
-from SomeUtils import listFiles
+import os
+from socket import gethostbyname
+from tempfile import gettempdir
+from stat import *
+from SomeUtils import findFiles, listFiles, getfqdn
+
 Import('*')
+
+configdir = 'config'
+hostname, domain, fqdn = getfqdn()
+
+searchReplaceDict = {
+    'FQDN': fqdn,
+    'HOSTNAME': hostname,
+    'HOSTNAMEIP': gethostbyname(hostname),
+    'DOMAINONLY': domain,
+    'TMPDIR': lambda env: gettempdir() if str(env['PLATFORM']) in ['cygwin', 'win32'] else '/tmp',
+}
 
 
 def setUp(target, source, env):
@@ -23,9 +39,17 @@ def tearDown(target, source, env):
     pass
 
 
+programDepends = []
 sourceFiles = ['hello.cpp']
+includeSubdir = '.'
+exportIncludes = listFiles([os.path.join(includeSubdir, '*.h')])
+copyFiles = [
+    (listFiles([os.path.join(configdir, '*.any')]), S_IRUSR | S_IRGRP | S_IROTH, searchReplaceDict),
+]
 bin_name = 'hello'
 runConfigRunner = {
+    'setUp': setUp,
+    'tearDown': tearDown,
     'runParams': '',
 }
 
@@ -34,30 +58,56 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     from SConsider import createTargets
     buildSettings = {
         packagename: {
+            'linkDependencies': programDepends,
             'sourceFiles': sourceFiles,
             'targetType': 'Program',
             'targetName': bin_name,
+            'includeSubdir': includeSubdir,
+            'public': {
+                'includeSubdir': includeSubdir,
+                'includes': exportIncludes,
+            }
         },
         'runner': {
             'targetType': 'ProgramApp',
             'targetName': bin_name + 'runner',
             'usedTarget': packagename + '.' + packagename,
+            'copyFiles': copyFiles,
             'runConfig': runConfigRunner,
         },
     }
 
     createTargets(packagename, buildSettings)
+
 elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
-    import os
     from TargetMaker import EnvBuilder
-    from TargetHelpers import createPackageTestTarget, createPackageRunTarget, createPackageProgramScript, createPackageProgram, createAlias
+    from TargetHelpers import createCopyFilesTarget, createPackageTestTarget, createPackageRunTarget, createPackageProgramScript, createPackageProgram, createAlias
 
     def setRelTargetDir(env, prefix='apps'):
         env.setRelativeTargetDirectory(os.path.join(prefix, packagename))
 
-    bin_target = createPackageProgram(packagename, bin_name, sourceFiles, pkg_local=[setRelTargetDir])
+    # create own library
+    includeTarget = EnvBuilder(
+        export=[EnvBuilder().include(Dir(includeSubdir))]).build().RegisterPackageTarget(
+            packagename=packagename, targetname='include')
 
-    script_target = createPackageProgramScript(packagename, bin_name, bin_target, pkg_local=[setRelTargetDir])
+    bin_target = createPackageProgram(packagename,
+                                      bin_name,
+                                      sourceFiles,
+                                      depend=[includeTarget],
+                                      pkg_local=[setRelTargetDir])
+
+    copyTarget = createCopyFilesTarget(packagename,
+                                       'configfiles',
+                                       lambda env: env.getTargetBaseInstallDir(),
+                                       copyFiles,
+                                       pkg_local=[setRelTargetDir])
+
+    script_target = createPackageProgramScript(packagename,
+                                               bin_name,
+                                               bin_target,
+                                               depend=copyTarget,
+                                               pkg_local=[setRelTargetDir])
 
     runner_target = createPackageRunTarget(packagename, 'runner', script_target, settings=runConfigRunner)
 
@@ -67,5 +117,6 @@ elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
 
     createAlias('binaries', runner_target)
 
-    EnvBuilder().depend(bin_target, script_target).build().RegisterPackageTarget(packagename=packagename,
-                                                                                 targetname=packagename)
+    EnvBuilder().depend(includeTarget, bin_target,
+                        script_target).build().RegisterPackageTarget(packagename=packagename,
+                                                                     targetname=packagename)

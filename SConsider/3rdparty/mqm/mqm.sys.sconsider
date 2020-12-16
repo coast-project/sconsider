@@ -10,54 +10,51 @@
 # -------------------------------------------------------------------------
 
 import pkg_resources
+
 pkg_resources.require(["SConsider"])
 Import('*')
 
 _sconsider_dist = pkg_resources.get_distribution("SConsider").parsed_version
+if _sconsider_dist < pkg_resources.parse_version("0.3.10"):
+    from SConsider.PackageRegistry import createFulltargetname
+else:
+    from SConsider.PackageRegistry import PackageRegistry
+    createFulltargetname = PackageRegistry.createFulltargetname
+
 if _sconsider_dist < pkg_resources.parse_version("0.5"):
     from ConfigureHelper import Configure
-    from SConsider import createTargets, cloneBaseEnv
+
+    from SConsider import cloneBaseEnv, createTargets
+    buildSettings = {}
     env = cloneBaseEnv()
     conf = Configure(env)
-    if conf.CheckCHeader('cmqc.h') and conf.CheckMultipleLibs(['mqic', 'mqiz', 'mqmcs']):
-        conf.env.Append(CPPDEFINES='HAS_MQM')
+    if conf.CheckCHeader('cmqc.h'):
+        buildSettings['include'] = {}
+    for _libname in ['mqic', 'mqiz', 'mqmcs']:
+        if conf.CheckLib(_libname):
+            buildSettings['_'.join(['lib', _libname])] = {
+                'public': {
+                    'appendUnique': {
+                        'LIBS': [_libname],
+                    },
+                },
+            }
+
     env = conf.Finish()
 
-    buildSettings = {}
     if 'HAS_MQM' in env['CPPDEFINES']:
         buildSettings[packagename] = {
             'linkDependencies': [
-                packagename + '.mqic',
-                packagename + '.mqiz',
-                packagename + '.mqmcs',
+                createFulltargetname(packagename, 'mqic'),
+                createFulltargetname(packagename, 'mqiz'),
+                createFulltargetname(packagename, 'mqmcs'),
             ],
-        }
-        buildSettings['mqic'] = {
-            'public': {
-                'appendUnique': {
-                    'LIBS': ['mqic'],
-                },
-            },
-        }
-        buildSettings['mqiz'] = {
-            'public': {
-                'appendUnique': {
-                    'LIBS': ['mqiz'],
-                },
-            },
-        }
-        buildSettings['mqmcs'] = {
-            'public': {
-                'appendUnique': {
-                    'LIBS': ['mqmcs'],
-                },
-            },
         }
 
     createTargets(packagename, buildSettings)
 elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
     from TargetMaker import EnvBuilder
-    from ThirdParty import add_3rdparty_system_lib_target, add_3rdparty_system_header_target
+    from ThirdParty import add_3rdparty_system_header_target, add_3rdparty_system_lib_target
     includeTarget = add_3rdparty_system_header_target(EnvBuilder().build(), packagename,
                                                       lambda conf: conf.CheckCHeader('cmqc.h'))
 

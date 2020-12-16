@@ -10,13 +10,21 @@
 # -------------------------------------------------------------------------
 
 import pkg_resources
+
 pkg_resources.require(["SConsider"])
 Import('*')
 
 _sconsider_dist = pkg_resources.get_distribution("SConsider").parsed_version
+if _sconsider_dist < pkg_resources.parse_version("0.3.10"):
+    from SConsider.PackageRegistry import createFulltargetname
+else:
+    from SConsider.PackageRegistry import PackageRegistry
+    createFulltargetname = PackageRegistry.createFulltargetname
+
 if _sconsider_dist < pkg_resources.parse_version("0.5"):
     from ConfigureHelper import Configure
-    from SConsider import createTargets, cloneBaseEnv
+
+    from SConsider import cloneBaseEnv, createTargets
     env = cloneBaseEnv()
     conf = Configure(env)
     if conf.CheckCHeader('xms.h') and conf.CheckMultipleLibs([
@@ -30,16 +38,16 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     if 'HAS_XMS' in env['CPPDEFINES']:
         buildSettings[packagename] = {
             'linkDependencies': [
-                packagename + '.gxi',
-                packagename + '.gxibasicmatch',
-                packagename + '.gxical',
-                packagename + '.gxiosa',
-                packagename + '.gxiplugin',
-                packagename + '.gxiwmqmsg',
-                packagename + '.gxiwmqprot',
-                packagename + '.gxixil',
-                packagename + '.icudata',
-                packagename + '.icuuc',
+                createFulltargetname(packagename, 'gxi'),
+                createFulltargetname(packagename, 'gxibasicmatch'),
+                createFulltargetname(packagename, 'gxical'),
+                createFulltargetname(packagename, 'gxiosa'),
+                createFulltargetname(packagename, 'gxiplugin'),
+                createFulltargetname(packagename, 'gxiwmqmsg'),
+                createFulltargetname(packagename, 'gxiwmqprot'),
+                createFulltargetname(packagename, 'gxixil'),
+                createFulltargetname(packagename, 'icudata'),
+                createFulltargetname(packagename, 'icuuc'),
             ],
             'targetType': 'IncludeOnly',
         }
@@ -117,7 +125,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     createTargets(packagename, buildSettings)
 elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
     from TargetMaker import EnvBuilder
-    from ThirdParty import add_3rdparty_system_lib_target, add_3rdparty_system_header_target
+    from ThirdParty import add_3rdparty_system_header_target, add_3rdparty_system_lib_target
     includeTarget = add_3rdparty_system_header_target(EnvBuilder().build(), packagename,
                                                       lambda conf: conf.CheckCHeader('xms.h'))
 

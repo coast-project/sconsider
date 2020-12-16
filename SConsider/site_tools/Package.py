@@ -18,7 +18,7 @@ import re
 import os
 import threading
 from logging import getLogger
-from SConsider.SomeUtils import hasPathPart, isDerivedNode, multiple_replace, isFileNode, allFuncs, getNodeDependencies
+from SConsider.SomeUtils import hasPathPart, isDerivedNode, multiple_replace, isFileNode, allFuncs
 logger = getLogger(__name__)
 
 # needs locking because it is manipulated during multi-threaded build phase
@@ -48,6 +48,25 @@ def addPackageTarget(registry, buildTargets, env, destdir, **kw):
     buildTargets.append(packageAliasName)
 
 
+def reduceToPackageFiles(install_nodes, filters=None):
+    """Reduce the list of targets to only those required for the package.
+
+    Specify additional target filters using 'filters'.
+    """
+    if filters is None:
+        filters = []
+    if not isinstance(filters, list):
+        filters = [filters]
+    filters = [isFileNode] + filters
+
+    deps = set()
+    for t in install_nodes:
+        if allFuncs(filters, t):
+            deps.add(t)
+
+    return deps
+
+
 def makePackage(registry, buildTargets, env, destdir, **kw):
     def isNotInBuilddir(node):
         return not hasPathPart(node, pathpart=env.getRelativeBuildDirectory())
@@ -68,60 +87,61 @@ def makePackage(registry, buildTargets, env, destdir, **kw):
     copyfilters = [filterBaseOutDir, filterTestsAppsGlobalsPath, filterVariantPath]
     for tn in buildTargets:
         if registry.isValidFulltargetname(tn):
-            tdeps = getTargetDependencies(
-                env.Alias(tn)[0], [isDerivedNode, isNotInBuilddir, isNotIncludeFile])
-            copyPackage(tn, tdeps, env, destdir, copyfilters)
+            installed_files = env.FindInstalledFiles()
+            reduced_targets = reduceToPackageFiles(installed_files,
+                                                   [isDerivedNode, isNotInBuilddir, isNotIncludeFile])
+            copyPackage(tn, reduced_targets, env, destdir, copyfilters)
 
 
-def copyPackage(name, deps, env, destdir, filters=None):
+def copyPackage(name, deps, env, package_destdir, filters=None):
     for target in deps:
-        copyTarget(env, determineDirInPackage(name, env, destdir, target, filters), target)
+        packagetarget_destdir = determineDirInPackage(name, env, package_destdir, target, filters)
+        copyTarget(env, packagetarget_destdir, target, package_destdir)
 
 
-def install_or_link_node(env, destdir, node):
-    def install_node_to_destdir(targets_list, node, destdir):
+def copyTarget(env, packagetarget_destdir, node, package_destdir):
+    old = env.Alias(packagetarget_destdir.File(node.name))
+    if old and old[0].sources:
+        if isInstalledNode(node, old[0].sources[0]) or isInstalledNode(old[0].sources[0], node):
+            return None
+    target = install_or_link_node(env, packagetarget_destdir, node, package_destdir)
+    env.Alias(packageAliasName, target)
+    return target
+
+
+def install_or_link_node(env, packagetarget_destdir, node, package_destdir):
+    def rel_installed_path(packagetarget_destdir, package_destdir, node):
+        return package_destdir.rel_path(packagetarget_destdir) + os.sep + node.name
+
+    def install_node_to_destdir(targets_list, node, packagetarget_destdir, package_destdir):
         from stat import S_IRUSR, S_IRGRP, S_IROTH, S_IXUSR
         from SCons.Defaults import Chmod
         # ensure executable flag on installed shared libs
         mode = S_IRUSR | S_IRGRP | S_IROTH | S_IXUSR
-        node_name = node.name
-        if node_name in targets_list:
-            return targets_list[node_name]
-        install_path = env.makeInstallablePathFromDir(destdir)
+        rel_node_path = rel_installed_path(packagetarget_destdir, package_destdir, node)
+        if rel_node_path in targets_list:
+            return targets_list[rel_node_path]
+        install_path = env.makeInstallablePathFromDir(packagetarget_destdir)
         target = env.Install(dir=install_path, source=node)
         env.AddPostAction(target, Chmod(str(target[0]), mode))
-        targets_list[node_name] = target
+        targets_list[rel_node_path] = target
         return target
+
+    global packageTargets, packageTargetsRLock
 
     # build phase could be multi-threaded
     with packageTargetsRLock:
         # take care of already created targets otherwise we would have
         # multiple ways to build the same target
-        global packageTargets
-        node_name = node.name
-        if node_name in packageTargets:
-            target = packageTargets[node_name]
-        else:
-            install_node = node
-            is_link = node.islink()
-            if is_link:
-                install_node = node.sources[0]
-            target = install_node_to_destdir(packageTargets, install_node, destdir)
-            if is_link:
-                target = env.Symlink(target[0].get_dir().File(node_name), target)
+        target = install_node_to_destdir(packageTargets, node, packagetarget_destdir, package_destdir)
+        for side_effect in node.side_effects:
+            rel_node_path = rel_installed_path(packagetarget_destdir, package_destdir, side_effect)
+            if rel_node_path not in packageTargets:
+                node_name = side_effect.name
+                ln_target = env.Symlink(packagetarget_destdir.File(node_name), target[0])
+                packageTargets[rel_node_path] = ln_target
+                target.append(ln_target)
 
-                packageTargets[node_name] = target
-
-    return target
-
-
-def copyTarget(env, destdir, node):
-    old = env.Alias(destdir.File(node.name))
-    if old and old[0].sources:
-        if isInstalledNode(node, old[0].sources[0]) or isInstalledNode(old[0].sources[0], node):
-            return None
-    target = install_or_link_node(env, destdir, node)
-    env.Alias(packageAliasName, target)
     return target
 
 
@@ -208,24 +228,3 @@ def generate(env):
 
 def exists(env):
     return 1
-
-
-def getTargetDependencies(target, filters=None):
-    """Determines the recursive dependencies of a target (including itself).
-
-    Specify additional target filters using 'filters'.
-    """
-    if filters is None:
-        filters = []
-    if not isinstance(filters, list):
-        filters = [filters]
-    filters = [isFileNode] + filters
-
-    deps = set()
-    if allFuncs(filters, target):
-        executor = target.get_executor()
-        if executor is not None:
-            deps.update(executor.get_all_targets())
-    deps.update(getNodeDependencies(target, filters))
-
-    return deps

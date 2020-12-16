@@ -10,16 +10,26 @@
 # -------------------------------------------------------------------------
 
 import pkg_resources
+
 pkg_resources.require(["SConsider"])
 import os
 from stat import *
+
 from SomeUtils import listFiles
+
 Import('*')
 
 _sconsider_dist = pkg_resources.get_distribution("SConsider").parsed_version
+if _sconsider_dist < pkg_resources.parse_version("0.3.10"):
+    from SConsider.PackageRegistry import createFulltargetname
+else:
+    from SConsider.PackageRegistry import PackageRegistry
+    createFulltargetname = PackageRegistry.createFulltargetname
+
 if _sconsider_dist < pkg_resources.parse_version("0.5"):
     from ConfigureHelper import Configure
-    from SConsider import createTargets, cloneBaseEnv
+
+    from SConsider import cloneBaseEnv, createTargets
     from SConsider.PackageRegistry import PackageRegistry
     env = cloneBaseEnv()
     conf = Configure(env)
@@ -33,14 +43,14 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     if 'HAS_SYBASE' in env['CPPDEFINES']:
         buildSettings[packagename] = {
             'linkDependencies': [
-                packagename + '.sybunic',
-                packagename + '.sybcs',
-                packagename + '.sybct',
-                packagename + '.sybintl',
-                packagename + '.sybtcl',
-                packagename + '.sybcomn',
+                createFulltargetname(packagename, 'sybunic'),
+                createFulltargetname(packagename, 'sybcs'),
+                createFulltargetname(packagename, 'sybct'),
+                createFulltargetname(packagename, 'sybintl'),
+                createFulltargetname(packagename, 'sybtcl'),
+                createFulltargetname(packagename, 'sybcomn'),
             ],
-            'requires': [packagename + '.config'],
+            'requires': [createFulltargetname(packagename, 'config')],
             'targetType': 'IncludeOnly',
         }
         buildSettings['config'] = {
@@ -102,7 +112,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             },
         }
         if isqlbin:
-            buildSettings['isql'] = {
+            buildSettings['bin_isql'] = {
                 'sourceFiles': [isqlbin],
                 'requires': [
                     PackageRegistry.createFulltargetname(packagename, 'config'),
@@ -112,15 +122,20 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             buildSettings['script_isql'] = {
                 'targetType': 'ProgramApp',
                 'runConfig': {},
-                'usedTarget': packagename + '.isql',
+                'usedTarget': createFulltargetname(packagename, 'bin_isql'),
             }
 
     createTargets(packagename, buildSettings)
 elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
     import os
-    from TargetMaker import EnvBuilder
-    from ThirdParty import add_3rdparty_system_lib_target, add_3rdparty_system_header_target, add_3rdparty_system_binary_target
+
     from TargetHelpers import createPackageProgramScript, createPackageRunTarget
+    from TargetMaker import EnvBuilder
+    from ThirdParty import (
+        add_3rdparty_system_binary_target,
+        add_3rdparty_system_header_target,
+        add_3rdparty_system_lib_target,
+    )
     includeTarget = add_3rdparty_system_header_target(EnvBuilder().build(), packagename,
                                                       lambda conf: conf.CheckCHeader('sybdb.h'))
 
