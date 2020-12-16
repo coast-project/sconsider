@@ -25,16 +25,12 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     from ConfigureHelper import Configure
 
     from SConsider import cloneBaseEnv, createTargets
+    buildSettings = {}
     env = cloneBaseEnv()
     conf = Configure(env)
     if conf.CheckCHeader('cute.h'):
-        conf.env.Append(CPPDEFINES='HAS_CUTE')
-    env = conf.Finish()
-
-    buildSettings = {}
-    if 'HAS_CUTE' in env['CPPDEFINES']:
         buildSettings['include'] = {}
-
+    env = conf.Finish()
     createTargets(packagename, buildSettings)
 
 elif _sconsider_dist >= pkg_resources.parse_version("0.5"):

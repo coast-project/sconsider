@@ -28,14 +28,16 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     buildSettings = {
         packagename: {
             'linkDependencies': [
-                createFulltargetname(packagename, 'aceclnt'),
+                createFulltargetname(packagename, 'include'),
+                createFulltargetname(packagename, 'lib_aceclnt'),
             ],
-            'targetType': 'IncludeOnly',
+        },
+        'include': {
             'public': {
                 'includeSubdir': 'include',
             },
         },
-        'aceclnt': {
+        'lib_aceclnt': {
             'sourceFiles': [getBinaryDistDir(packagename).File('aceclnt')],
             'targetType': 'PrecompiledLibrary',
         },

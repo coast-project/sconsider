@@ -28,13 +28,16 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     buildSettings = {
         packagename: {
             'linkDependencies': [
-                createFulltargetname(packagename, 'ldap50')
+                createFulltargetname(packagename, 'include'),
+                createFulltargetname(packagename, 'lib_ldap')
             ],
+        },
+        'include': {
             'public': {
                 'includeSubdir': 'include',
             },
         },
-        'ldap50': {
+        'lib_ldap': {
             'sourceFiles': [getBinaryDistDir(packagename).File('ldap50')],
             'targetType': 'PrecompiledLibrary',
         },
@@ -48,7 +51,7 @@ elif _sconsider_dist >= pkg_resources.parse_version("0.5"):
     includeTarget = EnvBuilder(export=[EnvBuilder().include(Dir('include'))]).build().RegisterPackageTarget(
         packagename=packagename, targetname='include')
 
-    libnames = [('ldap50', 'lib_iplanetLDAP')]
+    libnames = [('ldap50', 'lib_ldap')]
     libs_installed = installPrecompiledLibraries(packagename, libnames)
     libs = EnvBuilder().depend(libs_installed).build().RegisterPackageTarget(packagename=packagename,
                                                                              targetname='libs')

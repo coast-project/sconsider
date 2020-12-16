@@ -23,16 +23,14 @@ else:
 
 if _sconsider_dist < pkg_resources.parse_version("0.5"):
     from ConfigureHelper import Configure
-    from SConsider import createTargets, cloneBaseEnv
+
+    from SConsider import cloneBaseEnv, createTargets
+    buildSettings = {}
     env = cloneBaseEnv()
     conf = Configure(env)
-    if conf.CheckLibWithHeader('loki', 'loki/SmartPtr.h', 'CXX'):
-        conf.env.Append(CPPDEFINES='HAS_LOKI')
-    env = conf.Finish()
-
-    buildSettings = {}
-    if 'HAS_LOKI' in env['CPPDEFINES']:
+    if conf.CheckCXXHeader('loki/SmartPtr.h'):
         buildSettings['include'] = {}
+    if conf.CheckLibWithHeader('loki', 'loki/SmartPtr.h', 'CXX'):
         buildSettings['lokiObjects'] = {
             'public': {
                 'appendUnique': {
@@ -40,7 +38,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
                 },
             },
         }
-
+    conf.Finish()
     createTargets(packagename, buildSettings)
 
 elif _sconsider_dist >= pkg_resources.parse_version("0.5"):

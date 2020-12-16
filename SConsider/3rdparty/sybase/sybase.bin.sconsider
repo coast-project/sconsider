@@ -34,6 +34,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     buildSettings = {
         packagename: {
             'linkDependencies': [
+                createFulltargetname(packagename, 'include'),
                 createFulltargetname(packagename, 'sybunic'),
                 createFulltargetname(packagename, 'sybcs'),
                 createFulltargetname(packagename, 'sybct'),
@@ -42,6 +43,8 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
                 createFulltargetname(packagename, 'sybcomn'),
             ],
             'requires': [createFulltargetname(packagename, 'config')],
+        },
+        'include': {
             'public': {
                 'includeSubdir': 'include',
             },
@@ -86,7 +89,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             'sourceFiles': [getBinaryDistDir(packagename).File('sybcomn')],
             'targetType': 'PrecompiledLibrary',
         },
-        'isql': {
+        'bin_isql': {
             'sourceFiles': [getBinaryDistDir(packagename).File('isql')],
             'requires': [
                 PackageRegistry.createFulltargetname(packagename, 'config'),
@@ -96,7 +99,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
         'script_isql': {
             'targetType': 'ProgramApp',
             'runConfig': {},
-            'usedTarget': createFulltargetname(packagename, 'isql'),
+            'usedTarget': createFulltargetname(packagename, 'bin_isql'),
         },
     }
 

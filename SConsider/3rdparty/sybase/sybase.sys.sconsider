@@ -112,7 +112,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             },
         }
         if isqlbin:
-            buildSettings['isql'] = {
+            buildSettings['bin_isql'] = {
                 'sourceFiles': [isqlbin],
                 'requires': [
                     PackageRegistry.createFulltargetname(packagename, 'config'),
@@ -122,7 +122,7 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             buildSettings['script_isql'] = {
                 'targetType': 'ProgramApp',
                 'runConfig': {},
-                'usedTarget': createFulltargetname(packagename, 'isql'),
+                'usedTarget': createFulltargetname(packagename, 'bin_isql'),
             }
 
     createTargets(packagename, buildSettings)

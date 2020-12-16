@@ -28,18 +28,20 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
     buildSettings = {
         packagename: {
             'linkDependencies': [
-                createFulltargetname(packagename, 'mysqlclient'),
+                createFulltargetname(packagename, 'include'),
+                createFulltargetname(packagename, 'lib_mysql'),
             ],
-            'targetType': 'IncludeOnly',
+        },
+        'include': {
             'public': {
                 'includeSubdir': 'include',
             },
         },
-        'mysqlclient': {
+        'lib_mysql': {
             'sourceFiles': [getBinaryDistDir(packagename).File('mysql')],
             'targetType': 'PrecompiledLibrary',
         },
-        'mysqlbin': {
+        'bin_mysql': {
             'sourceFiles': [getBinaryDistDir(packagename).File('mysql')],
             'targetType': 'PrecompiledBinary',
         },
@@ -47,9 +49,9 @@ if _sconsider_dist < pkg_resources.parse_version("0.5"):
             'targetType': 'ProgramApp',
             'runConfig': {},
             'requires': [
-                createFulltargetname(packagename, 'mysqlclient'),
+                createFulltargetname(packagename, 'lib_mysql'),
             ],
-            'usedTarget': createFulltargetname(packagename, 'mysqlbin'),
+            'usedTarget': createFulltargetname(packagename, 'bin_mysql'),
         },
     }
 
